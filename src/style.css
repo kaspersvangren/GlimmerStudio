@@ -52,6 +52,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .mirror{position:relative;height:calc(100% - 16px);aspect-ratio:800/1100;max-width:calc(100% - 16px);border-radius:50% 50% 30px 30px / 34% 34% 30px 30px;border:10px solid var(--frame);box-shadow:0 0 0 3px #F6B6D3, 0 14px 30px rgba(123,92,255,.18);background:#FFF3F8;overflow:visible}
 .mirror img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;display:block;object-fit:cover}
 .mirror.pop img{animation:pop .35s ease-out}
+.mirror.zoom img{animation:zoomin .32s ease-out}
+@keyframes zoomin{0%{transform:scale(.94);opacity:.5}100%{transform:scale(1);opacity:1}}
 @keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.015)}100%{transform:scale(1)}}
 .bulb{position:absolute;width:13px;height:13px;border-radius:50%;background:var(--bulb);box-shadow:0 0 8px 2px #FFE98A, inset 0 -2px 0 #F2D36B;transform:translate(-50%,-50%);animation:twinkle 2.4s ease-in-out infinite}
 @keyframes twinkle{0%,100%{opacity:1}50%{opacity:.55}}
@@ -101,4 +103,4 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .modal h2{margin:0;font-family:var(--display);font-weight:600;font-size:24px}
 .modal .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 
-@media (prefers-reduced-motion: reduce){ .bulb{animation:none} .mirror.pop img{animation:none} .toggle .knob,.toggle .knob::after{transition:none} }
+@media (prefers-reduced-motion: reduce){ .bulb{animation:none} .mirror.pop img,.mirror.zoom img{animation:none} .toggle .knob,.toggle .knob::after{transition:none} }

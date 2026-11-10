@@ -1,6 +1,6 @@
 'use strict';
 /* ================= Glimmerstudiet — skaberen ================= */
-const VERSION = 'v0.2.0';
+const VERSION = 'v0.2.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -23,6 +23,17 @@ const FUR = ['#FFFFFF','#F5EEFF','#FFE9D6','#F2D9B8','#E0B98A','#C68653','#8A5A3
 const VB = { head:'150 110 500 500', hair:'40 80 720 820', eye:'226 352 190 170', lips:'348 494 104 72', face:'190 310 420 290',
   top:'240 570 320 320', bottom:'230 715 340 340', shoes:'270 900 260 180', neck:'300 560 200 140', hand:'400 620 300 300', pet:'520 750 280 310' };
 const STAGE_PET_VB = '440 600 360 495';
+/* zoom i spejlet pr. fane: [midte x, midte y, bredde]; højden følger spejlets form (1100/800) */
+const ZOOM = { hud:[400,470,560], oejne:[400,440,380], makeup:[400,450,440], pande:[400,360,520], bag:[400,520,720], haarfarve:[400,520,720],
+  overdel:[400,700,340], underdel:[400,880,380], sko:[400,935,300] };
+function stageViewBox(){
+  if (mode === 'dyr') return cur.st.pet.kind !== 'ingen' ? STAGE_PET_VB : undefined;
+  const z = ZOOM[tab]; if (!z) return undefined;
+  const w = z[2], h = w * 1100 / 800;
+  const x = Math.max(0, Math.min(800 - w, z[0] - w/2)), y = Math.max(0, Math.min(1100 - h + 120, z[1] - h/2));
+  return `${x.toFixed(1)} ${y.toFixed(1)} ${w} ${h.toFixed(1)}`;
+}
+function zoomAnim(){ const m = $('#mirror'); m.classList.remove('zoom'); void m.offsetWidth; m.classList.add('zoom'); }
 const ACC_VB = { sloejfe:VB.head, tiara:VB.head, katteoerer:VB.head, spaender:VB.head, briller:'200 340 400 220', halskaede:VB.neck, armbaand:VB.hand, taske:VB.hand, stav:VB.hand };
 
 /* ---------- ikoner til fanerne ---------- */
@@ -198,18 +209,18 @@ function noPet(){
 }
 
 /* ---------- tegning af skærmen ---------- */
-function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, viewBox: mode === 'dyr' && cur.st.pet.kind !== 'ingen' ? STAGE_PET_VB : undefined })); }
+function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, viewBox: stageViewBox() })); }
 function renderModes(){
   document.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
   $('#tabs').classList.toggle('pet', mode === 'dyr');
 }
-function setMode(m){ if (m === mode) return; mode = m; sfx.pick(); renderModes(); renderStage(); renderTabs(); renderPanel(true); }
+function setMode(m){ if (m === mode) return; mode = m; sfx.pick(); renderModes(); renderStage(); zoomAnim(); renderTabs(); renderPanel(true); }
 function renderTabs(){
   const nav = $('#tabs'); nav.innerHTML = '';
   const list = mode === 'dyr' ? PET_TABS : DOLL_TABS, now = mode === 'dyr' ? petTab : tab;
   for (const [id, label, icon] of list)
     nav.append(el('button', { class:'tab', type:'button', role:'tab', 'aria-selected': String(id===now), html: icon + `<span>${label}</span>`,
-      on:{ click: () => { if (now!==id){ if (mode === 'dyr') petTab = id; else tab = id; sfx.pick(); renderTabs(); renderPanel(true); } } } }));
+      on:{ click: () => { if (now!==id){ if (mode === 'dyr') petTab = id; else tab = id; sfx.pick(); renderStage(); zoomAnim(); renderTabs(); renderPanel(true); } } } }));
 }
 function renderPanel(resetScroll=false){
   const body = $('#panelBody'); const keep = resetScroll ? 0 : body.scrollTop;
