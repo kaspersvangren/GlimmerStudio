@@ -207,3 +207,14 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .earned svg{width:34px;height:34px;flex:0 0 auto}
 @media (max-width:520px){ .screen-head h2{order:3;flex-basis:100%} .runway{height:48vh} .playcard{grid-template-columns:80px 1fr} .pc-art svg{width:80px} .pc-title{font-size:22px} .paddle{width:52px;height:52px;font-size:28px} }
 @media (prefers-reduced-motion: reduce){ .ball,.ball.wobble,.ball.burst,.reveal,.walker,.pdoll.jump,.confetti,.toast.show{animation:none!important} .paddle{transition:none} }
+
+/* ---------- nye ting ---------- */
+.tile.fresh{border-color:var(--berry);animation:freshpulse 1.3s ease-in-out infinite}
+@keyframes freshpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,61,143,.75)}50%{box-shadow:0 0 0 9px rgba(255,61,143,0)}}
+.tiles.has-fresh .tile:not(.fresh){opacity:.45}
+.newtag{position:absolute;top:-10px;left:-8px;background:var(--berry);color:#FFFFFF;font-family:var(--display);font-weight:700;font-size:13px;padding:3px 9px;border-radius:999px;transform:rotate(-8deg);box-shadow:0 2px 0 var(--berry-deep)}
+.tab,.mode{position:relative}
+.tab.has-fresh::after,.mode.has-fresh::after{content:"";position:absolute;top:5px;right:8px;width:12px;height:12px;border-radius:50%;background:var(--berry);border:2px solid #FFFFFF;animation:dotpulse 1s ease-in-out infinite}
+.tab.has-fresh[aria-selected="true"]::after{background:#FFFFFF;border-color:var(--berry)}
+@keyframes dotpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+@media (prefers-reduced-motion: reduce){ .tile.fresh,.tab.has-fresh::after,.mode.has-fresh::after{animation:none} }

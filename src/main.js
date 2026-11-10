@@ -30,7 +30,7 @@ function openTest(){
   showModal('Testtilstand', info(), [
     { label:'+50 stjerner', keep:true, fn: () => { addStars(50); refresh(); } },
     { label:'Lås alt op', keep:true, fn: () => { unlockAll(); refresh(); } },
-    { label:'Lås igen', keep:true, fn: () => { prog.unlocked = []; saveProg(); refresh(); } },
+    { label:'Lås igen', keep:true, fn: () => { prog.unlocked = []; prog.fresh = []; saveProg(); refresh(); } },
     { label:'Nulstil alt', keep:true, fn: () => showModal('Nulstil alt?', 'Stjerner, låste ting og alle dukker slettes. Spillet starter forfra.', [
         { label:'Nej' }, { label:'Ja, nulstil', hot:true, fn: () => { store.del(KEY); store.del(KEY_PROG); figures = []; prog = loadProg(); renderHome(); toast('Spillet er nulstillet'); } } ]) },
     { label:'Luk', hot:true },

@@ -40,7 +40,7 @@ async function tapBall(e){
   await wait(380);
   addStars(-BALL_PRICE);
   const [cat, id] = pick(left);
-  prog.unlocked.push(cat + ':' + id); saveProg();
+  prog.unlocked.push(cat + ':' + id); prog.fresh.push(cat + ':' + id); saveProg();
   ball.classList.add('burst'); sfx.crack();
   await wait(420);
   revealItem(cat, id);
@@ -57,7 +57,8 @@ function revealItem(cat, id){
   if (cat === 'liner' || cat === 'pupil') st.mk.shadow = st.mk.shadow || '#FF62B0';
   if (cat === 'shoes' && st.bottom.id === 'jeans') st.bottom.id = 'plisse';
   const vb = typeof info.vb === 'function' ? info.vb(id) : info.vb;
-  const img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true } : { viewBox: vb, pet: false, bg: true });
+  const hl = info.multi ? cat + ':' + id : cat;
+  const img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true, hl } : { viewBox: vb, pet: false, bg: true, hl });
   const box = $('#ballsBody'); box.innerHTML = '';
   const card = el('div', { class:'reveal' }, [
     el('span', { class:'new-badge' }, 'NY!'),

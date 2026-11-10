@@ -26,9 +26,14 @@ const CAT_INFO = {
   petacc: { label:'Dyretilbehør', ids: () => Object.keys(PET_ACC), name: k => PET_ACC[k].label, multi:true, get: st=>st.pet.acc, apply: (st,k)=>{ st.pet.acc[k] = st.pet.acc[k] || PET_ACC[k].color; }, vb: () => VB.pet, petOnly:true },
 };
 
-function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [] } : { stars:0, unlocked:[] }; }
+function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [] } : { stars:0, unlocked:[], fresh:[] }; }
 let prog = loadProg();
 const saveProg = () => store.set(KEY_PROG, prog);
+/* nye ting pulserer i skaberen, indtil man har trykket på dem */
+const isFresh = (cat, id) => prog.fresh.includes(cat + ':' + id);
+function clearFresh(cat, id){ const k = cat + ':' + id; if (prog.fresh.includes(k)){ prog.fresh = prog.fresh.filter(x => x !== k); saveProg(); } }
+const TAB_CATS = { oejne:['pupil'], makeup:['liner','lip','mark'], pande:['front'], bag:['back'], overdel:['top'], underdel:['bottom'], sko:['shoes'], tilbehoer:['acc'], dyr:['pet'], pels:['petpat'], dyretilbehoer:['petacc'] };
+const catsHaveFresh = cats => prog.fresh.some(k => cats.includes(k.split(':')[0]));
 const isFree = (cat, id) => (FREE[cat]||[]).includes(id) || prog.unlocked.includes(cat + ':' + id);
 function lockedList(){ const out = []; for (const [cat, info] of Object.entries(CAT_INFO)) for (const id of info.ids()) if (!isFree(cat, id)) out.push([cat, id]); return out; }
 function unlockAll(){ prog.unlocked = []; for (const [cat, info] of Object.entries(CAT_INFO)) for (const id of info.ids()) if (!(FREE[cat]||[]).includes(id)) prog.unlocked.push(cat + ':' + id); saveProg(); }

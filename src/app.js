@@ -45,14 +45,17 @@ function lockedTap(){ sfx.nope(); toast('Den findes i overraskelseskuglerne'); }
 /* ---------- sektioner ---------- */
 function section(title, kids){ return el('div', { class:'sec' }, [ el('h3', {}, title), ...kids ]); }
 function lockBadge(){ return el('span', { class:'lock', html: LOCK_SVG }); }
+const newTag = () => el('span', { class:'newtag' }, 'NY');
 function optionsSec(title, items, getVal, apply, vb, cat){
   const grid = el('div', { class:'tiles' });
   for (const [id, label] of items){
-    const locked = cat && !isFree(cat, id);
+    const locked = cat && !isFree(cat, id), fresh = cat && !locked && isFresh(cat, id);
+    if (fresh) grid.classList.add('has-fresh');
     const pv = clone(cur.st); apply(pv, id);
-    grid.append(el('button', { class:'tile' + (locked ? ' locked' : ''), type:'button', 'aria-pressed': String(getVal()===id), 'aria-label': locked ? label + ' (låst)' : label,
-      on:{ click: () => { if (locked) return lockedTap(); if (getVal()!==id) change(st => apply(st, id)); } } },
-      [ pic(pv, vb), el('span', {}, label), locked ? lockBadge() : null ]));
+    grid.append(el('button', { class:'tile' + (locked ? ' locked' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-pressed': String(getVal()===id), 'aria-label': locked ? label + ' (låst)' : fresh ? label + ' (ny)' : label,
+      on:{ click: () => { if (locked) return lockedTap(); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
+        if (getVal()!==id) change(st => apply(st, id)); else if (fresh) renderPanel(); } } },
+      [ pic(pv, vb), el('span', {}, label), locked ? lockBadge() : null, fresh ? newTag() : null ]));
   }
   return section(title, [grid]);
 }
@@ -75,12 +78,14 @@ function toggleSec(label, getVal, setVal){
 function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
   const grid = el('div', { class:'tiles' });
   for (const [id, a] of Object.entries(defs)){
-    const locked = !isFree(cat, id);
+    const locked = !isFree(cat, id), fresh = !locked && isFresh(cat, id);
+    if (fresh) grid.classList.add('has-fresh');
     const on = !!holder(cur.st)[id];
     const pv = clone(cur.st); holder(pv)[id] = holder(cur.st)[id] || a.color;
-    grid.append(el('button', { class:'tile' + (on && getActive()===id ? ' active' : '') + (locked ? ' locked' : ''), type:'button', 'aria-pressed': String(on), 'aria-label': locked ? a.label + ' (låst)' : a.label,
-      on:{ click: () => { if (locked) return lockedTap(); change(st => { const h = holder(st); if (on && getActive()===id){ delete h[id]; setActive(null); } else { if (!on) h[id] = a.color; setActive(id); } }); } } },
-      [ pic(pv, vbOf(id)), el('span', {}, a.label), locked ? lockBadge() : null ]));
+    grid.append(el('button', { class:'tile' + (on && getActive()===id ? ' active' : '') + (locked ? ' locked' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-pressed': String(on), 'aria-label': locked ? a.label + ' (låst)' : fresh ? a.label + ' (ny)' : a.label,
+      on:{ click: () => { if (locked) return lockedTap(); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
+        change(st => { const h = holder(st); if (on && getActive()===id){ delete h[id]; setActive(null); } else { if (!on) h[id] = a.color; setActive(id); } }); } } },
+      [ pic(pv, vbOf(id)), el('span', {}, a.label), locked ? lockBadge() : null, fresh ? newTag() : null ]));
   }
   const out = [ section(title, [ el('p', { class:'hint' }, 'Tryk for at tage på. Tryk igen for at tage af.'), grid ]) ];
   const act = getActive();
@@ -157,7 +162,8 @@ function stageViewBox(){
 function zoomAnim(){ const m = $('#mirror'); m.classList.remove('zoom'); void m.offsetWidth; m.classList.add('zoom'); }
 function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, anim: !calm, viewBox: stageViewBox() })); }
 function renderModes(){
-  document.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  document.querySelectorAll('.mode').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+    b.classList.toggle('has-fresh', catsHaveFresh(b.dataset.mode === 'dyr' ? ['pet','petpat','petacc'] : ['front','back','top','bottom','shoes','acc','pupil','liner','lip','mark'])); });
   $('#tabs').classList.toggle('pet', mode === 'dyr');
 }
 function setMode(m){ if (m === mode) return; mode = m; sfx.pick(); renderModes(); renderStage(); zoomAnim(); renderTabs(); renderPanel(true); }
@@ -165,7 +171,7 @@ function renderTabs(){
   const nav = $('#tabs'); nav.innerHTML = '';
   const list = mode === 'dyr' ? PET_TABS : DOLL_TABS, now = mode === 'dyr' ? petTab : tab;
   for (const [id, label, icon] of list)
-    nav.append(el('button', { class:'tab', type:'button', role:'tab', 'aria-selected': String(id===now), html: icon + `<span>${label}</span>`,
+    nav.append(el('button', { class:'tab' + (TAB_CATS[id] && catsHaveFresh(TAB_CATS[id]) ? ' has-fresh' : ''), type:'button', role:'tab', 'aria-selected': String(id===now), html: icon + `<span>${label}</span>`,
       on:{ click: () => { if (now!==id){ if (mode === 'dyr') petTab = id; else tab = id; sfx.pick(); renderStage(); zoomAnim(); renderTabs(); renderPanel(true); } } } }));
 }
 function renderPanel(resetScroll=false){

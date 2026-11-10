@@ -1,6 +1,6 @@
 'use strict';
 /* ================= Glimmer Studio — fælles værktøjer ================= */
-const VERSION = 'v0.4.0';
+const VERSION = 'v0.4.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -29,7 +29,7 @@ const FUR = ['#FFFFFF','#F5EEFF','#FFE9D6','#F2D9B8','#E0B98A','#C68653','#8A5A3
 /* ---------- udsnit til miniaturer ---------- */
 const VB = { head:'150 110 500 500', hair:'40 80 720 820', eye:'226 352 190 170', lips:'348 494 104 72', face:'190 310 420 290',
   top:'240 570 320 320', bottom:'230 715 340 340', shoes:'270 900 260 180', neck:'300 560 200 140', hand:'400 600 300 300', pet:'520 750 280 310', full:'60 80 680 1000' };
-const ACC_VB = { sloejfe:VB.head, tiara:VB.head, katteoerer:VB.head, spaender:VB.head, kasket:VB.head, briller:'200 340 400 220', halskaede:VB.neck, butterfly:VB.neck, armbaand:VB.hand, taske:VB.hand, stav:VB.hand };
+const ACC_VB = { sloejfe:VB.head, tiara:VB.head, katteoerer:VB.head, spaender:VB.head, kasket:VB.head, briller:'200 340 400 220', halskaede:VB.neck, butterfly:VB.neck, armbaand:VB.hand, taske:VB.hand, stav:'400 470 330 330' };
 
 /* ---------- DOM ---------- */
 function el(tag, attrs={}, kids=[]){

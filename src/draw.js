@@ -30,6 +30,21 @@ function blinkLid(content, period, begin=0){
   return `<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.94;0.975" calcMode="discrete" dur="${period}s" begin="${begin}s" repeatCount="indefinite"/>${content}</g>`;
 }
 
+/* ---------- markering af en ny ting: pulserende kant, resten dæmpet ---------- */
+const HLW = (on, s) => on && s ? '<!--HL-->' + s + '<!--/HL-->' : s;
+function hlCompose(content){
+  if (!content.includes('<!--HL-->')) return content;
+  const parts = content.split(/<!--HL-->|<!--\/HL-->/);
+  const paint = (x, col) => x.replace(/(fill|stroke)="(?!none)[^"]*"/g, `$1="${col}"`).replace(/ id="([^"]+)"/g, ' id="m_$1"').replace(/url\(#([^)]+)\)/g, 'url(#m_$1)');
+  const maskBody = parts.map((x, i) => paint(x, i % 2 ? '#FFFFFF' : '#000000')).join('');
+  const clean = parts.join('');
+  return `<defs><mask id="hlM" maskUnits="userSpaceOnUse" x="-400" y="-400" width="1600" height="1900">${maskBody}</mask>`
+    + `<filter id="hlGlow" x="-40%" y="-40%" width="180%" height="180%"><feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"><animate attributeName="radius" values="3;10;3" dur="1.3s" repeatCount="indefinite"/></feMorphology>`
+    + `<feFlood flood-color="#FF3D8F"/><feComposite in2="d" operator="in" result="o"/><feGaussianBlur in="o" stdDeviation="2.5" result="ob"/><feMerge><feMergeNode in="ob"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+    + `<filter id="hlDim"><feColorMatrix type="saturate" values="0.3"/></filter></defs>`
+    + `<g opacity="0.4" filter="url(#hlDim)">${clean}</g><g filter="url(#hlGlow)"><g mask="url(#hlM)">${clean}</g></g>`;
+}
+
 /* ---------- små figurer ---------- */
 function star4(cx, cy, r, fill='#FFFFFF', op=1){
   return `<path d="M ${cx} ${cy-r} Q ${cx} ${cy} ${cx+r} ${cy} Q ${cx} ${cy} ${cx} ${cy+r} Q ${cx} ${cy} ${cx-r} ${cy} Q ${cx} ${cy} ${cx} ${cy-r} Z" fill="${fill}" opacity="${op}"/>`; }
@@ -235,15 +250,15 @@ function faceMark(c){
     default: return '';
   }
 }
-function headLayer(c, frontKey){
+function headLayer(c, frontKey, hl){
   let o = `<path d="${HEAD}" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="3"/><g clip-path="url(#headC)">`;
   o += `<path d="${(FRONT[frontKey]||FRONT.boelge).d}" transform="translate(0,14)" fill="${c.skinSh}" opacity="0.75"/>`;
   if (c.blushOn) o += `<ellipse cx="262" cy="512" rx="48" ry="27" fill="url(#blushG)"/><ellipse cx="538" cy="512" rx="48" ry="27" fill="url(#blushG)"/>`;
   o += `</g>`;
   if (c.blushOn) for (const x of [252,268,284,516,532,548]) o += `<path d="M ${x} 518 l 6 -12" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.85"/>`;
-  o += eye(316,440,false,c) + eye(484,440,true,c);
+  o += HLW(hl==='pupil' || hl==='liner', eye(316,440,false,c) + eye(484,440,true,c));
   o += `<path d="M 393 500 Q 400 507 407 500" fill="none" stroke="${c.skinLine}" stroke-width="3" stroke-linecap="round"/>`;
-  return o + mouth(c) + faceMark(c);
+  return o + HLW(hl==='lip', mouth(c)) + HLW(hl==='mark', faceMark(c));
 }
 
 /* ================= TØJ (kropskoordinater, flyttes 22 ned) ================= */
@@ -440,9 +455,9 @@ function petHelpers(P){
     pat: (clipId, spots=[], stripes=[], patch=null) => {
       let s = '';
       if (P.pat==='pletter') s += spots.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${P.B}"/>`).join('');
-      if (P.pat==='striber') s += stripes.map(d=>`<path d="${d}" fill="none" stroke="${P.ASh}" stroke-width="9" stroke-linecap="round"/>`).join('');
+      if (P.pat==='striber') s += stripes.map(d=>`<path d="${d}" fill="none" stroke="${P.B}" stroke-width="11" stroke-linecap="round"/>`).join('');
       if (P.pat==='oejeplet' && patch) s += `<ellipse cx="${patch[0]}" cy="${patch[1]}" rx="${patch[2]}" ry="${patch[3]}" fill="${P.B}"/>`;
-      return s ? `<g clip-path="url(#${clipId})">${s}</g>` : '';
+      return s ? HLW(P.hl==='petpat', `<g clip-path="url(#${clipId})">${s}</g>`) : '';
     },
     sock: P.pat==='sokker',
     eye: (x,y,s=1,slit=false,flick=-1) => `<g transform="translate(${x},${y}) scale(${s})"><ellipse rx="21" ry="25" fill="#FFFFFF" stroke="#1B1330" stroke-width="3"/><ellipse cy="3" rx="17" ry="21" fill="url(#petIris)"/>`
@@ -452,8 +467,8 @@ function petHelpers(P){
       + blinkLid(`<ellipse rx="25" ry="29" fill="${P.A}"/><path d="M -23 2 Q 0 18 23 2" fill="none" stroke="#1B1330" stroke-width="3.6" stroke-linecap="round"/>`, 3.7, 1.8) + `</g>`,
     blush: (x,y) => `<ellipse cx="${x}" cy="${y}" rx="15" ry="9" fill="#FF7FA6" opacity="0.5"/>`,
     collar: (x,y,hw,rot=0) => { const h = P.acc.halsbaand; if (!h) return '';
-      return `<g transform="rotate(${rot} ${x} ${y})"><path d="M ${x-hw} ${y} Q ${x} ${y+18} ${x+hw} ${y}" fill="none" stroke="${outline(h)}" stroke-width="15" stroke-linecap="round"/><path d="M ${x-hw} ${y} Q ${x} ${y+18} ${x+hw} ${y}" fill="none" stroke="${h}" stroke-width="10" stroke-linecap="round"/>`
-        + `<circle cx="${x}" cy="${y+18}" r="9" fill="#FFD54A" stroke="#C99A12" stroke-width="2.5"/><path d="M ${x-5} ${y+19} L ${x+5} ${y+19}" stroke="#C99A12" stroke-width="2"/></g>`; },
+      return HLW(P.hl==='petacc:halsbaand', `<g transform="rotate(${rot} ${x} ${y})"><path d="M ${x-hw} ${y} Q ${x} ${y+18} ${x+hw} ${y}" fill="none" stroke="${outline(h)}" stroke-width="15" stroke-linecap="round"/><path d="M ${x-hw} ${y} Q ${x} ${y+18} ${x+hw} ${y}" fill="none" stroke="${h}" stroke-width="10" stroke-linecap="round"/>`
+        + `<circle cx="${x}" cy="${y+18}" r="9" fill="#FFD54A" stroke="#C99A12" stroke-width="2.5"/><path d="M ${x-5} ${y+19} L ${x+5} ${y+19}" stroke="#C99A12" stroke-width="2"/></g>`); },
   };
   return H;
 }
@@ -597,7 +612,7 @@ const PET_SPECIES = {
     o += H.ell(-44,-30,28,28,'url(#petFur)') + H.ell(44,-30,28,28,'url(#petFur)');
     const body = ellPath(0,-82,66,62);
     o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
-    o += H.pat('pbC', [[-44,-110,10],[46,-62,11],[-46,-50,8]], ["M -72 -110 Q -50 -100 -42 -114","M -74 -78 Q -52 -68 -44 -82","M 72 -110 Q 50 -100 42 -114","M 74 -78 Q 52 -68 44 -82"]);
+    o += H.pat('pbC', [[-44,-110,10],[46,-62,11],[-46,-50,8]], ["M -72 -76 Q -50 -66 -40 -80","M -72 -52 Q -50 -42 -40 -56","M -66 -30 Q -48 -22 -40 -34","M 72 -76 Q 50 -66 40 -80","M 72 -52 Q 50 -42 40 -56","M 66 -30 Q 48 -22 40 -34"]);
     o += `<g clip-path="url(#pbC)"><ellipse cx="0" cy="-74" rx="40" ry="48" fill="${P.B}"/>` + [-112,-94,-76,-58,-40].map(y=>`<path d="M -36 ${y} Q 0 ${y+9} 36 ${y}" fill="none" stroke="${outline(P.B)}" stroke-width="2.5" opacity="0.45"/>`).join('') + `</g>`;
     for (const s of [-1,1]){ o += H.ell(36*s,-10,28,13, H.sock?P.B:P.A); o += [0,1,2].map(i=>`<path d="M ${36*s+(-14+i*14)} -4 l -4 6 l 8 0 Z" fill="#FFFFFF" stroke="${P.L}" stroke-width="1.5" stroke-linejoin="round"/>`).join(''); }
     o += H.mirror(H.ell(-52,-112,15,20,'url(#petFur)',-35) + `<path d="M -66 -128 l -5 -7 M -61 -132 l -1 -8 M -55 -131 l 2 -7" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>`);
@@ -614,9 +629,9 @@ const PET_SPECIES = {
     return o; } },
 };
 
-function petDraw(p){
+function petDraw(p, hl){
   if (!p || !PET_SPECIES[p.kind]) return '';
-  const P = { A:p.a, ASh:shade(p.a), L:outline(p.a), B:p.b, C:p.c, CL:outline(p.c), pat:p.pattern, acc:p.acc||{} };
+  const P = { A:p.a, ASh:shade(p.a), L:outline(p.a), B:p.b, C:p.c, CL:outline(p.c), pat:p.pattern, acc:p.acc||{}, hl };
   const sp = PET_SPECIES[p.kind], H = petHelpers(P), an = sp.anchors;
   let o = `<g transform="translate(${PET_X},${PET_Y}) scale(${PET_S})">`;
   o += `<defs><linearGradient id="petIris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${adj(p.eyes,-0.25)}"/><stop offset="0.6" stop-color="${p.eyes}"/><stop offset="1" stop-color="${adj(p.eyes,0.28)}"/></linearGradient>`
@@ -631,18 +646,19 @@ function petDraw(p){
   let nearWing = '';
   if (P.acc.vinger){ const v = P.acc.vinger, [wx,wy] = an.wings;
     if (an.wingsSide){
-      o += `<g opacity="0.6">${spin(fairy(wx-12,wy-2,-74,50,24,v) + fairy(wx-12,wy+2,-32,36,18,v), wx-12, wy, [0,10,0], 0.9)}</g>`;
+      o += HLW(hl==='petacc:vinger', `<g opacity="0.6">${spin(fairy(wx-12,wy-2,-74,50,24,v) + fairy(wx-12,wy+2,-32,36,18,v), wx-12, wy, [0,10,0], 0.9)}</g>`);
       nearWing = spin(fairy(wx,wy,-58,56,27,v) + fairy(wx,wy+4,-16,40,19,v), wx, wy, [0,-12,0], 0.9) + `<circle cx="${wx}" cy="${wy+2}" r="6" fill="${outline(v)}"/>`;
     } else {
       const w = fairy(wx,wy-6,202,74,34,v) + fairy(wx,wy+10,152,52,24,v);
-      o += H.mirror(spin(w, wx, wy, [0,-9,0], 0.9), wx);
+      o += HLW(hl==='petacc:vinger', H.mirror(spin(w, wx, wy, [0,-9,0], 0.9), wx));
     } }
   o += sp.draw(P, H);
-  o += nearWing;
+  o += HLW(hl==='petacc:vinger', nearWing);
   if (P.acc.sloejfe){ const b = P.acc.sloejfe, [x,y,r] = an.bow;
-    o += `<g transform="translate(${x},${y}) rotate(${r}) scale(0.6)"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`; }
+    o += HLW(hl==='petacc:sloejfe', `<g transform="translate(${x},${y}) rotate(${r}) scale(0.6)"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`); }
   if (P.acc.krone){ const g = P.acc.krone, [x,y,r=-8] = an.crown;
-    o += `<g transform="translate(${x},${y}) rotate(${r}) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/><circle cx="-48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="0" cy="-38" r="5" fill="#FFFFFF"/></g>`; }
+    o += HLW(hl==='petacc:krone', `<g transform="translate(${x},${y}) rotate(${r}) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/><circle cx="-48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="0" cy="-38" r="5" fill="#FFFFFF"/></g>`); }
+  if ((hl === 'pet' || (hl === 'petpat' && !o.includes('<!--HL-->'))) ) o = o.slice(0, body0) + HLW(true, o.slice(body0));
   o = o.slice(0, body0) + squash(o.slice(body0), 0, 0, ['1 1','1.012 1.02','1 1'], 2.8, 0.4);
   return o + `</g>`;
 }
@@ -681,7 +697,8 @@ function renderDoll(st, opts={}){
   const c = derive(st);
   const vb = opts.viewBox || `0 0 ${W} ${H}`;
   const back = BACK[st.back] || BACK.rottehaler, top = TOPS[st.top.id] || TOPS.stjerne, bot = BOTTOMS[st.bottom.id] || BOTTOMS.plisse, shoe = SHOES[st.shoes.id] || SHOES.sneakers;
-  const acc = layer => Object.keys(st.acc||{}).filter(k=>ACC[k] && ACC[k].layer===layer).map(k=>ACC[k].draw(st.acc[k])).join('');
+  const hl = opts.hl || '';
+  const acc = layer => Object.keys(st.acc||{}).filter(k=>ACC[k] && ACC[k].layer===layer).map(k=>HLW(hl==='acc:'+k, ACC[k].draw(st.acc[k]))).join('');
   ARMS.R = st.acc && st.acc.stav ? ARM_R_UP : ARM_R_DOWN;
   ANIM = !!opts.anim;
   const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${opts.size?` width="${opts.size[0]}" height="${opts.size[1]}"`:''}>`];
@@ -691,7 +708,7 @@ function renderDoll(st, opts={}){
 <linearGradient id="shadowG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.shadow}" stop-opacity="0.95"/><stop offset="1" stop-color="${c.shadow}" stop-opacity="0.25"/></linearGradient>
 <linearGradient id="fringeG" gradientUnits="userSpaceOnUse" x1="0" y1="160" x2="0" y2="560"><stop offset="0" stop-color="${c.hairA}"/><stop offset="1" stop-color="${c.hairMid}"/></linearGradient>
 ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></clipPath></defs>`);
-  if (opts.petOnly){ o.push(petDraw(st.pet)); o.push(`</svg>`); return o.join(''); }
+  if (opts.petOnly){ o.push(hlCompose(petDraw(st.pet, hl))); o.push(`</svg>`); return o.join(''); }
   if (opts.bg){
     o.push(`<rect x="-400" y="-400" width="1600" height="1900" fill="url(#bgG)"/>`);
     [[110,150,16,.9],[690,120,22,.9],[720,520,12,.8],[80,620,14,.8],[650,900,18,.8],[140,930,12,.8],[610,240,8,.7]].forEach(([x,y,r,op],i) => o.push(ANIM ? `<g>${star4(x,y,r,'#FFFFFF',op)}<animate attributeName="opacity" values="1;0.25;1" dur="${2.4+i*0.37}s" repeatCount="indefinite"/></g>` : star4(x,y,r,'#FFFFFF',op)));
@@ -699,27 +716,28 @@ ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></cli
   }
   const doll = [];
   const HEAD_SWAY = [0,1.4,0,-1.4,0];
-  doll.push(spin(back.back(c), 400, 590, HEAD_SWAY, 7));
+  doll.push(spin(HLW(hl==='back', back.back(c)), 400, 590, HEAD_SWAY, 7));
   doll.push(`<g transform="translate(0,22)">`);
-  if (top.back) doll.push(top.back(c));
+  if (top.back) doll.push(HLW(hl==='top', top.back(c)));
   for (const [x1,x2] of [[368,366],[432,434]]) doll.push(strokeBoth(`M ${x1} 815 L ${x2} 962`, c.skin, c.skinLine, 35));
-  if (bot.under) doll.push(bot.under(c));
-  doll.push(shoe.draw(c));
+  if (bot.under) doll.push(HLW(hl==='bottom', bot.under(c)));
+  doll.push(HLW(hl==='shoes', shoe.draw(c)));
   doll.push(`<path d="${TORSO}" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5" stroke-linejoin="round"/>`);
   doll.push(`<path d="M 378 548 L 378 606 Q 400 622 422 606 L 422 548 Z" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5"/><path d="M 379 552 L 421 552 L 421 578 Q 400 590 379 578 Z" fill="${c.skinSh}" opacity="0.8"/>`);
-  doll.push(bot.main(c));
-  if (!top.tucked) doll.push(bot.waist(c));
-  doll.push(top.body(c));
-  if (top.tucked) doll.push(bot.waist(c));
+  doll.push(HLW(hl==='bottom', bot.main(c)));
+  if (!top.tucked) doll.push(HLW(hl==='bottom', bot.waist(c)));
+  doll.push(HLW(hl==='top', top.body(c)));
+  if (top.tucked) doll.push(HLW(hl==='bottom', bot.waist(c)));
   doll.push(armSkin(c));
-  if (top.sleeves) doll.push(top.sleeves(c));
+  if (top.sleeves) doll.push(HLW(hl==='top', top.sleeves(c)));
   doll.push(acc('hand'));
   doll.push(hands(c));
   doll.push(acc('body'));
   doll.push(`</g>`);
-  doll.push(spin(headLayer(c, st.front) + frontLayer(c, st.front) + (back.over ? back.over(c) : '') + acc('face') + acc('head'), 400, 590, HEAD_SWAY, 7));
-  o.push(squash(doll.join(''), 400, 1046, ['1 1','1.006 1.012','1 1'], 3.6));
-  if (opts.pet !== false) o.push(petDraw(st.pet));
+  doll.push(spin(headLayer(c, st.front, hl) + HLW(hl==='front', frontLayer(c, st.front)) + (back.over ? HLW(hl==='back', back.over(c)) : '') + acc('face') + acc('head'), 400, 590, HEAD_SWAY, 7));
+  let content = squash(doll.join(''), 400, 1046, ['1 1','1.006 1.012','1 1'], 3.6);
+  if (opts.pet !== false) content += petDraw(st.pet, hl);
+  o.push(hl ? hlCompose(content) : content);
   o.push(`</svg>`);
   return o.join('');
 }
