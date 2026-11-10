@@ -697,6 +697,7 @@ const PET_SPECIES = {
 };
 
 const bob = (s, dy, dur, begin=0) => ANIM ? `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 ${dy};0 0" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>${s}</g>` : s;
+const QUAD_K = 1.3;
 const QUAD = {
   kat:    { rx:64, ry:27, cy:-70, w:14, tail:'kat',   hs:0.72, hx:58, hy:-104, step:0.5 },
   hund:   { rx:68, ry:34, cy:-72, w:18, tail:'hund',  hs:0.74, hx:62, hy:-110, step:0.42 },
@@ -731,7 +732,8 @@ function quadWalk(kind, P, H, an, hl){
   if (P.acc.sloejfe){ const b = P.acc.sloejfe, [x,y,r] = an.bow; head += HLW(hl==='petacc:sloejfe', `<g transform="translate(${x},${y}) rotate(${r}) scale(0.6)"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`); }
   if (P.acc.krone){ const g = P.acc.krone, [x,y,r=-8] = an.crown; head += HLW(hl==='petacc:krone', `<g transform="translate(${x},${y}) rotate(${r}) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/></g>`); }
   o += bob(`<g transform="translate(${q.hx},${q.hy}) scale(${q.hs}) translate(0,196)">${head}</g>`, -5, q.step, 0.1);
-  return bob(o, -4, q.step);
+  /* gående figur forstørres, så hovedet er (næsten) lige så stort som når dyret sidder */
+  return bob(`<g transform="scale(${QUAD_K})">${o}</g>`, -4, q.step);
 }
 
 function petDraw(p, hl, mode){

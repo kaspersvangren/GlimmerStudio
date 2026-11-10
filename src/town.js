@@ -75,7 +75,7 @@ function showTitle(){
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
     el('div', { class:'title-stage' }, [ el('div', { class:'spot', 'aria-hidden':'true' }), dollImg(heroState(), { viewBox:'40 60 720 1010', anim: !calm, idle: true, alt:'Din dukke' }), el('div', { class:'disc', 'aria-hidden':'true' }) ]),
-    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 38 26 L 76 50 L 38 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goTo(showTown); } } }),
+    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goTo(showTown); } } }),
     el('p', { class:'ver' }, 'Glimmer Studio ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);
@@ -91,7 +91,8 @@ const PLACES = [
   { id:'dyr', name:'Dyreparken', x:1400, soon:true },
   { id:'foto', name:'Fotostudiet', x:1690, soon:true },
 ];
-let walkerX = 180, petX = 280, walking = false, SPR = null;
+let walkerX = 180, petX = 305, walking = false, SPR = null;
+const PET_GAP = 125, PET_TOWN_VB = '460 700 400 380', PET_VMAX = 0.75;
 const sign = (x, y, w, text, fill='#FFFFFF', col='#33204F', size=26) => `<g><rect x="${x - w/2}" y="${y - 22}" width="${w}" height="44" rx="22" fill="${fill}" stroke="#33204F" stroke-opacity=".15" stroke-width="3"/><text x="${x}" y="${y + 9}" text-anchor="middle" font-family="Fredoka, 'Baloo 2', sans-serif" font-weight="700" font-size="${size}" fill="${col}">${text}</text></g>`;
 const soonSign = (x, y) => `<g transform="translate(${x},${y}) rotate(-8)"><rect x="-92" y="-24" width="184" height="48" rx="10" fill="#FFE27A" stroke="#C99A12" stroke-width="4"/><path d="M -92 -24 L -70 -24 L -92 -2 Z M 92 24 L 70 24 L 92 2 Z" fill="#33204F" opacity=".8"/><text x="0" y="9" text-anchor="middle" font-family="Fredoka, 'Baloo 2', sans-serif" font-weight="700" font-size="24" fill="#33204F">Kommer snart</text></g>`;
 const scaffold = (x0, x1, y0, y1) => { let s = `<g stroke="#B98A4E" stroke-width="7" stroke-linecap="round" opacity=".85">`; for (let x = x0; x <= x1; x += (x1-x0)/3) s += `<path d="M ${x} ${y0} L ${x} ${y1}"/>`; for (let y = y0 + 40; y < y1; y += 90) s += `<path d="M ${x0-10} ${y} L ${x1+10} ${y}"/>`; s += `<path d="M ${x0} ${y0+40} L ${x1} ${y0+130} M ${x1} ${y0+130} L ${x0} ${y0+220}" stroke-width="5"/></g>`; return s; };
@@ -151,8 +152,9 @@ ${soonSign(1400, G-130)}${sign(1400, G-350, 190, 'Dyreparken')}</g>`;
 <g transform="translate(1690,${G-230})"><rect x="-56" y="-34" width="112" height="76" rx="14" fill="#33204F"/><rect x="-24" y="-48" width="48" height="20" rx="6" fill="#33204F"/><circle cx="0" cy="4" r="26" fill="#BDE4FF" stroke="#FFFFFF" stroke-width="6"/><circle cx="36" cy="-20" r="6" fill="#FFE27A"/></g>
 <rect x="1600" y="${G-150}" width="70" height="70" rx="12" fill="#E9F2FF" stroke="#2F6FE0" stroke-width="5"/><path d="M 1720 ${G} L 1720 ${G-130} L 1780 ${G-130} L 1780 ${G} Z" fill="#2F6FE0"/>
 ${scaffold(1580, 1800, G-320, G)}${soonSign(1690, G-120)}${sign(1690, G-350, 200, 'Fotostudiet')}</g>`;
-  s += `<g id="petWalker" transform="translate(${petX},0)" pointer-events="none"><g id="petFlip"><image id="petImg" x="-90" y="${G-82}" width="180" height="202" preserveAspectRatio="xMidYMax meet"/></g></g>`;
-  s += `<g id="walker" transform="translate(${walkerX},0)" pointer-events="none"><g id="walkerFlip"><image id="walkerImg" x="-120" y="${G-230}" width="240" height="320" preserveAspectRatio="xMidYMax meet"/></g></g></svg>`;
+  s += `<g id="walker" transform="translate(${walkerX},0)" pointer-events="none"><g id="walkerFlip"><image id="walkerImg" x="-120" y="${G-230}" width="240" height="320" preserveAspectRatio="xMidYMax meet"/></g></g>`;
+  /* dyret tegnes efter dukken, så det står forrest og ikke bliver dækket af langt hår */
+  s += `<g id="petWalker" transform="translate(${petX},0)" pointer-events="none"><g id="petFlip"><image id="petImg" x="-112.5" y="${G-93}" width="225" height="213.75" preserveAspectRatio="xMidYMax meet"/></g></g></svg>`;
   return s;
 }
 function showTown(){
@@ -163,11 +165,11 @@ function showTown(){
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
   SPR = { idle: svgUrl(renderDoll(hero, { viewBox:'40 60 720 1010', anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox:'40 60 720 1010', anim: !calm, walk: true, pet: false })),
-          sit: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, viewBox:'500 720 320 360', anim: !calm })) : '',
-          pwalk: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, petMode: 'walk', viewBox:'500 720 320 360', anim: !calm })) : '' };
+          sit: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, viewBox:PET_TOWN_VB, anim: !calm })) : '',
+          pwalk: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, petMode: 'walk', viewBox:PET_TOWN_VB, anim: !calm })) : '' };
   $('#walkerImg').setAttribute('href', SPR.idle);
   if (hasPet) $('#petImg').setAttribute('href', SPR.sit); else $('#petWalker').remove();
-  petX = walkerX + 100; $('#petWalker') && $('#petWalker').setAttribute('transform', `translate(${petX},0)`);
+  petX = walkerX + PET_GAP; $('#petWalker') && $('#petWalker').setAttribute('transform', `translate(${petX},0)`);
   $('#townLogo').addEventListener('click', logoTap);
   const svg = $('#townSvg');
   svg.addEventListener('click', e => { const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
@@ -183,16 +185,39 @@ function visit(id){
   const speed = 0.42, dur = calm ? 0 : Math.max(300, dist / speed), t0 = performance.now();
   const pet = $('#petWalker');
   if (dist > 4){ $('#walkerImg').setAttribute('href', SPR.walk); $('#walkerFlip').setAttribute('transform', dir < 0 ? 'scale(-1,1)' : ''); }
-  if (pet && dist > 4){ $('#petImg').setAttribute('href', SPR.pwalk); $('#petFlip').setAttribute('transform', dir < 0 ? 'scale(-1,1)' : ''); }
+  /* dyret bliver siddende, til dukken er gået forbi (eller hvis hun går væk fra det, rejser det sig med det samme) */
+  let petMoving = false, petGoal = null, petDone = !pet;
+  const startPet = goal => { petMoving = true; petGoal = goal;
+    $('#petImg').setAttribute('href', SPR.pwalk); $('#petFlip').setAttribute('transform', goal(walkerX) < petX ? 'scale(-1,1)' : ''); };
   let last = t0;
   const step = now => {
     const k = dur ? Math.min(1, (now - t0) / dur) : 1, e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2)/2;
     walkerX = from + (to - from) * e;
     $('#walker') && $('#walker').setAttribute('transform', `translate(${walkerX.toFixed(1)},0)`);
-    if (pet){ const target = walkerX - dir * 95, dt = Math.min(50, now - last); petX += (target - petX) * Math.min(1, dt / 160); pet.setAttribute('transform', `translate(${petX.toFixed(1)},0)`); }
-    last = now;
-    if (k < 1 || (pet && Math.abs(petX - (walkerX - dir*95)) > 3 && now - t0 < dur + 600)) requestAnimationFrame(step);
-    else { walking = false; sfx.open(); goTo(() => { p.open(); }); }
+    const dt = Math.min(50, now - last); last = now;
+    if (pet && !petDone){
+      const behind = x => x - dir * PET_GAP, rel = (petX - walkerX) * dir;
+      if (!petMoving){
+        if (calm){ petX = behind(walkerX); petDone = true; }
+        else if (dist > 4 && rel < -PET_GAP * 0.9) startPet(behind);                // hun er gået forbi / går væk fra det
+        else if (k >= 1){
+          if (Math.abs(petX - walkerX) < PET_GAP * 0.8) startPet(x => x + dir * PET_GAP);  // står i vejen: gå et stykke frem
+          else petDone = true;                                                        // bliv siddende
+        }
+      }
+      if (petMoving){
+        const diff = petGoal(walkerX) - petX, mv = Math.sign(diff) * Math.min(Math.abs(diff), PET_VMAX * dt, Math.abs(diff) * dt / 140 + 0.05 * dt);
+        petX += mv;
+        if (Math.abs(mv) > 0.01) $('#petFlip').setAttribute('transform', mv < 0 ? 'scale(-1,1)' : '');
+        if (k >= 1 && Math.abs(diff) < 3) petDone = true;
+      }
+      pet.setAttribute('transform', `translate(${petX.toFixed(1)},0)`);
+    }
+    if (k < 1 || (!petDone && now - t0 < dur + 2500)) requestAnimationFrame(step);
+    else {
+      if (pet && petMoving) $('#petImg').setAttribute('href', SPR.sit);
+      walking = false; sfx.open(); goTo(() => { p.open(); });
+    }
   };
   requestAnimationFrame(step);
 }

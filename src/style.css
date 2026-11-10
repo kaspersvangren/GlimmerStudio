@@ -233,7 +233,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .title-stage .spot{position:absolute;inset:-10% -30% 8%;background:radial-gradient(ellipse at 50% 20%, rgba(255,255,255,.45), transparent 60%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);z-index:1}
 .title-stage .disc{position:absolute;left:-12%;right:-12%;bottom:-4%;height:16%;border-radius:50%;background:radial-gradient(ellipse at 50% 35%, #FFD9EA, #FF5FA8 70%, #B32268);box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:0}
 .playbtn{width:clamp(96px,16vh,136px);aspect-ratio:1;border-radius:50%;border:6px solid #FFFFFF;background:radial-gradient(circle at 35% 30%, #FF8FC7, #FF3D8F 55%, #C21D68);box-shadow:0 8px 0 #8A1550, 0 0 0 10px rgba(255,255,255,.18), 0 0 40px rgba(255,120,200,.7);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
-.playbtn svg{width:58%;height:58%;margin-left:8%}
+.playbtn svg{width:58%;height:58%}
 .playbtn:active{transform:translateY(4px);box-shadow:0 4px 0 #8A1550}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 #title .ver{color:rgba(255,255,255,.7);margin:0}
