@@ -1,6 +1,6 @@
 'use strict';
 /* ================= Glimmer Studio — skaberen ================= */
-const VERSION = 'v0.2.2';
+const VERSION = 'v0.3.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -209,7 +209,8 @@ function noPet(){
 }
 
 /* ---------- tegning af skærmen ---------- */
-function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, viewBox: stageViewBox() })); }
+const calm = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } })();
+function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, anim: !calm, viewBox: stageViewBox() })); }
 function renderModes(){
   document.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
   $('#tabs').classList.toggle('pet', mode === 'dyr');

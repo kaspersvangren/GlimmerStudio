@@ -14,6 +14,22 @@ function adj(hex, dl, ds=0){ const [h,s,l]=rgb2hsl(...hex2rgb(hex)); return rgb2
 const shade = c => adj(c,-0.12);
 const outline = c => adj(c,-0.32,0.05);
 
+/* ---------- animation (kun i spejlet) ---------- */
+let ANIM = false;
+const easeKeys = n => ({ kt: Array.from({length:n},(_,i)=>(i/(n-1)).toFixed(3)).join(';'), ks: Array(n-1).fill('0.45 0 0.55 1').join(';') });
+function spin(s, cx, cy, vals, dur, begin=0){
+  if (!ANIM) return s; const e = easeKeys(vals.length);
+  return `<g><animateTransform attributeName="transform" type="rotate" values="${vals.map(v=>`${v} ${cx} ${cy}`).join(';')}" keyTimes="${e.kt}" calcMode="spline" keySplines="${e.ks}" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>${s}</g>`;
+}
+function squash(s, cx, cy, vals, dur, begin=0){
+  if (!ANIM) return s; const e = easeKeys(vals.length);
+  return `<g transform="translate(${cx},${cy})"><g><animateTransform attributeName="transform" type="scale" values="${vals.join(';')}" keyTimes="${e.kt}" calcMode="spline" keySplines="${e.ks}" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/><g transform="translate(${-cx},${-cy})">${s}</g></g></g>`;
+}
+function blinkLid(content, period, begin=0){
+  if (!ANIM) return '';
+  return `<g opacity="0"><animate attributeName="opacity" values="0;1;0" keyTimes="0;0.94;0.975" calcMode="discrete" dur="${period}s" begin="${begin}s" repeatCount="indefinite"/>${content}</g>`;
+}
+
 /* ---------- små figurer ---------- */
 function star4(cx, cy, r, fill='#FFFFFF', op=1){
   return `<path d="M ${cx} ${cy-r} Q ${cx} ${cy} ${cx+r} ${cy} Q ${cx} ${cy} ${cx} ${cy+r} Q ${cx} ${cy} ${cx-r} ${cy} Q ${cx} ${cy} ${cx} ${cy-r} Z" fill="${fill}" opacity="${op}"/>`; }
@@ -89,7 +105,8 @@ const BACK = {
   rottehaler: { label:'Rottehaler', back: c => {
       const t = `<path d="${TAIL}" fill="url(#tlG)" stroke="${c.hairLine}" stroke-width="3" stroke-linejoin="round"/>`
         + `<g clip-path="url(#tlC)">${lines(["M 170 320 C 110 400, 118 520, 128 600 C 136 670, 150 730, 190 780","M 214 330 C 170 420, 176 540, 176 620 C 176 680, 172 720, 186 760"],c.hairLine,0.32)}${lines(["M 128 360 C 92 440, 104 540, 100 610"],'#FFFFFF',0.28,10)}</g>`;
-      return `<defs>${hairGrad(c,'tlG',300,790)}<clipPath id="tlC"><path d="${TAIL}"/></clipPath></defs>` + t + mirror(t) + crown(c); },
+      const ts = spin(t, 236, 300, [0,2.4,0,-1.8,0], 3.2);
+      return `<defs>${hairGrad(c,'tlG',300,790)}<clipPath id="tlC"><path d="${TAIL}"/></clipPath></defs>` + ts + mirror(ts) + crown(c); },
     over: c => scrunchie(c,212,300,28) + mirror(scrunchie(c,212,300,28)) },
   knolde: { label:'Knolde', back: c =>
       `<defs><radialGradient id="bunG" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="${c.hairA}"/><stop offset="1" stop-color="${c.hairMid}"/></radialGradient></defs>`
@@ -98,8 +115,8 @@ const BACK = {
   langt: { label:'Langt hår', back: c => hairPiece(c,'lg',LONG,200,860,
       ["M 186 420 C 180 560, 176 700, 180 850","M 614 420 C 620 560, 624 700, 620 850","M 230 520 C 220 640, 214 740, 210 850","M 570 520 C 580 640, 586 740, 590 850","M 200 300 C 170 380, 166 450, 168 520","M 600 300 C 630 380, 634 450, 632 520"],
       ["M 168 460 C 162 560, 162 660, 168 760"]) },
-  hestehale: { label:'Hestehale', back: c => hairPiece(c,'pn',PONY,180,730,
-      ["M 560 200 C 640 220, 668 330, 662 420 C 656 520, 668 600, 650 700","M 520 236 C 590 280, 628 380, 632 470"],["M 620 230 C 668 290, 676 360, 670 430"]) + crown(c),
+  hestehale: { label:'Hestehale', back: c => spin(hairPiece(c,'pn',PONY,180,730,
+      ["M 560 200 C 640 220, 668 330, 662 420 C 656 520, 668 600, 650 700","M 520 236 C 590 280, 628 380, 632 470"],["M 620 230 C 668 290, 676 360, 670 430"]), 510, 220, [0,-3,0,2.5,0], 2.8) + crown(c),
     over: c => scrunchie(c,566,200,-50,16,26) },
   kroeller: { label:'Krøller', back: c => {
       const pts=[]; for(let a=122; a<=418; a+=14.8){ const r=a*Math.PI/180; pts.push([400+238*Math.cos(r), 396+236*Math.sin(r)]); }
@@ -118,7 +135,8 @@ const BACK = {
       const ty = 472 + 8*40 - 14;
       one = `<path d="M 196 ${ty} Q 186 ${ty+40} 174 ${ty+66} Q 204 ${ty+52} 214 ${ty+70} Q 224 ${ty+52} 254 ${ty+66} Q 242 ${ty+40} 232 ${ty} Z" fill="${c.hairTip}" stroke="${c.hairLine}" stroke-width="3" stroke-linejoin="round"/>` + one
           + `<ellipse cx="214" cy="${ty+2}" rx="22" ry="11" fill="${c.tie}" stroke="${c.tieLine}" stroke-width="3"/>`;
-      return `<defs>${hairGrad(c,'flG',440,780)}</defs>` + one.replace(/\n/g,'') + mirror(one) + crown(c); } },
+      const os = spin(one, 214, 460, [0,2.2,0,-2,0], 3.4);
+      return `<defs>${hairGrad(c,'flG',440,780)}</defs>` + os + mirror(os) + crown(c); } },
 };
 
 const FRONT_BOELGE = "M 214 482 C 196 444, 184 404, 186 352 C 186 240, 280 162, 400 162 C 520 162, 614 240, 614 352 C 616 404, 604 444, 586 482 C 584 420, 578 356, 566 302 C 552 318, 530 326, 508 322 C 492 312, 480 296, 474 276 C 466 298, 444 318, 418 318 C 402 308, 390 290, 384 270 C 376 296, 350 320, 322 322 C 310 312, 300 296, 296 278 C 290 300, 272 324, 246 326 C 240 318, 237 310, 236 302 C 226 356, 218 420, 214 482 Z";
@@ -177,6 +195,8 @@ function eye(cx, cy, flip, c){
   if (c.shadowOn && c.glitter) for (const [x,y,r] of [[-40,-58,5],[-8,-76,6],[28,-70,4.5],[48,-44,4]]) g += star4(x,y,r,'#FFFFFF',0.95);
   g += `</g><circle cx="-15" cy="-20" r="14" fill="#FFFFFF"/><circle cx="22" cy="26" r="6.5" fill="#FFFFFF"/>` + star4(-30,14,6,'#FFFFFF',0.9);
   if (c.pupil==='glimt') g += star4(16,-2,14,'#FFFFFF',0.95) + `<circle cx="-26" cy="-2" r="4" fill="#FFFFFF"/>`;
+  g += blinkLid(`<g transform="scale(${s},1)"><path d="${EYE}" transform="scale(1.14)" fill="${c.skin}"/><path d="M -58 6 Q 0 34 60 4" fill="none" stroke="${L}" stroke-width="5" stroke-linecap="round"/>`
+    + (c.liner==='vinge' ? `<path d="M -56 8 Q -70 2 -80 -10" fill="none" stroke="${L}" stroke-width="4.5" stroke-linecap="round"/>` : '') + `</g>`, 4.4, 0.6);
   return g + `</g>`;
 }
 function mouth(c){
@@ -367,8 +387,8 @@ const ACC = {
       + heart(512,836,1.2,'#FFE27A','#C99A12',1.2) + star4(490,846,4) + `</g>` },
   stav: { label:'Tryllestav', layer:'hand', color:'#FFE27A', draw: (k) => { const a=ARMS.R, f=seg(a.E,a.H); const hx=a.H[0]+f.dx*6, hy=a.H[1]+f.dy*6;
       const dx=0.26, dy=-0.966, x0=hx-dx*30, y0=hy-dy*30, x1=hx+dx*96, y1=hy+dy*96, sx=x1+dx*16, sy=y1+dy*16;
-      return `<path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="#5B3FC0" stroke-width="10" stroke-linecap="round"/><path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"/>`
-      + `<polygon points="${star5pts(sx,sy,30,13,-80)}" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>` + star4(sx-6,sy-8,6) + star4(sx+40,sy-14,8,k) + star4(sx+34,sy+30,5,k) + star4(sx-34,sy-24,5,k); } },
+      return spin(`<path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="#5B3FC0" stroke-width="10" stroke-linecap="round"/><path d="M ${x0.toFixed(1)} ${y0.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)}" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"/>`
+      + `<polygon points="${star5pts(sx,sy,30,13,-80)}" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>` + star4(sx-6,sy-8,6) + star4(sx+40,sy-14,8,k) + star4(sx+34,sy+30,5,k) + star4(sx-34,sy-24,5,k), hx.toFixed(1), hy.toFixed(1), [0,-7,0,5,0], 2.2); } },
 };
 
 /* ================= KÆLEDYR (egne koordinater: 0,0 = midt under dyret) ================= */
@@ -404,7 +424,8 @@ function petHelpers(P){
     eye: (x,y,s=1,slit=false,flick=-1) => `<g transform="translate(${x},${y}) scale(${s})"><ellipse rx="21" ry="25" fill="#FFFFFF" stroke="#1B1330" stroke-width="3"/><ellipse cy="3" rx="17" ry="21" fill="url(#petIris)"/>`
       + (slit ? `<ellipse cy="3" rx="5" ry="16" fill="#14122B"/>` : `<ellipse cy="4" rx="9" ry="12" fill="#14122B"/>`)
       + `<circle cx="-7" cy="-8" r="7" fill="#FFFFFF"/><circle cx="7" cy="14" r="3" fill="#FFFFFF"/>`
-      + `<path d="M ${flick*20} -12 Q ${flick*26} -19 ${flick*31} -21" fill="none" stroke="#1B1330" stroke-width="3.2" stroke-linecap="round"/></g>`,
+      + `<path d="M ${flick*20} -12 Q ${flick*26} -19 ${flick*31} -21" fill="none" stroke="#1B1330" stroke-width="3.2" stroke-linecap="round"/>`
+      + blinkLid(`<ellipse rx="25" ry="29" fill="${P.A}"/><path d="M -23 2 Q 0 18 23 2" fill="none" stroke="#1B1330" stroke-width="3.6" stroke-linecap="round"/>`, 3.7, 1.8) + `</g>`,
     blush: (x,y) => `<ellipse cx="${x}" cy="${y}" rx="15" ry="9" fill="#FF7FA6" opacity="0.5"/>`,
     collar: (x,y,hw,rot=0) => { const h = P.acc.halsbaand; if (!h) return '';
       return `<g transform="rotate(${rot} ${x} ${y})"><path d="M ${x-hw} ${y} Q ${x} ${y+18} ${x+hw} ${y}" fill="none" stroke="${outline(h)}" stroke-width="15" stroke-linecap="round"/><path d="M ${x-hw} ${y} Q ${x} ${y+18} ${x+hw} ${y}" fill="none" stroke="${h}" stroke-width="10" stroke-linecap="round"/>`
@@ -422,8 +443,7 @@ const PET_SPECIES = {
     o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
     o += H.pat('pbC', [[-30,-112,10],[28,-62,12],[-24,-38,8]], ["M -60 -124 Q -36 -114 -24 -128","M -62 -94 Q -38 -84 -28 -96","M 60 -124 Q 36 -114 24 -128","M 62 -94 Q 38 -84 28 -96"]);
     o += `<g clip-path="url(#pbC)"><ellipse cx="0" cy="-88" rx="22" ry="54" fill="${P.B}"/></g>`;
-    o += H.thick("M 32 -24 C 92 -28, 96 10, 42 4 C 14 1, -18 5, -46 0", P.A, P.L, 17);
-    if (P.pat==='striber' || H.sock) o += `<circle cx="-46" cy="0" r="8.5" fill="${P.B}"/>`;
+    o += spin(H.thick("M 32 -24 C 92 -28, 96 10, 42 4 C 14 1, -18 5, -46 0", P.A, P.L, 17) + (P.pat==='striber' || H.sock ? `<circle cx="-46" cy="0" r="8.5" fill="${P.B}"/>` : ''), 32, -24, [0,-2.5,0,2,0], 2.6);
     for (const x of [-13,13]){
       o += H.path(`M ${x-11} -100 L ${x-11} -14 Q ${x-11} -2 ${x} -2 Q ${x+11} -2 ${x+11} -14 L ${x+11} -100`, 'url(#petFur)');
       if (H.sock) o += H.path(`M ${x-11} -32 L ${x-11} -14 Q ${x-11} -2 ${x} -2 Q ${x+11} -2 ${x+11} -14 L ${x+11} -32 Z`, P.B);
@@ -442,7 +462,7 @@ const PET_SPECIES = {
 
   /* ---------- HUND: buttet, stor snude, hængeører, tunge ude ---------- */
   hund: { anchors:{ crown:[0,-266], bow:[54,-246,20], wings:[0,-92] }, shadow:86, draw:(P,H) => {
-    let o = H.thick("M 56 -56 C 96 -72, 108 -106, 94 -128", P.A, P.L, 20) + `<circle cx="94" cy="-128" r="9.5" fill="${P.B}"/>`;
+    let o = spin(H.thick("M 56 -56 C 96 -72, 108 -106, 94 -128", P.A, P.L, 20) + `<circle cx="94" cy="-128" r="9.5" fill="${P.B}"/>`, 56, -56, [0,16,0,-10,0], 0.7);
     o += H.ell(-60,-28,32,28,'url(#petFur)') + H.ell(60,-28,32,28,'url(#petFur)');
     o += H.ell(-74,-9,26,12, H.sock?P.B:P.A) + H.ell(74,-9,26,12, H.sock?P.B:P.A);
     const body = "M -66 -8 C -88 -62, -64 -132, 0 -134 C 64 -132, 88 -62, 66 -8 Q 0 6 -66 -8 Z";
@@ -471,7 +491,7 @@ const PET_SPECIES = {
   kanin: { anchors:{ crown:[0,-236], bow:[34,-236,30], wings:[0,-74] }, shadow:78, draw:(P,H) => {
     let o = `<circle cx="60" cy="-28" r="21" fill="${P.B}" stroke="${P.L}" stroke-width="3.5"/>`;
     o += `<g transform="rotate(-8 -26 -232)">${H.ell(-26,-294,20,64,'url(#petFur)')}<ellipse cx="-26" cy="-290" rx="10" ry="48" fill="#FFB3D1"/></g>`;
-    o += `<g transform="rotate(24 26 -232)">${H.ell(26,-294,20,64,'url(#petFur)')}<ellipse cx="26" cy="-290" rx="10" ry="48" fill="#FFB3D1"/></g>`;
+    o += spin(`<g transform="rotate(24 26 -232)">${H.ell(26,-294,20,64,'url(#petFur)')}<ellipse cx="26" cy="-290" rx="10" ry="48" fill="#FFB3D1"/></g>`, 26, -232, [0,0,-10,0,0], 3.1);
     const body = "M -54 -8 C -82 -42, -66 -116, 0 -120 C 66 -116, 82 -42, 54 -8 Q 0 4 -54 -8 Z";
     o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
     o += H.pat('pbC', [[-40,-84,12],[42,-96,9],[-46,-36,9]], ["M -76 -90 Q -52 -82 -42 -96","M -78 -60 Q -54 -52 -44 -66","M 76 -90 Q 52 -82 42 -96","M 78 -60 Q 54 -52 44 -66"]);
@@ -496,7 +516,7 @@ const PET_SPECIES = {
     const HOOF = P.C, HOOFL = P.CL;
     const leg = (x, fill) => H.path(`M ${x-14} -70 L ${x-14} -14 L ${x+14} -14 L ${x+14} -70`, fill) + (H.sock ? H.path(`M ${x-14} -34 L ${x-14} -14 L ${x+14} -14 L ${x+14} -34 Z`, P.B) : '')
       + `<path d="M ${x-16} -18 L ${x+16} -18 L ${x+16} -5 Q ${x+16} 0 ${x+10} 0 L ${x-10} 0 Q ${x-16} 0 ${x-16} -5 Z" fill="${HOOF}" stroke="${HOOFL}" stroke-width="3" stroke-linejoin="round"/>`;
-    let o = H.path("M 80 -114 C 134 -126, 148 -70, 124 -34 C 118 -56, 106 -66, 92 -70 C 102 -86, 96 -102, 78 -98 Z", P.C, P.CL) + `<path d="M 96 -112 C 120 -106, 130 -84, 126 -58" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.5" stroke-linecap="round"/>`;
+    let o = spin(H.path("M 80 -114 C 134 -126, 148 -70, 124 -34 C 118 -56, 106 -66, 92 -70 C 102 -86, 96 -102, 78 -98 Z", P.C, P.CL) + `<path d="M 96 -112 C 120 -106, 130 -84, 126 -58" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.5" stroke-linecap="round"/>`, 80, -108, [0,7,0,-4,0], 2.4);
     o += leg(-18, P.ASh) + leg(74, P.ASh);
     o += H.path("M -66 -96 C -70 -138, -60 -168, -44 -186 L 0 -178 C -6 -156, 2 -128, 20 -100 Z", 'url(#petFur)');
     const body = ellPath(16,-94,74,54);
@@ -546,10 +566,10 @@ const PET_SPECIES = {
   /* ---------- DRAGE: buttet babydrage, stort hoved, små vinger, hjertehale ---------- */
   drage: { anchors:{ crown:[0,-262], bow:[52,-240,20], wings:[0,-104] }, shadow:80, draw:(P,H) => {
     const wing = `<g transform="translate(-44,-118) scale(0.62)"><path d="M 0 0 C -48 -76, -104 -80, -124 -40 C -106 -40, -96 -24, -98 -8 C -84 -18, -70 -14, -62 0 C -52 -12, -36 -10, -26 6 Z" fill="${P.C}" stroke="${P.CL}" stroke-width="5" stroke-linejoin="round"/><path d="M -20 -6 L -104 -40 M -20 -2 L -76 -18" stroke="${P.CL}" stroke-width="4" opacity="0.5"/></g>`;
-    let o = H.mirror(wing);
-    o += H.thick("M 48 -36 C 92 -28, 112 -50, 110 -82", P.A, P.L, 26);
-    o += `<path transform="translate(110,-96) rotate(10) scale(1.7)" d="M 0 6 C -10 -2, -8 -10, -3 -10 C -1 -10, 0 -8, 0 -6 C 0 -8, 1 -10, 3 -10 C 8 -10, 10 -2, 0 6 Z" fill="${P.C}" stroke="${P.CL}" stroke-width="2" stroke-linejoin="round"/>`;
-    o += H.path("M 76 -38 L 84 -54 L 92 -36 Z", P.C, P.CL, 2.5) + H.path("M 98 -48 L 112 -58 L 110 -42 Z", P.C, P.CL, 2.5);
+    let o = H.mirror(spin(wing, -44, -118, [0,-14,0], 1.1));
+    o += spin(H.thick("M 48 -36 C 92 -28, 112 -50, 110 -82", P.A, P.L, 26)
+      + `<path transform="translate(110,-96) rotate(10) scale(1.7)" d="M 0 6 C -10 -2, -8 -10, -3 -10 C -1 -10, 0 -8, 0 -6 C 0 -8, 1 -10, 3 -10 C 8 -10, 10 -2, 0 6 Z" fill="${P.C}" stroke="${P.CL}" stroke-width="2" stroke-linejoin="round"/>`
+      + H.path("M 76 -38 L 84 -54 L 92 -36 Z", P.C, P.CL, 2.5) + H.path("M 98 -48 L 112 -58 L 110 -42 Z", P.C, P.CL, 2.5), 48, -36, [0,6,0,-4,0], 2.2);
     o += H.ell(-44,-30,28,28,'url(#petFur)') + H.ell(44,-30,28,28,'url(#petFur)');
     const body = ellPath(0,-82,66,62);
     o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
@@ -578,6 +598,7 @@ function petDraw(p){
   o += `<defs><linearGradient id="petIris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${adj(p.eyes,-0.25)}"/><stop offset="0.6" stop-color="${p.eyes}"/><stop offset="1" stop-color="${adj(p.eyes,0.28)}"/></linearGradient>`
     + `<linearGradient id="petFur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.A}"/><stop offset="1" stop-color="${P.ASh}"/></linearGradient></defs>`;
   o += `<ellipse cx="${p.kind==='enhjoerning'?18:0}" cy="2" rx="${sp.shadow}" ry="11" fill="#5B3A8C" opacity="0.14"/>`;
+  const body0 = o.length;
   /* feevinger: hver vinge udgår fra et fast punkt på ryggen og peger ud */
   const fairy = (bx, by, ang, rx, ry, v, op=0.55) => { const r = ang*Math.PI/180, cx = bx + Math.cos(r)*rx*0.92, cy = by + Math.sin(r)*rx*0.92;
     return `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${rx}" ry="${ry}" transform="rotate(${ang} ${cx.toFixed(1)} ${cy.toFixed(1)})" fill="${v}" fill-opacity="${op}" stroke="${outline(v)}" stroke-width="3"/>`
@@ -586,11 +607,11 @@ function petDraw(p){
   let nearWing = '';
   if (P.acc.vinger){ const v = P.acc.vinger, [wx,wy] = an.wings;
     if (an.wingsSide){
-      o += `<g opacity="0.6">${fairy(wx-12,wy-2,-74,50,24,v)}${fairy(wx-12,wy+2,-32,36,18,v)}</g>`;
-      nearWing = fairy(wx,wy,-58,56,27,v) + fairy(wx,wy+4,-16,40,19,v) + `<circle cx="${wx}" cy="${wy+2}" r="6" fill="${outline(v)}"/>`;
+      o += `<g opacity="0.6">${spin(fairy(wx-12,wy-2,-74,50,24,v) + fairy(wx-12,wy+2,-32,36,18,v), wx-12, wy, [0,10,0], 0.9)}</g>`;
+      nearWing = spin(fairy(wx,wy,-58,56,27,v) + fairy(wx,wy+4,-16,40,19,v), wx, wy, [0,-12,0], 0.9) + `<circle cx="${wx}" cy="${wy+2}" r="6" fill="${outline(v)}"/>`;
     } else {
       const w = fairy(wx,wy-6,202,74,34,v) + fairy(wx,wy+10,152,52,24,v);
-      o += H.mirror(w, wx);
+      o += H.mirror(spin(w, wx, wy, [0,-9,0], 0.9), wx);
     } }
   o += sp.draw(P, H);
   o += nearWing;
@@ -598,6 +619,7 @@ function petDraw(p){
     o += `<g transform="translate(${x},${y}) rotate(${r}) scale(0.6)"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`; }
   if (P.acc.krone){ const g = P.acc.krone, [x,y,r=-8] = an.crown;
     o += `<g transform="translate(${x},${y}) rotate(${r}) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/><circle cx="-48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="0" cy="-38" r="5" fill="#FFFFFF"/></g>`; }
+  o = o.slice(0, body0) + squash(o.slice(body0), 0, 0, ['1 1','1.012 1.02','1 1'], 2.8, 0.4);
   return o + `</g>`;
 }
 
@@ -637,6 +659,7 @@ function renderDoll(st, opts={}){
   const back = BACK[st.back] || BACK.rottehaler, top = TOPS[st.top.id] || TOPS.stjerne, bot = BOTTOMS[st.bottom.id] || BOTTOMS.plisse, shoe = SHOES[st.shoes.id] || SHOES.sneakers;
   const acc = layer => Object.keys(st.acc||{}).filter(k=>ACC[k] && ACC[k].layer===layer).map(k=>ACC[k].draw(st.acc[k])).join('');
   ARMS.R = st.acc && st.acc.stav ? ARM_R_UP : ARM_R_DOWN;
+  ANIM = !!opts.anim;
   const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${opts.size?` width="${opts.size[0]}" height="${opts.size[1]}"`:''}>`];
   o.push(`<defs>${grad('bgG', opts.bg1||'#FFF3F8', opts.bg2||'#EBDDFF')}
 <radialGradient id="blushG"><stop offset="0" stop-color="${c.blush}" stop-opacity="0.75"/><stop offset="1" stop-color="${c.blush}" stop-opacity="0"/></radialGradient>
@@ -647,32 +670,31 @@ ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></cli
   if (opts.petOnly){ o.push(petDraw(st.pet)); o.push(`</svg>`); return o.join(''); }
   if (opts.bg){
     o.push(`<rect x="-400" y="-400" width="1600" height="1900" fill="url(#bgG)"/>`);
-    for (const [x,y,r,op] of [[110,150,16,.9],[690,120,22,.9],[720,520,12,.8],[80,620,14,.8],[650,900,18,.8],[140,930,12,.8],[610,240,8,.7]]) o.push(star4(x,y,r,'#FFFFFF',op));
+    [[110,150,16,.9],[690,120,22,.9],[720,520,12,.8],[80,620,14,.8],[650,900,18,.8],[140,930,12,.8],[610,240,8,.7]].forEach(([x,y,r,op],i) => o.push(ANIM ? `<g>${star4(x,y,r,'#FFFFFF',op)}<animate attributeName="opacity" values="1;0.25;1" dur="${2.4+i*0.37}s" repeatCount="indefinite"/></g>` : star4(x,y,r,'#FFFFFF',op)));
     o.push(`<ellipse cx="400" cy="1046" rx="170" ry="20" fill="#5B3A8C" opacity="0.14"/>`);
   }
-  o.push(back.back(c));
-  o.push(`<g transform="translate(0,22)">`);
-  if (top.back) o.push(top.back(c));
-  for (const [x1,x2] of [[368,366],[432,434]]) o.push(strokeBoth(`M ${x1} 815 L ${x2} 962`, c.skin, c.skinLine, 35));
-  if (bot.under) o.push(bot.under(c));
-  o.push(shoe.draw(c));
-  o.push(`<path d="${TORSO}" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5" stroke-linejoin="round"/>`);
-  o.push(`<path d="M 378 548 L 378 606 Q 400 622 422 606 L 422 548 Z" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5"/><path d="M 379 552 L 421 552 L 421 578 Q 400 590 379 578 Z" fill="${c.skinSh}" opacity="0.8"/>`);
-  o.push(bot.main(c));
-  if (!top.tucked) o.push(bot.waist(c));
-  o.push(top.body(c));
-  if (top.tucked) o.push(bot.waist(c));
-  o.push(armSkin(c));
-  if (top.sleeves) o.push(top.sleeves(c));
-  o.push(acc('hand'));
-  o.push(hands(c));
-  o.push(acc('body'));
-  o.push(`</g>`);
-  o.push(headLayer(c, st.front));
-  o.push(frontLayer(c, st.front));
-  if (back.over) o.push(back.over(c));
-  o.push(acc('face'));
-  o.push(acc('head'));
+  const doll = [];
+  const HEAD_SWAY = [0,1.4,0,-1.4,0];
+  doll.push(spin(back.back(c), 400, 590, HEAD_SWAY, 7));
+  doll.push(`<g transform="translate(0,22)">`);
+  if (top.back) doll.push(top.back(c));
+  for (const [x1,x2] of [[368,366],[432,434]]) doll.push(strokeBoth(`M ${x1} 815 L ${x2} 962`, c.skin, c.skinLine, 35));
+  if (bot.under) doll.push(bot.under(c));
+  doll.push(shoe.draw(c));
+  doll.push(`<path d="${TORSO}" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5" stroke-linejoin="round"/>`);
+  doll.push(`<path d="M 378 548 L 378 606 Q 400 622 422 606 L 422 548 Z" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5"/><path d="M 379 552 L 421 552 L 421 578 Q 400 590 379 578 Z" fill="${c.skinSh}" opacity="0.8"/>`);
+  doll.push(bot.main(c));
+  if (!top.tucked) doll.push(bot.waist(c));
+  doll.push(top.body(c));
+  if (top.tucked) doll.push(bot.waist(c));
+  doll.push(armSkin(c));
+  if (top.sleeves) doll.push(top.sleeves(c));
+  doll.push(acc('hand'));
+  doll.push(hands(c));
+  doll.push(acc('body'));
+  doll.push(`</g>`);
+  doll.push(spin(headLayer(c, st.front) + frontLayer(c, st.front) + (back.over ? back.over(c) : '') + acc('face') + acc('head'), 400, 590, HEAD_SWAY, 7));
+  o.push(squash(doll.join(''), 400, 1046, ['1 1','1.006 1.012','1 1'], 3.6));
   if (opts.pet !== false) o.push(petDraw(st.pet));
   o.push(`</svg>`);
   return o.join('');
