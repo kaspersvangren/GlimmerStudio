@@ -127,6 +127,15 @@ const BACK = {
       o += pts.map(([x,y],i)=>`<path d="M ${(x-20).toFixed(1)} ${(y+6).toFixed(1)} C ${(x-22).toFixed(1)} ${(y-22).toFixed(1)}, ${(x+22).toFixed(1)} ${(y-24).toFixed(1)}, ${(x+18).toFixed(1)} ${(y+2).toFixed(1)} C ${(x+14).toFixed(1)} ${(y+18).toFixed(1)}, ${(x-6).toFixed(1)} ${(y+14).toFixed(1)}, ${(x-4).toFixed(1)} ${(y).toFixed(1)}" fill="none" stroke="${c.hairLine}" stroke-width="3" opacity="0.35" stroke-linecap="round"/>`
         + (i%3===0?`<path d="M ${(x-30).toFixed(1)} ${(y-12).toFixed(1)} Q ${(x-20).toFixed(1)} ${(y-36).toFixed(1)} ${(x+4).toFixed(1)} ${(y-40).toFixed(1)}" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.3" stroke-linecap="round"/>`:'')).join('');
       return o; } },
+  kort: { label:'Kort hår', back: c => crown(c) },
+  kortkrol: { label:'Korte krøller', back: c => {
+      const pts=[]; for(let a=160; a<=380; a+=13.75){ const r=a*Math.PI/180; pts.push([400+214*Math.cos(r), 336+186*Math.sin(r)]); }
+      let o = `<defs><linearGradient id="kkG" gradientUnits="userSpaceOnUse" x1="0" y1="140" x2="0" y2="480"><stop offset="0" stop-color="${c.hairA}"/><stop offset="1" stop-color="${c.hairMid}"/></linearGradient><clipPath id="kkC"><rect x="0" y="0" width="800" height="470"/></clipPath></defs>`;
+      o += pts.map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="47" fill="${c.hairLine}"/>`).join('');
+      o += pts.map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="44" fill="url(#kkG)"/>`).join('');
+      o += `<ellipse cx="400" cy="336" rx="214" ry="186" fill="url(#kkG)" clip-path="url(#kkC)"/>`;
+      o += pts.map(([x,y])=>`<path d="M ${(x-14).toFixed(1)} ${(y+4).toFixed(1)} C ${(x-16).toFixed(1)} ${(y-16).toFixed(1)}, ${(x+16).toFixed(1)} ${(y-18).toFixed(1)}, ${(x+13).toFixed(1)} ${(y+1).toFixed(1)}" fill="none" stroke="${c.hairLine}" stroke-width="3" opacity="0.35" stroke-linecap="round"/>`).join('');
+      return o; } },
   fletninger: { label:'Fletninger', back: c => {
       let one = '';
       for(let i=7;i>=0;i--){ const x = 214 + (i%2? 7:-7), y = 472 + i*40; const rot = i%2? 24:-24;
@@ -152,6 +161,14 @@ function frontPjusket(){
   return d + "C 224 350, 222 400, 218 430 C 212 470, 204 520, 194 572 Z";
 }
 const FRONT_PJUSKET = frontPjusket();
+const FRONT_KORTSIDE = "M 194 392 C 182 256, 282 158, 400 158 C 518 158, 618 256, 606 392 C 600 352, 592 326, 580 302 C 548 324, 494 326, 446 308 C 404 292, 364 268, 334 248 C 300 266, 252 296, 220 336 C 208 352, 200 370, 194 392 Z";
+function frontKortkrol(){
+  let d = "M 194 400 C 182 258, 280 158, 400 158 C 520 158, 618 258, 606 400 C 600 362, 592 330, 580 300 ";
+  const n = 8, x0 = 580, x1 = 220, w = (x0-x1)/n; let x = x0;
+  for (let i=0;i<n;i++){ x -= w; d += `A ${(w/2+2).toFixed(1)} 24 0 0 1 ${x.toFixed(1)} 300 `; }
+  return d + "C 212 330, 202 362, 194 400 Z";
+}
+const FRONT_KORTKROL = frontKortkrol();
 const SIDE_STRANDS = ["M 198 380 C 196 440, 200 500, 206 560","M 602 380 C 604 440, 600 500, 594 560"];
 const FRONT = {
   boelge: { label:'Bølger', d: FRONT_BOELGE, strands:["M 474 276 C 470 240, 450 210, 420 180","M 384 270 C 378 240, 372 210, 380 176","M 296 278 C 292 246, 304 216, 330 184","M 236 302 C 232 270, 244 236, 270 204","M 566 302 C 570 270, 558 236, 532 204","M 200 380 C 200 420, 206 450, 214 476","M 600 380 C 600 420, 594 450, 586 476"] },
@@ -159,6 +176,8 @@ const FRONT = {
   midt: { label:'Midterskilning', d: FRONT_MIDT, strands:["M 400 212 C 460 214, 530 250, 568 320","M 400 212 C 340 214, 270 250, 232 320","M 400 190 C 470 196, 550 240, 590 330","M 400 190 C 330 196, 250 240, 210 330", ...SIDE_STRANDS] },
   lige: { label:'Lige pandehår', d: FRONT_LIGE, strands:["M 280 326 L 284 230","M 340 330 L 342 200","M 400 330 L 400 196","M 460 330 L 458 200","M 520 326 L 516 230", ...SIDE_STRANDS] },
   pjusket: { label:'Pjusket', d: FRONT_PJUSKET, strands:["M 524 340 C 520 290, 500 240, 470 200","M 450 330 C 446 280, 430 230, 400 196","M 376 336 C 370 290, 350 240, 320 206","M 300 336 C 296 290, 286 250, 266 222", ...SIDE_STRANDS] },
+  kortside: { label:'Kort sideskilning', d: FRONT_KORTSIDE, strands:["M 446 308 C 440 260, 420 214, 386 186","M 520 320 C 520 270, 504 226, 476 196","M 580 302 C 584 262, 570 228, 546 206","M 334 248 C 320 220, 300 204, 280 196"] },
+  kortkrol: { label:'Krøllet pandehår', d: FRONT_KORTKROL, strands:["M 286 300 C 280 270, 290 230, 310 210","M 376 300 C 374 266, 380 230, 396 204","M 466 300 C 468 266, 462 232, 446 206","M 552 300 C 560 270, 552 236, 532 214"] },
   ingen: { label:'Strøget tilbage', d: FRONT_INGEN, strands:["M 400 228 C 400 210, 400 190, 400 166","M 320 238 C 314 214, 300 196, 290 182","M 480 238 C 486 214, 500 196, 510 182"] },
 };
 function frontLayer(c, key){
@@ -375,6 +394,11 @@ const ACC = {
       const ear = `<path d="M 256 232 L 270 122 L 346 182 Z" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/><path d="M 272 212 L 280 150 L 324 186 Z" fill="#FFB3D1" stroke-linejoin="round"/>`;
       return ear + mirror(ear) + `<path d="M 220 300 C 236 206, 320 168, 400 168 C 480 168, 564 206, 580 300" fill="none" stroke="${outline(k)}" stroke-width="16" stroke-linecap="round"/><path d="M 220 300 C 236 206, 320 168, 400 168 C 480 168, 564 206, 580 300" fill="none" stroke="${k}" stroke-width="11" stroke-linecap="round"/>`; } },
   spaender: { label:'Stjernespænder', layer:'head', color:'#FFE27A', draw: (k) => [[254,286,-20],[298,248,10]].map(([x,y,r])=>`<polygon points="${star5pts(x,y,19,8.5,-90+r)}" fill="${k}" stroke="${outline(k)}" stroke-width="2.5" stroke-linejoin="round"/>` + star4(x-4,y-4,4)).join('') },
+  kasket: { label:'Kasket', layer:'head', color:'#2F6FE0', draw: (k) => `<path d="M 204 286 C 200 170, 290 124, 400 124 C 510 124, 600 170, 596 286 C 520 262, 280 262, 204 286 Z" fill="${k}" stroke="${outline(k)}" stroke-width="3.5" stroke-linejoin="round"/>`
+      + `<path d="M 400 128 L 400 266 M 300 146 C 280 190, 272 230, 274 270 M 500 146 C 520 190, 528 230, 526 270" fill="none" stroke="${outline(k)}" stroke-width="2.5" opacity="0.45"/>`
+      + `<path d="M 186 288 C 260 252, 540 252, 614 288 C 600 312, 520 318, 400 314 C 280 318, 200 312, 186 288 Z" fill="${shade(k)}" stroke="${outline(k)}" stroke-width="3.5" stroke-linejoin="round"/>`
+      + `<path d="M 300 150 Q 340 136 380 134" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.4" stroke-linecap="round"/><circle cx="400" cy="126" r="11" fill="${shade(k)}" stroke="${outline(k)}" stroke-width="3"/>` + star4(470,206,12,'#FFFFFF',0.9) },
+  butterfly: { label:'Butterfly', layer:'body', color:'#C2272D', draw: (k) => `<g transform="translate(400,612)"><path d="M 0 0 L -30 -14 Q -36 0 -30 14 Z M 0 0 L 30 -14 Q 36 0 30 14 Z" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/><rect x="-8" y="-9" width="16" height="18" rx="5" fill="${shade(k)}" stroke="${outline(k)}" stroke-width="3"/><path d="M -24 -6 L -12 -2 M 24 -6 L 12 -2" stroke="#FFFFFF" stroke-width="3" opacity="0.5" stroke-linecap="round"/></g>` },
   briller: { label:'Hjertebriller', layer:'face', color:'#FF5FA8', draw: (k) => {
       const lens = x => `<path transform="translate(${x},468) scale(5.4)" d="M 0 6 C -10 -2, -8 -10, -3 -10 C -1 -10, 0 -8, 0 -6 C 0 -8, 1 -10, 3 -10 C 8 -10, 10 -2, 0 6 Z" fill="${k}" fill-opacity="0.45" stroke="${outline(k)}" stroke-width="1.5" stroke-linejoin="round"/>`
         + `<path d="M ${x-36} ${428} Q ${x-26} ${416} ${x-12} ${418}" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.8"/>`;
@@ -643,14 +667,14 @@ function derive(st){
 const DEFAULT_STATE = {
   skin:'#F8CDAE',
   eyes:{ color:'#16B3B8', pupil:'rund' },
-  mk:{ shadow:'#FF62B0', glitter:true, liner:'vinge', blush:'#FF7FA6', lips:'#EE4C86', lipShape:'pust', mark:'hjerte', markColor:'#FF62B0' },
+  mk:{ shadow:'#FF62B0', glitter:true, liner:'bloed', blush:'#FF7FA6', lips:'#EE4C86', lipShape:'pust', mark:'hjerte', markColor:'#FF62B0' },
   front:'boelge', back:'rottehaler',
   hair:{ a:'#8A5BE8', b:'#FF79C6', ombre:true, tie:'#FF5FA8' },
   top:{ id:'stjerne', a:'#62E0CB', b:'#FFE27A' },
   bottom:{ id:'plisse', a:'#FF5FA8', b:'#FFFFFF' },
   shoes:{ id:'sneakers', a:'#9C7CFF', b:'#FF5FA8' },
-  acc:{ sloejfe:'#FF5FA8', halskaede:'#4B2A9A', armbaand:'#FF5FA8' },
-  pet:{ kind:'kat', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'sokker', eyes:'#3D8BFF', acc:{ halsbaand:'#7B5CFF' }, name:'' },
+  acc:{ sloejfe:'#FF5FA8', halskaede:'#4B2A9A' },
+  pet:{ kind:'kat', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'ingen', eyes:'#3D8BFF', acc:{ halsbaand:'#7B5CFF' }, name:'' },
 };
 
 function renderDoll(st, opts={}){

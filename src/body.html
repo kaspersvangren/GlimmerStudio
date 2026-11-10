@@ -2,21 +2,33 @@
   <section id="home" class="screen">
     <div class="home-inner">
       <header class="home-head">
-        <h1 class="logo">Glimmer Studio</h1>
-        <button id="soundBtn" class="chip" type="button">Lyd: til</button>
+        <h1 class="logo" id="logo">Glimmer Studio</h1>
+        <div class="head-right"><span id="homeStars"></span><button id="soundBtn" class="chip" type="button">Lyd: til</button></div>
       </header>
-      <p class="lead">Lav dine egne dukker. Alt bliver gemt af sig selv.</p>
+      <div class="playrow">
+        <button id="playFashion" class="playcard fashion" type="button">
+          <span class="pc-art" aria-hidden="true"><svg viewBox="0 0 120 90"><path d="M 6 84 L 114 84" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity=".7"/><path d="M 34 84 L 52 20 L 68 20 L 86 84 Z" fill="#FFFFFF" opacity=".35"/><path d="M 8 8 Q 24 46 10 84 L 0 84 L 0 0 Z M 112 8 Q 96 46 110 84 L 120 84 L 120 0 Z" fill="#FFFFFF" opacity=".55"/><path d="M 60 6 L 63.5 15 L 73 15.5 L 65.5 21.5 L 68 31 L 60 25.5 L 52 31 L 54.5 21.5 L 47 15.5 L 56.5 15 Z" fill="#FFE27A"/></svg></span>
+          <span class="pc-title">Modehuset</span><span class="pc-sub">Klæd dig ud som … og få point af dommerne</span>
+        </button>
+        <button id="playBalls" class="playcard balls" type="button">
+          <span class="pc-art" aria-hidden="true"><svg viewBox="0 0 120 90"><circle cx="60" cy="46" r="36" fill="#FFFFFF" opacity=".9"/><path d="M 24 44 Q 60 36 96 44 L 96 52 Q 60 44 24 52 Z" fill="#7B5CFF" opacity=".8"/><path d="M 40 26 Q 48 16 62 13" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/><path d="M 84 22 L 86 28 L 92 28.5 L 87.5 32 L 89 38 L 84 34.5 L 79 38 L 80.5 32 L 76 28.5 L 82 28 Z" fill="#FFE27A"/></svg></span>
+          <span class="pc-title">Overraskelseskugler</span><span class="pc-sub" id="ballInfo"></span>
+        </button>
+      </div>
+      <h2 class="sub-head">Mine dukker</h2>
       <div id="figGrid" class="fig-grid"></div>
       <footer class="ver" id="ver"></footer>
     </div>
   </section>
   <section id="editor" class="screen" hidden>
     <div class="topbar">
-      <button id="backBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Mine dukker</button>
+      <button id="backBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Mine dukker</span></button>
       <input id="nameInput" maxlength="20" aria-label="Dukkens navn" autocomplete="off">
+      <span id="gameTheme" class="theme-pill" hidden></span>
       <div class="actions">
         <button id="undoBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Fortryd</button>
         <button id="randBtn" class="btn hot" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.5 20 12 16.6 6.5 20 8 13.4 3 9l6.4-.6z"/></svg>Tilfældig</button>
+        <button id="doneBtn" class="btn hot" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Færdig!</button>
       </div>
     </div>
     <div class="work">
@@ -31,11 +43,14 @@
       </div>
     </div>
   </section>
+  <section id="balls" class="screen" hidden><div class="screen-inner" id="ballsBody"></div></section>
+  <section id="game" class="screen" hidden><div class="screen-inner" id="gameBody"></div></section>
   <div id="modal" class="modal" hidden>
     <div class="box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <h2 id="modalTitle">Slet dukken?</h2>
+      <h2 id="modalTitle"></h2>
       <p class="hint" id="modalText"></p>
-      <div class="row"><button id="modalNo" class="btn" type="button">Nej, behold den</button><button id="modalYes" class="btn hot" type="button">Ja, slet</button></div>
+      <div class="row center" id="modalRow"></div>
     </div>
   </div>
+  <div id="toast" class="toast" role="status" hidden></div>
 </div>
