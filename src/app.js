@@ -84,7 +84,9 @@ function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
     const pv = clone(cur.st); holder(pv)[id] = holder(cur.st)[id] || a.color;
     grid.append(el('button', { class:'tile' + (on && getActive()===id ? ' active' : '') + (locked ? ' locked' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-pressed': String(on), 'aria-label': locked ? a.label + ' (låst)' : fresh ? a.label + ' (ny)' : a.label,
       on:{ click: () => { if (locked) return lockedTap(); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
-        change(st => { const h = holder(st); if (on && getActive()===id){ delete h[id]; setActive(null); } else { if (!on) h[id] = a.color; setActive(id); } }); } } },
+        change(st => { const h = holder(st); if (on && getActive()===id){ delete h[id]; setActive(null); } else { if (!on){ h[id] = a.color;
+          if (cat === 'acc'){ const off = accConflicts(id).filter(x => h[x]); off.forEach(x => delete h[x]); if (off.length) toast(`${a.label} tog ${off.map(x => ACC[x].label.toLowerCase()).join(' og ')} af`); } }
+          setActive(id); } }); } } },
       [ pic(pv, vbOf(id)), el('span', {}, a.label), locked ? lockBadge() : null, fresh ? newTag() : null ]));
   }
   const out = [ section(title, [ el('p', { class:'hint' }, 'Tryk for at tage på. Tryk igen for at tage af.'), grid ]) ];

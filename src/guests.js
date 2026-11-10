@@ -30,6 +30,7 @@ function randomState({ pool='all', boy=false } = {}){
   st.shoes = { id: pick(A('shoes', boy ? BOY.shoes : null)), a: sa, b: pickOther(COLORS, sa) };
   st.acc = {};
   for (const k of shuffle(A('acc', boy ? BOY.acc : null)).slice(0, Math.floor(Math.random() * (boy ? 3 : 4)))){ if (k==='briller' && Math.random()<0.6) continue; st.acc[k] = pick(COLORS); }
+  st.acc = resolveLayers(st).acc;
   const fa = pick(FUR);
   st.pet = { kind: pick(A('pet').filter(k => k !== 'ingen')), a: fa, b: pickOther(FUR, fa), c: pick(COLORS), pattern: pick(A('petpat')), eyes: pick(EYES), acc: {}, name: '' };
   for (const k of A('petacc')) if (Math.random() < 0.3) st.pet.acc[k] = pick(COLORS);
