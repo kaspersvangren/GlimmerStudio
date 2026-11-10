@@ -1,0 +1,16 @@
+{
+  "name": "Glimmerstudiet",
+  "short_name": "Glimmer",
+  "description": "Lav dine egne dukker",
+  "lang": "da",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF6FB",
+  "theme_color": "#FFD9EA",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

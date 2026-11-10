@@ -1,0 +1,37 @@
+<div id="app">
+  <section id="home" class="screen">
+    <div class="home-inner">
+      <header class="home-head">
+        <h1 class="logo">Glimmerstudiet</h1>
+        <button id="soundBtn" class="chip" type="button">Lyd: til</button>
+      </header>
+      <p class="lead">Lav dine egne dukker. Alt bliver gemt af sig selv.</p>
+      <div id="figGrid" class="fig-grid"></div>
+      <footer class="ver" id="ver"></footer>
+    </div>
+  </section>
+  <section id="editor" class="screen" hidden>
+    <div class="topbar">
+      <button id="backBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Mine dukker</button>
+      <input id="nameInput" maxlength="20" aria-label="Dukkens navn" autocomplete="off">
+      <div class="actions">
+        <button id="undoBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Fortryd</button>
+        <button id="randBtn" class="btn hot" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 2l2.6 6.4L21 9l-5 4.4L17.5 20 12 16.6 6.5 20 8 13.4 3 9l6.4-.6z"/></svg>Tilfældig</button>
+      </div>
+    </div>
+    <div class="work">
+      <div class="stage-wrap"><div class="mirror" id="mirror"><img id="stageImg" alt="Din dukke"></div></div>
+      <div class="panel">
+        <nav class="tabs" id="tabs" role="tablist" aria-label="Hvad vil du ændre"></nav>
+        <div class="panel-body" id="panelBody"></div>
+      </div>
+    </div>
+  </section>
+  <div id="modal" class="modal" hidden>
+    <div class="box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle">Slet dukken?</h2>
+      <p class="hint" id="modalText"></p>
+      <div class="row"><button id="modalNo" class="btn" type="button">Nej, behold den</button><button id="modalYes" class="btn hot" type="button">Ja, slet</button></div>
+    </div>
+  </div>
+</div>
