@@ -364,9 +364,107 @@ const ACC = {
   taske: { label:'Taske', layer:'hand', color:'#B79BFF', draw: (k) => `<path d="M 494 806 Q 492 760 512 762 Q 532 760 530 806" fill="none" stroke="${outline(k)}" stroke-width="6" stroke-linecap="round"/>`
       + `<rect x="476" y="800" width="72" height="56" rx="14" fill="${k}" stroke="${outline(k)}" stroke-width="3"/><path d="M 476 818 Q 512 836 548 818 L 548 812 Q 548 800 534 800 L 490 800 Q 476 800 476 812 Z" fill="${shade(k)}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>`
       + heart(512,836,1.2,'#FFE27A','#C99A12',1.2) + star4(490,846,4) },
-  stav: { label:'Tryllestav', layer:'hand', color:'#FFE27A', draw: (k) => `<path d="M 506 778 L 574 668" stroke="#5B3FC0" stroke-width="9" stroke-linecap="round"/><path d="M 506 778 L 574 668" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"/>`
-      + `<polygon points="${star5pts(580,654,30,13,-80)}" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>` + star4(574,646,6) + star4(620,630,8,k) + star4(612,690,5,k) + star4(548,620,5,k) },
+  stav: { label:'Tryllestav', layer:'hand', color:'#FFE27A', draw: (k) => `<path d="M 490 784 L 598 722" stroke="#5B3FC0" stroke-width="10" stroke-linecap="round"/><path d="M 490 784 L 598 722" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"/>`
+      + `<polygon points="${star5pts(612,714,30,13,-60)}" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>` + star4(606,706,6) + star4(652,690,8,k) + star4(650,744,5,k) + star4(590,676,5,k) },
 };
+
+
+/* ================= KÆLEDYR (egne koordinater: 0,0 = midt under dyret) ================= */
+const PET_X = 660, PET_Y = 1050, PET_S = 0.85;
+const PET_BODY = "M -62 -10 C -82 -60, -62 -122, 0 -126 C 62 -122, 82 -60, 62 -10 Q 0 6 -62 -10 Z";
+const PET_HEAD = "M 0 -258 C 50 -258, 84 -224, 84 -182 C 84 -136, 48 -108, 0 -108 C -48 -108, -84 -136, -84 -182 C -84 -224, -50 -258, 0 -258 Z";
+const PET_KINDS = {
+  ingen: { label:'Intet dyr' },
+  kat: { label:'Kat' }, hund: { label:'Hund' }, kanin: { label:'Kanin' },
+  enhjoerning: { label:'Enhjørning' }, bjoern: { label:'Bjørn' }, drage: { label:'Drage' },
+};
+const PET_PATTERNS = { ingen:'Ensfarvet', pletter:'Pletter', striber:'Striber', sokker:'Sokker', oejeplet:'Plet om øjet' };
+const PET_ACC = {
+  halsbaand: { label:'Halsbånd', color:'#FF5FA8' }, sloejfe: { label:'Sløjfe', color:'#B79BFF' },
+  krone: { label:'Krone', color:'#FF5FA8' }, vinger: { label:'Feevinger', color:'#7FD8FF' },
+};
+function petDraw(p){
+  if (!p || !PET_KINDS[p.kind] || p.kind === 'ingen') return '';
+  const A=p.a, ASh=shade(p.a), L=outline(p.a), B=p.b, C=p.c, CL=outline(p.c), k=p.kind, acc=p.acc||{};
+  const sw = 3.5;
+  const ell = (x,y,rx,ry,fill,extra='') => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${L}" stroke-width="${sw}" ${extra}/>`;
+  const thick = (d, fill, line, w) => `<path d="${d}" fill="none" stroke="${line}" stroke-width="${w+6}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${fill}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  let o = `<g transform="translate(${PET_X},${PET_Y}) scale(${PET_S})">`;
+  o += `<defs><linearGradient id="petIris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${adj(p.eyes,-0.25)}"/><stop offset="0.6" stop-color="${p.eyes}"/><stop offset="1" stop-color="${adj(p.eyes,0.28)}"/></linearGradient>`
+    + `<linearGradient id="petFur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${A}"/><stop offset="1" stop-color="${ASh}"/></linearGradient>`
+    + `<clipPath id="petBodyC"><path d="${PET_BODY}"/></clipPath><clipPath id="petHeadC"><path d="${PET_HEAD}"/></clipPath></defs>`;
+  o += `<ellipse cx="0" cy="2" rx="86" ry="11" fill="#5B3A8C" opacity="0.14"/>`;
+  // feevinger bag ved
+  if (acc.vinger){ const v=acc.vinger, w = `<g opacity="0.85"><ellipse cx="-86" cy="-150" rx="62" ry="38" transform="rotate(-30 -86 -150)" fill="${v}" fill-opacity="0.55" stroke="${outline(v)}" stroke-width="3"/><ellipse cx="-74" cy="-84" rx="44" ry="26" transform="rotate(20 -74 -84)" fill="${v}" fill-opacity="0.55" stroke="${outline(v)}" stroke-width="3"/></g>` + star4(-100,-160,8) + star4(-70,-130,5) + star4(-84,-84,5);
+    o += w + `<g transform="scale(-1,1)">${w}</g>`; }
+  // drage: vinger
+  if (k==='drage'){ const w = `<g transform="translate(-40 -110) scale(0.8) translate(40 110)"><path d="M -40 -110 C -90 -190, -150 -190, -170 -150 C -150 -150, -140 -134, -142 -118 C -128 -128, -112 -124, -104 -110 C -94 -122, -76 -120, -66 -104 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M -60 -116 L -150 -152 M -60 -112 L -118 -128" stroke="${CL}" stroke-width="2.5" opacity="0.5"/></g>`;
+    o += w + `<g transform="scale(-1,1)">${w}</g>`; }
+  // haler
+  if (k==='kat') o += thick("M 50 -22 C 112 -18, 124 -82, 98 -116", A, L, 20) + (p.pattern==='sokker'||p.pattern==='striber' ? `<circle cx="98" cy="-116" r="10" fill="${B}"/>` : '');
+  if (k==='hund') o += thick("M 54 -40 C 92 -56, 104 -88, 96 -116", A, L, 22);
+  if (k==='kanin') o += `<circle cx="70" cy="-30" r="22" fill="${B}" stroke="${L}" stroke-width="${sw}"/>`;
+  if (k==='bjoern') o += `<circle cx="64" cy="-34" r="14" fill="${A}" stroke="${L}" stroke-width="${sw}"/>`;
+  if (k==='enhjoerning') o += `<path d="M 50 -50 C 118 -78, 150 -30, 130 2 C 122 -20, 108 -22, 96 -14 C 100 -30, 86 -38, 56 -26 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M 70 -46 C 104 -56, 124 -38, 126 -14" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.5" stroke-linecap="round"/>`;
+  if (k==='drage') o += thick("M 48 -18 C 108 -6, 132 -38, 140 -78", A, L, 18) + `<path d="M 140 -78 L 128 -110 L 164 -96 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  // ører bag hovedet
+  const mirrorP = s => s + `<g transform="scale(-1,1)">${s}</g>`;
+  if (k==='kanin') o += mirrorP(`<g transform="rotate(-14 -32 -250)"><ellipse cx="-32" cy="-300" rx="21" ry="60" fill="url(#petFur)" stroke="${L}" stroke-width="${sw}"/><ellipse cx="-32" cy="-296" rx="10" ry="44" fill="#FFB3D1"/></g>`);
+  if (k==='kat') o += mirrorP(`<path d="M -80 -206 L -70 -282 L -22 -246 Z" fill="${A}" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M -70 -220 L -65 -264 L -36 -244 Z" fill="#FFB3D1"/>`);
+  if (k==='bjoern') o += mirrorP(`<circle cx="-60" cy="-238" r="26" fill="${A}" stroke="${L}" stroke-width="${sw}"/><circle cx="-60" cy="-238" r="13" fill="${B}"/>`);
+  if (k==='enhjoerning') o += mirrorP(`<path d="M -66 -220 L -60 -282 L -26 -248 Z" fill="${A}" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M -58 -232 L -56 -266 L -38 -248 Z" fill="${B}"/>`);
+  if (k==='drage') o += mirrorP(`<path d="M -44 -246 C -60 -276, -84 -290, -100 -292 C -86 -276, -74 -262, -70 -234 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/>`);
+  // krop
+  o += ell(-58,-26,30,26,'url(#petFur)') + ell(58,-26,30,26,'url(#petFur)');
+  o += `<path d="${PET_BODY}" fill="url(#petFur)" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  o += `<g clip-path="url(#petBodyC)">`;
+  if (p.pattern==='pletter') o += [[-40,-90,14],[34,-104,10],[46,-50,13],[-50,-40,9]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${B}"/>`).join('');
+  if (p.pattern==='striber') o += [-100,-70,-40].map(y=>`<path d="M -90 ${y} Q -62 ${y+8} -46 ${y-4} M 90 ${y} Q 62 ${y+8} 46 ${y-4}" fill="none" stroke="${ASh}" stroke-width="9" stroke-linecap="round"/>`).join('');
+  o += `<ellipse cx="0" cy="-60" rx="38" ry="44" fill="${B}"/>`;
+  if (k==='drage') o += [-92,-72,-52,-32].map(y=>`<path d="M -30 ${y} Q 0 ${y+8} 30 ${y}" fill="none" stroke="${outline(B)}" stroke-width="2.5" opacity="0.5"/>`).join('');
+  o += `</g>`;
+  const paw = p.pattern==='sokker' ? B : A;
+  for (const x of [-28,28]) o += ell(x,-9,21,14,paw) + `<path d="M ${x-6} -14 l 0 8 M ${x+6} -14 l 0 8" stroke="${L}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>`;
+  if (p.pattern==='sokker') o += `<g clip-path="url(#petBodyC)"></g>` + ell(-58,-14,24,12,B) + ell(58,-14,24,12,B);
+  // halsbånd
+  if (acc.halsbaand){ const h=acc.halsbaand; o += `<path d="M -54 -114 Q 0 -94 54 -114" fill="none" stroke="${outline(h)}" stroke-width="15" stroke-linecap="round"/><path d="M -54 -114 Q 0 -94 54 -114" fill="none" stroke="${h}" stroke-width="10" stroke-linecap="round"/><circle cx="0" cy="-94" r="10" fill="#FFD54A" stroke="#C99A12" stroke-width="2.5"/><path d="M -6 -92 L 6 -92" stroke="#C99A12" stroke-width="2"/>`; }
+  // hoved
+  o += `<path d="${PET_HEAD}" fill="url(#petFur)" stroke="${L}" stroke-width="${sw}"/>`;
+  o += `<g clip-path="url(#petHeadC)">`;
+  if (p.pattern==='pletter') o += [[52,-226,16],[-62,-208,10],[30,-246,8]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${B}"/>`).join('');
+  if (p.pattern==='striber') o += `<path d="M -20 -258 L -14 -226 M 0 -260 L 0 -222 M 20 -258 L 14 -226" stroke="${ASh}" stroke-width="9" stroke-linecap="round"/><path d="M -90 -190 L -64 -184 M -90 -170 L -66 -168 M 90 -190 L 64 -184 M 90 -170 L 66 -168" stroke="${ASh}" stroke-width="8" stroke-linecap="round"/>`;
+  if (p.pattern==='oejeplet') o += `<ellipse cx="-34" cy="-182" rx="34" ry="32" fill="${B}"/>`;
+  o += `</g>`;
+  // ansigt
+  const muzzleBig = k==='hund' || k==='bjoern' || k==='enhjoerning' || k==='drage';
+  if (muzzleBig) o += `<ellipse cx="0" cy="${k==='enhjoerning'?-142:-146}" rx="${k==='enhjoerning'?42:34}" ry="${k==='enhjoerning'?28:24}" fill="${B}" stroke="${L}" stroke-width="2.5"/>`;
+  else o += `<ellipse cx="-12" cy="-146" rx="16" ry="13" fill="${B}"/><ellipse cx="12" cy="-146" rx="16" ry="13" fill="${B}"/>`;
+  for (const x of [-36,36]){ o += `<ellipse cx="${x}" cy="-180" rx="21" ry="25" fill="#FFFFFF" stroke="#1B1330" stroke-width="3"/><ellipse cx="${x}" cy="-177" rx="17" ry="21" fill="url(#petIris)"/><ellipse cx="${x}" cy="-176" rx="9" ry="12" fill="#14122B"/><circle cx="${x-7}" cy="-187" r="7" fill="#FFFFFF"/><circle cx="${x+7}" cy="-166" r="3" fill="#FFFFFF"/>`
+    + `<path d="M ${x-22} ${-190} Q ${x-27} ${-198} ${x-31} ${-200}" stroke="#1B1330" stroke-width="3" stroke-linecap="round" fill="none" transform="${x>0?`translate(${2*x},0) scale(-1,1)`:''}"/>`; }
+  o += `<ellipse cx="-58" cy="-150" rx="15" ry="9" fill="#FF7FA6" opacity="0.55"/><ellipse cx="58" cy="-150" rx="15" ry="9" fill="#FF7FA6" opacity="0.55"/>`;
+  if (k==='enhjoerning' || k==='drage') o += `<ellipse cx="-12" cy="-142" rx="4" ry="5" fill="${outline(B)}"/><ellipse cx="12" cy="-142" rx="4" ry="5" fill="${outline(B)}"/><path d="M -12 -128 Q 0 -122 12 -128" fill="none" stroke="#3A2440" stroke-width="3" stroke-linecap="round"/>`;
+  else {
+    const nose = (k==='kat'||k==='kanin') ? '#FF8FB0' : '#3A2440';
+    o += `<path d="M -9 -158 Q 0 -162 9 -158 Q 6 -150 0 -148 Q -6 -150 -9 -158 Z" fill="${nose}" stroke="${nose==='#3A2440'?'#3A2440':'#D9577F'}" stroke-width="2" stroke-linejoin="round"/>`;
+    o += `<path d="M -12 -142 Q -6 -136 0 -144 Q 6 -136 12 -142" fill="none" stroke="#3A2440" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  if (k==='hund') o += `<path d="M -6 -138 Q 0 -122 6 -138 Z" fill="#FF7FA6" stroke="#D9577F" stroke-width="2"/>`;
+  if (k==='kanin') o += `<rect x="-6" y="-141" width="12" height="9" rx="2" fill="#FFFFFF" stroke="#3A2440" stroke-width="1.8"/>`;
+  if (k==='kat') o += `<path d="M -28 -150 L -62 -156 M -28 -144 L -60 -138 M 28 -150 L 62 -156 M 28 -144 L 60 -138" stroke="${L}" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>`;
+  // ører foran / manke / horn
+  if (k==='hund') o += mirrorP(`<path d="M -56 -244 C -104 -244, -114 -170, -92 -128 C -76 -138, -66 -176, -42 -236 Z" fill="${ASh}" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/>`);
+  if (k==='enhjoerning'){
+    o += [[-46,-250,20],[-22,-262,20],[4,-266,18],[-62,-228,17],[-70,-204,14]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r+2}" fill="${CL}"/>`).join('');
+    o += [[-46,-250,20],[-22,-262,20],[4,-266,18],[-62,-228,17],[-70,-204,14]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${C}"/>`).join('');
+    o += `<path d="M -52 -258 Q -40 -270 -26 -270" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.55" stroke-linecap="round"/>`;
+    o += `<path d="M 14 -258 L 30 -326 L 42 -252 Z" fill="#FFE27A" stroke="#C99A12" stroke-width="3" stroke-linejoin="round"/><path d="M 20 -270 L 37 -276 M 24 -290 L 35 -294 M 27 -308 L 33 -310" stroke="#C99A12" stroke-width="2.5" stroke-linecap="round"/>`;
+  }
+  if (k==='drage') o += [-60,-30,0,30,60].map((x,i)=>`<path d="M ${x-10} ${-252+Math.abs(x)*0.5} L ${x} ${-276+Math.abs(x)*0.5} L ${x+10} ${-252+Math.abs(x)*0.5} Z" fill="${C}" stroke="${CL}" stroke-width="2.5" stroke-linejoin="round"/>`).join('');
+  // tilbehør på hovedet
+  if (acc.sloejfe){ const b=acc.sloejfe; o += `<g transform="translate(${k==='enhjoerning'?-58:52},-238) rotate(${k==='enhjoerning'?-20:20}) scale(0.6)"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`; }
+  if (acc.krone){ const g=acc.krone; o += `<g transform="translate(${k==='enhjoerning'?-30:0},${k==='kanin'?-250:-256}) rotate(-8) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/><circle cx="-48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="0" cy="-38" r="5" fill="#FFFFFF"/></g>`; }
+  return o + `</g>`;
+}
 
 /* ================= SAMLING ================= */
 function derive(st){
@@ -395,6 +493,7 @@ const DEFAULT_STATE = {
   bottom:{ id:'plisse', a:'#FF5FA8', b:'#FFFFFF' },
   shoes:{ id:'sneakers', a:'#9C7CFF', b:'#FF5FA8' },
   acc:{ sloejfe:'#FF5FA8', halskaede:'#4B2A9A', armbaand:'#FF5FA8' },
+  pet:{ kind:'kat', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'sokker', eyes:'#3D8BFF', acc:{ halsbaand:'#7B5CFF' }, name:'' },
 };
 
 function renderDoll(st, opts={}){
@@ -409,6 +508,7 @@ function renderDoll(st, opts={}){
 <linearGradient id="shadowG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.shadow}" stop-opacity="0.95"/><stop offset="1" stop-color="${c.shadow}" stop-opacity="0.25"/></linearGradient>
 <linearGradient id="fringeG" gradientUnits="userSpaceOnUse" x1="0" y1="160" x2="0" y2="560"><stop offset="0" stop-color="${c.hairA}"/><stop offset="1" stop-color="${c.hairMid}"/></linearGradient>
 ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></clipPath></defs>`);
+  if (opts.petOnly){ o.push(petDraw(st.pet)); o.push(`</svg>`); return o.join(''); }
   if (opts.bg){
     o.push(`<rect x="-400" y="-400" width="1600" height="1900" fill="url(#bgG)"/>`);
     for (const [x,y,r,op] of [[110,150,16,.9],[690,120,22,.9],[720,520,12,.8],[80,620,14,.8],[650,900,18,.8],[140,930,12,.8],[610,240,8,.7]]) o.push(star4(x,y,r,'#FFFFFF',op));
@@ -437,8 +537,9 @@ ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></cli
   if (back.over) o.push(back.over(c));
   o.push(acc('face'));
   o.push(acc('head'));
+  if (opts.pet !== false) o.push(petDraw(st.pet));
   o.push(`</svg>`);
   return o.join('');
 }
 
-if (typeof module !== 'undefined') module.exports = { renderDoll, DEFAULT_STATE, BACK, FRONT, TOPS, BOTTOMS, SHOES, ACC, adj };
+if (typeof module !== 'undefined') module.exports = { renderDoll, DEFAULT_STATE, BACK, FRONT, TOPS, BOTTOMS, SHOES, ACC, PET_KINDS, PET_PATTERNS, PET_ACC, adj };

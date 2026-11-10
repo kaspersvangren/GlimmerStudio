@@ -1,6 +1,6 @@
 'use strict';
 /* ================= Glimmerstudiet — skaberen ================= */
-const VERSION = 'v0.1.0';
+const VERSION = 'v0.2.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -18,14 +18,16 @@ const EYES = ['#16B3B8','#3D8BFF','#7FB8E8','#3FA34D','#7BC96F','#8A5B2E','#5C3A
 const SHADOW = ['#FF62B0','#FFB3D1','#B48CFF','#7FD8FF','#62E0CB','#FFC02E','#FF9A4D','#C9A27A','#9BE36A','#4F7BFF','#2A2340','#F5E6FF'];
 const LIPS = ['#EE4C86','#FF8FB0','#D0246B','#C2272D','#FF5A4A','#E8957F','#C77B6A','#A0526B','#8A5BE8','#B79BFF','#62E0CB','#4A2338'];
 const BLUSH = ['#FF7FA6','#FF9E86','#FFB3D1','#E0457A','#B79BFF'];
+const FUR = ['#FFFFFF','#F5EEFF','#FFE9D6','#F2D9B8','#E0B98A','#C68653','#8A5A35','#5C3A24','#3B2A20','#9C95B5','#4A4560','#1E1A2E','#FFC9E2','#FF8FC7','#B79BFF','#7FD8FF','#62E0CB','#9BE36A','#FFE27A','#FF9A4D'];
 
 const VB = { head:'150 110 500 500', hair:'40 80 720 820', eye:'226 352 190 170', lips:'348 494 104 72', face:'190 310 420 290',
-  top:'240 570 320 320', bottom:'230 715 340 340', shoes:'270 900 260 180', neck:'300 560 200 140', hand:'400 620 260 300' };
+  top:'240 570 320 320', bottom:'230 715 340 340', shoes:'270 900 260 180', neck:'300 560 200 140', hand:'400 620 300 300', pet:'520 750 280 310' };
+const STAGE_PET_VB = '440 600 360 495';
 const ACC_VB = { sloejfe:VB.head, tiara:VB.head, katteoerer:VB.head, spaender:VB.head, briller:'200 340 400 220', halskaede:VB.neck, armbaand:VB.hand, taske:VB.hand, stav:VB.hand };
 
 /* ---------- ikoner til fanerne ---------- */
 const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const TABS = [
+const DOLL_TABS = [
   ['hud','Hud', ic('<circle cx="12" cy="12" r="8"/><path d="M9 14.5c1.6 1.4 4.4 1.4 6 0"/><circle cx="9.5" cy="10.5" r=".6" fill="currentColor"/><circle cx="14.5" cy="10.5" r=".6" fill="currentColor"/>')],
   ['oejne','Øjne', ic('<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')],
   ['makeup','Make-up', ic('<path d="M9 21h6v-8H9z"/><path d="M10 13V7l4-3v9"/>')],
@@ -36,6 +38,12 @@ const TABS = [
   ['underdel','Underdel', ic('<path d="M8 4h8l4 15H4z"/><path d="M8 7h8"/>')],
   ['sko','Sko', ic('<path d="M3 18v-6l5-1 3 3h4l6 2v2z"/><path d="M3 18h18"/>')],
   ['tilbehoer','Tilbehør', ic('<path d="M12 12L4 7v10zM12 12l8-5v10z"/><circle cx="12" cy="12" r="2"/>')],
+];
+const PET_TABS = [
+  ['dyr','Dyr', ic('<circle cx="7" cy="9" r="2"/><circle cx="17" cy="9" r="2"/><circle cx="10" cy="5" r="2"/><circle cx="14" cy="5" r="2"/><path d="M12 12c-3 0-6 4-6 6.5S8 21 12 19.5 18 21 18 18.5 15 12 12 12z"/>')],
+  ['pels','Pels', ic('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>')],
+  ['dyreoejne','Øjne', ic('<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')],
+  ['dyretilbehoer','Tilbehør', ic('<path d="M12 12L4 7v10zM12 12l8-5v10z"/><circle cx="12" cy="12" r="2"/>')],
 ];
 
 /* ---------- lyd ---------- */
@@ -61,11 +69,11 @@ const sfx = {
 /* ---------- data ---------- */
 let figures = store.get(KEY, []);
 if (!Array.isArray(figures)) figures = [];
-let cur = null, tab = 'hud', activeAcc = null, history = [], liveHist = false;
+let cur = null, tab = 'hud', petTab = 'dyr', mode = 'dukke', activeAcc = null, activePetAcc = null, history = [], liveHist = false;
 const saveAll = () => store.set(KEY, figures);
 let saveTimer = null;
 function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ if (cur){ cur.t = Date.now(); } saveAll(); }, 300); }
-function fixState(st){ const d = clone(DEFAULT_STATE); const s = Object.assign(d, st||{}); for (const k of ['eyes','mk','hair','top','bottom','shoes']) s[k] = Object.assign(clone(DEFAULT_STATE[k]), (st||{})[k]||{}); if (!s.acc || typeof s.acc!=='object') s.acc = {}; return s; }
+function fixState(st){ const d = clone(DEFAULT_STATE); const s = Object.assign(d, st||{}); for (const k of ['eyes','mk','hair','top','bottom','shoes','pet']) s[k] = Object.assign(clone(DEFAULT_STATE[k]), (st||{})[k]||{}); if (!s.acc || typeof s.acc!=='object') s.acc = {}; if (!s.pet.acc || typeof s.pet.acc!=='object') s.pet.acc = {}; return s; }
 
 /* ---------- små DOM-hjælpere ---------- */
 function el(tag, attrs={}, kids=[]){
@@ -74,7 +82,7 @@ function el(tag, attrs={}, kids=[]){
   for (const kid of [].concat(kids)) if (kid!==null && kid!==undefined) e.append(kid.nodeType ? kid : document.createTextNode(kid));
   return e;
 }
-const pic = (st, vb) => el('img', { src: svgUrl(renderDoll(st, { viewBox: vb })), alt:'' });
+const pic = (st, vb) => el('img', { src: svgUrl(renderDoll(st, mode === 'dyr' ? { viewBox: vb, petOnly: true } : { viewBox: vb, pet: false })), alt:'' });
 
 /* ---------- ændringer og fortryd ---------- */
 function pushHistory(){ history.push(JSON.stringify(cur.st)); if (history.length > 60) history.shift(); updateUndo(); }
@@ -156,20 +164,57 @@ const TAB_CONTENT = {
     if (activeAcc && cur.st.acc[activeAcc]) out.push(colorsSec('Farve på ' + ACC[activeAcc].label.toLowerCase(), COLORS, () => cur.st.acc[activeAcc], (st,v) => st.acc[activeAcc] = v));
     return out;
   },
+  /* ----- kæledyr ----- */
+  dyr: () => {
+    const inp = el('input', { id:'petName', class:'text', maxlength:'16', placeholder:'Skriv et navn', value: cur.st.pet.name || '', autocomplete:'off',
+      on:{ input: e => { cur.st.pet.name = e.target.value.trim(); saveSoon(); } } });
+    return [ optionsSec('Hvilket dyr?', entries(PET_KINDS), () => cur.st.pet.kind, (st,v) => st.pet.kind = v, VB.pet),
+      cur.st.pet.kind !== 'ingen' ? section('Kæledyrets navn', [inp]) : null ];
+  },
+  pels: () => noPet() || [
+    colorsSec('Pels', FUR, () => cur.st.pet.a, (st,v) => st.pet.a = v),
+    optionsSec('Mønster', Object.entries(PET_PATTERNS), () => cur.st.pet.pattern, (st,v) => st.pet.pattern = v, VB.pet),
+    colorsSec('Mave og mønster', FUR, () => cur.st.pet.b, (st,v) => st.pet.b = v),
+    cur.st.pet.kind === 'enhjoerning' ? colorsSec('Manke og hale', COLORS, () => cur.st.pet.c, (st,v) => st.pet.c = v) : null,
+    cur.st.pet.kind === 'drage' ? colorsSec('Vinger, horn og pigge', COLORS, () => cur.st.pet.c, (st,v) => st.pet.c = v) : null ],
+  dyreoejne: () => noPet() || [ colorsSec('Øjenfarve', EYES, () => cur.st.pet.eyes, (st,v) => st.pet.eyes = v) ],
+  dyretilbehoer: () => noPet() || (() => {
+    const grid = el('div', { class:'tiles' });
+    for (const [id, a] of Object.entries(PET_ACC)){
+      const on = !!cur.st.pet.acc[id];
+      const pv = clone(cur.st); pv.pet.acc[id] = cur.st.pet.acc[id] || a.color;
+      grid.append(el('button', { class:'tile' + (on && activePetAcc===id ? ' active' : ''), type:'button', 'aria-pressed': String(on),
+        on:{ click: () => change(st => { if (on && activePetAcc===id){ delete st.pet.acc[id]; activePetAcc = null; } else { if (!on) st.pet.acc[id] = a.color; activePetAcc = id; } }) } },
+        [ pic(pv, VB.pet), el('span', {}, a.label) ]));
+    }
+    const out = [ section('Tilbehør', [ el('p', { class:'hint' }, 'Tryk for at tage på. Tryk igen for at tage af.'), grid ]) ];
+    if (activePetAcc && cur.st.pet.acc[activePetAcc]) out.push(colorsSec('Farve på ' + PET_ACC[activePetAcc].label.toLowerCase(), COLORS, () => cur.st.pet.acc[activePetAcc], (st,v) => st.pet.acc[activePetAcc] = v));
+    return out;
+  })(),
 };
+function noPet(){
+  if (cur.st.pet.kind !== 'ingen') return null;
+  return [ section('Intet kæledyr', [ el('p', { class:'hint' }, 'Vælg et dyr først.'), el('button', { class:'btn hot', type:'button', on:{ click: () => { petTab = 'dyr'; renderTabs(); renderPanel(true); } } }, 'Vælg dyr') ]) ];
+}
 
 /* ---------- tegning af skærmen ---------- */
-function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true })); }
+function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, viewBox: mode === 'dyr' && cur.st.pet.kind !== 'ingen' ? STAGE_PET_VB : undefined })); }
+function renderModes(){
+  document.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  $('#tabs').classList.toggle('pet', mode === 'dyr');
+}
+function setMode(m){ if (m === mode) return; mode = m; sfx.pick(); renderModes(); renderStage(); renderTabs(); renderPanel(true); }
 function renderTabs(){
   const nav = $('#tabs'); nav.innerHTML = '';
-  for (const [id, label, icon] of TABS)
-    nav.append(el('button', { class:'tab', type:'button', role:'tab', 'aria-selected': String(id===tab), html: icon + `<span>${label}</span>`,
-      on:{ click: () => { if (tab!==id){ tab = id; sfx.pick(); renderTabs(); renderPanel(true); } } } }));
+  const list = mode === 'dyr' ? PET_TABS : DOLL_TABS, now = mode === 'dyr' ? petTab : tab;
+  for (const [id, label, icon] of list)
+    nav.append(el('button', { class:'tab', type:'button', role:'tab', 'aria-selected': String(id===now), html: icon + `<span>${label}</span>`,
+      on:{ click: () => { if (now!==id){ if (mode === 'dyr') petTab = id; else tab = id; sfx.pick(); renderTabs(); renderPanel(true); } } } }));
 }
 function renderPanel(resetScroll=false){
   const body = $('#panelBody'); const keep = resetScroll ? 0 : body.scrollTop;
   body.innerHTML = '';
-  for (const node of TAB_CONTENT[tab]()) if (node) body.append(node);
+  for (const node of TAB_CONTENT[mode === 'dyr' ? petTab : tab]()) if (node) body.append(node);
   body.scrollTop = keep;
 }
 function placeBulbs(){
@@ -197,6 +242,9 @@ function randomState(){
   st.shoes = { id: pick(Object.keys(SHOES)), a: sa, b: pickOther(COLORS, sa) };
   st.acc = {}; const keys = Object.keys(ACC).sort(()=>Math.random()-0.5).slice(0, Math.floor(Math.random()*4));
   for (const k of keys){ if (k==='briller' && Math.random()<0.6) continue; st.acc[k] = pick(COLORS); }
+  const fa = pick(FUR);
+  st.pet = { kind: pick(Object.keys(PET_KINDS).filter(k => k !== 'ingen')), a: fa, b: pickOther(FUR, fa), c: pick(COLORS), pattern: pick(Object.keys(PET_PATTERNS)), eyes: pick(EYES), acc: {}, name: (cur && cur.st.pet && cur.st.pet.name) || '' };
+  for (const k of Object.keys(PET_ACC)) if (Math.random() < 0.3) st.pet.acc[k] = pick(COLORS);
   return st;
 }
 
@@ -205,7 +253,7 @@ function showHome(){
   cur = null; $('#editor').hidden = true; $('#home').hidden = false; renderHome();
 }
 function openFigure(f){
-  cur = f; cur.st = fixState(cur.st); history = []; activeAcc = null; tab = tab || 'hud';
+  cur = f; cur.st = fixState(cur.st); history = []; activeAcc = null; activePetAcc = null; mode = 'dukke'; renderModes();
   $('#home').hidden = true; $('#editor').hidden = false;
   $('#nameInput').value = cur.name; updateUndo(); renderStage(); renderTabs(); renderPanel(true); placeBulbs(); sfx.open();
 }
@@ -220,7 +268,7 @@ function renderHome(){
   for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
     const st = fixState(f.st);
     g.append(el('div', { class:'card' }, [
-      el('button', { class:'open', type:'button', on:{ click: () => openFigure(f) } }, [ el('img', { src: svgUrl(renderDoll(st, { bg:true, viewBox:'100 90 600 640' })), alt:'' }), el('span', { class:'nm' }, f.name) ]),
+      el('button', { class:'open', type:'button', on:{ click: () => openFigure(f) } }, [ el('img', { src: svgUrl(renderDoll(st, { bg:true, viewBox:'100 90 600 640' })), alt:'' }), el('span', { class:'nm' }, f.name), st.pet.kind !== 'ingen' && st.pet.name ? el('span', { class:'pet-nm' }, 'og ' + st.pet.name) : null ]),
       el('button', { class:'del', type:'button', 'aria-label': 'Slet ' + f.name, html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', on:{ click: () => askDelete(f) } }),
     ]));
   }
@@ -237,7 +285,8 @@ function updateSoundBtn(){ $('#soundBtn').textContent = soundOn ? 'Lyd: til' : '
 $('#soundBtn').onclick = () => { soundOn = !soundOn; store.set(KEY_SOUND, soundOn); updateSoundBtn(); sfx.pick(); };
 $('#backBtn').onclick = () => { saveAll(); sfx.undo(); showHome(); };
 $('#undoBtn').onclick = () => { if (!history.length) return; cur.st = fixState(JSON.parse(history.pop())); sfx.undo(); updateUndo(); saveSoon(); renderStage(); renderPanel(); };
-$('#randBtn').onclick = () => { pushHistory(); cur.st = randomState(); activeAcc = null; sfx.magic(); saveSoon(); renderStage(); renderPanel(); const m = $('#mirror'); m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); };
+$('#randBtn').onclick = () => { pushHistory(); cur.st = randomState(); activeAcc = null; activePetAcc = null; sfx.magic(); saveSoon(); renderStage(); renderPanel(); const m = $('#mirror'); m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); };
 $('#nameInput').addEventListener('input', e => { cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
+document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('#ver').textContent = 'Glimmerstudiet ' + VERSION;
 updateSoundBtn(); showHome();

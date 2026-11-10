@@ -71,9 +71,16 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .bulb{position:absolute;width:13px;height:13px;border-radius:50%;background:var(--bulb);box-shadow:0 0 8px 2px #FFE98A, inset 0 -2px 0 #F2D36B;transform:translate(-50%,-50%);animation:twinkle 2.4s ease-in-out infinite}
 @keyframes twinkle{0%,100%{opacity:1}50%{opacity:.55}}
 
-.panel{background:var(--panel);border-radius:26px;border:2px solid var(--line);display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0;overflow:hidden;box-shadow:0 8px 0 var(--line)}
-.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:10px;border-bottom:2px solid var(--line);scrollbar-width:none;background:var(--paper-2)}
+.panel{background:var(--panel);border-radius:26px;border:2px solid var(--line);display:grid;grid-template-rows:auto auto minmax(0,1fr);min-height:0;overflow:hidden;box-shadow:0 8px 0 var(--line)}
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:10px;border-bottom:2px solid var(--line);scrollbar-width:none;background:var(--panel)}
 .tabs::-webkit-scrollbar{display:none}
+.tabs.pet{grid-template-columns:repeat(4,minmax(0,1fr))}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 10px 0;background:var(--paper-2)}
+.mode{border:none;border-radius:16px 16px 0 0;padding:10px;font-family:var(--display);font-weight:600;font-size:18px;background:transparent;color:var(--ink-soft)}
+.mode[aria-pressed="true"]{background:var(--panel);color:var(--berry);box-shadow:inset 0 3px 0 var(--berry)}
+.text{font:inherit;font-size:18px;border:2px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--tile);color:var(--ink);max-width:320px}
+.text:focus{outline:none;border-color:var(--violet)}
+.card .pet-nm{font-size:14px;color:var(--ink-soft);text-align:center;margin-top:-6px}
 .tab{border:none;background:transparent;border-radius:16px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;font-size:13px;color:var(--ink-soft);min-width:0;white-space:nowrap}
 @media (max-width:420px){.tab{font-size:12px}.tab svg{width:22px;height:22px}}
 .tab svg{width:26px;height:26px}
@@ -101,6 +108,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .toggle .knob::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#FFFFFF;box-shadow:0 2px 3px rgba(51,32,79,.2);transition:left .2s}
 .toggle[aria-pressed="true"] .knob{background:var(--mint)}
 .toggle[aria-pressed="true"] .knob::after{left:26px}
+.sec > .btn{align-self:flex-start}
 .hint{margin:0;color:var(--ink-soft);font-size:15px}
 
 .modal{position:fixed;inset:0;background:rgba(51,32,79,.35);display:grid;place-items:center;padding:20px;z-index:20}
@@ -137,6 +145,10 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
     <div class="work">
       <div class="stage-wrap"><div class="mirror" id="mirror"><img id="stageImg" alt="Din dukke"></div></div>
       <div class="panel">
+        <div class="modes" role="group" aria-label="Hvad vil du lave">
+          <button class="mode" type="button" data-mode="dukke" aria-pressed="true">Dukke</button>
+          <button class="mode" type="button" data-mode="dyr" aria-pressed="false">Kæledyr</button>
+        </div>
         <nav class="tabs" id="tabs" role="tablist" aria-label="Hvad vil du ændre"></nav>
         <div class="panel-body" id="panelBody"></div>
       </div>
@@ -518,9 +530,107 @@ const ACC = {
   taske: { label:'Taske', layer:'hand', color:'#B79BFF', draw: (k) => `<path d="M 494 806 Q 492 760 512 762 Q 532 760 530 806" fill="none" stroke="${outline(k)}" stroke-width="6" stroke-linecap="round"/>`
       + `<rect x="476" y="800" width="72" height="56" rx="14" fill="${k}" stroke="${outline(k)}" stroke-width="3"/><path d="M 476 818 Q 512 836 548 818 L 548 812 Q 548 800 534 800 L 490 800 Q 476 800 476 812 Z" fill="${shade(k)}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>`
       + heart(512,836,1.2,'#FFE27A','#C99A12',1.2) + star4(490,846,4) },
-  stav: { label:'Tryllestav', layer:'hand', color:'#FFE27A', draw: (k) => `<path d="M 506 778 L 574 668" stroke="#5B3FC0" stroke-width="9" stroke-linecap="round"/><path d="M 506 778 L 574 668" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"/>`
-      + `<polygon points="${star5pts(580,654,30,13,-80)}" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>` + star4(574,646,6) + star4(620,630,8,k) + star4(612,690,5,k) + star4(548,620,5,k) },
+  stav: { label:'Tryllestav', layer:'hand', color:'#FFE27A', draw: (k) => `<path d="M 490 784 L 598 722" stroke="#5B3FC0" stroke-width="10" stroke-linecap="round"/><path d="M 490 784 L 598 722" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"/>`
+      + `<polygon points="${star5pts(612,714,30,13,-60)}" fill="${k}" stroke="${outline(k)}" stroke-width="3" stroke-linejoin="round"/>` + star4(606,706,6) + star4(652,690,8,k) + star4(650,744,5,k) + star4(590,676,5,k) },
 };
+
+
+/* ================= KÆLEDYR (egne koordinater: 0,0 = midt under dyret) ================= */
+const PET_X = 660, PET_Y = 1050, PET_S = 0.85;
+const PET_BODY = "M -62 -10 C -82 -60, -62 -122, 0 -126 C 62 -122, 82 -60, 62 -10 Q 0 6 -62 -10 Z";
+const PET_HEAD = "M 0 -258 C 50 -258, 84 -224, 84 -182 C 84 -136, 48 -108, 0 -108 C -48 -108, -84 -136, -84 -182 C -84 -224, -50 -258, 0 -258 Z";
+const PET_KINDS = {
+  ingen: { label:'Intet dyr' },
+  kat: { label:'Kat' }, hund: { label:'Hund' }, kanin: { label:'Kanin' },
+  enhjoerning: { label:'Enhjørning' }, bjoern: { label:'Bjørn' }, drage: { label:'Drage' },
+};
+const PET_PATTERNS = { ingen:'Ensfarvet', pletter:'Pletter', striber:'Striber', sokker:'Sokker', oejeplet:'Plet om øjet' };
+const PET_ACC = {
+  halsbaand: { label:'Halsbånd', color:'#FF5FA8' }, sloejfe: { label:'Sløjfe', color:'#B79BFF' },
+  krone: { label:'Krone', color:'#FF5FA8' }, vinger: { label:'Feevinger', color:'#7FD8FF' },
+};
+function petDraw(p){
+  if (!p || !PET_KINDS[p.kind] || p.kind === 'ingen') return '';
+  const A=p.a, ASh=shade(p.a), L=outline(p.a), B=p.b, C=p.c, CL=outline(p.c), k=p.kind, acc=p.acc||{};
+  const sw = 3.5;
+  const ell = (x,y,rx,ry,fill,extra='') => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${L}" stroke-width="${sw}" ${extra}/>`;
+  const thick = (d, fill, line, w) => `<path d="${d}" fill="none" stroke="${line}" stroke-width="${w+6}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${fill}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  let o = `<g transform="translate(${PET_X},${PET_Y}) scale(${PET_S})">`;
+  o += `<defs><linearGradient id="petIris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${adj(p.eyes,-0.25)}"/><stop offset="0.6" stop-color="${p.eyes}"/><stop offset="1" stop-color="${adj(p.eyes,0.28)}"/></linearGradient>`
+    + `<linearGradient id="petFur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${A}"/><stop offset="1" stop-color="${ASh}"/></linearGradient>`
+    + `<clipPath id="petBodyC"><path d="${PET_BODY}"/></clipPath><clipPath id="petHeadC"><path d="${PET_HEAD}"/></clipPath></defs>`;
+  o += `<ellipse cx="0" cy="2" rx="86" ry="11" fill="#5B3A8C" opacity="0.14"/>`;
+  // feevinger bag ved
+  if (acc.vinger){ const v=acc.vinger, w = `<g opacity="0.85"><ellipse cx="-86" cy="-150" rx="62" ry="38" transform="rotate(-30 -86 -150)" fill="${v}" fill-opacity="0.55" stroke="${outline(v)}" stroke-width="3"/><ellipse cx="-74" cy="-84" rx="44" ry="26" transform="rotate(20 -74 -84)" fill="${v}" fill-opacity="0.55" stroke="${outline(v)}" stroke-width="3"/></g>` + star4(-100,-160,8) + star4(-70,-130,5) + star4(-84,-84,5);
+    o += w + `<g transform="scale(-1,1)">${w}</g>`; }
+  // drage: vinger
+  if (k==='drage'){ const w = `<g transform="translate(-40 -110) scale(0.8) translate(40 110)"><path d="M -40 -110 C -90 -190, -150 -190, -170 -150 C -150 -150, -140 -134, -142 -118 C -128 -128, -112 -124, -104 -110 C -94 -122, -76 -120, -66 -104 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M -60 -116 L -150 -152 M -60 -112 L -118 -128" stroke="${CL}" stroke-width="2.5" opacity="0.5"/></g>`;
+    o += w + `<g transform="scale(-1,1)">${w}</g>`; }
+  // haler
+  if (k==='kat') o += thick("M 50 -22 C 112 -18, 124 -82, 98 -116", A, L, 20) + (p.pattern==='sokker'||p.pattern==='striber' ? `<circle cx="98" cy="-116" r="10" fill="${B}"/>` : '');
+  if (k==='hund') o += thick("M 54 -40 C 92 -56, 104 -88, 96 -116", A, L, 22);
+  if (k==='kanin') o += `<circle cx="70" cy="-30" r="22" fill="${B}" stroke="${L}" stroke-width="${sw}"/>`;
+  if (k==='bjoern') o += `<circle cx="64" cy="-34" r="14" fill="${A}" stroke="${L}" stroke-width="${sw}"/>`;
+  if (k==='enhjoerning') o += `<path d="M 50 -50 C 118 -78, 150 -30, 130 2 C 122 -20, 108 -22, 96 -14 C 100 -30, 86 -38, 56 -26 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M 70 -46 C 104 -56, 124 -38, 126 -14" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.5" stroke-linecap="round"/>`;
+  if (k==='drage') o += thick("M 48 -18 C 108 -6, 132 -38, 140 -78", A, L, 18) + `<path d="M 140 -78 L 128 -110 L 164 -96 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  // ører bag hovedet
+  const mirrorP = s => s + `<g transform="scale(-1,1)">${s}</g>`;
+  if (k==='kanin') o += mirrorP(`<g transform="rotate(-14 -32 -250)"><ellipse cx="-32" cy="-300" rx="21" ry="60" fill="url(#petFur)" stroke="${L}" stroke-width="${sw}"/><ellipse cx="-32" cy="-296" rx="10" ry="44" fill="#FFB3D1"/></g>`);
+  if (k==='kat') o += mirrorP(`<path d="M -80 -206 L -70 -282 L -22 -246 Z" fill="${A}" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M -70 -220 L -65 -264 L -36 -244 Z" fill="#FFB3D1"/>`);
+  if (k==='bjoern') o += mirrorP(`<circle cx="-60" cy="-238" r="26" fill="${A}" stroke="${L}" stroke-width="${sw}"/><circle cx="-60" cy="-238" r="13" fill="${B}"/>`);
+  if (k==='enhjoerning') o += mirrorP(`<path d="M -66 -220 L -60 -282 L -26 -248 Z" fill="${A}" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/><path d="M -58 -232 L -56 -266 L -38 -248 Z" fill="${B}"/>`);
+  if (k==='drage') o += mirrorP(`<path d="M -44 -246 C -60 -276, -84 -290, -100 -292 C -86 -276, -74 -262, -70 -234 Z" fill="${C}" stroke="${CL}" stroke-width="${sw}" stroke-linejoin="round"/>`);
+  // krop
+  o += ell(-58,-26,30,26,'url(#petFur)') + ell(58,-26,30,26,'url(#petFur)');
+  o += `<path d="${PET_BODY}" fill="url(#petFur)" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  o += `<g clip-path="url(#petBodyC)">`;
+  if (p.pattern==='pletter') o += [[-40,-90,14],[34,-104,10],[46,-50,13],[-50,-40,9]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${B}"/>`).join('');
+  if (p.pattern==='striber') o += [-100,-70,-40].map(y=>`<path d="M -90 ${y} Q -62 ${y+8} -46 ${y-4} M 90 ${y} Q 62 ${y+8} 46 ${y-4}" fill="none" stroke="${ASh}" stroke-width="9" stroke-linecap="round"/>`).join('');
+  o += `<ellipse cx="0" cy="-60" rx="38" ry="44" fill="${B}"/>`;
+  if (k==='drage') o += [-92,-72,-52,-32].map(y=>`<path d="M -30 ${y} Q 0 ${y+8} 30 ${y}" fill="none" stroke="${outline(B)}" stroke-width="2.5" opacity="0.5"/>`).join('');
+  o += `</g>`;
+  const paw = p.pattern==='sokker' ? B : A;
+  for (const x of [-28,28]) o += ell(x,-9,21,14,paw) + `<path d="M ${x-6} -14 l 0 8 M ${x+6} -14 l 0 8" stroke="${L}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>`;
+  if (p.pattern==='sokker') o += `<g clip-path="url(#petBodyC)"></g>` + ell(-58,-14,24,12,B) + ell(58,-14,24,12,B);
+  // halsbånd
+  if (acc.halsbaand){ const h=acc.halsbaand; o += `<path d="M -54 -114 Q 0 -94 54 -114" fill="none" stroke="${outline(h)}" stroke-width="15" stroke-linecap="round"/><path d="M -54 -114 Q 0 -94 54 -114" fill="none" stroke="${h}" stroke-width="10" stroke-linecap="round"/><circle cx="0" cy="-94" r="10" fill="#FFD54A" stroke="#C99A12" stroke-width="2.5"/><path d="M -6 -92 L 6 -92" stroke="#C99A12" stroke-width="2"/>`; }
+  // hoved
+  o += `<path d="${PET_HEAD}" fill="url(#petFur)" stroke="${L}" stroke-width="${sw}"/>`;
+  o += `<g clip-path="url(#petHeadC)">`;
+  if (p.pattern==='pletter') o += [[52,-226,16],[-62,-208,10],[30,-246,8]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${B}"/>`).join('');
+  if (p.pattern==='striber') o += `<path d="M -20 -258 L -14 -226 M 0 -260 L 0 -222 M 20 -258 L 14 -226" stroke="${ASh}" stroke-width="9" stroke-linecap="round"/><path d="M -90 -190 L -64 -184 M -90 -170 L -66 -168 M 90 -190 L 64 -184 M 90 -170 L 66 -168" stroke="${ASh}" stroke-width="8" stroke-linecap="round"/>`;
+  if (p.pattern==='oejeplet') o += `<ellipse cx="-34" cy="-182" rx="34" ry="32" fill="${B}"/>`;
+  o += `</g>`;
+  // ansigt
+  const muzzleBig = k==='hund' || k==='bjoern' || k==='enhjoerning' || k==='drage';
+  if (muzzleBig) o += `<ellipse cx="0" cy="${k==='enhjoerning'?-142:-146}" rx="${k==='enhjoerning'?42:34}" ry="${k==='enhjoerning'?28:24}" fill="${B}" stroke="${L}" stroke-width="2.5"/>`;
+  else o += `<ellipse cx="-12" cy="-146" rx="16" ry="13" fill="${B}"/><ellipse cx="12" cy="-146" rx="16" ry="13" fill="${B}"/>`;
+  for (const x of [-36,36]){ o += `<ellipse cx="${x}" cy="-180" rx="21" ry="25" fill="#FFFFFF" stroke="#1B1330" stroke-width="3"/><ellipse cx="${x}" cy="-177" rx="17" ry="21" fill="url(#petIris)"/><ellipse cx="${x}" cy="-176" rx="9" ry="12" fill="#14122B"/><circle cx="${x-7}" cy="-187" r="7" fill="#FFFFFF"/><circle cx="${x+7}" cy="-166" r="3" fill="#FFFFFF"/>`
+    + `<path d="M ${x-22} ${-190} Q ${x-27} ${-198} ${x-31} ${-200}" stroke="#1B1330" stroke-width="3" stroke-linecap="round" fill="none" transform="${x>0?`translate(${2*x},0) scale(-1,1)`:''}"/>`; }
+  o += `<ellipse cx="-58" cy="-150" rx="15" ry="9" fill="#FF7FA6" opacity="0.55"/><ellipse cx="58" cy="-150" rx="15" ry="9" fill="#FF7FA6" opacity="0.55"/>`;
+  if (k==='enhjoerning' || k==='drage') o += `<ellipse cx="-12" cy="-142" rx="4" ry="5" fill="${outline(B)}"/><ellipse cx="12" cy="-142" rx="4" ry="5" fill="${outline(B)}"/><path d="M -12 -128 Q 0 -122 12 -128" fill="none" stroke="#3A2440" stroke-width="3" stroke-linecap="round"/>`;
+  else {
+    const nose = (k==='kat'||k==='kanin') ? '#FF8FB0' : '#3A2440';
+    o += `<path d="M -9 -158 Q 0 -162 9 -158 Q 6 -150 0 -148 Q -6 -150 -9 -158 Z" fill="${nose}" stroke="${nose==='#3A2440'?'#3A2440':'#D9577F'}" stroke-width="2" stroke-linejoin="round"/>`;
+    o += `<path d="M -12 -142 Q -6 -136 0 -144 Q 6 -136 12 -142" fill="none" stroke="#3A2440" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  if (k==='hund') o += `<path d="M -6 -138 Q 0 -122 6 -138 Z" fill="#FF7FA6" stroke="#D9577F" stroke-width="2"/>`;
+  if (k==='kanin') o += `<rect x="-6" y="-141" width="12" height="9" rx="2" fill="#FFFFFF" stroke="#3A2440" stroke-width="1.8"/>`;
+  if (k==='kat') o += `<path d="M -28 -150 L -62 -156 M -28 -144 L -60 -138 M 28 -150 L 62 -156 M 28 -144 L 60 -138" stroke="${L}" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>`;
+  // ører foran / manke / horn
+  if (k==='hund') o += mirrorP(`<path d="M -56 -244 C -104 -244, -114 -170, -92 -128 C -76 -138, -66 -176, -42 -236 Z" fill="${ASh}" stroke="${L}" stroke-width="${sw}" stroke-linejoin="round"/>`);
+  if (k==='enhjoerning'){
+    o += [[-46,-250,20],[-22,-262,20],[4,-266,18],[-62,-228,17],[-70,-204,14]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r+2}" fill="${CL}"/>`).join('');
+    o += [[-46,-250,20],[-22,-262,20],[4,-266,18],[-62,-228,17],[-70,-204,14]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${C}"/>`).join('');
+    o += `<path d="M -52 -258 Q -40 -270 -26 -270" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.55" stroke-linecap="round"/>`;
+    o += `<path d="M 14 -258 L 30 -326 L 42 -252 Z" fill="#FFE27A" stroke="#C99A12" stroke-width="3" stroke-linejoin="round"/><path d="M 20 -270 L 37 -276 M 24 -290 L 35 -294 M 27 -308 L 33 -310" stroke="#C99A12" stroke-width="2.5" stroke-linecap="round"/>`;
+  }
+  if (k==='drage') o += [-60,-30,0,30,60].map((x,i)=>`<path d="M ${x-10} ${-252+Math.abs(x)*0.5} L ${x} ${-276+Math.abs(x)*0.5} L ${x+10} ${-252+Math.abs(x)*0.5} Z" fill="${C}" stroke="${CL}" stroke-width="2.5" stroke-linejoin="round"/>`).join('');
+  // tilbehør på hovedet
+  if (acc.sloejfe){ const b=acc.sloejfe; o += `<g transform="translate(${k==='enhjoerning'?-58:52},-238) rotate(${k==='enhjoerning'?-20:20}) scale(0.6)"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`; }
+  if (acc.krone){ const g=acc.krone; o += `<g transform="translate(${k==='enhjoerning'?-30:0},${k==='kanin'?-250:-256}) rotate(-8) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/><circle cx="-48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="48" cy="-26" r="5" fill="#FFFFFF"/><circle cx="0" cy="-38" r="5" fill="#FFFFFF"/></g>`; }
+  return o + `</g>`;
+}
 
 /* ================= SAMLING ================= */
 function derive(st){
@@ -549,6 +659,7 @@ const DEFAULT_STATE = {
   bottom:{ id:'plisse', a:'#FF5FA8', b:'#FFFFFF' },
   shoes:{ id:'sneakers', a:'#9C7CFF', b:'#FF5FA8' },
   acc:{ sloejfe:'#FF5FA8', halskaede:'#4B2A9A', armbaand:'#FF5FA8' },
+  pet:{ kind:'kat', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'sokker', eyes:'#3D8BFF', acc:{ halsbaand:'#7B5CFF' }, name:'' },
 };
 
 function renderDoll(st, opts={}){
@@ -563,6 +674,7 @@ function renderDoll(st, opts={}){
 <linearGradient id="shadowG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${c.shadow}" stop-opacity="0.95"/><stop offset="1" stop-color="${c.shadow}" stop-opacity="0.25"/></linearGradient>
 <linearGradient id="fringeG" gradientUnits="userSpaceOnUse" x1="0" y1="160" x2="0" y2="560"><stop offset="0" stop-color="${c.hairA}"/><stop offset="1" stop-color="${c.hairMid}"/></linearGradient>
 ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></clipPath></defs>`);
+  if (opts.petOnly){ o.push(petDraw(st.pet)); o.push(`</svg>`); return o.join(''); }
   if (opts.bg){
     o.push(`<rect x="-400" y="-400" width="1600" height="1900" fill="url(#bgG)"/>`);
     for (const [x,y,r,op] of [[110,150,16,.9],[690,120,22,.9],[720,520,12,.8],[80,620,14,.8],[650,900,18,.8],[140,930,12,.8],[610,240,8,.7]]) o.push(star4(x,y,r,'#FFFFFF',op));
@@ -591,17 +703,18 @@ ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></cli
   if (back.over) o.push(back.over(c));
   o.push(acc('face'));
   o.push(acc('head'));
+  if (opts.pet !== false) o.push(petDraw(st.pet));
   o.push(`</svg>`);
   return o.join('');
 }
 
-if (typeof module !== 'undefined') module.exports = { renderDoll, DEFAULT_STATE, BACK, FRONT, TOPS, BOTTOMS, SHOES, ACC, adj };
+if (typeof module !== 'undefined') module.exports = { renderDoll, DEFAULT_STATE, BACK, FRONT, TOPS, BOTTOMS, SHOES, ACC, PET_KINDS, PET_PATTERNS, PET_ACC, adj };
 
 </script>
 <script>
 'use strict';
 /* ================= Glimmerstudiet — skaberen ================= */
-const VERSION = 'v0.1.0';
+const VERSION = 'v0.2.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -619,14 +732,16 @@ const EYES = ['#16B3B8','#3D8BFF','#7FB8E8','#3FA34D','#7BC96F','#8A5B2E','#5C3A
 const SHADOW = ['#FF62B0','#FFB3D1','#B48CFF','#7FD8FF','#62E0CB','#FFC02E','#FF9A4D','#C9A27A','#9BE36A','#4F7BFF','#2A2340','#F5E6FF'];
 const LIPS = ['#EE4C86','#FF8FB0','#D0246B','#C2272D','#FF5A4A','#E8957F','#C77B6A','#A0526B','#8A5BE8','#B79BFF','#62E0CB','#4A2338'];
 const BLUSH = ['#FF7FA6','#FF9E86','#FFB3D1','#E0457A','#B79BFF'];
+const FUR = ['#FFFFFF','#F5EEFF','#FFE9D6','#F2D9B8','#E0B98A','#C68653','#8A5A35','#5C3A24','#3B2A20','#9C95B5','#4A4560','#1E1A2E','#FFC9E2','#FF8FC7','#B79BFF','#7FD8FF','#62E0CB','#9BE36A','#FFE27A','#FF9A4D'];
 
 const VB = { head:'150 110 500 500', hair:'40 80 720 820', eye:'226 352 190 170', lips:'348 494 104 72', face:'190 310 420 290',
-  top:'240 570 320 320', bottom:'230 715 340 340', shoes:'270 900 260 180', neck:'300 560 200 140', hand:'400 620 260 300' };
+  top:'240 570 320 320', bottom:'230 715 340 340', shoes:'270 900 260 180', neck:'300 560 200 140', hand:'400 620 300 300', pet:'520 750 280 310' };
+const STAGE_PET_VB = '440 600 360 495';
 const ACC_VB = { sloejfe:VB.head, tiara:VB.head, katteoerer:VB.head, spaender:VB.head, briller:'200 340 400 220', halskaede:VB.neck, armbaand:VB.hand, taske:VB.hand, stav:VB.hand };
 
 /* ---------- ikoner til fanerne ---------- */
 const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const TABS = [
+const DOLL_TABS = [
   ['hud','Hud', ic('<circle cx="12" cy="12" r="8"/><path d="M9 14.5c1.6 1.4 4.4 1.4 6 0"/><circle cx="9.5" cy="10.5" r=".6" fill="currentColor"/><circle cx="14.5" cy="10.5" r=".6" fill="currentColor"/>')],
   ['oejne','Øjne', ic('<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')],
   ['makeup','Make-up', ic('<path d="M9 21h6v-8H9z"/><path d="M10 13V7l4-3v9"/>')],
@@ -637,6 +752,12 @@ const TABS = [
   ['underdel','Underdel', ic('<path d="M8 4h8l4 15H4z"/><path d="M8 7h8"/>')],
   ['sko','Sko', ic('<path d="M3 18v-6l5-1 3 3h4l6 2v2z"/><path d="M3 18h18"/>')],
   ['tilbehoer','Tilbehør', ic('<path d="M12 12L4 7v10zM12 12l8-5v10z"/><circle cx="12" cy="12" r="2"/>')],
+];
+const PET_TABS = [
+  ['dyr','Dyr', ic('<circle cx="7" cy="9" r="2"/><circle cx="17" cy="9" r="2"/><circle cx="10" cy="5" r="2"/><circle cx="14" cy="5" r="2"/><path d="M12 12c-3 0-6 4-6 6.5S8 21 12 19.5 18 21 18 18.5 15 12 12 12z"/>')],
+  ['pels','Pels', ic('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>')],
+  ['dyreoejne','Øjne', ic('<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')],
+  ['dyretilbehoer','Tilbehør', ic('<path d="M12 12L4 7v10zM12 12l8-5v10z"/><circle cx="12" cy="12" r="2"/>')],
 ];
 
 /* ---------- lyd ---------- */
@@ -662,11 +783,11 @@ const sfx = {
 /* ---------- data ---------- */
 let figures = store.get(KEY, []);
 if (!Array.isArray(figures)) figures = [];
-let cur = null, tab = 'hud', activeAcc = null, history = [], liveHist = false;
+let cur = null, tab = 'hud', petTab = 'dyr', mode = 'dukke', activeAcc = null, activePetAcc = null, history = [], liveHist = false;
 const saveAll = () => store.set(KEY, figures);
 let saveTimer = null;
 function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ if (cur){ cur.t = Date.now(); } saveAll(); }, 300); }
-function fixState(st){ const d = clone(DEFAULT_STATE); const s = Object.assign(d, st||{}); for (const k of ['eyes','mk','hair','top','bottom','shoes']) s[k] = Object.assign(clone(DEFAULT_STATE[k]), (st||{})[k]||{}); if (!s.acc || typeof s.acc!=='object') s.acc = {}; return s; }
+function fixState(st){ const d = clone(DEFAULT_STATE); const s = Object.assign(d, st||{}); for (const k of ['eyes','mk','hair','top','bottom','shoes','pet']) s[k] = Object.assign(clone(DEFAULT_STATE[k]), (st||{})[k]||{}); if (!s.acc || typeof s.acc!=='object') s.acc = {}; if (!s.pet.acc || typeof s.pet.acc!=='object') s.pet.acc = {}; return s; }
 
 /* ---------- små DOM-hjælpere ---------- */
 function el(tag, attrs={}, kids=[]){
@@ -675,7 +796,7 @@ function el(tag, attrs={}, kids=[]){
   for (const kid of [].concat(kids)) if (kid!==null && kid!==undefined) e.append(kid.nodeType ? kid : document.createTextNode(kid));
   return e;
 }
-const pic = (st, vb) => el('img', { src: svgUrl(renderDoll(st, { viewBox: vb })), alt:'' });
+const pic = (st, vb) => el('img', { src: svgUrl(renderDoll(st, mode === 'dyr' ? { viewBox: vb, petOnly: true } : { viewBox: vb, pet: false })), alt:'' });
 
 /* ---------- ændringer og fortryd ---------- */
 function pushHistory(){ history.push(JSON.stringify(cur.st)); if (history.length > 60) history.shift(); updateUndo(); }
@@ -757,20 +878,57 @@ const TAB_CONTENT = {
     if (activeAcc && cur.st.acc[activeAcc]) out.push(colorsSec('Farve på ' + ACC[activeAcc].label.toLowerCase(), COLORS, () => cur.st.acc[activeAcc], (st,v) => st.acc[activeAcc] = v));
     return out;
   },
+  /* ----- kæledyr ----- */
+  dyr: () => {
+    const inp = el('input', { id:'petName', class:'text', maxlength:'16', placeholder:'Skriv et navn', value: cur.st.pet.name || '', autocomplete:'off',
+      on:{ input: e => { cur.st.pet.name = e.target.value.trim(); saveSoon(); } } });
+    return [ optionsSec('Hvilket dyr?', entries(PET_KINDS), () => cur.st.pet.kind, (st,v) => st.pet.kind = v, VB.pet),
+      cur.st.pet.kind !== 'ingen' ? section('Kæledyrets navn', [inp]) : null ];
+  },
+  pels: () => noPet() || [
+    colorsSec('Pels', FUR, () => cur.st.pet.a, (st,v) => st.pet.a = v),
+    optionsSec('Mønster', Object.entries(PET_PATTERNS), () => cur.st.pet.pattern, (st,v) => st.pet.pattern = v, VB.pet),
+    colorsSec('Mave og mønster', FUR, () => cur.st.pet.b, (st,v) => st.pet.b = v),
+    cur.st.pet.kind === 'enhjoerning' ? colorsSec('Manke og hale', COLORS, () => cur.st.pet.c, (st,v) => st.pet.c = v) : null,
+    cur.st.pet.kind === 'drage' ? colorsSec('Vinger, horn og pigge', COLORS, () => cur.st.pet.c, (st,v) => st.pet.c = v) : null ],
+  dyreoejne: () => noPet() || [ colorsSec('Øjenfarve', EYES, () => cur.st.pet.eyes, (st,v) => st.pet.eyes = v) ],
+  dyretilbehoer: () => noPet() || (() => {
+    const grid = el('div', { class:'tiles' });
+    for (const [id, a] of Object.entries(PET_ACC)){
+      const on = !!cur.st.pet.acc[id];
+      const pv = clone(cur.st); pv.pet.acc[id] = cur.st.pet.acc[id] || a.color;
+      grid.append(el('button', { class:'tile' + (on && activePetAcc===id ? ' active' : ''), type:'button', 'aria-pressed': String(on),
+        on:{ click: () => change(st => { if (on && activePetAcc===id){ delete st.pet.acc[id]; activePetAcc = null; } else { if (!on) st.pet.acc[id] = a.color; activePetAcc = id; } }) } },
+        [ pic(pv, VB.pet), el('span', {}, a.label) ]));
+    }
+    const out = [ section('Tilbehør', [ el('p', { class:'hint' }, 'Tryk for at tage på. Tryk igen for at tage af.'), grid ]) ];
+    if (activePetAcc && cur.st.pet.acc[activePetAcc]) out.push(colorsSec('Farve på ' + PET_ACC[activePetAcc].label.toLowerCase(), COLORS, () => cur.st.pet.acc[activePetAcc], (st,v) => st.pet.acc[activePetAcc] = v));
+    return out;
+  })(),
 };
+function noPet(){
+  if (cur.st.pet.kind !== 'ingen') return null;
+  return [ section('Intet kæledyr', [ el('p', { class:'hint' }, 'Vælg et dyr først.'), el('button', { class:'btn hot', type:'button', on:{ click: () => { petTab = 'dyr'; renderTabs(); renderPanel(true); } } }, 'Vælg dyr') ]) ];
+}
 
 /* ---------- tegning af skærmen ---------- */
-function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true })); }
+function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, viewBox: mode === 'dyr' && cur.st.pet.kind !== 'ingen' ? STAGE_PET_VB : undefined })); }
+function renderModes(){
+  document.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  $('#tabs').classList.toggle('pet', mode === 'dyr');
+}
+function setMode(m){ if (m === mode) return; mode = m; sfx.pick(); renderModes(); renderStage(); renderTabs(); renderPanel(true); }
 function renderTabs(){
   const nav = $('#tabs'); nav.innerHTML = '';
-  for (const [id, label, icon] of TABS)
-    nav.append(el('button', { class:'tab', type:'button', role:'tab', 'aria-selected': String(id===tab), html: icon + `<span>${label}</span>`,
-      on:{ click: () => { if (tab!==id){ tab = id; sfx.pick(); renderTabs(); renderPanel(true); } } } }));
+  const list = mode === 'dyr' ? PET_TABS : DOLL_TABS, now = mode === 'dyr' ? petTab : tab;
+  for (const [id, label, icon] of list)
+    nav.append(el('button', { class:'tab', type:'button', role:'tab', 'aria-selected': String(id===now), html: icon + `<span>${label}</span>`,
+      on:{ click: () => { if (now!==id){ if (mode === 'dyr') petTab = id; else tab = id; sfx.pick(); renderTabs(); renderPanel(true); } } } }));
 }
 function renderPanel(resetScroll=false){
   const body = $('#panelBody'); const keep = resetScroll ? 0 : body.scrollTop;
   body.innerHTML = '';
-  for (const node of TAB_CONTENT[tab]()) if (node) body.append(node);
+  for (const node of TAB_CONTENT[mode === 'dyr' ? petTab : tab]()) if (node) body.append(node);
   body.scrollTop = keep;
 }
 function placeBulbs(){
@@ -798,6 +956,9 @@ function randomState(){
   st.shoes = { id: pick(Object.keys(SHOES)), a: sa, b: pickOther(COLORS, sa) };
   st.acc = {}; const keys = Object.keys(ACC).sort(()=>Math.random()-0.5).slice(0, Math.floor(Math.random()*4));
   for (const k of keys){ if (k==='briller' && Math.random()<0.6) continue; st.acc[k] = pick(COLORS); }
+  const fa = pick(FUR);
+  st.pet = { kind: pick(Object.keys(PET_KINDS).filter(k => k !== 'ingen')), a: fa, b: pickOther(FUR, fa), c: pick(COLORS), pattern: pick(Object.keys(PET_PATTERNS)), eyes: pick(EYES), acc: {}, name: (cur && cur.st.pet && cur.st.pet.name) || '' };
+  for (const k of Object.keys(PET_ACC)) if (Math.random() < 0.3) st.pet.acc[k] = pick(COLORS);
   return st;
 }
 
@@ -806,7 +967,7 @@ function showHome(){
   cur = null; $('#editor').hidden = true; $('#home').hidden = false; renderHome();
 }
 function openFigure(f){
-  cur = f; cur.st = fixState(cur.st); history = []; activeAcc = null; tab = tab || 'hud';
+  cur = f; cur.st = fixState(cur.st); history = []; activeAcc = null; activePetAcc = null; mode = 'dukke'; renderModes();
   $('#home').hidden = true; $('#editor').hidden = false;
   $('#nameInput').value = cur.name; updateUndo(); renderStage(); renderTabs(); renderPanel(true); placeBulbs(); sfx.open();
 }
@@ -821,7 +982,7 @@ function renderHome(){
   for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
     const st = fixState(f.st);
     g.append(el('div', { class:'card' }, [
-      el('button', { class:'open', type:'button', on:{ click: () => openFigure(f) } }, [ el('img', { src: svgUrl(renderDoll(st, { bg:true, viewBox:'100 90 600 640' })), alt:'' }), el('span', { class:'nm' }, f.name) ]),
+      el('button', { class:'open', type:'button', on:{ click: () => openFigure(f) } }, [ el('img', { src: svgUrl(renderDoll(st, { bg:true, viewBox:'100 90 600 640' })), alt:'' }), el('span', { class:'nm' }, f.name), st.pet.kind !== 'ingen' && st.pet.name ? el('span', { class:'pet-nm' }, 'og ' + st.pet.name) : null ]),
       el('button', { class:'del', type:'button', 'aria-label': 'Slet ' + f.name, html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', on:{ click: () => askDelete(f) } }),
     ]));
   }
@@ -838,8 +999,9 @@ function updateSoundBtn(){ $('#soundBtn').textContent = soundOn ? 'Lyd: til' : '
 $('#soundBtn').onclick = () => { soundOn = !soundOn; store.set(KEY_SOUND, soundOn); updateSoundBtn(); sfx.pick(); };
 $('#backBtn').onclick = () => { saveAll(); sfx.undo(); showHome(); };
 $('#undoBtn').onclick = () => { if (!history.length) return; cur.st = fixState(JSON.parse(history.pop())); sfx.undo(); updateUndo(); saveSoon(); renderStage(); renderPanel(); };
-$('#randBtn').onclick = () => { pushHistory(); cur.st = randomState(); activeAcc = null; sfx.magic(); saveSoon(); renderStage(); renderPanel(); const m = $('#mirror'); m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); };
+$('#randBtn').onclick = () => { pushHistory(); cur.st = randomState(); activeAcc = null; activePetAcc = null; sfx.magic(); saveSoon(); renderStage(); renderPanel(); const m = $('#mirror'); m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); };
 $('#nameInput').addEventListener('input', e => { cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
+document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('#ver').textContent = 'Glimmerstudiet ' + VERSION;
 updateSoundBtn(); showHome();
 
