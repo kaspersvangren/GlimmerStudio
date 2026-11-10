@@ -31,6 +31,8 @@ function openTest(){
     { label:'Lås igen', keep:true, fn: () => { prog.unlocked = []; prog.fresh = []; saveProg(); refresh(); } },
     { label:'Nulstil alt', keep:true, fn: () => showModal('Nulstil alt?', 'Stjerner, låste ting og alle dukker slettes. Spillet starter forfra.', [
         { label:'Nej' }, { label:'Ja, nulstil', hot:true, fn: () => { store.del(KEY); store.del(KEY_PROG); figures = []; prog = loadProg(); showTitle(); toast('Spillet er nulstillet'); } } ]) },
+    { label:'Byen: ' + ({ foraar:'forår', sommer:'sommer', efteraar:'efterår', vinter:'vinter', jul:'jul' }[CITY_OVR.season] || 'årstid efter kalenderen'), keep:true, fn: () => { const L = [null,'foraar','sommer','efteraar','vinter','jul']; CITY_OVR.season = L[(L.indexOf(CITY_OVR.season) + 1) % L.length]; if (!$('#town').hidden) showTown(); openTest(); } },
+    { label:'Byen: ' + ({ morgen:'morgen', dag:'dag', aften:'aften', nat:'nat' }[CITY_OVR.time] || 'tid efter uret'), keep:true, fn: () => { const L = [null,'morgen','dag','aften','nat']; CITY_OVR.time = L[(L.indexOf(CITY_OVR.time) + 1) % L.length]; if (!$('#town').hidden) showTown(); openTest(); } },
     { label:'Luk', hot:true },
   ]);
 }

@@ -834,7 +834,8 @@ function renderDoll(st, opts={}){
   const hl = opts.hl || '';
   const acc = (layer, pred=()=>true) => Object.keys(st.acc||{}).filter(k=>ACC[k] && ACC[k].layer===layer && pred(k)).map(k=>HLW(hl==='acc:'+k, ACC[k].draw(st.acc[k]))).join('');
   ANIM = !!opts.anim;
-  IDLE = opts.idle && ANIM ? makeIdle(!(st.acc && st.acc.stav)) : null;
+  /* greet: vinker med det samme (når man trykker på en figur i byen) */
+  IDLE = opts.greet && ANIM ? { T: 3, ev: st.acc && st.acc.stav ? [] : [{ kind:'wave', a:0.05, b:2.75 }] } : opts.idle && ANIM ? makeIdle(!(st.acc && st.acc.stav)) : null;
   const wave = !!opts.wave && ANIM;
   ARMS.R = (st.acc && st.acc.stav) || wave ? ARM_R_UP : ARM_R_DOWN;
   const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${opts.size?` width="${opts.size[0]}" height="${opts.size[1]}"`:''}>`];

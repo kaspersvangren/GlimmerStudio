@@ -248,7 +248,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .town-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:linear-gradient(rgba(255,255,255,.75), rgba(255,255,255,.35))}
 .logo.small{font-size:clamp(26px,4vw,40px)}
 .street{flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;display:flex;align-items:flex-end}
-.street svg{height:min(100%, 125vw);width:auto;display:block;flex:0 0 auto}
+.street svg{height:min(100%, 150vw);width:auto;display:block;flex:0 0 auto}
 .place{cursor:pointer;transition:transform .15s}
 .place:hover,.place:focus-visible{filter:brightness(1.06)}
 .place:focus,.place:focus-visible{outline:none}
@@ -260,3 +260,17 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .curtain.closed .c-l,.curtain.closed .c-r{transform:none}
 #home{padding-block:14px 30px}
 @media (prefers-reduced-motion: reduce){ .title-logo span,.playbtn,#title::before{animation:none} }
+
+/* ---------- v0.7: byen med liv ---------- */
+#townSvg [data-tap]{cursor:pointer}
+.bubble .pop{animation:bpop .32s cubic-bezier(.2,1.6,.4,1) both;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes bpop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+#jets{transform-box:fill-box;transform-origin:50% 100%}
+#jets.big{animation:jetbig 1.8s ease-out}
+@keyframes jetbig{0%,100%{transform:none}25%,60%{transform:scale(1.25,1.7)}}
+#petFlip.hop image{animation:phop .5s ease-out}
+@keyframes phop{0%,100%{transform:none}45%{transform:translateY(-46px)}}
+.busdoor rect{transition:transform .45s ease}
+.busdoor.open rect:nth-child(1){transform:translateX(-22px)}
+.busdoor.open rect:nth-child(2){transform:translateX(22px)}
+@media (prefers-reduced-motion: reduce){ .bubble .pop,#jets.big,#petFlip.hop image{animation:none} }

@@ -10,7 +10,9 @@ Dukkeskaber til Agnes. Kører på GitHub Pages og kan installeres som app.
 - `src/app.js`: skaberen
 - `src/balls.js`: overraskelseskugler
 - `src/fashion.js`: Modehuset med dommerpanel
-- `src/main.js`: forside, testtilstand (5 tryk på logoet) og start
+- `src/town.js`: titelskærm, musik og tæppet mellem skærmene
+- `src/city.js`: byen — huse, årstider, tid på dagen og alt det levende (folk, dyr, biler, bussen, fugle, egern)
+- `src/main.js`: Mit hus, testtilstand (5 tryk på logoet; kan også vælge byens årstid og tid) og start
 - `src/style.css`, `src/body.html`: udseende og skærmens opbygning
 - `sw.js`, `manifest.webmanifest`, ikoner: app/offline
 

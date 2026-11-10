@@ -1,6 +1,6 @@
 const fs=require('fs');
 const css=fs.readFileSync('src/style.css','utf8'), body=fs.readFileSync('src/body.html','utf8');
-const draw=fs.readFileSync('src/draw.js','utf8'), app=['core','progress','guests','app','balls','fashion','town','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
+const draw=fs.readFileSync('src/draw.js','utf8'), app=['core','progress','guests','app','balls','fashion','town','city','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
 const fonts='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">';
 const scripts=`<script>\n${draw}\n</script>\n<script>\n${app}\n</script>`;
 const sw=`<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}</script>`;
