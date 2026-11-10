@@ -1,6 +1,6 @@
 'use strict';
 /* ================= Glimmer Studio — fælles værktøjer ================= */
-const VERSION = 'v0.4.1';
+const VERSION = 'v0.5.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -43,7 +43,7 @@ const STAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9
 const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3" fill="#7B5CFF"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#7B5CFF" stroke-width="2.6"/><circle cx="12" cy="15.5" r="1.8" fill="#FFFFFF"/></svg>';
 
 /* ---------- skærme ---------- */
-const SCREENS = ['#home','#editor','#balls','#game'];
+const SCREENS = ['#title','#town','#home','#editor','#balls','#game'];
 function showScreen(id){ for (const s of SCREENS) $(s).hidden = s !== id; window.scrollTo(0,0); }
 
 /* ---------- lyd ---------- */

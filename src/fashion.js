@@ -120,8 +120,8 @@ function judgeAll(st, th){
 
 /* ---------- spillets gang ---------- */
 let F = null;
-function gameHead(title){ return el('div', { class:'screen-head' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); F = null; showHome(); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Forsiden' }), el('h2', {}, title), starPill() ]); }
-function startFashion(){ showScreen('#game'); F = null; renderPickDoll(); }
+function gameHead(title){ return el('div', { class:'screen-head' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); F = null; goTo(showTown); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Byen' }), el('h2', {}, title), starPill() ]); }
+function startFashion(){ showScreen('#game'); playMusic('byen'); F = null; renderPickDoll(); }
 function renderPickDoll(){
   const box = $('#gameBody'); box.innerHTML = '';
   box.append(gameHead('Modehuset'));
@@ -177,6 +177,7 @@ async function runShow(){
   while (rivals.length < 2){ const r = rivalFor(th, taken); taken.push(r.name); rivals.push(r); }
   F.special = !!special;
   F.all = shuffle(rivals).concat([F.player]);
+  playMusic('show');
   for (const c of F.all){ c.scores = judgeAll(c.st, th); c.total = c.scores.reduce((a, b) => a + b.s, 0); }
   const box = $('#gameBody');
   for (let i=0;i<F.all.length;i++){
@@ -205,7 +206,7 @@ async function runShow(){
   renderResults();
 }
 function renderResults(){
-  const box = $('#gameBody'); box.innerHTML = '';
+  const box = $('#gameBody'); box.innerHTML = ''; playMusic('byen');
   const order = F.all.slice().sort((a, b) => b.total - a.total || (b.me ? 1 : 0) - (a.me ? 1 : 0));
   const place = order.indexOf(F.player) + 1;
   const base = [15, 10, 6][place - 1];
@@ -225,7 +226,7 @@ function renderResults(){
     el('p', { class:'earned', html: `${STAR_SVG}<span>+${earned} stjerner${F.special ? ' (dobbelt, fordi der var en særlig gæst)' : ''}</span>` }),
     el('div', { class:'row center' }, [
       el('button', { class:'btn', type:'button', on:{ click: () => { F.doll.st = clone(F.player.st); F.doll.t = Date.now(); saveAll(); toast('Looket er gemt på ' + F.doll.name); } } }, 'Gem looket på dukken'),
-      el('button', { class:'btn', type:'button', on:{ click: showBalls } }, 'Til kuglerne'),
+      el('button', { class:'btn', type:'button', on:{ click: () => goTo(showBalls) } }, 'Til kuglerne'),
       el('button', { class:'btn hot big', type:'button', on:{ click: () => { F = { doll: F.doll, theme: pickOther(THEMES, F.theme) }; renderTheme(); } } }, 'Spil igen'),
     ]),
   ]));

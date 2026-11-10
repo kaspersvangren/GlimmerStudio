@@ -15,8 +15,8 @@ function ballSvg(look){
 <g transform="translate(206,98) rotate(14)"><polygon points="${star5pts(0,0,30,13)}" fill="#FFE27A" stroke="#C99A12" stroke-width="3" stroke-linejoin="round"/>${star4(-6,-8,6)}</g>
 ${star4(96,206,10)}${star4(214,214,7)}${star4(64,150,6)}</svg>`;
 }
-function showBalls(){ showScreen('#balls'); ballTaps = 0; ballBusy = false; ballLook = pick(BALL_LOOKS); renderBallIdle(); }
-function ballHead(){ return el('div', { class:'screen-head' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); showHome(); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Forsiden' }), el('h2', {}, 'Overraskelseskugler'), starPill() ]); }
+function showBalls(){ showScreen('#balls'); playMusic('byen'); ballTaps = 0; ballBusy = false; ballLook = pick(BALL_LOOKS); renderBallIdle(); }
+function ballHead(){ return el('div', { class:'screen-head' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); goTo(showTown); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Byen' }), el('h2', {}, 'Overraskelseskugler'), starPill() ]); }
 function renderBallIdle(){
   const box = $('#ballsBody'); box.innerHTML = '';
   const left = lockedList().length;

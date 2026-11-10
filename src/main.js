@@ -1,11 +1,9 @@
 /* ================= Forside og start ================= */
 function showHome(){
-  cur = null; gameDress = null; showScreen('#home'); renderHome();
+  cur = null; gameDress = null; showScreen('#home'); playMusic('byen'); renderHome();
 }
 function renderHome(){
   $('#homeStars').innerHTML = ''; $('#homeStars').append(starPill());
-  const left = lockedList().length;
-  $('#ballInfo').textContent = left ? `${left} ting at finde · ${BALL_PRICE} stjerner pr. kugle` : 'Du har fundet alt!';
   const g = $('#figGrid'); g.innerHTML = '';
   g.append(el('div', { class:'card new' }, [ el('button', { class:'open', type:'button', on:{ click: newFigure } }, [ el('span', { class:'plus', 'aria-hidden':'true' }, '+'), 'Ny dukke' ]) ]));
   for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
@@ -26,27 +24,24 @@ function askDelete(f){
 let logoTaps = 0, logoTimer = null;
 function openTest(){
   const info = () => `Stjerner: ${prog.stars} · låste ting: ${lockedList().length} · dukker: ${figures.length}`;
-  const refresh = () => { $('#modalText').textContent = info(); renderHome(); };
+  const refresh = () => { $('#modalText').textContent = info(); updateStarPills(); if (!$('#home').hidden) renderHome(); };
   showModal('Testtilstand', info(), [
     { label:'+50 stjerner', keep:true, fn: () => { addStars(50); refresh(); } },
     { label:'Lås alt op', keep:true, fn: () => { unlockAll(); refresh(); } },
     { label:'Lås igen', keep:true, fn: () => { prog.unlocked = []; prog.fresh = []; saveProg(); refresh(); } },
     { label:'Nulstil alt', keep:true, fn: () => showModal('Nulstil alt?', 'Stjerner, låste ting og alle dukker slettes. Spillet starter forfra.', [
-        { label:'Nej' }, { label:'Ja, nulstil', hot:true, fn: () => { store.del(KEY); store.del(KEY_PROG); figures = []; prog = loadProg(); renderHome(); toast('Spillet er nulstillet'); } } ]) },
+        { label:'Nej' }, { label:'Ja, nulstil', hot:true, fn: () => { store.del(KEY); store.del(KEY_PROG); figures = []; prog = loadProg(); showTitle(); toast('Spillet er nulstillet'); } } ]) },
     { label:'Luk', hot:true },
   ]);
 }
 
 /* ---------- knapper ---------- */
-function updateSoundBtn(){ $('#soundBtn').textContent = soundOn ? 'Lyd: til' : 'Lyd: fra'; }
-$('#soundBtn').onclick = () => { soundOn = !soundOn; store.set(KEY_SOUND, soundOn); updateSoundBtn(); sfx.pick(); };
-$('#logo').addEventListener('click', () => { logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(() => { logoTaps = 0; }, 2500); if (logoTaps >= 5){ logoTaps = 0; openTest(); } });
-$('#playFashion').onclick = () => { sfx.open(); startFashion(); };
-$('#playBalls').onclick = () => { sfx.open(); showBalls(); };
+function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(() => { logoTaps = 0; }, 2500); if (logoTaps >= 5){ logoTaps = 0; openTest(); } }
+$('#homeBack').onclick = () => { sfx.undo(); goTo(showTown); };
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }
-  saveAll(); showHome();
+  saveAll(); goTo(showHome);
 };
 $('#doneBtn').onclick = () => { sfx.magic(); gameDress = null; $('#editor').classList.remove('in-game'); finishDress(); };
 $('#undoBtn').onclick = () => { if (!history.length) return; cur.st = fixState(JSON.parse(history.pop())); sfx.undo(); updateUndo(); saveSoon(); renderStage(); renderPanel(); };
@@ -59,5 +54,4 @@ $('#randBtn').onclick = () => {
 $('#nameInput').addEventListener('input', e => { if (cur.temp) return; cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
 document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') hideModal(); });
-$('#ver').textContent = 'Glimmer Studio ' + VERSION;
-updateSoundBtn(); showHome();
+showTitle();

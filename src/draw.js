@@ -32,7 +32,7 @@ function blinkLid(content, period, begin=0){
 
 /* ---------- markering af en ny ting: pulserende kant, resten dæmpet ---------- */
 const HLW = (on, s) => on && s ? '<!--HL-->' + s + '<!--/HL-->' : s;
-function hlCompose(content){
+function hlCompose(content, settle=4.6){
   if (!content.includes('<!--HL-->')) return content;
   const parts = content.split(/<!--HL-->|<!--\/HL-->/);
   const paint = (x, col) => x.replace(/(fill|stroke)="(?!none)[^"]*"/g, `$1="${col}"`).replace(/ id="([^"]+)"/g, ' id="m_$1"').replace(/url\(#([^)]+)\)/g, 'url(#m_$1)');
@@ -40,9 +40,9 @@ function hlCompose(content){
   const clean = parts.join('');
   return `<defs><mask id="hlM" maskUnits="userSpaceOnUse" x="-400" y="-400" width="1600" height="1900">${maskBody}</mask>`
     + `<filter id="hlGlow" x="-40%" y="-40%" width="180%" height="180%"><feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"><animate attributeName="radius" values="3;10;3" dur="1.3s" repeatCount="indefinite"/></feMorphology>`
-    + `<feFlood flood-color="#FF3D8F"/><feComposite in2="d" operator="in" result="o"/><feGaussianBlur in="o" stdDeviation="2.5" result="ob"/><feMerge><feMergeNode in="ob"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
-    + `<filter id="hlDim"><feColorMatrix type="saturate" values="0.3"/></filter></defs>`
-    + `<g opacity="0.4" filter="url(#hlDim)">${clean}</g><g filter="url(#hlGlow)"><g mask="url(#hlM)">${clean}</g></g>`;
+    + `<feFlood flood-color="#FF3D8F">${settle ? `<animate attributeName="flood-opacity" from="1" to="0" begin="${settle}s" dur="0.9s" fill="freeze"/>` : ''}</feFlood><feComposite in2="d" operator="in" result="o"/><feGaussianBlur in="o" stdDeviation="2.5" result="ob"/><feMerge><feMergeNode in="ob"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+    + `<filter id="hlDim"><feColorMatrix type="saturate" values="0.3">${settle ? `<animate attributeName="values" from="0.3" to="1" begin="${settle}s" dur="1s" fill="freeze"/>` : ''}</feColorMatrix></filter></defs>`
+    + `<g opacity="0.4" filter="url(#hlDim)">${settle ? `<animate attributeName="opacity" from="0.4" to="1" begin="${settle}s" dur="1s" fill="freeze"/>` : ''}${clean}</g><g filter="url(#hlGlow)"><g mask="url(#hlM)">${clean}</g></g>`;
 }
 
 /* ---------- små figurer ---------- */
@@ -57,6 +57,8 @@ const lines = (list, color, op=0.35, w=3) => list.map(d=>`<path d="${d}" fill="n
 /* ---------- arme og positur ---------- */
 const ARM_R_DOWN = {S:[470,630],E:[500,700],H:[510,766]}, ARM_R_UP = {S:[470,630],E:[524,688],H:[546,626]};
 const ARMS = { L:{S:[330,630],E:[286,700],H:[338,744]}, R:ARM_R_DOWN };
+let ARM_ONLY = null;
+const SIDES = () => ARM_ONLY || ['L','R'];
 function seg(a,b){ const dx=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dx,dy); return {dx:dx/l, dy:dy/l, l}; }
 function armLen(a){ return seg(a.S,a.E).l + seg(a.E,a.H).l; }
 function armAt(a, t){ const u=seg(a.S,a.E), f=seg(a.E,a.H);
@@ -65,9 +67,9 @@ function armPts(a, t0, t1){ const u=seg(a.S,a.E); const p=[armAt(a,t0)]; if(t0<u
 const poly = pts => 'M '+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L ');
 function strokeBoth(d, fill, line, w, cap='round'){
   return `<path d="${d}" fill="none" stroke="${line}" stroke-width="${w+5}" stroke-linecap="${cap}" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${fill}" stroke-width="${w}" stroke-linecap="${cap}" stroke-linejoin="round"/>`; }
-function armSkin(c){ return ['L','R'].map(k=>{ const a=ARMS[k]; return strokeBoth(poly([a.S,a.E,a.H]), c.skin, c.skinLine, 27); }).join(''); }
+function armSkin(c){ return SIDES().map(k=>{ const a=ARMS[k]; return strokeBoth(poly([a.S,a.E,a.H]), c.skin, c.skinLine, 27); }).join(''); }
 function hands(c){
-  return ['L','R'].map(k=>{ const a=ARMS[k], f=seg(a.E,a.H); const cx=a.H[0]+f.dx*6, cy=a.H[1]+f.dy*6;
+  return SIDES().map(k=>{ const a=ARMS[k], f=seg(a.E,a.H); const cx=a.H[0]+f.dx*6, cy=a.H[1]+f.dy*6;
     const ang=Math.atan2(f.dy,f.dx)*180/Math.PI; const side = k==='R'?1:-1;
     const px=-f.dy*side, py=f.dx*side; const tx=cx+px*11-f.dx*3, ty=cy+py*11-f.dy*3;
     return `<ellipse cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" rx="8" ry="6" transform="rotate(${ang.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})" fill="${c.skin}" stroke="${c.skinLine}" stroke-width="2.5"/>`
@@ -75,14 +77,14 @@ function hands(c){
   }).join('');
 }
 function longSleeves(fill, line, cuff){
-  return ['L','R'].map(k=>{ const a=ARMS[k], L=armLen(a), f=seg(a.E,a.H);
+  return SIDES().map(k=>{ const a=ARMS[k], L=armLen(a), f=seg(a.E,a.H);
     const d=poly(armPts(a,0,L-34)); const m=armAt(a,L-21); const px=-f.dy, py=f.dx;
     const P=(s,t)=>`${(m[0]+px*s+f.dx*t).toFixed(1)},${(m[1]+py*s+f.dy*t).toFixed(1)}`;
     return strokeBoth(d, fill, line, 40) + `<polygon points="${P(-22,-8)} ${P(22,-8)} ${P(22,8)} ${P(-22,8)}" fill="${cuff}" stroke="${line}" stroke-width="3" stroke-linejoin="round"/>`;
   }).join('');
 }
 function puffs(fillUrl, line){
-  return ['L','R'].map(k=>{ const a=ARMS[k], u=seg(a.S,a.E); const cx=a.S[0]+u.dx*6, cy=a.S[1]+u.dy*6; const ang=Math.atan2(u.dy,u.dx)*180/Math.PI;
+  return SIDES().map(k=>{ const a=ARMS[k], u=seg(a.S,a.E); const cx=a.S[0]+u.dx*6, cy=a.S[1]+u.dy*6; const ang=Math.atan2(u.dy,u.dx)*180/Math.PI;
     return `<g transform="rotate(${ang.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})"><ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="34" ry="30" fill="${fillUrl}" stroke="${line}" stroke-width="3"/>`
          + `<path d="M ${(cx-6).toFixed(1)} ${(cy-22).toFixed(1)} Q ${(cx+12).toFixed(1)} ${(cy-20).toFixed(1)} ${(cx+22).toFixed(1)} ${(cy-6).toFixed(1)}" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.5"/></g>`;
   }).join('');
@@ -698,9 +700,10 @@ function renderDoll(st, opts={}){
   const vb = opts.viewBox || `0 0 ${W} ${H}`;
   const back = BACK[st.back] || BACK.rottehaler, top = TOPS[st.top.id] || TOPS.stjerne, bot = BOTTOMS[st.bottom.id] || BOTTOMS.plisse, shoe = SHOES[st.shoes.id] || SHOES.sneakers;
   const hl = opts.hl || '';
-  const acc = layer => Object.keys(st.acc||{}).filter(k=>ACC[k] && ACC[k].layer===layer).map(k=>HLW(hl==='acc:'+k, ACC[k].draw(st.acc[k]))).join('');
-  ARMS.R = st.acc && st.acc.stav ? ARM_R_UP : ARM_R_DOWN;
+  const acc = (layer, pred=()=>true) => Object.keys(st.acc||{}).filter(k=>ACC[k] && ACC[k].layer===layer && pred(k)).map(k=>HLW(hl==='acc:'+k, ACC[k].draw(st.acc[k]))).join('');
   ANIM = !!opts.anim;
+  const wave = !!opts.wave && ANIM;
+  ARMS.R = (st.acc && st.acc.stav) || wave ? ARM_R_UP : ARM_R_DOWN;
   const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${opts.size?` width="${opts.size[0]}" height="${opts.size[1]}"`:''}>`];
   o.push(`<defs>${grad('bgG', opts.bg1||'#FFF3F8', opts.bg2||'#EBDDFF')}
 <radialGradient id="blushG"><stop offset="0" stop-color="${c.blush}" stop-opacity="0.75"/><stop offset="1" stop-color="${c.blush}" stop-opacity="0"/></radialGradient>
@@ -728,11 +731,18 @@ ${grad('lipG', c.lips, c.lipsDark)}<clipPath id="headC"><path d="${HEAD}"/></cli
   if (!top.tucked) doll.push(HLW(hl==='bottom', bot.waist(c)));
   doll.push(HLW(hl==='top', top.body(c)));
   if (top.tucked) doll.push(HLW(hl==='bottom', bot.waist(c)));
-  doll.push(armSkin(c));
-  if (top.sleeves) doll.push(HLW(hl==='top', top.sleeves(c)));
-  doll.push(acc('hand'));
-  doll.push(hands(c));
-  doll.push(acc('body'));
+  if (wave){
+    ARM_ONLY = ['L']; doll.push(armSkin(c) + (top.sleeves ? top.sleeves(c) : '') + hands(c));
+    ARM_ONLY = ['R']; const rArm = armSkin(c) + (top.sleeves ? top.sleeves(c) : '') + acc('hand') + hands(c) + acc('body', k => k === 'armbaand');
+    ARM_ONLY = null; doll.push(spin(rArm, 470, 630, [0,-22,0,14,0], 1.1));
+    doll.push(acc('body', k => k !== 'armbaand'));
+  } else {
+    doll.push(armSkin(c));
+    if (top.sleeves) doll.push(HLW(hl==='top', top.sleeves(c)));
+    doll.push(acc('hand'));
+    doll.push(hands(c));
+    doll.push(acc('body'));
+  }
   doll.push(`</g>`);
   doll.push(spin(headLayer(c, st.front, hl) + HLW(hl==='front', frontLayer(c, st.front)) + (back.over ? HLW(hl==='back', back.over(c)) : '') + acc('face') + acc('head'), 400, 590, HEAD_SWAY, 7));
   let content = squash(doll.join(''), 400, 1046, ['1 1','1.006 1.012','1 1'], 3.6);

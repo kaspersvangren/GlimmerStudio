@@ -197,9 +197,9 @@ function openEditor(f, opts={}){
   $('#editor').classList.toggle('in-game', g);
   $('#gameTheme').hidden = !g; $('#doneBtn').hidden = !g; $('#randBtn').hidden = g;
   $('#gameTheme').textContent = g ? 'Tema: ' + gameDress.theme.name : '';
-  $('#backLabel').textContent = g ? 'Afbryd' : 'Mine dukker';
+  $('#backLabel').textContent = g ? 'Afbryd' : 'Mit hus';
   $('#nameInput').readOnly = g;
-  renderModes(); showScreen('#editor');
+  renderModes(); showScreen('#editor'); playMusic('byen');
   $('#nameInput').value = cur.name; updateUndo(); renderStage(); renderTabs(); renderPanel(true); placeBulbs(); sfx.open();
 }
 function newFigure(){
