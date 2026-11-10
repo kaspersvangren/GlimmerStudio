@@ -1,4 +1,4 @@
-# Glimmerstudiet
+# Glimmer Studio
 
 Dukkeskaber til Agnes. Kører på GitHub Pages og kan installeres som app.
 

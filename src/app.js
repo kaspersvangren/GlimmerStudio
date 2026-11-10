@@ -1,6 +1,6 @@
 'use strict';
-/* ================= Glimmerstudiet — skaberen ================= */
-const VERSION = 'v0.2.1';
+/* ================= Glimmer Studio — skaberen ================= */
+const VERSION = 'v0.2.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -299,5 +299,5 @@ $('#undoBtn').onclick = () => { if (!history.length) return; cur.st = fixState(J
 $('#randBtn').onclick = () => { pushHistory(); cur.st = randomState(); activeAcc = null; activePetAcc = null; sfx.magic(); saveSoon(); renderStage(); renderPanel(); const m = $('#mirror'); m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); };
 $('#nameInput').addEventListener('input', e => { cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
 document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
-$('#ver').textContent = 'Glimmerstudiet ' + VERSION;
+$('#ver').textContent = 'Glimmer Studio ' + VERSION;
 updateSoundBtn(); showHome();

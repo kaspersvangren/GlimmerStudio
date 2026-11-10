@@ -9,7 +9,7 @@ fs.writeFileSync('dist/index.html',`<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Glimmerstudiet</title>
+<title>Glimmer Studio</title>
 <meta name="theme-color" content="#FFD9EA">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -29,7 +29,7 @@ ${sw}
 </body>
 </html>
 `);
-fs.writeFileSync('dist/artifact.html',`<title>Glimmerstudiet</title>
+fs.writeFileSync('dist/artifact.html',`<title>Glimmer Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 ${fonts}
 <style>
