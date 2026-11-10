@@ -261,16 +261,26 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #home{padding-block:14px 30px}
 @media (prefers-reduced-motion: reduce){ .title-logo span,.playbtn,#title::before{animation:none} }
 
-/* ---------- v0.7: byen med liv ---------- */
+/* ---------- v0.8: byen som overblik ---------- */
+.map{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.map svg{width:100%;height:100%;display:block}
 #townSvg [data-tap]{cursor:pointer}
 .bubble .pop{animation:bpop .32s cubic-bezier(.2,1.6,.4,1) both;transform-box:fill-box;transform-origin:50% 100%}
 @keyframes bpop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
+#townSvg .jump{animation:tjump .5s ease-out;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes tjump{0%,100%{transform:none}40%{transform:translateY(-14px) scale(1.08)}}
+#townSvg .sparkle.jump{animation:spark 1.2s ease-out}
+@keyframes spark{0%{opacity:0;transform:scale(.3)}30%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:translateY(-14px)}}
+#townSvg .peek.jump{animation:peek 1.2s ease-out}
+@keyframes peek{0%,100%{transform:none}30%,70%{transform:translateY(-4px)}}
 #jets{transform-box:fill-box;transform-origin:50% 100%}
 #jets.big{animation:jetbig 1.8s ease-out}
-@keyframes jetbig{0%,100%{transform:none}25%,60%{transform:scale(1.25,1.7)}}
-#petFlip.hop image{animation:phop .5s ease-out}
-@keyframes phop{0%,100%{transform:none}45%{transform:translateY(-46px)}}
-.busdoor rect{transition:transform .45s ease}
-.busdoor.open rect:nth-child(1){transform:translateX(-22px)}
-.busdoor.open rect:nth-child(2){transform:translateX(22px)}
-@media (prefers-reduced-motion: reduce){ .bubble .pop,#jets.big,#petFlip.hop image{animation:none} }
+@keyframes jetbig{0%,100%{transform:none}25%,60%{transform:scale(1.3,1.8)}}
+#townSvg .bird .b-in{transition:none}
+#townSvg .bird.away .b-in{animation:flyaway 1.6s ease-in forwards}
+#townSvg .bird.back .b-in{animation:flyback 1.6s ease-out}
+@keyframes flyaway{to{transform:translate(300px,-500px) scale(.8)}}
+@keyframes flyback{from{transform:translate(-300px,-500px) scale(.8)}to{transform:none}}
+#townSvg .hstar.found{animation:sfound .9s ease-out forwards;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes sfound{40%{transform:scale(2.4)}100%{transform:translateY(-40px) scale(.5);opacity:0}}
+@media (prefers-reduced-motion: reduce){ .bubble .pop,#jets.big,#townSvg .jump,#townSvg .bird.away .b-in,#townSvg .bird.back .b-in{animation:none} }
