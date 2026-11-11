@@ -399,14 +399,21 @@ function wandHeld(col){
   return { behind: `<path d="M 222 616 L ${tip[0]+4} ${tip[1]+8}" stroke="${w}" stroke-width="7" stroke-linecap="round"/><path d="M 220 612 L ${tip[0]+3} ${tip[1]+6}" stroke="${lt(w,0.35)}" stroke-width="2" stroke-linecap="round"/>` + t + sp };
 }
 /* bog i venstre hånd */
-/* bogen hænger med ryggen opad i hånden; sidekanterne ses forneden og til højre */
+/* bogen bæres i ryggen (den lange side) med ryggen opad: omslaget lidt større end sideblokken,
+   bagsiden og siderne ses som en tyk kant til højre og forneden */
 function bookF(col){
-  const D = fdk(col,0.35), S = sd(col,0.3), G = '#F2C14E';
-  return `<g transform="translate(213 596) scale(1.3) translate(-213 -596)"><rect x="185" y="600" width="66" height="86" rx="4" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><path d="M 189 682 L 247 682 M 247 606 L 247 680" stroke="#E8D9B8" stroke-width="1.2"/>`
-    + `<rect x="180" y="594" width="66" height="88" rx="5" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
-    + `<path d="M 180.5 606 L 245.5 606 L 245.5 599 Q 245.5 594.5 241 594.5 L 185 594.5 Q 180.5 594.5 180.5 599 Z" fill="${S}"/><path d="M 182 607 L 244 607" stroke="${D}" stroke-width="1.5"/>`
-    + `<path d="M 186 612 L 186 676" stroke="${lt(col,0.35)}" stroke-width="2" stroke-linecap="round" opacity=".7"/>`
-    + `<rect x="194" y="630" width="38" height="42" rx="3" fill="none" stroke="${G}" stroke-width="2"/>` + moon(210, 650, 9, G) + `<circle cx="222" cy="642" r="1.8" fill="${G}"/><circle cx="225" cy="658" r="1.3" fill="${G}"/></g>`;
+  const D = fdk(col,0.35), S = sd(col,0.3), G = '#F2C14E', P = '#FFF6E0', PL = '#E2D3B0';
+  const x0 = 166, x1 = 260, y0 = 595, y1 = 661, t = 6;
+  let o = `<path d="M ${x0+t} ${y0+t} L ${x1+t} ${y0+t} L ${x1+t} ${y1+t-3} Q ${x1+t} ${y1+t} ${x1+t-3} ${y1+t} L ${x0+t+3} ${y1+t} Q ${x0+t} ${y1+t} ${x0+t} ${y1+t-3} Z" fill="${S}" stroke="${D}" stroke-width="2"/>`;
+  o += `<path d="M ${x1} ${y0+2.5} L ${x1+t-1.5} ${y0+t+1} L ${x1+t-1.5} ${y1+t-2} L ${x1} ${y1-1} Z" fill="${P}" stroke="${PL}" stroke-width="1"/>`;
+  o += `<path d="M ${x0+3} ${y1} L ${x1-1} ${y1} L ${x1+t-2} ${y1+t-1.5} L ${x0+t+2} ${y1+t-1.5} Z" fill="${P}" stroke="${PL}" stroke-width="1"/>`;
+  o += [1.5,3,4.5].map(k => `<path d="M ${x1+k} ${y0+3+k} L ${x1+k} ${y1-1+k}" stroke="${PL}" stroke-width=".8"/><path d="M ${x0+4+k} ${y1+k} L ${x1-1+k} ${y1+k}" stroke="${PL}" stroke-width=".8"/>`).join('');
+  o += `<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" rx="3" fill="${col}" stroke="${D}" stroke-width="2.5"/>`;
+  o += `<path d="M ${x0+1.5} ${y0+9} L ${x1-1.5} ${y0+9}" stroke="${S}" stroke-width="2"/><path d="M ${x0+2} ${y0+2} L ${x1-2} ${y0+2} L ${x1-2} ${y0+8} L ${x0+2} ${y0+8} Z" fill="${S}" opacity=".45"/>`;
+  o += `<path d="M ${x0+3} ${y0+14} L ${x0+3} ${y1-4}" stroke="${lt(col,0.35)}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
+  o += `<rect x="${x0+12}" y="${y0+18}" width="${x1-x0-24}" height="${y1-y0-26}" rx="3" fill="none" stroke="${G}" stroke-width="2"/>`;
+  o += moon(206, 638, 9, G) + starP(226, 632, 5, G) + `<circle cx="236" cy="645" r="1.6" fill="${G}"/><circle cx="188" cy="628" r="1.3" fill="${G}"/>`;
+  return `<g transform="translate(213 595) scale(1.2) translate(-213 -595)">${o}</g>`;
 }
 
 /* ================= TILBEHØR ================= */
