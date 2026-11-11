@@ -1,25 +1,4 @@
 /* ================= Forside og start ================= */
-function showHome(){
-  cur = null; gameDress = null; showScreen('#home'); playMusic('byen'); renderHome();
-}
-function renderHome(){
-  $('#homeStars').innerHTML = ''; $('#homeStars').append(starPill());
-  const g = $('#figGrid'); g.innerHTML = '';
-  g.append(el('div', { class:'card new' }, [ el('button', { class:'open', type:'button', on:{ click: newFigure } }, [ el('span', { class:'plus', 'aria-hidden':'true' }, '+'), 'Ny dukke' ]) ]));
-  for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
-    const st = enforce(fixState(clone(f.st)));
-    g.append(el('div', { class:'card' }, [
-      el('button', { class:'open', type:'button', on:{ click: () => openEditor(f) } }, [ dollImg(st, { bg:true, viewBox:'100 90 600 640' }), el('span', { class:'nm' }, f.name), st.pet.kind !== 'ingen' && st.pet.name ? el('span', { class:'pet-nm' }, 'og ' + st.pet.name) : null ]),
-      el('button', { class:'del', type:'button', 'aria-label': 'Slet ' + f.name, html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', on:{ click: () => askDelete(f) } }),
-    ]));
-  }
-}
-function askDelete(f){
-  showModal('Slet dukken?', `${f.name} forsvinder for altid.`, [
-    { label:'Nej, behold den' },
-    { label:'Ja, slet', hot:true, fn: () => { figures = figures.filter(x => x !== f); saveAll(); renderHome(); } } ]);
-}
-
 /* ---------- testtilstand: tryk 5 gange på logoet ---------- */
 let logoTaps = 0, logoTimer = null;
 function openTest(){
@@ -39,7 +18,6 @@ function openTest(){
 
 /* ---------- knapper ---------- */
 function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(() => { logoTaps = 0; }, 2500); if (logoTaps >= 5){ logoTaps = 0; openTest(); } }
-$('#homeBack').onclick = () => { sfx.undo(); goTo(showRoom); };
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }

@@ -8,6 +8,7 @@
    - figur_kjole_kappe.png: alle kjoler × alle kapper
    - figur_kjole_fod.png  : alle kjoler × alt fodtøj
    - figur_tilbehoer.png  : hvert tilbehør alene og i store kombinationer × alle baghår
+   - rum_dyr_i_seng.png   : hvert kæledyr i hver dyreseng (trykket hen i sengen) og ved siden af figuren
    - rum_<a>_<b>.png      : værelset — alle ting i to nabopladser mod hinanden, med figur og dyr stående som i spillet
    Se efter: noget der ligger oven på noget forkert, svæver, er skjult, eller dækker øjne/ansigt. */
 const path = require('path'), fs = require('fs'), { chromium } = require('playwright');
@@ -51,5 +52,21 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
       for (const x of A){ h += '<b>' + x + '</b>'; for (const y of B){ const r = Object.assign({}, ROOM_DEFAULT, { [a]: x, [bb]: y }); r.c = Object.assign({}, ROOM_DEFAULT.c);
         h += `<div style="position:relative;width:320px;height:200px"><img style="width:100%;height:100%;display:block" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(roomSvg(r))}"><img style="position:absolute;left:39%;bottom:3%;height:72%" src="${fig}"></div>`; } }
       document.body.innerHTML = h + '</div>'; document.body.style.margin = 0; }, [a, bb]);
+  /* hvert dyr i hver dyreseng, og stående ved figuren */
+  await sheet('rum_dyr_i_seng.png', () => {
+    const kinds = Object.keys(PET_KINDS).filter(k => k !== 'ingen'), beds = Object.keys(DYRESENG);
+    let h = `<div style="display:grid;grid-template-columns:90px repeat(${beds.length + 1},260px);gap:3px;background:#fff;font:13px sans-serif"><div></div>` + beds.map(x => '<b>' + x + '</b>').join('') + '<b>ved figuren</b>';
+    for (const k of kinds){
+      h += '<b>' + k + '</b>';
+      for (const bed of [...beds, null]){
+        const st = JSON.parse(JSON.stringify(DEFAULT_STATE)); st.pet.kind = k;
+        figures.length = 0; figures.push({ id:'t', name:'t', st, t: 1 });
+        prog.room = Object.assign({}, ROOM_DEFAULT, { dyreseng: bed || 'kurv' }); prog.unlocked = roomLocked().map(([c, id]) => c + ':' + id);
+        petInBed = !!bed;
+        const svg = roomScene(getRoom()).replace('viewBox="0 0 1600 1000"', 'viewBox="860 560 480 380"').replace('class="scene" ', '');
+        h += `<img style="width:260px;height:206px;display:block" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}">`;
+      }
+    }
+    document.body.innerHTML = h + '</div>'; document.body.style.margin = 0; });
   await b.close();
 })();

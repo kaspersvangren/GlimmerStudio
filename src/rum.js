@@ -46,9 +46,15 @@ function curtain(c, side, pattern){
   o += `<ellipse cx="${tie[0]}" cy="${tie[1]}" rx="22" ry="9" transform="rotate(${side*-20} ${tie[0]} ${tie[1]})" fill="#F2C14E" stroke="#B98516" stroke-width="2.5"/>`;
   return o;
 }
+function closedCurtains(c, pattern){
+  const L = 'M 244 80 H 452 C 446 220 456 400 446 540 H 238 C 250 400 240 220 244 80 Z', R = 'M 656 80 H 448 C 454 220 444 400 454 540 H 662 C 650 400 660 220 656 80 Z';
+  const one = (d, x0, f) => `<path d="${d}" fill="${c}" ${RS(c)}/>` + rClip(d, [0,1,2,3].map(i => `<path d="M ${x0 + f*i*52} 80 C ${x0 + f*(i*52+10)} 240 ${x0 + f*(i*52-8)} 400 ${x0 + f*(i*52+4)} 540" stroke="${sd(c,0.35)}" stroke-width="10" fill="none" opacity=".4"/>`).join('')
+    + (pattern ? Array.from({length: 16}, (_, i) => starP(x0 + f*(18 + (i%4)*50), 110 + Math.floor(i/4)*110 + (i%2)*40, 7, lt(c,0.55), .9)).join('') : ''));
+  return one(L, 262, 1) + one(R, 638, -1);
+}
 const VINDUE = {
-  gardiner: { label:'Gardiner', draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1) + curtain(c, 1) },
-  stjernegardiner: { label:'Stjernegardiner', draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1, true) + curtain(c, 1, true)
+  gardiner: { label:'Gardiner', curtain: 1, draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1) + curtain(c, 1) },
+  stjernegardiner: { label:'Stjernegardiner', curtain: 2, draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1, true) + curtain(c, 1, true)
       + `<path d="M 236 78 L 664 78 L 664 120 Q 610 150 556 120 Q 502 150 450 120 Q 398 150 344 120 Q 290 150 236 120 Z" fill="${c}" ${RS(c)}/><path d="M 236 108 Q 290 138 344 108 Q 398 138 450 108 Q 502 138 556 108 Q 610 138 664 108" stroke="#F2C14E" stroke-width="3" fill="none" stroke-dasharray="3 6"/>` },
   rundt: { label:'Rundt vindue', draw: c => { const d = 'M 440 120 A 150 150 0 1 1 439.9 120 Z';
       return nightSky(d) + `<circle cx="440" cy="270" r="150" fill="none" stroke="${c}" stroke-width="26"/><circle cx="440" cy="270" r="163" fill="none" stroke="${rOut(c)}" stroke-width="3"/><circle cx="440" cy="270" r="137" fill="none" stroke="${rOut(c)}" stroke-width="3"/>`
@@ -224,34 +230,159 @@ function getRoom(){
 }
 function setRoom(r){ prog.room = r; saveProg(); }
 
-/* ================= Værelset som skærm ================= */
-let roomSlot = null;
-function showRoom(){ showScreen('#room'); playMusic('byen'); roomSlot = null; renderRoom(); }
-function roomHead(){
-  return el('div', { class:'screen-head' }, [
-    el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); goTo(showTown); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Byen' }),
-    el('h2', {}, 'Mit værelse'),
-    el('div', { class:'row' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); goTo(showHome); } }, html: ic('<path d="M10 6a2 2 0 1 1 2 2v1.5"/><path d="M12 9.5 3.5 16a1 1 0 0 0 .6 1.8h15.8a1 1 0 0 0 .6-1.8z"/>') + 'Garderoben' }), starPill() ]) ]);
+/* ================= Værelset som sted: hele skærmen, ting man kan trykke på, og indretningsbogen ================= */
+/* hvor dyret står: ved siden af figuren, eller i sin seng (fødder i rumkoordinater) */
+const PET_SPOT = { x: 1000, y: 952 };
+const PET_BED = { kurv: { x: 1160, y: 885 }, pude: { x: 1160, y: 885 }, slot: { x: 1160, y: 938 } };
+const BOOK_SIDE = { vaeg:'r', vindue:'r', seng:'r', gulv:'r', hylde:'l', lampe:'l', ting:'l', dyreseng:'l' };
+let roomBook = null, roomLight = true, roomCurtain = false, petInBed = false;
+
+/* id'er i en inline-svg skal være unikke i hele siden */
+function scopeIds(svg, p){ return svg.replace(/id="([^"]+)"/g, `id="${p}$1"`).replace(/url\(#([^)]+)\)/g, `url(#${p}$1)`).replace(/href="#([^"]+)"/g, `href="#${p}$1"`); }
+const SVGNS = 'http://www.w3.org/2000/svg';
+/* en figur som billede inde i en scene — renderDoll nulstiller klip-tælleren, så den gemmes og sættes tilbage */
+function dollUrl(st, opts){ const n = CLIPN; const u = svgUrl(renderDoll(st, opts)); CLIPN = n; return u; }
+function svgEl(tag, attrs = {}, html){ const e = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (html) e.innerHTML = html; return e; }
+
+/* loft og væg fortsætter ud over kanten, så skærmen altid er fyldt */
+function roomBleed(room){
+  const W = '#5A3A28';
+  let o = `<rect x="-900" y="-700" width="3400" height="2400" fill="${fdk(room.c.vaeg, 0.2)}"/>`;
+  o += `<g>${wallBase(room.c.vaeg)}${roomItem('vaeg', room)}</g>`;
+  for (const dx of [-1600, 1600]) o += `<g transform="translate(${dx} 0)">${wallBase(room.c.vaeg)}${roomItem('vaeg', room)}</g>`;
+  o += `<rect x="-1700" y="0" width="5000" height="700" fill="url(#wallG)"/>`;
+  o += `<rect x="-1700" y="-700" width="5000" height="700" fill="${W}"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="60" height="700" fill="${fdk(W,0.25)}"/>`).join('');
+  o += `<rect x="-1700" y="-22" width="5000" height="30" fill="#7A5236"/><rect x="-1700" y="4" width="5000" height="6" fill="${SHC}" opacity=".25"/>`;
+  const F = '#B98A5E';
+  o += `<rect x="-1700" y="700" width="5000" height="1000" fill="${F}"/>`;
+  for (let i = 0; i < 14; i++){ const y = 700 + i*i*4 + i*8; o += `<path d="M -1700 ${y} H 3300" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".5"/>`; }
+  for (let i = -14; i <= 14; i++) o += `<path d="M ${800 + i*90} 700 L ${800 + i*330} 1500" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".35"/>`;
+  o += `<rect x="-1700" y="690" width="5000" height="22" fill="#7A5236"/><rect x="-1700" y="690" width="5000" height="6" fill="#9C6B43"/><rect x="-1700" y="712" width="5000" height="60" fill="${SHC}" opacity=".12"/>`;
+  return o;
 }
+/* natbordet med indretningsbogen */
+function nightstand(fresh){
+  const W = '#9C6B43', B = '#6B3FA0';
+  let o = `<rect x="566" y="728" width="96" height="124" rx="6" fill="${W}" ${RS(W)}/><rect x="574" y="742" width="80" height="44" rx="5" fill="${lt(W,0.12)}" ${RS(W,2)}/><circle cx="614" cy="764" r="5" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+  o += `<rect x="572" y="852" width="14" height="22" rx="4" fill="${fdk(W,0.2)}"/><rect x="642" y="852" width="14" height="22" rx="4" fill="${fdk(W,0.2)}"/><rect x="554" y="714" width="120" height="18" rx="6" fill="${W}" ${RS(W)}/><rect x="554" y="714" width="120" height="6" rx="3" fill="${lt(W,0.3)}"/>`;
+  o += `<g class="bookglow"><ellipse cx="614" cy="690" rx="78" ry="46" fill="#FFE27A" opacity=".35"/></g>`;
+  o += `<g class="book"><path d="M 572 712 L 576 680 L 656 680 L 660 712 Z" fill="#FFF6E0" stroke="#C9B6A6" stroke-width="2.5"/><path d="M 580 686 H 652 M 579 694 H 653 M 578 702 H 654" stroke="#E6D6C6" stroke-width="2"/>`;
+  o += `<path d="M 566 676 L 662 676 L 666 684 L 570 684 Z" fill="${B}" ${RS(B)}/><path d="M 566 712 L 666 712 L 666 720 L 566 720 Z" fill="${B}" ${RS(B)}/><path d="M 566 676 L 566 720 L 574 720 L 574 684 Z" fill="${fdk(B,0.2)}"/>`;
+  o += `<path d="M 600 678 L 614 670 L 628 678 Z" fill="#F2C14E"/>` + starP(614, 698, 8, '#F2C14E') + `<path d="M 640 712 L 640 736 L 646 730 L 652 736 L 652 712 Z" fill="#E0457A"/></g>`;
+  o += [[590,650],[646,640],[612,626]].map(([x,y],i) => `<g class="tw" style="animation-delay:${i*0.5}s">${star4(x, y, 7, '#FFF6D0')}</g>`).join('');
+  if (fresh) o += `<g><rect x="640" y="618" width="46" height="26" rx="13" fill="#FF3D8F" stroke="#FFFFFF" stroke-width="3"/><text x="663" y="637" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="16" fill="#FFFFFF">NY</text></g>`;
+  return o;
+}
+function roomScene(room){
+  CLIPN = 0;
+  const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
+  const fresh = ROOM_SLOTS.some(s => Object.keys(s.cat).some(id => prog.fresh.includes(roomKey(s.id, id))));
+  const win = VINDUE[room.vindue] || {};
+  const bed = PET_BED[room.dyreseng] || PET_BED.kurv;
+  const at = petInBed && hasPet ? bed : PET_SPOT;
+  let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
+  o += roomBleed(room);
+  o += `<g data-hit="vaeg"><rect x="-1700" y="0" width="5000" height="690" fill="transparent"/></g><g data-hit="gulv-bg"><rect x="-1700" y="712" width="5000" height="900" fill="transparent"/></g>`;
+  o += `<g data-hit="vindue">${roomItem('vindue', room)}${win.curtain && roomCurtain ? `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + closedCurtains(room.c.vindue, win.curtain === 2) : ''}</g>`;
+  o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
+  o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
+  o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
+  o += `<g data-hit="bog">${nightstand(fresh)}</g>`;
+  o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
+  o += `<g data-hit="dyreseng"><g transform="translate(-30 0)">${roomItem('dyreseng', room)}</g></g>`;
+  /* figuren og dyret er billeder i scenen */
+  o += `<g data-hit="figur"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="650" y="266" width="340" height="700"/></g></g>`;
+  if (hasPet) o += `<g data-hit="dyr" class="petg" style="transform:translate(${at.x - PET_SPOT.x}px,${at.y - PET_SPOT.y}px)"><g class="anim"><image href="${dollUrl(hero, { viewBox: VB.pet, petOnly: true })}" x="${PET_SPOT.x - 95}" y="${PET_SPOT.y - 203}" width="190" height="210"/></g></g>`;
+  if (hasPet && room.dyreseng === 'kurv') o += `<g class="bedfront${petInBed ? ' on' : ''}" pointer-events="none"><g transform="translate(-30 0)">${roomItem('dyreseng', room).replace(/<ellipse cx="1190" cy="870" rx="110"[\s\S]*$/, '')}</g></g>`;
+  o += `<g data-hit="lampe"><g class="anim">${roomItem('lampe', room)}</g></g>`;
+  if (!roomLight){
+    o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#0B0A2E" opacity=".58" pointer-events="none"/>`;
+    if (!(win.curtain && roomCurtain)) o += `<path d="M 300 440 L 580 440 L 860 1000 L 160 1000 Z" fill="#CFE0FF" opacity=".12" pointer-events="none"/>`;
+  }
+  o += `<g class="fx" pointer-events="none"></g></svg>`;
+  return scopeIds(o, 'rm');
+}
+
+function showRoom(){ showScreen('#room'); playMusic('byen'); roomBook = null; petInBed = false; renderRoom(); }
+function placeUi(left, right){ return [ el('div', { class:'place-ui tl' }, left), el('div', { class:'place-ui tr' }, right) ]; }
+function backBtn(label, fn){ return el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); goTo(fn); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + label }); }
 function renderRoom(){
   const box = $('#roomBody'); box.innerHTML = '';
-  const room = getRoom();
-  const stage = el('div', { class:'room-stage' });
-  stage.append(el('img', { class:'room-bg', alt:'', src: svgUrl(roomSvg(room)) }));
-  stage.append(el('div', { class:'room-fig' }, dollImg(heroState(), { viewBox:'110 20 700 1060', anim: !calm, idle: true, alt:'Din figur' })));
-  for (const s of ROOM_SLOTS){
-    const fresh = Object.keys(s.cat).some(id => prog.fresh.includes(roomKey(s.id, id)));
-    const b = el('button', { class:'room-hot' + (roomSlot === s.id ? ' on' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-label': s.label, style:`left:${s.hot[0]/16}%;top:${s.hot[1]/10}%`, html: STAR_SVG,
-      on:{ click: () => { sfx.pick(); roomSlot = roomSlot === s.id ? null : s.id; renderRoom(); } } });
-    stage.append(b);
-  }
-  const wrap = el('div', { class:'room-wrap' }, [ stage ]);
-  if (roomSlot) wrap.append(roomPanel(room, roomSlot));
-  else wrap.append(el('p', { class:'hint center room-hint' }, 'Tryk på en stjerne for at indrette.'));
-  box.append(roomHead(), wrap);
+  box.append(el('div', { class:'scene-wrap', id:'roomScene' }),
+    ...placeUi([ backBtn('Byen', showTown) ], [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); goTo(showHome); } }, html: ic('<path d="M10 6a2 2 0 1 1 2 2v1.5"/><path d="M12 9.5 3.5 16a1 1 0 0 0 .6 1.8h15.8a1 1 0 0 0 .6-1.8z"/>') + 'Garderoben' }), starPill() ]));
+  drawRoomScene();
+  if (roomBook) box.append(roomBookEl());
 }
-function roomPanel(room, slot){
-  const s = ROOM_SLOTS.find(x => x.id === slot);
+function drawRoomScene(){
+  const w = $('#roomScene'); w.innerHTML = roomScene(getRoom());
+  const svg = w.querySelector('svg');
+  svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) roomTap(g.dataset.hit, g, svgPoint(svg, e)); });
+}
+function svgPoint(svg, e){ const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const m = svg.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : { x: 800, y: 500 }; }
+function replay(g, cls){ const a = g.querySelector('.anim') || g; a.classList.remove(cls); void a.getBoundingClientRect(); a.classList.add(cls); }
+function sparkle(svg, x, y, n = 6, col = '#FFF6D0'){
+  const fx = svg.querySelector('.fx'); if (!fx || calm) return;
+  for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2, d = 40 + Math.random() * 40;
+    const s = svgEl('g', { class:'spark', style:`--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d).toFixed(0)}px` }, star4(x, y, 9 + Math.random()*6, col));
+    fx.append(s); setTimeout(() => s.remove(), 900); }
+}
+function puff(svg, x, y, col){
+  const fx = svg.querySelector('.fx'); if (!fx) return;
+  for (let i = 0; i < 7; i++){ const c = svgEl('circle', { class:'puff', cx: x + (i%3 - 1) * 26, cy: y, r: 18 + (i%3)*8, fill: i%2 ? col : lt(col, 0.4), style:`animation-delay:${i*0.08}s;--dx:${(i%3-1)*30}px` });
+    fx.append(c); setTimeout(() => c.remove(), 1700); }
+}
+function shootingStar(svg){
+  const fx = svg.querySelector('.fx'); if (!fx) return;
+  const g = svgEl('g', {}, rClip(WIN, `<g class="shooting"><path d="M 560 130 L 640 100" stroke="#FFF6D0" stroke-width="4" stroke-linecap="round" opacity=".8"/>${star4(560, 130, 9, '#FFFFFF')}</g>`).replace(/id="(k\d+)"/, 'id="rmshoot"').replace(/url\(#k\d+\)/, 'url(#rmshoot)'));
+  fx.append(g); setTimeout(() => g.remove(), 1500);
+}
+/* små hjerter stiger op, når dyret har det rart */
+function hearts(svg, x, y){
+  const fx = svg.querySelector('.fx'); if (!fx) return;
+  [0,1,2].forEach(i => { const hx = x + (i - 1) * 30, hy = y - i * 12, r = 10 + i * 2;
+    const h = svgEl('path', { class:'zzz', d:`M ${hx} ${hy + r} C ${hx - r*2} ${hy - r*0.2} ${hx - r} ${hy - r*1.6} ${hx} ${hy - r*0.5} C ${hx + r} ${hy - r*1.6} ${hx + r*2} ${hy - r*0.2} ${hx} ${hy + r} Z`, fill:'#FF5FA8', stroke:'#FFFFFF', 'stroke-width':'2', style:`animation-delay:${i*0.3}s` });
+    fx.append(h); setTimeout(() => h.remove(), 2600); });
+}
+function roomTap(hit, g, p){
+  const svg = $('#roomScene svg'), room = getRoom();
+  switch (hit){
+    case 'bog': sfx.open(); openRoomBook(); return;
+    case 'lampe': sfx.pick(); roomLight = !roomLight; drawRoomScene(); return;
+    case 'vindue': {
+      const win = VINDUE[room.vindue] || {};
+      if (win.curtain){ sfx.whoosh(); roomCurtain = !roomCurtain; drawRoomScene(); if (!roomCurtain) setTimeout(() => shootingStar($('#roomScene svg')), 400); }
+      else { sfx.magic(); shootingStar(svg); }
+      return; }
+    case 'seng': sfx.wobble(); replay(g, 'boing'); sparkle(svg, p.x, p.y, 5); return;
+    case 'hylde': sfx.pick(); replay(g, 'jiggle'); sparkle(svg, p.x, p.y, 6, '#FFE27A'); return;
+    case 'ting':
+      if (room.ting === 'kedel'){ sfx.wobble(); replay(g, 'jiggle'); puff(svg, 1405, 740, room.c.ting); }
+      else { sfx.pick(); replay(g, 'wiggle'); sparkle(svg, p.x, p.y, 6, '#FFE27A'); }
+      return;
+    case 'dyreseng': case 'dyr': {
+      const pg = svg.querySelector('.petg'); if (!pg){ sparkle(svg, p.x, p.y); return; }
+      if (hit === 'dyr' && !petInBed){ sfx.pick(); replay(pg, 'hop'); hearts(svg, p.x, p.y - 60); return; }
+      petInBed = !petInBed; sfx.whoosh();
+      const bed = PET_BED[room.dyreseng] || PET_BED.kurv, at = petInBed ? bed : PET_SPOT;
+      pg.style.transform = `translate(${at.x - PET_SPOT.x}px,${at.y - PET_SPOT.y}px)`;
+      const bf = svg.querySelector('.bedfront'); if (bf) bf.classList.toggle('on', petInBed);
+      if (petInBed) setTimeout(() => hearts(svg, bed.x, bed.y - 200), 900);
+      return; }
+    case 'figur': sfx.magic(); replay(g, 'hop'); sparkle(svg, p.x, p.y - 60, 7); return;
+    default: sfx.pick(); sparkle(svg, p.x, p.y, 5);
+  }
+}
+
+/* ---------- indretningsbogen ---------- */
+function openRoomBook(slot){ roomBook = slot || roomBook || 'vaeg'; const old = $('#roomBody .rbook'); if (old) old.remove(); $('#roomBody').append(roomBookEl()); }
+function closeRoomBook(){ sfx.undo(); roomBook = null; const b = $('#roomBody .rbook'); if (b){ b.classList.add('closing'); setTimeout(() => { b.remove(); drawRoomScene(); }, 260); } }
+function roomBookEl(){
+  const room = getRoom(), slot = roomBook, s = ROOM_SLOTS.find(x => x.id === slot);
+  const tabs = el('div', { class:'rb-tabs' }, ROOM_SLOTS.map(t => {
+    const fresh = Object.keys(t.cat).some(id => prog.fresh.includes(roomKey(t.id, id)));
+    return el('button', { class:'rb-tab' + (t.id === slot ? ' sel' : '') + (fresh ? ' fresh' : ''), type:'button', on:{ click: () => { sfx.pick(); openRoomBook(t.id); } } },
+      [ el('img', { alt:'', src: svgUrl(roomSvg(room, { only: t.id, viewBox: ROOM_VB[t.id] })) }), el('span', {}, t.label) ]);
+  }));
   const items = el('div', { class:'room-items' });
   for (const id of Object.keys(s.cat)){
     const free = roomFree(slot, id), fresh = prog.fresh.includes(roomKey(slot, id));
@@ -260,12 +391,20 @@ function roomPanel(room, slot){
       [ free ? el('img', { alt:'', src: svgUrl(roomSvg(prev, { only: slot, viewBox: ROOM_VB[slot] })) }) : el('span', { class:'lockbub', html: bubbleIcon('rum') }), el('span', { class:'nm' }, free ? s.cat[id].label : 'Findes i en boble') ]);
     b.addEventListener('click', () => {
       if (!free){ sfx.nope(); toast('Den kan du finde i Boblebutikken'); return; }
-      sfx.pick(); if (fresh){ prog.fresh = prog.fresh.filter(k => k !== roomKey(slot, id)); saveProg(); }
-      const r = getRoom(); r[slot] = id; setRoom(r); renderRoom();
+      sfx.magic(); if (fresh){ prog.fresh = prog.fresh.filter(k => k !== roomKey(slot, id)); saveProg(); }
+      const r = getRoom(); r[slot] = id; setRoom(r); drawRoomScene(); openRoomBook(slot);
     });
     items.append(b);
   }
   const cols = slot === 'vaeg' ? ROOM_WALL_COLORS : COLORS;
-  const colors = el('div', { class:'room-colors' }, cols.map(col => el('button', { class:'dot' + (room.c[slot] === col ? ' sel' : ''), type:'button', 'aria-label':'Farve', style:`background:${col}`, on:{ click: () => { sfx.pick(); const r = getRoom(); r.c[slot] = col; setRoom(r); renderRoom(); } } })));
-  return el('div', { class:'room-panel' }, [ el('div', { class:'room-panel-head' }, [ el('h3', {}, s.label), el('button', { class:'btn small', type:'button', on:{ click: () => { roomSlot = null; renderRoom(); } } }, 'Færdig') ]), items, colors ]);
+  const colors = el('div', { class:'room-colors' }, cols.map(col => el('button', { class:'dot' + (room.c[slot] === col ? ' sel' : ''), type:'button', 'aria-label':'Farve', style:`background:${col}`,
+    on:{ click: () => { sfx.color(); const r = getRoom(); r.c[slot] = col; setRoom(r); drawRoomScene(); openRoomBook(slot); } } })));
+  const book = el('div', { class:'rbook ' + (BOOK_SIDE[slot] === 'l' ? 'left' : 'right') }, [
+    el('div', { class:'rb-cover' }, [
+      el('div', { class:'rb-page pl' }, [ el('h3', {}, 'Indretning'), tabs ]),
+      el('div', { class:'rb-page pr' }, [ el('h3', {}, s.label), items, el('p', { class:'rb-sub' }, 'Farve'), colors ]),
+    ]),
+    el('button', { class:'rb-close', type:'button', 'aria-label':'Luk bogen', on:{ click: closeRoomBook }, html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' }),
+  ]);
+  return book;
 }

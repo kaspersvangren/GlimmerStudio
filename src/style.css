@@ -322,35 +322,92 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .bub-stage .btn{color:var(--ink)} .bub-stage .btn.hot{color:#FFFFFF}
 .bub-stage .reveal{color:var(--ink)}
 
-/* ---------- Mit værelse ---------- */
-#room{overflow:auto;padding-block:14px 20px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
-.room-wrap{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin-top:8px}
-.room-stage{position:relative;flex:0 1 auto;width:min(100%, calc((100vh - 120px) * 1.6));aspect-ratio:16/10;border-radius:24px;overflow:hidden;box-shadow:0 8px 0 var(--line), 0 0 0 4px #FFFFFF}
-.room-wrap:has(.room-panel) .room-stage{width:min(calc(100% - 316px), calc((100vh - 120px) * 1.6))}
-.room-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.room-fig{position:absolute;left:39%;bottom:3%;height:72%;aspect-ratio:700/1060;pointer-events:none}
-.room-fig img{width:100%;height:100%;display:block}
-.room-hot{position:absolute;width:clamp(40px,5.2%,58px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #FFFFFF;border-radius:50%;background:rgba(123,92,255,.85);box-shadow:0 3px 0 rgba(0,0,0,.25), 0 0 16px rgba(255,226,122,.8);padding:7px;display:grid;place-items:center;animation:hotglow 2.4s ease-in-out infinite}
-.room-hot svg{width:100%;height:100%}
-.room-hot.on{background:#FF3D8F;animation:none}
-.room-hot.fresh::after{content:"NY";position:absolute;top:-12px;right:-16px;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:12px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
-@keyframes hotglow{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.1)}}
-.room-hint{position:absolute;left:0;right:0;bottom:-36px}
-.room-wrap{position:relative;padding-bottom:36px}
-.room-panel{flex:0 0 300px;background:var(--panel);border-radius:24px;padding:12px;box-shadow:0 6px 0 var(--line);max-height:calc(100vh - 120px);overflow:auto;box-sizing:border-box}
-.room-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.room-panel-head h3{margin:0;font-family:var(--display);font-size:24px}
+/* ---------- steder: scenen fylder hele skærmen, knapperne ligger ovenpå ---------- */
+.screen.place{padding:0!important;overflow:hidden;position:relative;background:#2A1C50}
+.place-inner{position:absolute;inset:0;overflow:hidden}
+.scene-wrap{position:absolute;inset:0}
+.scene-wrap > svg{width:100%;height:100%;display:block;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.scene [data-hit]{cursor:pointer}
+.place-ui{position:absolute;z-index:6;display:flex;gap:10px;align-items:center;top:max(12px, env(safe-area-inset-top, 0px))}
+.place-ui.tl{left:max(14px, env(safe-area-inset-left, 0px))}
+.place-ui.tr{right:max(14px, env(safe-area-inset-right, 0px))}
+.place-ui .btn{box-shadow:0 4px 0 rgba(40,20,70,.35), 0 0 0 3px rgba(255,255,255,.5)}
+/* små bevægelser i scenerne */
+.scene .anim{transform-box:fill-box;transform-origin:50% 100%}
+.scene .boing{animation:boing .55s ease-out}
+.scene .jiggle{animation:jiggle .5s ease-in-out}
+.scene .wiggle{animation:wiggle .6s ease-in-out}
+.scene .hop{animation:shop .55s ease-out}
+.scene .swing{transform-box:fill-box;transform-origin:50% 0}
+.scene .swingit{animation:swingit .9s ease-in-out}
+@keyframes swingit{0%,100%{transform:rotate(0)}20%{transform:rotate(7deg)}45%{transform:rotate(-5deg)}70%{transform:rotate(3deg)}}
+.scene .petg{transition:transform 1s ease-in-out}
+.scene .bedfront{opacity:0;transition:opacity .3s .7s}
+.scene .bedfront.on{opacity:1}
+.scene .book{animation:float 2.6s ease-in-out infinite}
+.scene .bookglow{animation:ringglow 2s ease-in-out infinite}
+.scene .tw{animation:twk 2s ease-in-out infinite}
+.scene .spark{animation:spark .8s ease-out forwards;transform-box:fill-box;transform-origin:center}
+.scene .puff{animation:puff 1.6s ease-out forwards;opacity:.85}
+.scene .zzz{animation:zzz 2.4s ease-out forwards;opacity:0}
+.scene .shooting{animation:shootin 1.2s ease-in forwards}
+@keyframes boing{0%{transform:scale(1,1)}30%{transform:scale(1.03,.94)}60%{transform:scale(.98,1.04)}100%{transform:scale(1,1)}}
+@keyframes jiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-6deg)}50%{transform:rotate(5deg)}80%{transform:rotate(-3deg)}}
+@keyframes shop{0%,100%{transform:translateY(0)}35%{transform:translateY(-34px)}60%{transform:translateY(0)}78%{transform:translateY(-10px)}}
+@keyframes twk{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes spark{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+@keyframes puff{0%{transform:translate(0,0);opacity:.9}100%{transform:translate(var(--dx),-170px);opacity:0}}
+@keyframes zzz{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(30px,-60px);opacity:0}}
+@keyframes shootin{0%{transform:translate(0,0)}100%{transform:translate(-340px,150px)}}
+/* indretningsbogen */
+.rbook{position:absolute;z-index:7;top:max(70px, 9vh);bottom:3vh;width:min(62vw,820px);animation:bookin .35s ease-out}
+.rbook.right{right:2vw}.rbook.left{left:2vw}
+.rbook.closing{animation:bookout .26s ease-in forwards}
+@keyframes bookin{from{transform:translateY(30px) scale(.92);opacity:0}}
+@keyframes bookout{to{transform:translateY(30px) scale(.92);opacity:0}}
+.rb-cover{height:100%;box-sizing:border-box;padding:12px;border-radius:22px;background:linear-gradient(135deg,#7B4FC0,#5A2E9A);box-shadow:0 10px 0 #3E1C72, 0 18px 40px rgba(20,10,40,.45), inset 0 0 0 3px #F2C14E;display:grid;grid-template-columns:1fr 1.25fr}
+.rb-page{background:#FFF6E0;overflow:auto;padding:14px 14px 18px;color:var(--ink)}
+.rb-page.pl{border-radius:12px 4px 4px 12px;box-shadow:inset -18px 0 22px -14px rgba(90,60,30,.35)}
+.rb-page.pr{border-radius:4px 12px 12px 4px;box-shadow:inset 18px 0 22px -14px rgba(90,60,30,.35)}
+.rb-page h3{margin:0 0 10px;font-family:var(--display);font-size:24px;color:#5A2E9A;text-align:center}
+.rb-sub{margin:12px 0 6px;font-weight:800;color:#5A2E9A}
+.rb-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rb-tab{border:3px solid transparent;border-radius:14px;background:#FFFFFF;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;font-size:13px;color:var(--ink);position:relative}
+.rb-tab img{width:100%;aspect-ratio:4/3;object-fit:contain;display:block;background:#F4EAFB;border-radius:9px}
+.rb-tab.sel{border-color:#FF3D8F;background:#FFF0F7}
+.rb-tab.fresh::after{content:"NY";position:absolute;top:-8px;right:-8px;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:11px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
+.rb-close{position:absolute;top:-16px;right:-12px;width:52px;height:52px;border-radius:50%;border:4px solid #FFFFFF;background:#FF3D8F;color:#FFFFFF;display:grid;place-items:center;padding:10px;box-shadow:0 4px 0 #8A1550}
+.rb-close svg{width:100%;height:100%}
 .room-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.room-item{border:3px solid transparent;background:var(--tile);border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.room-item{border:3px solid transparent;background:#FFFFFF;border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .room-item img{width:100%;aspect-ratio:1;object-fit:contain;display:block}
-.room-item .nm{font-size:13px;text-align:center;line-height:1.15}
-.room-item.sel{border-color:var(--berry);background:#FFF0F7}
+.room-item .nm{font-size:13px;text-align:center;line-height:1.15;font-weight:700}
+.room-item.sel{border-color:#FF3D8F;background:#FFF0F7}
 .room-item.locked .nm{color:var(--ink-soft)}
 .room-item .lockbub{width:76%;aspect-ratio:1;display:block;margin:6%}
 .room-item .lockbub svg{width:100%;height:100%;display:block}
 .room-item.fresh{animation:freshpulse 1.6s ease-in-out infinite}
-.room-colors{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.room-colors .dot{width:34px;height:34px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px var(--line)}
-.room-colors .dot.sel{box-shadow:0 0 0 3px var(--berry)}
-@media (orientation:portrait){ .room-wrap{flex-direction:column;align-items:center} .room-wrap:has(.room-panel) .room-stage{width:100%} .room-panel{flex:none;width:100%;max-height:none} }
-.screen-inner.room-inner{max-width:1500px}
+.room-colors{display:flex;flex-wrap:wrap;gap:6px}
+.room-colors .dot{width:32px;height:32px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #D9C9B0}
+.room-colors .dot.sel{box-shadow:0 0 0 3px #FF3D8F}
+@media (orientation:portrait){ .rbook{left:2vw!important;right:2vw!important;width:auto;top:auto;height:58vh} }
+@media (prefers-reduced-motion: reduce){ .scene .anim,.scene .book,.scene .bookglow,.scene .tw,.scene .swing{transform-box:fill-box;transform-origin:50% 0}
+.scene .swingit{animation:swingit .9s ease-in-out}
+@keyframes swingit{0%,100%{transform:rotate(0)}20%{transform:rotate(7deg)}45%{transform:rotate(-5deg)}70%{transform:rotate(3deg)}}
+.scene .petg{animation:none!important;transition:none!important} }
+
+/* ---------- Boblebutikken som sted ---------- */
+.say-text{font-family:var(--display);font-weight:600;font-size:25px;line-height:1.25;color:#3A2340;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 8px;box-sizing:border-box}
+.scene .say{transform-box:fill-box;transform-origin:90% 100%}
+.scene .popsay{animation:popsay .35s ease-out}
+@keyframes popsay{0%{transform:scale(.85);opacity:.4}100%{transform:scale(1);opacity:1}}
+.scene .jarbub{animation:float 3s ease-in-out infinite}
+.scene .vbub{animation:float 4s ease-in-out infinite}
+.shop-bub{position:absolute;z-index:6;transition:left 1s cubic-bezier(.3,.7,.4,1),top 1s cubic-bezier(.3,.7,.4,1),width 1s ease-out;animation:none;aspect-ratio:1}
+.shop-bub.wobble{animation:bwobble .4s ease-in-out}
+.shop-bub.pop{animation:bpopout .3s ease-out forwards}
+.shop-drops{position:absolute;z-index:6;width:0;height:0}
+.shop-veil{position:absolute;inset:0;z-index:8;background:rgba(30,15,60,.45);display:grid;place-items:center;padding:16px;animation:fadein .25s ease-out}
+.shop-veil .reveal{max-width:420px}
+@keyframes fadein{from{opacity:0}}

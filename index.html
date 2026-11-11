@@ -337,38 +337,95 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .bub-stage .btn{color:var(--ink)} .bub-stage .btn.hot{color:#FFFFFF}
 .bub-stage .reveal{color:var(--ink)}
 
-/* ---------- Mit værelse ---------- */
-#room{overflow:auto;padding-block:14px 20px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
-.room-wrap{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin-top:8px}
-.room-stage{position:relative;flex:0 1 auto;width:min(100%, calc((100vh - 120px) * 1.6));aspect-ratio:16/10;border-radius:24px;overflow:hidden;box-shadow:0 8px 0 var(--line), 0 0 0 4px #FFFFFF}
-.room-wrap:has(.room-panel) .room-stage{width:min(calc(100% - 316px), calc((100vh - 120px) * 1.6))}
-.room-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.room-fig{position:absolute;left:39%;bottom:3%;height:72%;aspect-ratio:700/1060;pointer-events:none}
-.room-fig img{width:100%;height:100%;display:block}
-.room-hot{position:absolute;width:clamp(40px,5.2%,58px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #FFFFFF;border-radius:50%;background:rgba(123,92,255,.85);box-shadow:0 3px 0 rgba(0,0,0,.25), 0 0 16px rgba(255,226,122,.8);padding:7px;display:grid;place-items:center;animation:hotglow 2.4s ease-in-out infinite}
-.room-hot svg{width:100%;height:100%}
-.room-hot.on{background:#FF3D8F;animation:none}
-.room-hot.fresh::after{content:"NY";position:absolute;top:-12px;right:-16px;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:12px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
-@keyframes hotglow{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.1)}}
-.room-hint{position:absolute;left:0;right:0;bottom:-36px}
-.room-wrap{position:relative;padding-bottom:36px}
-.room-panel{flex:0 0 300px;background:var(--panel);border-radius:24px;padding:12px;box-shadow:0 6px 0 var(--line);max-height:calc(100vh - 120px);overflow:auto;box-sizing:border-box}
-.room-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.room-panel-head h3{margin:0;font-family:var(--display);font-size:24px}
+/* ---------- steder: scenen fylder hele skærmen, knapperne ligger ovenpå ---------- */
+.screen.place{padding:0!important;overflow:hidden;position:relative;background:#2A1C50}
+.place-inner{position:absolute;inset:0;overflow:hidden}
+.scene-wrap{position:absolute;inset:0}
+.scene-wrap > svg{width:100%;height:100%;display:block;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.scene [data-hit]{cursor:pointer}
+.place-ui{position:absolute;z-index:6;display:flex;gap:10px;align-items:center;top:max(12px, env(safe-area-inset-top, 0px))}
+.place-ui.tl{left:max(14px, env(safe-area-inset-left, 0px))}
+.place-ui.tr{right:max(14px, env(safe-area-inset-right, 0px))}
+.place-ui .btn{box-shadow:0 4px 0 rgba(40,20,70,.35), 0 0 0 3px rgba(255,255,255,.5)}
+/* små bevægelser i scenerne */
+.scene .anim{transform-box:fill-box;transform-origin:50% 100%}
+.scene .boing{animation:boing .55s ease-out}
+.scene .jiggle{animation:jiggle .5s ease-in-out}
+.scene .wiggle{animation:wiggle .6s ease-in-out}
+.scene .hop{animation:shop .55s ease-out}
+.scene .swing{transform-box:fill-box;transform-origin:50% 0}
+.scene .swingit{animation:swingit .9s ease-in-out}
+@keyframes swingit{0%,100%{transform:rotate(0)}20%{transform:rotate(7deg)}45%{transform:rotate(-5deg)}70%{transform:rotate(3deg)}}
+.scene .petg{transition:transform 1s ease-in-out}
+.scene .bedfront{opacity:0;transition:opacity .3s .7s}
+.scene .bedfront.on{opacity:1}
+.scene .book{animation:float 2.6s ease-in-out infinite}
+.scene .bookglow{animation:ringglow 2s ease-in-out infinite}
+.scene .tw{animation:twk 2s ease-in-out infinite}
+.scene .spark{animation:spark .8s ease-out forwards;transform-box:fill-box;transform-origin:center}
+.scene .puff{animation:puff 1.6s ease-out forwards;opacity:.85}
+.scene .zzz{animation:zzz 2.4s ease-out forwards;opacity:0}
+.scene .shooting{animation:shootin 1.2s ease-in forwards}
+@keyframes boing{0%{transform:scale(1,1)}30%{transform:scale(1.03,.94)}60%{transform:scale(.98,1.04)}100%{transform:scale(1,1)}}
+@keyframes jiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}20%{transform:rotate(-6deg)}50%{transform:rotate(5deg)}80%{transform:rotate(-3deg)}}
+@keyframes shop{0%,100%{transform:translateY(0)}35%{transform:translateY(-34px)}60%{transform:translateY(0)}78%{transform:translateY(-10px)}}
+@keyframes twk{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes spark{0%{transform:translate(0,0) scale(.4);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+@keyframes puff{0%{transform:translate(0,0);opacity:.9}100%{transform:translate(var(--dx),-170px);opacity:0}}
+@keyframes zzz{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(30px,-60px);opacity:0}}
+@keyframes shootin{0%{transform:translate(0,0)}100%{transform:translate(-340px,150px)}}
+/* indretningsbogen */
+.rbook{position:absolute;z-index:7;top:max(70px, 9vh);bottom:3vh;width:min(62vw,820px);animation:bookin .35s ease-out}
+.rbook.right{right:2vw}.rbook.left{left:2vw}
+.rbook.closing{animation:bookout .26s ease-in forwards}
+@keyframes bookin{from{transform:translateY(30px) scale(.92);opacity:0}}
+@keyframes bookout{to{transform:translateY(30px) scale(.92);opacity:0}}
+.rb-cover{height:100%;box-sizing:border-box;padding:12px;border-radius:22px;background:linear-gradient(135deg,#7B4FC0,#5A2E9A);box-shadow:0 10px 0 #3E1C72, 0 18px 40px rgba(20,10,40,.45), inset 0 0 0 3px #F2C14E;display:grid;grid-template-columns:1fr 1.25fr}
+.rb-page{background:#FFF6E0;overflow:auto;padding:14px 14px 18px;color:var(--ink)}
+.rb-page.pl{border-radius:12px 4px 4px 12px;box-shadow:inset -18px 0 22px -14px rgba(90,60,30,.35)}
+.rb-page.pr{border-radius:4px 12px 12px 4px;box-shadow:inset 18px 0 22px -14px rgba(90,60,30,.35)}
+.rb-page h3{margin:0 0 10px;font-family:var(--display);font-size:24px;color:#5A2E9A;text-align:center}
+.rb-sub{margin:12px 0 6px;font-weight:800;color:#5A2E9A}
+.rb-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rb-tab{border:3px solid transparent;border-radius:14px;background:#FFFFFF;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;font-size:13px;color:var(--ink);position:relative}
+.rb-tab img{width:100%;aspect-ratio:4/3;object-fit:contain;display:block;background:#F4EAFB;border-radius:9px}
+.rb-tab.sel{border-color:#FF3D8F;background:#FFF0F7}
+.rb-tab.fresh::after{content:"NY";position:absolute;top:-8px;right:-8px;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:11px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
+.rb-close{position:absolute;top:-16px;right:-12px;width:52px;height:52px;border-radius:50%;border:4px solid #FFFFFF;background:#FF3D8F;color:#FFFFFF;display:grid;place-items:center;padding:10px;box-shadow:0 4px 0 #8A1550}
+.rb-close svg{width:100%;height:100%}
 .room-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.room-item{border:3px solid transparent;background:var(--tile);border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.room-item{border:3px solid transparent;background:#FFFFFF;border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
 .room-item img{width:100%;aspect-ratio:1;object-fit:contain;display:block}
-.room-item .nm{font-size:13px;text-align:center;line-height:1.15}
-.room-item.sel{border-color:var(--berry);background:#FFF0F7}
+.room-item .nm{font-size:13px;text-align:center;line-height:1.15;font-weight:700}
+.room-item.sel{border-color:#FF3D8F;background:#FFF0F7}
 .room-item.locked .nm{color:var(--ink-soft)}
 .room-item .lockbub{width:76%;aspect-ratio:1;display:block;margin:6%}
 .room-item .lockbub svg{width:100%;height:100%;display:block}
 .room-item.fresh{animation:freshpulse 1.6s ease-in-out infinite}
-.room-colors{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.room-colors .dot{width:34px;height:34px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px var(--line)}
-.room-colors .dot.sel{box-shadow:0 0 0 3px var(--berry)}
-@media (orientation:portrait){ .room-wrap{flex-direction:column;align-items:center} .room-wrap:has(.room-panel) .room-stage{width:100%} .room-panel{flex:none;width:100%;max-height:none} }
-.screen-inner.room-inner{max-width:1500px}
+.room-colors{display:flex;flex-wrap:wrap;gap:6px}
+.room-colors .dot{width:32px;height:32px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #D9C9B0}
+.room-colors .dot.sel{box-shadow:0 0 0 3px #FF3D8F}
+@media (orientation:portrait){ .rbook{left:2vw!important;right:2vw!important;width:auto;top:auto;height:58vh} }
+@media (prefers-reduced-motion: reduce){ .scene .anim,.scene .book,.scene .bookglow,.scene .tw,.scene .swing{transform-box:fill-box;transform-origin:50% 0}
+.scene .swingit{animation:swingit .9s ease-in-out}
+@keyframes swingit{0%,100%{transform:rotate(0)}20%{transform:rotate(7deg)}45%{transform:rotate(-5deg)}70%{transform:rotate(3deg)}}
+.scene .petg{animation:none!important;transition:none!important} }
+
+/* ---------- Boblebutikken som sted ---------- */
+.say-text{font-family:var(--display);font-weight:600;font-size:25px;line-height:1.25;color:#3A2340;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 8px;box-sizing:border-box}
+.scene .say{transform-box:fill-box;transform-origin:90% 100%}
+.scene .popsay{animation:popsay .35s ease-out}
+@keyframes popsay{0%{transform:scale(.85);opacity:.4}100%{transform:scale(1);opacity:1}}
+.scene .jarbub{animation:float 3s ease-in-out infinite}
+.scene .vbub{animation:float 4s ease-in-out infinite}
+.shop-bub{position:absolute;z-index:6;transition:left 1s cubic-bezier(.3,.7,.4,1),top 1s cubic-bezier(.3,.7,.4,1),width 1s ease-out;animation:none;aspect-ratio:1}
+.shop-bub.wobble{animation:bwobble .4s ease-in-out}
+.shop-bub.pop{animation:bpopout .3s ease-out forwards}
+.shop-drops{position:absolute;z-index:6;width:0;height:0}
+.shop-veil{position:absolute;inset:0;z-index:8;background:rgba(30,15,60,.45);display:grid;place-items:center;padding:16px;animation:fadein .25s ease-out}
+.shop-veil .reveal{max-width:420px}
+@keyframes fadein{from{opacity:0}}
 
 </style>
 </head>
@@ -376,17 +433,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 <div id="app">
   <section id="title" class="screen" hidden><div class="title-inner" id="titleBody"></div></section>
   <section id="town" class="screen" hidden><div class="town-inner" id="townBody"></div></section>
-  <section id="home" class="screen" hidden>
-    <div class="home-inner">
-      <div class="screen-head">
-        <button id="homeBack" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Værelset</button>
-        <h2>Garderoben</h2>
-        <span id="homeStars"></span>
-      </div>
-      <p class="lead center">Her bor dine dukker. Tryk på en for at klæde den på.</p>
-      <div id="figGrid" class="fig-grid"></div>
-    </div>
-  </section>
+  <section id="home" class="screen place" hidden><div class="place-inner" id="homeBody"></div></section>
   <section id="editor" class="screen" hidden>
     <div class="topbar">
       <button id="backBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Garderoben</span></button>
@@ -410,8 +457,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
       </div>
     </div>
   </section>
-  <section id="room" class="screen" hidden><div class="screen-inner room-inner" id="roomBody"></div></section>
-  <section id="balls" class="screen" hidden><div class="screen-inner" id="ballsBody"></div></section>
+  <section id="room" class="screen place" hidden><div class="place-inner" id="roomBody"></div></section>
+  <section id="balls" class="screen place" hidden><div class="place-inner" id="ballsBody"></div></section>
   <section id="game" class="screen" hidden><div class="screen-inner" id="gameBody"></div></section>
   <div id="modal" class="modal" hidden>
     <div class="box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -1505,7 +1552,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.10.0';
+const VERSION = 'v0.11.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -1937,59 +1984,168 @@ ${small ? '' : star4(250, 60, 12) + star4(46, 236, 9) + star4(270, 222, 7)}</svg
 }
 const bubbleIcon = kind => bubbleSvg(kind, true);
 
-function showBalls(){ showScreen('#balls'); playMusic('byen'); bubPick = null; bubTaps = 0; bubBusy = false; renderBubbles(); }
-function ballHead(){ return el('div', { class:'screen-head' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); goTo(showTown); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Byen' }), el('h2', {}, 'Boblebutikken'), starPill() ]); }
-function bubStage(kids){ return el('div', { class:'bub-stage' }, [ el('div', { class:'bub-sky', 'aria-hidden':'true' }), ...kids ]); }
+/* ================= butikken som sted: nissen bag disken, krukker med bobler ================= */
+const NISSE = { skin:'#F6D2B8', eyes:{ color:'#6A4A2E', pupil:'rund' }, mk:{ blush:'#FF8FA3', lips:'#C2465E', lipShape:'smil', mark:'ingen', markColor:'#B07A45' },
+  front:'tilbage', back:'kort', hair:{ a:'#F4F2F8', b:'#D8D2E6', ombre:false, tie:'#E0457A' },
+  robe:{ id:'knapper', a:'#4F8A5A', b:'#F2C14E' }, cape:{ id:'ingen', a:'#2E3F8F', b:'#B79BFF' }, hat:{ id:'spids', a:'#D8343A', b:'#F2C14E' },
+  boots:{ id:'snoer', a:'#8A4B2E', b:'#F2C14E' }, acc:{ briller:'#C9952E' }, pet:{ kind:'ingen', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'ingen', eyes:'#3D8BFF', acc:{}, name:'' } };
+const JARS = [{ id:'toej', x:200 }, { id:'dyr', x:440 }, { id:'rum', x:680 }];
+const NISSE_CHAT = ['Tryk tre gange på en boble, så springer den. Det er hele hemmeligheden!', 'Jeg har puttet bobler i krukker i over tre hundrede år.', 'Hver boble har noget nyt indeni. Man ved aldrig hvad!', 'Stjerner får du i Modehuset. Kom igen, når du har nogle!', 'Mit skæg? Det er helt ægte. Træk ikke i det!'];
+const NISSE_WOW = ['Sikke et fund!', 'Uh, den er da fin!', 'Den kan jeg godt lide!', 'Hvor heldigt!'];
+let nisseLine = '', chatN = 0;
+/* nissens skæg, store næse og overskæg, tegnet oven på figuren (figurens koordinater) */
+const NISSE_BEARD = `<path d="M 312 418 C 296 480 318 586 400 632 C 482 586 504 480 488 418 C 472 452 440 470 400 470 C 360 470 328 452 312 418 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="4"/>`
+  + `<path d="M 340 500 q 14 16 4 34 M 400 520 q 12 18 0 40 M 456 500 q -14 16 -4 34 M 370 560 q 10 14 2 28 M 430 560 q -10 14 -2 28" stroke="#DCD6EA" stroke-width="4" fill="none" stroke-linecap="round"/>`
+  + `<path d="M 400 444 C 380 428 346 430 336 452 C 352 466 382 466 400 452 C 418 466 448 466 464 452 C 454 430 420 428 400 444 Z" fill="#FFFFFF" stroke="#C9C2DA" stroke-width="3.5"/>`
+  + `<ellipse cx="400" cy="422" rx="20" ry="17" fill="#F2A08A" stroke="#C9745E" stroke-width="3"/><ellipse cx="393" cy="416" rx="6" ry="4" fill="#FFFFFF" opacity=".7"/>`;
 
-/* trin 1: vælg hvilken slags boble */
-function renderBubbles(){
-  const box = $('#ballsBody'); box.innerHTML = '';
-  if (bubPick) return renderOneBubble();
-  const row = el('div', { class:'bub-row' });
-  BUBBLES.forEach((b, i) => {
-    const n = b.left().length;
-    const btn = el('button', { class:'bub' + (n ? '' : ' empty'), type:'button', 'aria-label': b.label, style:`animation-delay:${-i*0.9}s`, html: bubbleSvg(b.id),
-      on:{ click: () => { if (!n){ sfx.nope(); toast('Du har fundet alt i ' + b.label.toLowerCase()); return; } sfx.pick(); bubPick = b.id; bubTaps = 0; renderBubbles(); } } });
-    row.append(el('div', { class:'bub-col' }, [ btn, el('p', { class:'bub-name' }, b.label), el('p', { class:'bub-left' }, n ? `${n} ting at finde` : 'Alt fundet!') ]));
-  });
-  const msg = prog.stars < BUB_PRICE ? `En boble koster ${BUB_PRICE} stjerner. Spil i Modehuset for at få flere.` : `Hvad skal der være i boblen? En boble koster ${BUB_PRICE} stjerner.`;
-  box.append(ballHead(), bubStage([ el('p', { class:'bub-msg' }, msg), row ]));
+function shopBleed(){
+  const WL = '#1F6F6A', WD = '#8C5A3C';
+  let o = `<rect x="-1700" y="-700" width="5000" height="2400" fill="${WL}"/>`;
+  for (let x = -1700; x < 3300; x += 80) for (let y = 0; y < 560; y += 80) o += `<path d="M ${x+40} ${y} L ${x+80} ${y+40} L ${x+40} ${y+80} L ${x} ${y+40} Z" fill="none" stroke="#2C8A82" stroke-width="3"/>`;
+  for (let x = -1660; x < 3300; x += 160) for (let y = 40; y < 560; y += 160) o += starP(x, y, 6, '#F2C14E', .5);
+  o += `<rect x="-1700" y="-700" width="5000" height="700" fill="#5A3A28"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="70" height="700" fill="#3E2618"/>`).join('');
+  o += `<rect x="-1700" y="-30" width="5000" height="40" fill="${WD}"/><rect x="-1700" y="2" width="5000" height="8" fill="#3E2618" opacity=".5"/>`;
+  return o;
 }
-/* trin 2: én stor boble, tryk tre gange */
-function renderOneBubble(){
-  const box = $('#ballsBody'); box.innerHTML = '';
-  const b = BUBBLES.find(x => x.id === bubPick), n = b.left().length, poor = prog.stars < BUB_PRICE;
-  const big = el('button', { class:'bub big' + (poor ? ' empty' : ''), type:'button', 'aria-label': b.label, html: bubbleSvg(b.id), on:{ click: tapBubble } });
-  const msg = poor ? `Du mangler ${BUB_PRICE - prog.stars} stjerner til en boble.` : `Tryk tre gange på boblen for at puste den op. Den koster ${BUB_PRICE} stjerner.`;
-  box.append(ballHead(), bubStage([ el('p', { class:'bub-msg' }, msg), el('div', { class:'bub-one' }, [ big, el('div', { class:'bub-drops', 'aria-hidden':'true' }) ]),
-    el('div', { class:'row center' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); bubPick = null; renderBubbles(); } } }, 'Vælg en anden boble'), el('span', { class:'hint' }, `${n} ting i ${b.label.toLowerCase()}`) ]) ]));
+/* hylder med små krukker på væggen */
+function shopShelves(){
+  const W = '#9C6B43', cols = ['#FF8FC7','#7FD8FF','#FFE27A','#B79BFF','#5FD0B0','#FF9F6B'];
+  let o = '', n = 0;
+  for (const [x0, x1] of [[40, 560], [1290, 1580]]) for (const y of [190, 330]){
+    o += `<rect x="${x0}" y="${y}" width="${x1-x0}" height="16" rx="5" fill="${W}" ${RS(W)}/><path d="M ${x0+30} ${y+16} l 0 26 l 26 -26 M ${x1-30} ${y+16} l 0 26 l -26 -26" stroke="${fdk(W,0.3)}" stroke-width="7" fill="none" stroke-linejoin="round"/>`;
+    for (let x = x0 + 34; x < x1 - 30; x += 62){
+      const c = cols[n++ % cols.length], h = 58 + (n*13)%26, w = 40;
+      o += `<g class="jarsmall" data-hit="hylde" style="animation-delay:${(n%7)*0.4}s"><circle cx="${x}" cy="${y - h*0.45}" r="${h*0.55}" fill="${c}" opacity=".18"/><rect x="${x-w/2}" y="${y-h}" width="${w}" height="${h}" rx="10" fill="#EAF7FF" fill-opacity=".45" stroke="#5A4A6A" stroke-width="2.5"/>`
+        + `<circle cx="${x}" cy="${y - h*0.42}" r="${w*0.32}" fill="${c}" opacity=".85"/><circle cx="${x-5}" cy="${y - h*0.42 - 5}" r="3.5" fill="#FFFFFF"/><rect x="${x-w/2-3}" y="${y-h-10}" width="${w+6}" height="12" rx="4" fill="#C99A5B" stroke="#7A5236" stroke-width="2"/></g>`;
+    }
+  }
+  return o;
 }
-async function tapBubble(e){
+function lantern(x, y){
+  return `<path d="M ${x} -30 V ${y-40}" stroke="#3E2618" stroke-width="4"/><circle cx="${x}" cy="${y}" r="70" fill="#FFE27A" opacity=".18"/><path d="M ${x-26} ${y-40} H ${x+26} L ${x+32} ${y+30} H ${x-32} Z" fill="#FFE9A0" stroke="#3E2618" stroke-width="4"/><path d="M ${x} ${y-40} V ${y+30} M ${x-29} ${y-5} H ${x+29}" stroke="#3E2618" stroke-width="3"/><path d="M ${x-34} ${y+30} H ${x+34} L ${x+20} ${y+46} H ${x-20} Z" fill="#3E2618"/><path d="M ${x-20} ${y-40} L ${x} ${y-62} L ${x+20} ${y-40} Z" fill="#3E2618"/>`;
+}
+/* en stor krukke på disken med en boble indeni */
+function bigJar(j){
+  const b = BUBBLES.find(x => x.id === j.id), n = b.left().length, x = j.x, top = 322, bot = 528, w = 92;
+  let o = `<g data-hit="krukke:${j.id}"><g class="anim">`;
+  o += `<ellipse cx="${x}" cy="${bot}" rx="${w+6}" ry="12" fill="${SHC}" opacity=".25"/>`;
+  if (n) o += `<circle cx="${x}" cy="${top + 120}" r="120" fill="${b.cols[0]}" opacity=".16"/>`;
+  o += `<path d="M ${x-w+10} ${top+40} Q ${x-w} ${top+40} ${x-w} ${top+60} V ${bot-20} Q ${x-w} ${bot} ${x-w+20} ${bot} H ${x+w-20} Q ${x+w} ${bot} ${x+w} ${bot-20} V ${top+60} Q ${x+w} ${top+40} ${x+w-10} ${top+40} Z" fill="#E8F6FF" fill-opacity=".35" stroke="#4A3A6A" stroke-width="4"/>`;
+  if (n) o += `<g class="jarbub"><svg x="${x-64}" y="${top+58}" width="128" height="128" viewBox="0 0 300 300">${bubbleSvg(j.id, true).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</svg></g>`;
+  else o += `<text x="${x}" y="${top+150}" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="26" fill="#4A3A6A" opacity=".55">tom</text>`;
+  o += `<path d="M ${x-w+14} ${top+70} V ${bot-30}" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity=".55"/>`;
+  o += `<rect x="${x-w+14}" y="${top-6}" width="${2*w-28}" height="18" rx="6" fill="#B5844A" stroke="#7A5236" stroke-width="3"/><rect x="${x-w+2}" y="${top+8}" width="${2*w-4}" height="40" rx="10" fill="#FFF6E0" stroke="#7A5236" stroke-width="3.5"/>`;
+  o += `<text x="${x}" y="${top+36}" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="${b.label.length > 8 ? 22 : 25}" fill="#3A2340">${b.label}</text>`;
+  return o + `</g></g>`;
+}
+function shopScene(){
+  CLIPN = 0;
+  const S = 760/1030, nx = 876, ny = 81;
+  let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
+  o += shopBleed() + `<g data-hit="hylde-bg"><rect x="-1700" y="0" width="5000" height="520" fill="transparent"/></g>` + shopShelves() + lantern(1225, 120);
+  o += `<g><path d="M 600 -30 V 40 M 960 -30 V 40" stroke="#3E2618" stroke-width="4"/><rect x="560" y="36" width="440" height="84" rx="16" fill="#9C6B43" stroke="#5A3A28" stroke-width="5"/><rect x="574" y="48" width="412" height="60" rx="10" fill="none" stroke="#F2C14E" stroke-width="3"/><text x="780" y="92" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="38" fill="#FFE9A0">Boblebutikken</text></g>`;
+  /* nissen */
+  o += `<g data-hit="nisse"><g class="anim"><image href="${dollUrl(NISSE, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${nx}" y="${ny}" width="369" height="760"/>`
+    + `<g transform="translate(${nx} ${ny}) scale(${S}) translate(-150 -40)">${NISSE_BEARD}</g></g></g>`;
+  /* disken */
+  const C = '#A8734A', F = '#7A5236';
+  o += `<rect x="-1700" y="880" width="5000" height="900" fill="${F}"/>` + Array.from({ length: 30 }, (_, i) => `<path d="M ${-1700 + i*170} 880 V 1800" stroke="${fdk(F,0.2)}" stroke-width="3"/>`).join('');
+  o += `<rect x="-1700" y="540" width="5000" height="350" fill="${C}"/><rect x="-1700" y="850" width="5000" height="40" fill="${fdk(C,0.2)}"/>`;
+  /* vitrinerne i disken: bobler der svæver rundt */
+  const bc = ['#FF8FC7','#7FD8FF','#FFE27A','#B79BFF','#5FD0B0','#FF9F6B'];
+  for (const [x0, x1] of [[-700, -40], [40, 520], [580, 1020], [1080, 1560], [1640, 2300]]){
+    const d = `M ${x0} 600 H ${x1} V 826 H ${x0} Z`;
+    o += `<path d="${d}" fill="#163F45" stroke="#7A5236" stroke-width="8"/>` + clipG(d, `<rect x="${x0}" y="600" width="${x1-x0}" height="226" fill="#1E5A5E"/>`
+      + Array.from({ length: 7 }, (_, i) => { const bx = x0 + 40 + ((i * 67 + x0) % (x1 - x0 - 80) + (x1 - x0 - 80)) % (x1 - x0 - 80), by = 650 + (i * 37) % 150, r = 16 + (i * 7) % 18, c = bc[(i + Math.abs(x0)) % bc.length];
+        return `<g class="vbub" style="animation-delay:${-(i*0.7).toFixed(1)}s;animation-duration:${(3 + i%3).toFixed(1)}s"><circle cx="${bx}" cy="${by}" r="${r}" fill="${c}" opacity=".4" stroke="${lt(c,0.3)}" stroke-width="3"/><circle cx="${bx - r*0.35}" cy="${by - r*0.35}" r="${r*0.22}" fill="#FFFFFF" opacity=".8"/></g>`; }).join('')
+      + `<path d="M ${x0+20} 600 L ${x0+80} 600 L ${x0+20} 680 Z" fill="#FFFFFF" opacity=".12"/>`);
+  }
+  o += `<rect x="-1700" y="514" width="5000" height="34" rx="8" fill="#C99A5B" stroke="#7A5236" stroke-width="4"/><rect x="-1700" y="514" width="5000" height="8" fill="#E2B87A"/>`;
+  o += JARS.map(bigJar).join('');
+  /* klokke og prisskilt */
+  o += `<g data-hit="klokke"><g class="anim"><ellipse cx="1240" cy="512" rx="40" ry="8" fill="#7A5236"/><path d="M 1206 508 C 1206 470 1222 446 1240 446 C 1258 446 1274 470 1274 508 Z" fill="#F2C14E" stroke="#A87A1A" stroke-width="4"/><circle cx="1240" cy="440" r="8" fill="#F2C14E" stroke="#A87A1A" stroke-width="3"/><path d="M 1222 470 q 6 -14 14 -18" stroke="#FFF6D0" stroke-width="5" fill="none" stroke-linecap="round"/></g></g>`;
+  o += `<g><path d="M 1400 512 L 1430 360 M 1530 512 L 1500 360" stroke="#7A5236" stroke-width="8" stroke-linecap="round"/><rect x="1380" y="350" width="170" height="120" rx="10" fill="#3A4A44" stroke="#9C6B43" stroke-width="8"/><text x="1465" y="400" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="24" fill="#FFFFFF">1 boble</text><text x="1452" y="440" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="26" fill="#FFE27A">${BUB_PRICE}</text>${starP(1490, 431, 13, '#FFE27A')}</g>`;
+  /* nissens taleboble */
+  o += `<g class="say" pointer-events="none"><path d="M 600 160 Q 600 132 628 132 H 952 Q 980 132 980 160 V 262 Q 980 290 952 290 H 940 L 990 336 L 896 290 H 628 Q 600 290 600 262 Z" fill="#FFFFFF" stroke="#4A3A6A" stroke-width="4"/>`
+    + `<foreignObject x="612" y="136" width="356" height="150"><div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div></foreignObject></g>`;
+  o += `<g class="fx" pointer-events="none"></g></svg>`;
+  return scopeIds(o, 'sh');
+}
+function say(text){ nisseLine = text; const t = $('#shopScene .say-text'); if (!t) return; t.textContent = text; const g = t.closest('.say'); if (g){ g.classList.remove('popsay'); void g.getBoundingClientRect(); g.classList.add('popsay'); } }
+function greetLine(){ return prog.stars >= BUB_PRICE ? 'Goddag, goddag! Velkommen i Boblebutikken. Vælg en krukke, så puster jeg en boble til dig.' : `Goddag! En boble koster ${BUB_PRICE} stjerner, og du har ${prog.stars}. Spil i Modehuset, så ses vi!`; }
+
+function showBalls(){ showScreen('#balls'); playMusic('byen'); bubPick = null; bubTaps = 0; bubBusy = false; renderShop(greetLine()); }
+function renderShop(line){
+  const box = $('#ballsBody'); box.innerHTML = '';
+  box.append(el('div', { class:'scene-wrap', id:'shopScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill() ]));
+  const w = $('#shopScene'); w.innerHTML = shopScene();
+  const svg = w.querySelector('svg');
+  svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) shopTap(g.dataset.hit, g, svgPoint(svg, e)); });
+  say(line || nisseLine || greetLine());
+}
+function shopTap(hit, g, p){
   if (bubBusy) return;
-  const b = BUBBLES.find(x => x.id === bubPick), left = b.left();
-  if (!left.length){ sfx.nope(); return; }
-  if (prog.stars < BUB_PRICE){ sfx.nope(); toast(`Du mangler ${BUB_PRICE - prog.stars} stjerner`); return; }
-  const bub = e.currentTarget; bubTaps++;
+  const svg = $('#shopScene svg'), [k, v] = hit.split(':');
+  if (k === 'nisse'){ sfx.pick(); replay(g, 'hop'); say(NISSE_CHAT[chatN++ % NISSE_CHAT.length]); return; }
+  if (k === 'klokke'){ sfx.coin(); replay(g, 'wiggle'); say('Ja ja, jeg kommer! Jeg står lige her.'); return; }
+  if (k === 'hylde'){ sfx.pick(); replay(g, 'wiggle'); sparkle(svg, p.x, p.y, 5, '#FFE27A'); return; }
+  if (k === 'krukke'){
+    const b = BUBBLES.find(x => x.id === v), left = b.left();
+    replay(g, 'jiggle');
+    if (!left.length){ sfx.nope(); say(`Krukken med ${b.label.toLowerCase()} er tom. Du har fundet det hele!`); return; }
+    if (prog.stars < BUB_PRICE){ sfx.nope(); say(`Du mangler ${BUB_PRICE - prog.stars} stjerner. Kom tilbage, når du har spillet lidt i Modehuset.`); return; }
+    sfx.magic(); bubPick = v; blowBubble(g, b);
+    return;
+  }
+  sfx.pick(); sparkle(svg, p.x, p.y, 4);
+}
+/* nissen puster en boble op af krukken; den svæver frem til dig */
+function blowBubble(jar, b){
+  bubBusy = true; bubTaps = 0;
+  say(`${b.label}! Det bliver ${BUB_PRICE} stjerner. Nu puster jeg…`);
+  const box = $('#ballsBody'), r = jar.getBoundingClientRect(), br = box.getBoundingClientRect();
+  const size = Math.min(br.height * 0.42, 340);
+  const bub = el('button', { class:'bub shop-bub', type:'button', 'aria-label':'Boblen', html: bubbleSvg(b.id), style:`left:${r.left - br.left + r.width/2 - 30}px;top:${r.top - br.top + r.height*0.4 - 30}px;width:60px` });
+  const drops = el('div', { class:'bub-drops shop-drops', 'aria-hidden':'true' });
+  box.append(bub, drops);
+  requestAnimationFrame(() => requestAnimationFrame(() => { bub.style.left = (br.width * 0.4 - size/2) + 'px'; bub.style.top = (br.height * 0.6 - size/2) + 'px'; bub.style.width = size + 'px'; }));
+  setTimeout(() => { bubBusy = false; say('Tryk tre gange på boblen!'); }, 1100);
+  bub.addEventListener('click', () => tapShopBubble(bub, drops, b));
+}
+async function tapShopBubble(bub, drops, b){
+  if (bubBusy) return;
+  bubTaps++;
   bub.style.setProperty('--grow', 1 + bubTaps * 0.08);
   bub.classList.remove('wobble'); void bub.offsetWidth; bub.classList.add('wobble'); sfx.wobble();
+  if (bubTaps === 2) say('Én gang til!');
   if (bubTaps < 3) return;
   bubBusy = true; bubTaps = 0;
+  const left = b.left();
+  if (!left.length || prog.stars < BUB_PRICE){ bub.remove(); bubBusy = false; renderShop(greetLine()); return; }
   await wait(380);
   addStars(-BUB_PRICE);
   const [cat, id] = pick(left);
   prog.unlocked.push(cat + ':' + id); prog.fresh.push(cat + ':' + id); saveProg();
-  popDrops(bub.parentNode.querySelector('.bub-drops'), b.cols);
+  const r = bub.getBoundingClientRect(), br = $('#ballsBody').getBoundingClientRect();
+  drops.style.left = (r.left - br.left + r.width/2) + 'px'; drops.style.top = (r.top - br.top + r.height/2) + 'px';
+  popDrops(drops, b.cols);
   bub.classList.add('pop'); sfx.crack();
   await wait(460);
+  bub.remove(); setTimeout(() => drops.remove(), 700);
   revealItem(cat, id);
 }
-/* små dråber flyver ud, når boblen springer */
 function popDrops(host, cols){
   if (!host || calm) return;
   for (let i = 0; i < 16; i++){
     const a = i / 16 * Math.PI * 2, d = 140 + Math.random() * 90;
     host.append(el('span', { style:`--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d).toFixed(0)}px;background:${cols[i % 3]};width:${10 + (i%3)*5}px;height:${10 + (i%3)*5}px` }));
   }
+}
+function showcaseState(cat){
+  const base = figures.length ? fixState(clone(figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].st)) : clone(DEFAULT_STATE);
+  if ((cat === 'petpat' || cat === 'petacc') && base.pet.kind === 'ingen') base.pet.kind = 'kat';
+  return base;
 }
 function showcaseState(cat){
   const base = figures.length ? fixState(clone(figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].st)) : clone(DEFAULT_STATE);
@@ -2003,7 +2159,7 @@ function revealItem(cat, id){
     const room = Object.assign(getRoom(), { [slot]: item });
     img = el('img', { alt:'', src: svgUrl(roomSvg(room, { only: slot, viewBox: ROOM_VB[slot] })) });
     catLabel = 'Værelset · ' + s.label; name = s.cat[item].label;
-    tryBtn = el('button', { class:'btn', type:'button', on:{ click: () => goTo(() => { showRoom(); roomSlot = slot; renderRoom(); }) } }, 'Se det i værelset');
+    tryBtn = el('button', { class:'btn', type:'button', on:{ click: () => goTo(() => { showRoom(); openRoomBook(slot); }) } }, 'Se det i værelset');
   } else {
     const info = CAT_INFO[cat];
     const st = showcaseState(cat);
@@ -2016,18 +2172,18 @@ function revealItem(cat, id){
     catLabel = info.label; name = info.name(id);
     tryBtn = figures.length ? el('button', { class:'btn', type:'button', on:{ click: () => tryOn(cat) } }, 'Prøv den på') : null;
   }
-  const box = $('#ballsBody'); box.innerHTML = '';
+  const close = () => { sfx.pick(); veil.remove(); bubPick = null; renderShop(pick(NISSE_WOW) + (prog.stars >= BUB_PRICE ? ' Skal det være en til?' : ' Kom snart igen!')); };
   const card = el('div', { class:'reveal' }, [
     el('span', { class:'new-badge' }, 'NY!'),
     el('div', { class:'reveal-pic' }, img),
     el('p', { class:'reveal-cat' }, catLabel),
     el('h3', { class:'reveal-name' }, name),
+    el('div', { class:'row center' }, [ tryBtn, el('button', { class:'btn hot', type:'button', on:{ click: close } }, 'Tilbage til disken') ]),
   ]);
-  const b = BUBBLES.find(x => x.id === bubPick), more = b && b.left().length && prog.stars >= BUB_PRICE;
-  const buttons = el('div', { class:'row center' }, [ tryBtn,
-    more ? el('button', { class:'btn hot', type:'button', on:{ click: () => { renderBubbles(); } } }, 'En boble til') : el('button', { class:'btn hot', type:'button', on:{ click: () => { bubPick = null; renderBubbles(); } } }, 'Videre') ]);
-  box.append(ballHead(), bubStage([ card, buttons ]));
-  confetti(box, 50);
+  const veil = el('div', { class:'shop-veil' }, [ card ]);
+  $('#ballsBody').append(veil);
+  say(pick(NISSE_WOW));
+  confetti(veil, 50);
   bubBusy = false;
 }
 function tryOn(cat){
@@ -2085,9 +2241,15 @@ function curtain(c, side, pattern){
   o += `<ellipse cx="${tie[0]}" cy="${tie[1]}" rx="22" ry="9" transform="rotate(${side*-20} ${tie[0]} ${tie[1]})" fill="#F2C14E" stroke="#B98516" stroke-width="2.5"/>`;
   return o;
 }
+function closedCurtains(c, pattern){
+  const L = 'M 244 80 H 452 C 446 220 456 400 446 540 H 238 C 250 400 240 220 244 80 Z', R = 'M 656 80 H 448 C 454 220 444 400 454 540 H 662 C 650 400 660 220 656 80 Z';
+  const one = (d, x0, f) => `<path d="${d}" fill="${c}" ${RS(c)}/>` + rClip(d, [0,1,2,3].map(i => `<path d="M ${x0 + f*i*52} 80 C ${x0 + f*(i*52+10)} 240 ${x0 + f*(i*52-8)} 400 ${x0 + f*(i*52+4)} 540" stroke="${sd(c,0.35)}" stroke-width="10" fill="none" opacity=".4"/>`).join('')
+    + (pattern ? Array.from({length: 16}, (_, i) => starP(x0 + f*(18 + (i%4)*50), 110 + Math.floor(i/4)*110 + (i%2)*40, 7, lt(c,0.55), .9)).join('') : ''));
+  return one(L, 262, 1) + one(R, 638, -1);
+}
 const VINDUE = {
-  gardiner: { label:'Gardiner', draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1) + curtain(c, 1) },
-  stjernegardiner: { label:'Stjernegardiner', draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1, true) + curtain(c, 1, true)
+  gardiner: { label:'Gardiner', curtain: 1, draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1) + curtain(c, 1) },
+  stjernegardiner: { label:'Stjernegardiner', curtain: 2, draw: c => nightSky(WIN) + windowFrame() + `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + curtain(c, -1, true) + curtain(c, 1, true)
       + `<path d="M 236 78 L 664 78 L 664 120 Q 610 150 556 120 Q 502 150 450 120 Q 398 150 344 120 Q 290 150 236 120 Z" fill="${c}" ${RS(c)}/><path d="M 236 108 Q 290 138 344 108 Q 398 138 450 108 Q 502 138 556 108 Q 610 138 664 108" stroke="#F2C14E" stroke-width="3" fill="none" stroke-dasharray="3 6"/>` },
   rundt: { label:'Rundt vindue', draw: c => { const d = 'M 440 120 A 150 150 0 1 1 439.9 120 Z';
       return nightSky(d) + `<circle cx="440" cy="270" r="150" fill="none" stroke="${c}" stroke-width="26"/><circle cx="440" cy="270" r="163" fill="none" stroke="${rOut(c)}" stroke-width="3"/><circle cx="440" cy="270" r="137" fill="none" stroke="${rOut(c)}" stroke-width="3"/>`
@@ -2263,34 +2425,159 @@ function getRoom(){
 }
 function setRoom(r){ prog.room = r; saveProg(); }
 
-/* ================= Værelset som skærm ================= */
-let roomSlot = null;
-function showRoom(){ showScreen('#room'); playMusic('byen'); roomSlot = null; renderRoom(); }
-function roomHead(){
-  return el('div', { class:'screen-head' }, [
-    el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); goTo(showTown); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Byen' }),
-    el('h2', {}, 'Mit værelse'),
-    el('div', { class:'row' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); goTo(showHome); } }, html: ic('<path d="M10 6a2 2 0 1 1 2 2v1.5"/><path d="M12 9.5 3.5 16a1 1 0 0 0 .6 1.8h15.8a1 1 0 0 0 .6-1.8z"/>') + 'Garderoben' }), starPill() ]) ]);
+/* ================= Værelset som sted: hele skærmen, ting man kan trykke på, og indretningsbogen ================= */
+/* hvor dyret står: ved siden af figuren, eller i sin seng (fødder i rumkoordinater) */
+const PET_SPOT = { x: 1000, y: 952 };
+const PET_BED = { kurv: { x: 1160, y: 885 }, pude: { x: 1160, y: 885 }, slot: { x: 1160, y: 938 } };
+const BOOK_SIDE = { vaeg:'r', vindue:'r', seng:'r', gulv:'r', hylde:'l', lampe:'l', ting:'l', dyreseng:'l' };
+let roomBook = null, roomLight = true, roomCurtain = false, petInBed = false;
+
+/* id'er i en inline-svg skal være unikke i hele siden */
+function scopeIds(svg, p){ return svg.replace(/id="([^"]+)"/g, `id="${p}$1"`).replace(/url\(#([^)]+)\)/g, `url(#${p}$1)`).replace(/href="#([^"]+)"/g, `href="#${p}$1"`); }
+const SVGNS = 'http://www.w3.org/2000/svg';
+/* en figur som billede inde i en scene — renderDoll nulstiller klip-tælleren, så den gemmes og sættes tilbage */
+function dollUrl(st, opts){ const n = CLIPN; const u = svgUrl(renderDoll(st, opts)); CLIPN = n; return u; }
+function svgEl(tag, attrs = {}, html){ const e = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (html) e.innerHTML = html; return e; }
+
+/* loft og væg fortsætter ud over kanten, så skærmen altid er fyldt */
+function roomBleed(room){
+  const W = '#5A3A28';
+  let o = `<rect x="-900" y="-700" width="3400" height="2400" fill="${fdk(room.c.vaeg, 0.2)}"/>`;
+  o += `<g>${wallBase(room.c.vaeg)}${roomItem('vaeg', room)}</g>`;
+  for (const dx of [-1600, 1600]) o += `<g transform="translate(${dx} 0)">${wallBase(room.c.vaeg)}${roomItem('vaeg', room)}</g>`;
+  o += `<rect x="-1700" y="0" width="5000" height="700" fill="url(#wallG)"/>`;
+  o += `<rect x="-1700" y="-700" width="5000" height="700" fill="${W}"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="60" height="700" fill="${fdk(W,0.25)}"/>`).join('');
+  o += `<rect x="-1700" y="-22" width="5000" height="30" fill="#7A5236"/><rect x="-1700" y="4" width="5000" height="6" fill="${SHC}" opacity=".25"/>`;
+  const F = '#B98A5E';
+  o += `<rect x="-1700" y="700" width="5000" height="1000" fill="${F}"/>`;
+  for (let i = 0; i < 14; i++){ const y = 700 + i*i*4 + i*8; o += `<path d="M -1700 ${y} H 3300" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".5"/>`; }
+  for (let i = -14; i <= 14; i++) o += `<path d="M ${800 + i*90} 700 L ${800 + i*330} 1500" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".35"/>`;
+  o += `<rect x="-1700" y="690" width="5000" height="22" fill="#7A5236"/><rect x="-1700" y="690" width="5000" height="6" fill="#9C6B43"/><rect x="-1700" y="712" width="5000" height="60" fill="${SHC}" opacity=".12"/>`;
+  return o;
 }
+/* natbordet med indretningsbogen */
+function nightstand(fresh){
+  const W = '#9C6B43', B = '#6B3FA0';
+  let o = `<rect x="566" y="728" width="96" height="124" rx="6" fill="${W}" ${RS(W)}/><rect x="574" y="742" width="80" height="44" rx="5" fill="${lt(W,0.12)}" ${RS(W,2)}/><circle cx="614" cy="764" r="5" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+  o += `<rect x="572" y="852" width="14" height="22" rx="4" fill="${fdk(W,0.2)}"/><rect x="642" y="852" width="14" height="22" rx="4" fill="${fdk(W,0.2)}"/><rect x="554" y="714" width="120" height="18" rx="6" fill="${W}" ${RS(W)}/><rect x="554" y="714" width="120" height="6" rx="3" fill="${lt(W,0.3)}"/>`;
+  o += `<g class="bookglow"><ellipse cx="614" cy="690" rx="78" ry="46" fill="#FFE27A" opacity=".35"/></g>`;
+  o += `<g class="book"><path d="M 572 712 L 576 680 L 656 680 L 660 712 Z" fill="#FFF6E0" stroke="#C9B6A6" stroke-width="2.5"/><path d="M 580 686 H 652 M 579 694 H 653 M 578 702 H 654" stroke="#E6D6C6" stroke-width="2"/>`;
+  o += `<path d="M 566 676 L 662 676 L 666 684 L 570 684 Z" fill="${B}" ${RS(B)}/><path d="M 566 712 L 666 712 L 666 720 L 566 720 Z" fill="${B}" ${RS(B)}/><path d="M 566 676 L 566 720 L 574 720 L 574 684 Z" fill="${fdk(B,0.2)}"/>`;
+  o += `<path d="M 600 678 L 614 670 L 628 678 Z" fill="#F2C14E"/>` + starP(614, 698, 8, '#F2C14E') + `<path d="M 640 712 L 640 736 L 646 730 L 652 736 L 652 712 Z" fill="#E0457A"/></g>`;
+  o += [[590,650],[646,640],[612,626]].map(([x,y],i) => `<g class="tw" style="animation-delay:${i*0.5}s">${star4(x, y, 7, '#FFF6D0')}</g>`).join('');
+  if (fresh) o += `<g><rect x="640" y="618" width="46" height="26" rx="13" fill="#FF3D8F" stroke="#FFFFFF" stroke-width="3"/><text x="663" y="637" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="16" fill="#FFFFFF">NY</text></g>`;
+  return o;
+}
+function roomScene(room){
+  CLIPN = 0;
+  const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
+  const fresh = ROOM_SLOTS.some(s => Object.keys(s.cat).some(id => prog.fresh.includes(roomKey(s.id, id))));
+  const win = VINDUE[room.vindue] || {};
+  const bed = PET_BED[room.dyreseng] || PET_BED.kurv;
+  const at = petInBed && hasPet ? bed : PET_SPOT;
+  let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
+  o += roomBleed(room);
+  o += `<g data-hit="vaeg"><rect x="-1700" y="0" width="5000" height="690" fill="transparent"/></g><g data-hit="gulv-bg"><rect x="-1700" y="712" width="5000" height="900" fill="transparent"/></g>`;
+  o += `<g data-hit="vindue">${roomItem('vindue', room)}${win.curtain && roomCurtain ? `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + closedCurtains(room.c.vindue, win.curtain === 2) : ''}</g>`;
+  o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
+  o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
+  o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
+  o += `<g data-hit="bog">${nightstand(fresh)}</g>`;
+  o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
+  o += `<g data-hit="dyreseng"><g transform="translate(-30 0)">${roomItem('dyreseng', room)}</g></g>`;
+  /* figuren og dyret er billeder i scenen */
+  o += `<g data-hit="figur"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="650" y="266" width="340" height="700"/></g></g>`;
+  if (hasPet) o += `<g data-hit="dyr" class="petg" style="transform:translate(${at.x - PET_SPOT.x}px,${at.y - PET_SPOT.y}px)"><g class="anim"><image href="${dollUrl(hero, { viewBox: VB.pet, petOnly: true })}" x="${PET_SPOT.x - 95}" y="${PET_SPOT.y - 203}" width="190" height="210"/></g></g>`;
+  if (hasPet && room.dyreseng === 'kurv') o += `<g class="bedfront${petInBed ? ' on' : ''}" pointer-events="none"><g transform="translate(-30 0)">${roomItem('dyreseng', room).replace(/<ellipse cx="1190" cy="870" rx="110"[\s\S]*$/, '')}</g></g>`;
+  o += `<g data-hit="lampe"><g class="anim">${roomItem('lampe', room)}</g></g>`;
+  if (!roomLight){
+    o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#0B0A2E" opacity=".58" pointer-events="none"/>`;
+    if (!(win.curtain && roomCurtain)) o += `<path d="M 300 440 L 580 440 L 860 1000 L 160 1000 Z" fill="#CFE0FF" opacity=".12" pointer-events="none"/>`;
+  }
+  o += `<g class="fx" pointer-events="none"></g></svg>`;
+  return scopeIds(o, 'rm');
+}
+
+function showRoom(){ showScreen('#room'); playMusic('byen'); roomBook = null; petInBed = false; renderRoom(); }
+function placeUi(left, right){ return [ el('div', { class:'place-ui tl' }, left), el('div', { class:'place-ui tr' }, right) ]; }
+function backBtn(label, fn){ return el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); goTo(fn); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + label }); }
 function renderRoom(){
   const box = $('#roomBody'); box.innerHTML = '';
-  const room = getRoom();
-  const stage = el('div', { class:'room-stage' });
-  stage.append(el('img', { class:'room-bg', alt:'', src: svgUrl(roomSvg(room)) }));
-  stage.append(el('div', { class:'room-fig' }, dollImg(heroState(), { viewBox:'110 20 700 1060', anim: !calm, idle: true, alt:'Din figur' })));
-  for (const s of ROOM_SLOTS){
-    const fresh = Object.keys(s.cat).some(id => prog.fresh.includes(roomKey(s.id, id)));
-    const b = el('button', { class:'room-hot' + (roomSlot === s.id ? ' on' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-label': s.label, style:`left:${s.hot[0]/16}%;top:${s.hot[1]/10}%`, html: STAR_SVG,
-      on:{ click: () => { sfx.pick(); roomSlot = roomSlot === s.id ? null : s.id; renderRoom(); } } });
-    stage.append(b);
-  }
-  const wrap = el('div', { class:'room-wrap' }, [ stage ]);
-  if (roomSlot) wrap.append(roomPanel(room, roomSlot));
-  else wrap.append(el('p', { class:'hint center room-hint' }, 'Tryk på en stjerne for at indrette.'));
-  box.append(roomHead(), wrap);
+  box.append(el('div', { class:'scene-wrap', id:'roomScene' }),
+    ...placeUi([ backBtn('Byen', showTown) ], [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); goTo(showHome); } }, html: ic('<path d="M10 6a2 2 0 1 1 2 2v1.5"/><path d="M12 9.5 3.5 16a1 1 0 0 0 .6 1.8h15.8a1 1 0 0 0 .6-1.8z"/>') + 'Garderoben' }), starPill() ]));
+  drawRoomScene();
+  if (roomBook) box.append(roomBookEl());
 }
-function roomPanel(room, slot){
-  const s = ROOM_SLOTS.find(x => x.id === slot);
+function drawRoomScene(){
+  const w = $('#roomScene'); w.innerHTML = roomScene(getRoom());
+  const svg = w.querySelector('svg');
+  svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) roomTap(g.dataset.hit, g, svgPoint(svg, e)); });
+}
+function svgPoint(svg, e){ const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const m = svg.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : { x: 800, y: 500 }; }
+function replay(g, cls){ const a = g.querySelector('.anim') || g; a.classList.remove(cls); void a.getBoundingClientRect(); a.classList.add(cls); }
+function sparkle(svg, x, y, n = 6, col = '#FFF6D0'){
+  const fx = svg.querySelector('.fx'); if (!fx || calm) return;
+  for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2, d = 40 + Math.random() * 40;
+    const s = svgEl('g', { class:'spark', style:`--dx:${(Math.cos(a)*d).toFixed(0)}px;--dy:${(Math.sin(a)*d).toFixed(0)}px` }, star4(x, y, 9 + Math.random()*6, col));
+    fx.append(s); setTimeout(() => s.remove(), 900); }
+}
+function puff(svg, x, y, col){
+  const fx = svg.querySelector('.fx'); if (!fx) return;
+  for (let i = 0; i < 7; i++){ const c = svgEl('circle', { class:'puff', cx: x + (i%3 - 1) * 26, cy: y, r: 18 + (i%3)*8, fill: i%2 ? col : lt(col, 0.4), style:`animation-delay:${i*0.08}s;--dx:${(i%3-1)*30}px` });
+    fx.append(c); setTimeout(() => c.remove(), 1700); }
+}
+function shootingStar(svg){
+  const fx = svg.querySelector('.fx'); if (!fx) return;
+  const g = svgEl('g', {}, rClip(WIN, `<g class="shooting"><path d="M 560 130 L 640 100" stroke="#FFF6D0" stroke-width="4" stroke-linecap="round" opacity=".8"/>${star4(560, 130, 9, '#FFFFFF')}</g>`).replace(/id="(k\d+)"/, 'id="rmshoot"').replace(/url\(#k\d+\)/, 'url(#rmshoot)'));
+  fx.append(g); setTimeout(() => g.remove(), 1500);
+}
+/* små hjerter stiger op, når dyret har det rart */
+function hearts(svg, x, y){
+  const fx = svg.querySelector('.fx'); if (!fx) return;
+  [0,1,2].forEach(i => { const hx = x + (i - 1) * 30, hy = y - i * 12, r = 10 + i * 2;
+    const h = svgEl('path', { class:'zzz', d:`M ${hx} ${hy + r} C ${hx - r*2} ${hy - r*0.2} ${hx - r} ${hy - r*1.6} ${hx} ${hy - r*0.5} C ${hx + r} ${hy - r*1.6} ${hx + r*2} ${hy - r*0.2} ${hx} ${hy + r} Z`, fill:'#FF5FA8', stroke:'#FFFFFF', 'stroke-width':'2', style:`animation-delay:${i*0.3}s` });
+    fx.append(h); setTimeout(() => h.remove(), 2600); });
+}
+function roomTap(hit, g, p){
+  const svg = $('#roomScene svg'), room = getRoom();
+  switch (hit){
+    case 'bog': sfx.open(); openRoomBook(); return;
+    case 'lampe': sfx.pick(); roomLight = !roomLight; drawRoomScene(); return;
+    case 'vindue': {
+      const win = VINDUE[room.vindue] || {};
+      if (win.curtain){ sfx.whoosh(); roomCurtain = !roomCurtain; drawRoomScene(); if (!roomCurtain) setTimeout(() => shootingStar($('#roomScene svg')), 400); }
+      else { sfx.magic(); shootingStar(svg); }
+      return; }
+    case 'seng': sfx.wobble(); replay(g, 'boing'); sparkle(svg, p.x, p.y, 5); return;
+    case 'hylde': sfx.pick(); replay(g, 'jiggle'); sparkle(svg, p.x, p.y, 6, '#FFE27A'); return;
+    case 'ting':
+      if (room.ting === 'kedel'){ sfx.wobble(); replay(g, 'jiggle'); puff(svg, 1405, 740, room.c.ting); }
+      else { sfx.pick(); replay(g, 'wiggle'); sparkle(svg, p.x, p.y, 6, '#FFE27A'); }
+      return;
+    case 'dyreseng': case 'dyr': {
+      const pg = svg.querySelector('.petg'); if (!pg){ sparkle(svg, p.x, p.y); return; }
+      if (hit === 'dyr' && !petInBed){ sfx.pick(); replay(pg, 'hop'); hearts(svg, p.x, p.y - 60); return; }
+      petInBed = !petInBed; sfx.whoosh();
+      const bed = PET_BED[room.dyreseng] || PET_BED.kurv, at = petInBed ? bed : PET_SPOT;
+      pg.style.transform = `translate(${at.x - PET_SPOT.x}px,${at.y - PET_SPOT.y}px)`;
+      const bf = svg.querySelector('.bedfront'); if (bf) bf.classList.toggle('on', petInBed);
+      if (petInBed) setTimeout(() => hearts(svg, bed.x, bed.y - 200), 900);
+      return; }
+    case 'figur': sfx.magic(); replay(g, 'hop'); sparkle(svg, p.x, p.y - 60, 7); return;
+    default: sfx.pick(); sparkle(svg, p.x, p.y, 5);
+  }
+}
+
+/* ---------- indretningsbogen ---------- */
+function openRoomBook(slot){ roomBook = slot || roomBook || 'vaeg'; const old = $('#roomBody .rbook'); if (old) old.remove(); $('#roomBody').append(roomBookEl()); }
+function closeRoomBook(){ sfx.undo(); roomBook = null; const b = $('#roomBody .rbook'); if (b){ b.classList.add('closing'); setTimeout(() => { b.remove(); drawRoomScene(); }, 260); } }
+function roomBookEl(){
+  const room = getRoom(), slot = roomBook, s = ROOM_SLOTS.find(x => x.id === slot);
+  const tabs = el('div', { class:'rb-tabs' }, ROOM_SLOTS.map(t => {
+    const fresh = Object.keys(t.cat).some(id => prog.fresh.includes(roomKey(t.id, id)));
+    return el('button', { class:'rb-tab' + (t.id === slot ? ' sel' : '') + (fresh ? ' fresh' : ''), type:'button', on:{ click: () => { sfx.pick(); openRoomBook(t.id); } } },
+      [ el('img', { alt:'', src: svgUrl(roomSvg(room, { only: t.id, viewBox: ROOM_VB[t.id] })) }), el('span', {}, t.label) ]);
+  }));
   const items = el('div', { class:'room-items' });
   for (const id of Object.keys(s.cat)){
     const free = roomFree(slot, id), fresh = prog.fresh.includes(roomKey(slot, id));
@@ -2299,14 +2586,146 @@ function roomPanel(room, slot){
       [ free ? el('img', { alt:'', src: svgUrl(roomSvg(prev, { only: slot, viewBox: ROOM_VB[slot] })) }) : el('span', { class:'lockbub', html: bubbleIcon('rum') }), el('span', { class:'nm' }, free ? s.cat[id].label : 'Findes i en boble') ]);
     b.addEventListener('click', () => {
       if (!free){ sfx.nope(); toast('Den kan du finde i Boblebutikken'); return; }
-      sfx.pick(); if (fresh){ prog.fresh = prog.fresh.filter(k => k !== roomKey(slot, id)); saveProg(); }
-      const r = getRoom(); r[slot] = id; setRoom(r); renderRoom();
+      sfx.magic(); if (fresh){ prog.fresh = prog.fresh.filter(k => k !== roomKey(slot, id)); saveProg(); }
+      const r = getRoom(); r[slot] = id; setRoom(r); drawRoomScene(); openRoomBook(slot);
     });
     items.append(b);
   }
   const cols = slot === 'vaeg' ? ROOM_WALL_COLORS : COLORS;
-  const colors = el('div', { class:'room-colors' }, cols.map(col => el('button', { class:'dot' + (room.c[slot] === col ? ' sel' : ''), type:'button', 'aria-label':'Farve', style:`background:${col}`, on:{ click: () => { sfx.pick(); const r = getRoom(); r.c[slot] = col; setRoom(r); renderRoom(); } } })));
-  return el('div', { class:'room-panel' }, [ el('div', { class:'room-panel-head' }, [ el('h3', {}, s.label), el('button', { class:'btn small', type:'button', on:{ click: () => { roomSlot = null; renderRoom(); } } }, 'Færdig') ]), items, colors ]);
+  const colors = el('div', { class:'room-colors' }, cols.map(col => el('button', { class:'dot' + (room.c[slot] === col ? ' sel' : ''), type:'button', 'aria-label':'Farve', style:`background:${col}`,
+    on:{ click: () => { sfx.color(); const r = getRoom(); r.c[slot] = col; setRoom(r); drawRoomScene(); openRoomBook(slot); } } })));
+  const book = el('div', { class:'rbook ' + (BOOK_SIDE[slot] === 'l' ? 'left' : 'right') }, [
+    el('div', { class:'rb-cover' }, [
+      el('div', { class:'rb-page pl' }, [ el('h3', {}, 'Indretning'), tabs ]),
+      el('div', { class:'rb-page pr' }, [ el('h3', {}, s.label), items, el('p', { class:'rb-sub' }, 'Farve'), colors ]),
+    ]),
+    el('button', { class:'rb-close', type:'button', 'aria-label':'Luk bogen', on:{ click: closeRoomBook }, html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' }),
+  ]);
+  return book;
+}
+
+/* ================= Garderoben: et omklædningsrum med klædeskab, spejl og portrætter af figurerne ================= */
+let wardPage = 0;
+const WARD_PER = 5;   /* portrætter pr. side; første ramme er altid "Ny figur" */
+const FRAME_BG = ['#FFE3F0','#E6E0FF','#DDF3FF','#E2FAEF','#FFF3D6','#FFE6DC'];
+const FRAMES = [[690,240],[860,240],[1030,240],[690,505],[860,505],[1030,505]];
+
+function wardBleed(){
+  const WALL = '#E7B7D2', W2 = '#F1CCE0', PAN = '#FFF1E6', F = '#C9956A', B = '#7A4E6A';
+  let o = `<rect x="-1700" y="-700" width="5000" height="2400" fill="${WALL}"/>`;
+  for (let x = -1700; x < 3300; x += 100) o += `<rect x="${x}" y="0" width="44" height="680" fill="${W2}"/>`;
+  for (let x = -1678; x < 3300; x += 100) for (let y = 40; y < 660; y += 80) o += `<circle cx="${x + 50}" cy="${y + (x/100 % 2 ? 40 : 0)}" r="5" fill="#FFFFFF" opacity=".55"/>`;
+  o += `<rect x="-1700" y="-700" width="5000" height="700" fill="${B}"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="60" height="700" fill="${fdk(B,0.25)}"/>`).join('');
+  o += `<rect x="-1700" y="-24" width="5000" height="34" fill="#F7E2EC"/><rect x="-1700" y="4" width="5000" height="6" fill="${B}" opacity=".35"/>`;
+  o += `<rect x="-1700" y="0" width="5000" height="680" fill="url(#wallG)"/>`;
+  o += `<defs><linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${SHC}" stop-opacity=".18"/><stop offset=".35" stop-color="${SHC}" stop-opacity="0"/><stop offset="1" stop-color="${SHC}" stop-opacity=".08"/></linearGradient></defs>`;
+  o += `<rect x="-1700" y="660" width="5000" height="100" fill="${PAN}"/><rect x="-1700" y="660" width="5000" height="10" fill="#E6CDBE"/>` + Array.from({ length: 34 }, (_, i) => `<rect x="${-1680 + i*150}" y="682" width="126" height="60" rx="6" fill="none" stroke="#E6CDBE" stroke-width="4"/>`).join('');
+  o += `<rect x="-1700" y="760" width="5000" height="1000" fill="${F}"/>`;
+  for (let i = 0; i < 14; i++){ const y = 760 + i*i*4 + i*8; o += `<path d="M -1700 ${y} H 3300" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".5"/>`; }
+  for (let i = -14; i <= 14; i++) o += `<path d="M ${800 + i*90} 760 L ${800 + i*330} 1500" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".3"/>`;
+  o += `<rect x="-1700" y="752" width="5000" height="16" fill="#9C6B43"/>`;
+  return o;
+}
+/* klædeskabet med åbne låger og tøj på bøjler */
+function wardrobe(){
+  const W = '#9A6440', WD = fdk(W, 0.2), IN = '#4A2E40';
+  let o = `<ellipse cx="290" cy="905" rx="250" ry="22" fill="${SHC}" opacity=".18"/>`;
+  o += `<path d="M 100 900 V 230 Q 290 120 480 230 V 900 Z" fill="${W}" ${RS(W,4)}/><path d="M 440 236 Q 462 214 480 230 V 900 H 440 Z" fill="${WD}" opacity=".5"/>`;
+  o += `<g transform="translate(290 168)"><polygon points="${star5pts(0,0,26,11)}" fill="#F2C14E" stroke="#B98516" stroke-width="3"/></g>`;
+  o += `<rect x="130" y="250" width="320" height="500" rx="10" fill="${IN}"/><rect x="130" y="250" width="320" height="40" fill="#2E1C2A" opacity=".5"/>`;
+  o += `<rect x="140" y="282" width="300" height="9" rx="4" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+  const cols = ['#7B4FD0','#E0457A','#43A3D3','#5FD0B0','#FFC02E'];
+  cols.forEach((c, i) => {
+    const x = 175 + i * 58;
+    let g = `<path d="M ${x} 286 q 0 -12 8 -12" stroke="#C9B6A6" stroke-width="3" fill="none"/><path d="M ${x-26} 312 L ${x} 296 L ${x+26} 312" stroke="#C9B6A6" stroke-width="4" fill="none" stroke-linejoin="round"/>`;
+    const d = `M ${x-20} 304 L ${x+20} 304 L ${x+28} 340 L ${x+40} ${500 + (i%2)*30} Q ${x} ${514 + (i%2)*30} ${x-40} ${500 + (i%2)*30} L ${x-28} 340 Z`;
+    g += `<path d="${d}" fill="${c}" ${RS(c)}/>` + rClip(d, `<rect x="${x+8}" y="300" width="40" height="260" fill="${sd(c,0.3)}" opacity=".5"/>` + starP(x - 6, 400, 7, lt(c,0.55)) + starP(x + 10, 450, 6, lt(c,0.55)));
+    g += `<path d="M ${x-12} 304 Q ${x} 318 ${x+12} 304" stroke="${rOut(c)}" stroke-width="3" fill="${lt(c,0.3)}"/>`;
+    o += `<g class="swing" style="animation-delay:${i*0.06}s">${g}</g>`;
+  });
+  o += `<rect x="130" y="640" width="320" height="16" fill="${W}" ${RS(W,3)}/>`;
+  [[180,'#7A4A2A'],[290,'#E0457A'],[395,'#5A3A6A']].forEach(([x, c]) => { o += [-14, 14].map(dx => `<path d="M ${x+dx-12} 640 V 600 Q ${x+dx-12} 590 ${x+dx} 590 Q ${x+dx+10} 590 ${x+dx+10} 600 V 626 Q ${x+dx+24} 628 ${x+dx+24} 640 Z" fill="${c}" ${RS(c,2.5)}/>`).join(''); });
+  o += `<rect x="130" y="750" width="320" height="130" fill="${W}"/>` + [770, 826].map(y => `<rect x="146" y="${y}" width="288" height="46" rx="6" fill="${lt(W,0.1)}" ${RS(W,3)}/><circle cx="290" cy="${y+23}" r="7" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`).join('');
+  /* lågerne står åbne ud mod siderne */
+  o += `<path d="M 130 252 L 36 290 L 36 720 L 130 748 Z" fill="${lt(W,0.08)}" ${RS(W,4)}/><path d="M 56 320 L 112 300 L 112 700 L 56 690 Z" fill="none" stroke="${WD}" stroke-width="4"/><circle cx="50" cy="500" r="8" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+  o += `<path d="M 450 252 L 544 290 L 544 720 L 450 748 Z" fill="${lt(W,0.08)}" ${RS(W,4)}/><path d="M 468 300 L 524 320 L 524 690 L 468 700 Z" fill="#CFE6F2" stroke="${WD}" stroke-width="4"/><path d="M 480 340 L 500 330 M 480 380 L 512 362" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".8"/><circle cx="530" cy="500" r="8" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+  return o;
+}
+/* det store spejl med den nyeste figur */
+function wardMirror(hero){
+  const G = '#E9B949', GD = '#A87A1A';
+  let o = `<ellipse cx="1340" cy="905" rx="150" ry="18" fill="${SHC}" opacity=".18"/><path d="M 1250 900 L 1300 640 M 1430 900 L 1380 640" stroke="${GD}" stroke-width="14" stroke-linecap="round"/><path d="M 1250 900 L 1300 640 M 1430 900 L 1380 640" stroke="${G}" stroke-width="8" stroke-linecap="round"/>`;
+  o += `<ellipse cx="1340" cy="400" rx="150" ry="252" fill="${G}" stroke="${GD}" stroke-width="5"/><ellipse cx="1340" cy="400" rx="128" ry="230" fill="#DDEFFA"/>`;
+  o += `<defs><linearGradient id="glassG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4FBFF"/><stop offset="1" stop-color="#BFDDF0"/></linearGradient></defs>`;
+  o += clipG('M 1340 170 A 128 230 0 1 1 1339.9 170 Z', `<rect x="1200" y="160" width="280" height="480" fill="url(#glassG)"/><g transform="translate(2680 0) scale(-1 1)"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="1210" y="200" width="260" height="535"/></g></g>`
+    + `<path d="M 1240 230 L 1300 190 M 1236 300 L 1330 220" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".6"/>`);
+  o += [[1340,148],[1190,400],[1490,400],[1340,652]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="13" fill="${G}" stroke="${GD}" stroke-width="3"/>`).join('');
+  o += `<g transform="translate(1340 130)"><polygon points="${star5pts(0,0,24,10)}" fill="#FFE27A" stroke="${GD}" stroke-width="3"/></g>`;
+  return o;
+}
+/* et portræt i guldramme med navneskilt */
+function portrait(i, f, cx, cy){
+  const fw = 150, fh = 190, x = cx - fw/2, y = cy - fh/2, G = '#E9B949', GD = '#A87A1A';
+  let o = `<g data-hit="${f ? 'fig:' + i : 'ny'}"><g class="anim">`;
+  o += `<rect x="${x+6}" y="${y+10}" width="${fw}" height="${fh}" rx="14" fill="${SHC}" opacity=".18"/><rect x="${x}" y="${y}" width="${fw}" height="${fh}" rx="14" fill="${G}" stroke="${GD}" stroke-width="4"/>`;
+  o += `<rect x="${x+12}" y="${y+12}" width="${fw-24}" height="${fh-24}" rx="8" fill="${f ? FRAME_BG[i % FRAME_BG.length] : '#FFF6FB'}" stroke="${GD}" stroke-width="2.5"/>`;
+  if (f){
+    const st = enforce(fixState(clone(f.st)));
+    o += clipG(`M ${x+12} ${y+20} Q ${x+12} ${y+12} ${x+20} ${y+12} H ${x+fw-20} Q ${x+fw-12} ${y+12} ${x+fw-12} ${y+20} V ${y+fh-20} Q ${x+fw-12} ${y+fh-12} ${x+fw-20} ${y+fh-12} H ${x+20} Q ${x+12} ${y+fh-12} ${x+12} ${y+fh-20} Z`,
+      `<image href="${dollUrl(st, { viewBox:'160 60 480 620', pet:false })}" x="${x+12}" y="${y+12}" width="${fw-24}" height="${fh-24}" preserveAspectRatio="xMidYMin slice"/>`);
+  } else {
+    o += `<path d="M ${cx} ${cy-34} V ${cy+26} M ${cx-30} ${cy-4} H ${cx+30}" stroke="#FF3D8F" stroke-width="12" stroke-linecap="round"/>` + star4(cx + 40, cy - 50, 10, '#FFC02E') + star4(cx - 42, cy + 40, 8, '#B79BFF');
+  }
+  o += [[x+6,y+6],[x+fw-6,y+6],[x+6,y+fh-6],[x+fw-6,y+fh-6]].map(([a,b]) => `<circle cx="${a}" cy="${b}" r="8" fill="#FFE27A" stroke="${GD}" stroke-width="2"/>`).join('');
+  const name = f ? f.name : 'Ny figur', pw = Math.min(170, 30 + name.length * 11);
+  o += `<rect x="${cx - pw/2}" y="${y+fh+8}" width="${pw}" height="32" rx="10" fill="#C99A3E" stroke="${GD}" stroke-width="3"/><text x="${cx}" y="${y+fh+30}" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="18" fill="#3A2340">${escT(name)}</text>`;
+  o += `</g></g>`;
+  if (f) o += `<g data-hit="del:${i}"><circle cx="${x+fw-4}" cy="${y+4}" r="17" fill="#FFFFFF" stroke="#E0457A" stroke-width="3"/><path d="M ${x+fw-11} ${y-3} l 14 14 M ${x+fw+3} ${y-3} l -14 14" stroke="#E0457A" stroke-width="4" stroke-linecap="round"/></g>`;
+  return o;
+}
+function wardList(){ return figures.slice().sort((a,b)=>(b.t||0)-(a.t||0)); }
+function wardScene(){
+  CLIPN = 0;
+  const list = wardList(), pages = Math.max(1, Math.ceil(list.length / WARD_PER));
+  wardPage = Math.min(wardPage, pages - 1);
+  const shown = list.slice(wardPage * WARD_PER, wardPage * WARD_PER + WARD_PER);
+  let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
+  o += wardBleed() + `<ellipse cx="860" cy="880" rx="300" ry="62" fill="#B79BFF" stroke="#8A6AE0" stroke-width="4"/><ellipse cx="860" cy="880" rx="250" ry="44" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-dasharray="4 12"/>`;
+  o += `<g data-hit="skab">${wardrobe()}</g>`;
+  o += `<g data-hit="spejl">${wardMirror(heroState())}</g>`;
+  o += portrait(-1, null, FRAMES[0][0], FRAMES[0][1]);
+  shown.forEach((f, k) => { const idx = list.indexOf(f); o += portrait(idx, f, FRAMES[k+1][0], FRAMES[k+1][1]); });
+  if (pages > 1){
+    const arrow = (dir, cx) => `<g data-hit="pil:${dir}"><circle cx="${cx}" cy="372" r="30" fill="#FFFFFF" stroke="#7B5CFF" stroke-width="4"/><path d="M ${cx - dir*8} 356 L ${cx + dir*8} 372 L ${cx - dir*8} 388" stroke="#7B5CFF" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    if (wardPage > 0) o += arrow(-1, 600);
+    if (wardPage < pages - 1) o += arrow(1, 1120);
+    o += `<text x="860" y="672" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="18" fill="#7A4E6A">${wardPage + 1} / ${pages}</text>`;
+  }
+  o += `<g class="fx" pointer-events="none"></g></svg>`;
+  return scopeIds(o, 'wd');
+}
+function showHome(){ cur = null; gameDress = null; showScreen('#home'); playMusic('byen'); renderHome(); }
+function renderHome(){
+  const box = $('#homeBody'); box.innerHTML = '';
+  box.append(el('div', { class:'scene-wrap', id:'wardScene' }), ...placeUi([ backBtn('Værelset', showRoom) ], [ starPill() ]));
+  const w = $('#wardScene'); w.innerHTML = wardScene();
+  const svg = w.querySelector('svg');
+  svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) wardTap(g.dataset.hit, g, svgPoint(svg, e)); });
+}
+function wardTap(hit, g, p){
+  const svg = $('#wardScene svg'), list = wardList();
+  const [k, v] = hit.split(':');
+  if (k === 'ny'){ sfx.magic(); replay(g, 'hop'); setTimeout(newFigure, 250); return; }
+  if (k === 'fig'){ sfx.open(); replay(g, 'hop'); const f = list[+v]; setTimeout(() => openEditor(f), 250); return; }
+  if (k === 'del'){ sfx.pick(); askDelete(list[+v]); return; }
+  if (k === 'pil'){ sfx.pick(); wardPage += +v; renderHome(); return; }
+  if (k === 'skab'){ sfx.whoosh(); svg.querySelectorAll('.swing').forEach(s => replay(s, 'swingit')); sparkle(svg, p.x, p.y, 6); return; }
+  if (k === 'spejl'){ sfx.magic(); replay(g, 'hop'); sparkle(svg, 1340, 300, 8); return; }
+}
+function askDelete(f){
+  showModal('Slet figuren?', `${f.name} forsvinder for altid.`, [
+    { label:'Nej, behold den' },
+    { label:'Ja, slet', hot:true, fn: () => { figures = figures.filter(x => x !== f); saveAll(); renderHome(); } } ]);
 }
 
 /* ================= Modehuset: klæd dig ud som … ================= */
@@ -3309,27 +3728,6 @@ function showTown(){
 }
 
 /* ================= Forside og start ================= */
-function showHome(){
-  cur = null; gameDress = null; showScreen('#home'); playMusic('byen'); renderHome();
-}
-function renderHome(){
-  $('#homeStars').innerHTML = ''; $('#homeStars').append(starPill());
-  const g = $('#figGrid'); g.innerHTML = '';
-  g.append(el('div', { class:'card new' }, [ el('button', { class:'open', type:'button', on:{ click: newFigure } }, [ el('span', { class:'plus', 'aria-hidden':'true' }, '+'), 'Ny dukke' ]) ]));
-  for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
-    const st = enforce(fixState(clone(f.st)));
-    g.append(el('div', { class:'card' }, [
-      el('button', { class:'open', type:'button', on:{ click: () => openEditor(f) } }, [ dollImg(st, { bg:true, viewBox:'100 90 600 640' }), el('span', { class:'nm' }, f.name), st.pet.kind !== 'ingen' && st.pet.name ? el('span', { class:'pet-nm' }, 'og ' + st.pet.name) : null ]),
-      el('button', { class:'del', type:'button', 'aria-label': 'Slet ' + f.name, html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', on:{ click: () => askDelete(f) } }),
-    ]));
-  }
-}
-function askDelete(f){
-  showModal('Slet dukken?', `${f.name} forsvinder for altid.`, [
-    { label:'Nej, behold den' },
-    { label:'Ja, slet', hot:true, fn: () => { figures = figures.filter(x => x !== f); saveAll(); renderHome(); } } ]);
-}
-
 /* ---------- testtilstand: tryk 5 gange på logoet ---------- */
 let logoTaps = 0, logoTimer = null;
 function openTest(){
@@ -3349,7 +3747,6 @@ function openTest(){
 
 /* ---------- knapper ---------- */
 function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(() => { logoTaps = 0; }, 2500); if (logoTaps >= 5){ logoTaps = 0; openTest(); } }
-$('#homeBack').onclick = () => { sfx.undo(); goTo(showRoom); };
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }

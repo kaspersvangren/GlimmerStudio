@@ -1,17 +1,7 @@
 <div id="app">
   <section id="title" class="screen" hidden><div class="title-inner" id="titleBody"></div></section>
   <section id="town" class="screen" hidden><div class="town-inner" id="townBody"></div></section>
-  <section id="home" class="screen" hidden>
-    <div class="home-inner">
-      <div class="screen-head">
-        <button id="homeBack" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Værelset</button>
-        <h2>Garderoben</h2>
-        <span id="homeStars"></span>
-      </div>
-      <p class="lead center">Her bor dine dukker. Tryk på en for at klæde den på.</p>
-      <div id="figGrid" class="fig-grid"></div>
-    </div>
-  </section>
+  <section id="home" class="screen place" hidden><div class="place-inner" id="homeBody"></div></section>
   <section id="editor" class="screen" hidden>
     <div class="topbar">
       <button id="backBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Garderoben</span></button>
@@ -35,8 +25,8 @@
       </div>
     </div>
   </section>
-  <section id="room" class="screen" hidden><div class="screen-inner room-inner" id="roomBody"></div></section>
-  <section id="balls" class="screen" hidden><div class="screen-inner" id="ballsBody"></div></section>
+  <section id="room" class="screen place" hidden><div class="place-inner" id="roomBody"></div></section>
+  <section id="balls" class="screen place" hidden><div class="place-inner" id="ballsBody"></div></section>
   <section id="game" class="screen" hidden><div class="screen-inner" id="gameBody"></div></section>
   <div id="modal" class="modal" hidden>
     <div class="box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">

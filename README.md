@@ -10,14 +10,17 @@ Spillets navn står ét sted: `GAME_NAME` i `src/core.js` (og `name` i `manifest
 - `src/progress.js`: stjerner, låste ting og hvad der er frit fra start
 - `src/guests.js`: tilfældige piger, drenge og dyr; egne dukker som sjældne gæster
 - `src/app.js`: skaberen
-- `src/balls.js`: Boblebutikken — vælg en boble (Tøj og hår, Kæledyr, Værelset), tryk tre gange, og den springer med en ny ting
-- `src/rum.js`: Mit værelse — otte pladser (væg, vindue, seng, hylde, lampe, tæppe, hjørnet, dyrets seng), hver med ting og egen farve. Låse hedder `rum:<plads>.<ting>`
+- `src/balls.js`: Boblebutikken — nissen bag disken taler i en taleboble; tryk på en krukke (Tøj og hår, Kæledyr, Værelset), han puster en boble, tryk tre gange, og den springer med en ny ting
+- `src/rum.js`: Mit værelse — et sted man er i: lampen tænder/slukker, gardinerne trækkes for, kedlen puffer, dyret hopper i sin seng; indretningsbogen på natbordet har otte pladser (væg, vindue, seng, hylde, lampe, tæppe, hjørnet, dyrets seng), hver med ting og egen farve. Låse hedder `rum:<plads>.<ting>`
 - `src/fashion.js`: Modehuset med dommerpanel
 - `src/town.js`: startskærm (nattehimmel, måne, skolen på bakken, bobler), musik og tæppet mellem skærmene
 - `src/city.js`: byen — huse, årstider, tid på dagen og alt det levende (folk, dyr, biler, bussen, fugle, egern)
-- `src/main.js`: Garderoben (alle figurerne), testtilstand (5 tryk på logoet; kan også vælge byens årstid og tid) og start
+- `src/garderobe.js`: Garderoben — klædeskab, spejl med den nyeste figur og portrætter af alle figurerne
+- `src/main.js`: testtilstand (5 tryk på logoet; kan også vælge byens årstid og tid) og start
 - `src/style.css`, `src/body.html`: udseende og skærmens opbygning
 - `sw.js`, `manifest.webmanifest`, ikoner: app/offline
+
+Steder (værelset, garderoben, butikken) er én stor SVG på 1600×1000, der fylder hele skærmen; loft, væg og gulv fortsætter ud over kanten, og alt man kan trykke på ligger inden for 1600×1000. Knapperne ligger ovenpå i hjørnerne. Alle personer er menneskelignende (mennesker, elvere, dværge, nisser).
 
 Byg: `node build.js`, kopiér `dist/index.html` til roden, og ret `VERSION` i `sw.js`.
 

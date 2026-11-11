@@ -52,6 +52,11 @@ const V = { 'acc-bog': 6,
     for (const s of ROOM_SLOTS) for (const k of Object.keys(s.cat))
       out.push({ id: 'rum-' + s.id + '-' + k, cat: 'Værelset', title: s.label + ': ' + s.cat[k].label, kind: 'rum', slot: s.id, item: k, vbT: '0 0 1600 1000', vbZ: ROOM_VB[s.id] });
     for (const b of BUBBLES) out.push({ id: 'boble-' + b.id, cat: 'Boblebutikken', title: 'Boble: ' + b.label, kind: 'boble', bub: b.id, vbT: '0 0 300 300', vbZ: '0 0 300 300' });
+    /* stederne som hele skærme */
+    out.push({ id: 'sted-vaerelse', cat: 'Steder', title: 'Værelset med natbord og bog', kind: 'sted', fn: 'room', vbT: '0 0 1600 1000', vbZ: '540 560 300 300' });
+    out.push({ id: 'sted-garderobe', cat: 'Steder', title: 'Garderoben', kind: 'sted', fn: 'ward', vbT: '0 0 1600 1000', vbZ: '20 120 560 800' });
+    out.push({ id: 'sted-butik', cat: 'Steder', title: 'Boblebutikken', kind: 'sted', fn: 'shop', vbT: '0 0 1600 1000', vbZ: '40 280 860 580' });
+    out.push({ id: 'nisse', cat: 'Steder', title: 'Nissen bag disken', kind: 'sted', fn: 'shop', vbT: '0 0 1600 1000', vbZ: '880 60 380 480' });
     out.push({ id: 'start-scene', cat: 'Startskærm', title: 'Nattehimmel og skolen', kind: 'start', vbT: '0 0 1600 1000', vbZ: '120 120 640 720' });
     return out;
   });
@@ -64,6 +69,11 @@ const V = { 'acc-bog': 6,
         let svg, bg = 'linear-gradient(#FFF3F8,#EBDDFF)';
         if (it.kind === 'rum'){ const r = Object.assign({}, ROOM_DEFAULT, { [it.slot]: it.item }); r.c = Object.assign({}, ROOM_DEFAULT.c); svg = roomSvg(r, { viewBox: vb }); }
         else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
+        else if (it.kind === 'sted'){
+          if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); }
+          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '');
+          if (it.fn === 'shop') svg = svg.replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 25px sans-serif;color:#3A2340;text-align:center;padding-top:30px">Goddag, goddag! Velkommen i Boblebutikken.</div>');
+        }
         else if (it.kind === 'start'){ svg = titleScene().replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('xMidYMax slice', 'xMidYMid meet'); }
         else {
           const st = JSON.parse(JSON.stringify(DEFAULT_STATE));
