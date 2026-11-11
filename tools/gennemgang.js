@@ -21,6 +21,8 @@ const V = { 'acc-bog': 6,
   'bag-fletninger': 3, 'bag-knolde': 3, 'bag-kroeller': 4, 'hat-hue': 3, 'acc-halskaede': 4, 'acc-tryllestav': 4, 'pose-vink': 5,
   /* v0.9.5: fjerde gennemgang */
   'bag-knolde': 4, 'hat-hue': 4, 'pose-vink': 6,
+  /* v0.9.6: vink fjernet; tryllestav i stavens greb */
+  'acc-tryllestav': 5, 'acc-halskaede': 5, 'bag-knolde': 5, 'hat-hue': 5,
   'kappe-haette': 3, 'pose-ro': 4 };
 
 (async () => {
@@ -46,7 +48,6 @@ const V = { 'acc-bog': 6,
     for (const k of Object.keys(LIPSHAPES)) add('mund-' + k, 'Ansigt', 'Mund: ' + LIPSHAPES[k], { mk: { lipShape: k } }, 'ansigt', '350 420 100 70');
     for (const k of Object.keys(MARKS)) add('maerke-' + k, 'Ansigt', 'Mærke: ' + MARKS[k], { mk: { mark: k, markColor: '#E0457A' } }, 'ansigt', '300 370 200 140');
     add('pose-ro', 'Stillinger', 'Hænderne i ro', { acc: {} }, null, '250 680 300 160');
-    add('pose-vink', 'Stillinger', 'Vinker', { acc: {}, back: 'kort' }, null, '150 220 300 300', { wave: true });
     return out;
   });
   for (const it of items) it.v = V[it.id] || 1;

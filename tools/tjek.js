@@ -8,7 +8,6 @@
    - figur_kjole_kappe.png: alle kjoler × alle kapper
    - figur_kjole_fod.png  : alle kjoler × alt fodtøj
    - figur_tilbehoer.png  : hvert tilbehør alene og i store kombinationer × alle baghår
-   - figur_vink.png       : vinkende arm × kjoler, kapper, hatte og hånd-tilbehør (i browseren, med animation)
    Se efter: noget der ligger oven på noget forkert, svæver, er skjult, eller dækker øjne/ansigt. */
 const path = require('path'), fs = require('fs'), { chromium } = require('playwright');
 const OUT = path.resolve(process.argv[2] || path.join(__dirname, 'ud')); fs.mkdirSync(OUT, { recursive: true });
@@ -42,9 +41,5 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
       ['stav+bog+bælte+tørklæde+briller', { stav:'#5FD0FF', bog:'#7B4FD0', baelte:'#8A4B2E', toerklaede:'#E0457A', briller:'#B98516' }],
       ['tryllestav+bog+kæde+bælte', { tryllestav:'#FFC02E', bog:'#2F8F86', halskaede:'#F2C14E', baelte:'#3A2340' }]];
     GRID(ks(BACK), 150, sets.map(([lab, a]) => [lab, ks(BACK).map(bk => renderDoll(S(st => { st.back = bk; st.acc = a; }), { viewBox: '120 30 560 1050', pet: false }))])); }));
-  await sheet('figur_vink.png', F((base, S) => {
-    const rows = [...ks(ROBES).map(r => [r, st => { st.robe.id = r; }]), ...ks(CAPES).map(k => ['kappe ' + k, st => { st.cape.id = k; }]), ...ks(HATS).map(h => ['hat ' + h, st => { st.hat.id = h; }])];
-    const cols = [['stav', { stav:'#5FD0FF' }], ['tryllestav', { tryllestav:'#FFC02E' }], ['tom hånd', {}], ['tørklæde', { toerklaede:'#E0457A' }]];
-    GRID(cols.map(c => c[0]), 130, rows.map(([lab, f]) => [lab, cols.map(([, a]) => renderDoll(S(st => { f(st); st.acc = a; }), { viewBox: '60 30 680 1050', pet: false, anim: true, wave: true }))])); }));
   await b.close();
 })();

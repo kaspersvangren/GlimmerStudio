@@ -835,7 +835,8 @@ function bunAt(c, x, y, r=32){
     + `<path d="M ${x-20*k} ${y-10*k} C ${x-8*k} ${y-28*k} ${x+18*k} ${y-24*k} ${x+20*k} ${y-2*k} C ${x+20*k} ${y+14*k} ${x+4*k} ${y+20*k} ${x-8*k} ${y+14*k}" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>`
     + `<path d="M ${x-14*k} ${y+4*k} C ${x-10*k} ${y-8*k} ${x+4*k} ${y-12*k} ${x+12*k} ${y-4*k}" stroke="${c.hD}" stroke-width="2.5" fill="none" opacity=".45" stroke-linecap="round"/>`
     + `<path d="M ${x-22*k} ${y+2*k} C ${x-22*k} ${y-14*k} ${x-12*k} ${y-24*k} ${x} ${y-26*k}" stroke="${c.hL}" stroke-width="5" fill="none" opacity=".8" stroke-linecap="round"/>`
-    + `<path d="M ${x+f*r*0.7} ${y-r*0.75} q ${f*10} -10 ${f*4} -18" stroke="${c.hs}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    + (f === 1 ? `<path d="M ${x+r*0.62} ${y-r*0.8} q 12 -8 6 -20 M ${x+r*0.62} ${y-r*0.8} q 2 -10 -4 -14" stroke="${c.hs}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
+              : `<path d="M ${x-r*0.15} ${y-r*0.98} q -2 -12 -14 -14" stroke="${c.hs}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`);
 }
 /* baghår: back = bag kroppen, over = foran skuldrene, lock = sidelokkernes længde */
 const BACK = {
@@ -958,7 +959,7 @@ const HATS = {
           + [[260,170],[300,160],[332,190],[284,206],[248,218]].map(([x,y]) => twinkle(x, y, 6, h.bL)).join(''))
         + `<path d="M 198 226 Q 300 198 402 226 L 406 256 Q 300 230 194 256 Z" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5" stroke-linejoin="round"/>`
         + `<path d="M 220 238 Q 300 218 380 238" stroke="${h.bL}" stroke-width="2" fill="none" stroke-dasharray="3 5"/><path d="M 344 222 Q 370 224 400 228 L 404 252 Q 370 244 346 242 Z" fill="${h.bD}" opacity=".5"/>`
-        + `<path d="${CAP_TAIL}" fill="${h.a}" stroke="${h.s}" stroke-width="3" stroke-linejoin="round"/>`
+        + `<path d="${CAP_TAIL}" fill="${h.a}"/><path d="${CAP_TAIL.replace(/ Z$/, '').replace(/^M 330 140 C 372 150 400 186 412 222/, 'M 404 204 C 408 210 410 216 412 222')}" fill="none" stroke="${h.s}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`
         + clipG(CAP_TAIL, `<path d="M 380 150 C 410 200 420 250 460 300 L 470 300 L 470 140 Z" fill="${h.D}" opacity=".55"/><path d="M 352 156 C 380 176 392 206 400 232" stroke="${lt(h.a,0.25)}" stroke-width="4" fill="none" opacity=".5" stroke-linecap="round"/>` + twinkle(392, 236, 5, h.bL))
         + `<circle cx="452" cy="300" r="16" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5"/><circle cx="447" cy="294" r="5" fill="${h.bL}"/>`; } },
 };
@@ -1187,6 +1188,18 @@ function armFist(c, held, flip){
   return s + cuffBand(c, [192.6,550.3], [248.6,558.3], [190,562], [246,570], [220,560], [218,590]);
 }
 /* højre arm med stav (som piloten) */
+function staffHand(c){
+  const r = c.robe, SX = 436;
+  let s = '';
+  s += `<path d="M 396 532 L 414 524 L 432 552 L 418 566 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><path d="M 404 548 L 424 538 L 428 548 L 414 560 Z" fill="${c.skS}" opacity=".55"/>`;
+  s += `<path d="${SLEEVE_R}" fill="${r.a}" stroke="${r.s}" stroke-width="3" stroke-linejoin="round"/>`;
+  s += clipG(SLEEVE_R, `<path d="M 352 420 C 380 450 396 490 404 540 L 440 540 L 440 420 Z" fill="${r.D}" opacity=".55"/><path d="M 370 480 Q 384 476 392 486 M 376 500 Q 390 496 400 506" stroke="${r.D}" stroke-width="3" fill="none" opacity=".7"/>`);
+  s += cuffBand(c, [422.6,519.3], [382.6,537.3], [428,530], [388,548], [404,532], [416,558]);
+  s += `<path d="M ${SX-16} 548 Q ${SX-16} 538 ${SX-6} 538 L ${SX+10} 540 Q ${SX+20} 542 ${SX+19} 551 Q ${SX+23} 556 ${SX+19} 561 Q ${SX+23} 566 ${SX+19} 571 Q ${SX+20} 580 ${SX+10} 580 L ${SX-6} 580 Q ${SX-17} 579 ${SX-17} 569 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  s += `<path d="M ${SX+11} 551 h 9 M ${SX+11} 561 h 9 M ${SX+11} 571 h 8" stroke="${c.sk}" stroke-width="2" stroke-linecap="round" opacity=".7"/><path d="M ${SX-14} 572 Q ${SX+2} 582 ${SX+16} 574 L ${SX+16} 578 Q ${SX+2} 584 ${SX-14} 576 Z" fill="${c.skS}" opacity=".55"/>`;
+  s += `<path d="M ${SX-12} 546 Q ${SX-4} 536 ${SX+10} 543 Q ${SX+8} 551 ${SX-4} 551 Q ${SX-11} 551 ${SX-12} 546 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="${SX+5}" cy="545" rx="3" ry="2.2" fill="${lt(c.skin,0.4)}"/>`;
+  return s;
+}
 function armStaff(c, orb){
   const r = c.robe, SX = 436, OY = 300, st = '#9C6B43', stD = sd(st,0.35), stL = lt(st,0.3), wrap = '#E0457A';
   let s = `<defs><radialGradient id="orbG" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".35" stop-color="${lt(orb,0.4)}"/><stop offset="1" stop-color="${orb}"/></radialGradient><radialGradient id="glowG"><stop offset="0" stop-color="${lt(orb,0.5)}" stop-opacity=".75"/><stop offset="1" stop-color="${orb}" stop-opacity="0"/></radialGradient></defs>`;
@@ -1202,25 +1215,17 @@ function armStaff(c, orb){
   s += `<rect x="${SX-10}" y="${OY+38}" width="20" height="10" rx="3" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
   const sp = [[SX+48,OY-36,9],[SX-48,OY-50,6],[SX+40,OY+36,5],[SX-42,OY+28,4],[SX+20,OY-62,4]].map(([x,y,rr], i) => { const t = twinkle(x, y, rr, lt(orb,0.55)); return ANIM ? `<g>${t}<animate attributeName="opacity" values="1;0.2;1" dur="${1.8+i*0.37}s" repeatCount="indefinite"/></g>` : t; }).join('');
   s += sp;
-  s += `<path d="M 396 532 L 414 524 L 432 552 L 418 566 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><path d="M 404 548 L 424 538 L 428 548 L 414 560 Z" fill="${c.skS}" opacity=".55"/>`;
-  s += `<path d="${SLEEVE_R}" fill="${r.a}" stroke="${r.s}" stroke-width="3" stroke-linejoin="round"/>`;
-  s += clipG(SLEEVE_R, `<path d="M 352 420 C 380 450 396 490 404 540 L 440 540 L 440 420 Z" fill="${r.D}" opacity=".55"/><path d="M 370 480 Q 384 476 392 486 M 376 500 Q 390 496 400 506" stroke="${r.D}" stroke-width="3" fill="none" opacity=".7"/>`);
-  s += cuffBand(c, [422.6,519.3], [382.6,537.3], [428,530], [388,548], [404,532], [416,558]);
-  s += `<path d="M ${SX-16} 548 Q ${SX-16} 538 ${SX-6} 538 L ${SX+10} 540 Q ${SX+20} 542 ${SX+19} 551 Q ${SX+23} 556 ${SX+19} 561 Q ${SX+23} 566 ${SX+19} 571 Q ${SX+20} 580 ${SX+10} 580 L ${SX-6} 580 Q ${SX-17} 579 ${SX-17} 569 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.4" stroke-linejoin="round"/>`;
-  s += `<path d="M ${SX+11} 551 h 9 M ${SX+11} 561 h 9 M ${SX+11} 571 h 8" stroke="${c.sk}" stroke-width="2" stroke-linecap="round" opacity=".7"/><path d="M ${SX-14} 572 Q ${SX+2} 582 ${SX+16} 574 L ${SX+16} 578 Q ${SX+2} 584 ${SX-14} 576 Z" fill="${c.skS}" opacity=".55"/>`;
-  s += `<path d="M ${SX-12} 546 Q ${SX-4} 536 ${SX+10} 543 Q ${SX+8} 551 ${SX-4} 551 Q ${SX-11} 551 ${SX-12} 546 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="${SX+5}" cy="545" rx="3" ry="2.2" fill="${lt(c.skin,0.4)}"/>`;
+  s += staffHand(c);
   return s;
 }
-/* højre arm med tryllestav: armen løftet lidt ud fra kroppen (samme ærme som den hængende arm), staven peger op og ud */
+/* højre arm med tryllestav: samme arm og greb som staven, tryllestaven står lodret i hånden */
 function armWand(c, col){
-  const A = 30, rad = A*Math.PI/180, px = 252, py = 418, fx0 = 210, fy0 = 600;
-  const fx = px + (fx0-px)*Math.cos(rad) - (fy0-py)*Math.sin(rad), fy = py + (fx0-px)*Math.sin(rad) + (fy0-py)*Math.cos(rad);
-  const F = [600 - fx, fy], w = '#5A3A2A', tip = [F[0] + 30, F[1] - 104], base = [F[0] - 7, F[1] + 26];
-  let s = `<path d="M ${base[0].toFixed(1)} ${base[1].toFixed(1)} L ${tip[0].toFixed(1)} ${(tip[1]+8).toFixed(1)}" stroke="${w}" stroke-width="7" stroke-linecap="round"/><path d="M ${(base[0]-1.5).toFixed(1)} ${base[1].toFixed(1)} L ${(tip[0]-1.5).toFixed(1)} ${(tip[1]+8).toFixed(1)}" stroke="${lt(w,0.35)}" stroke-width="2" stroke-linecap="round"/>`;
-  s += starP(tip[0], tip[1], 13, col) + starP(tip[0], tip[1], 6, lt(col,0.6));
-  s += [[-16,-14,5],[18,-10,4],[10,16,3.5],[-10,12,3]].map(([dx,dy,rr], i) => { const tw = twinkle(tip[0]+dx, tip[1]+dy, rr, lt(col,0.5)); return ANIM ? `<g>${tw}<animate attributeName="opacity" values="1;0.15;1" dur="${1.4+i*0.4}s" repeatCount="indefinite"/></g>` : tw; }).join('');
-  s += MIR(`<g transform="rotate(${A} ${px} ${py})">${armFist(c, {}, true)}</g>`);
-  return s;
+  const SX = 436, w = '#5A3A2A', tipY = 458;
+  let s = `<path d="M ${SX} 604 L ${SX} ${tipY+10}" stroke="${w}" stroke-width="7" stroke-linecap="round"/><path d="M ${SX-1.6} 600 L ${SX-1.6} ${tipY+12}" stroke="${lt(w,0.35)}" stroke-width="2" stroke-linecap="round"/>`;
+  s += `<rect x="${SX-5}" y="${tipY+8}" width="10" height="6" rx="2" fill="#F2C14E" stroke="#B98516" stroke-width="1.5"/>`;
+  s += starP(SX, tipY, 14, col) + starP(SX, tipY, 6.5, lt(col,0.6));
+  s += [[SX-20,tipY-16,5],[SX+22,tipY-10,4],[SX+16,tipY+20,3.5],[SX-14,tipY+16,3]].map(([x,y,rr], i) => { const tw = twinkle(x, y, rr, lt(col,0.5)); return ANIM ? `<g>${tw}<animate attributeName="opacity" values="1;0.15;1" dur="${1.4+i*0.4}s" repeatCount="indefinite"/></g>` : tw; }).join('');
+  return s + staffHand(c);
 }
 /* tryllestav i knytnæven (tegnes i venstre sides mål og spejles) */
 function wandHeld(col){
@@ -1287,7 +1292,7 @@ function scarfF(col){
 }
 function necklaceF(col){
   const D = fdk(col,0.3);
-  return `<path d="M 284 398 Q 280 428 300 440 Q 320 428 316 398" stroke="${D}" stroke-width="3" fill="none"/><path d="M 284 398 Q 280 428 300 440 Q 320 428 316 398" stroke="${col}" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>`
+  return `<path d="M 284 393 Q 280 428 300 440 Q 320 428 316 393" stroke="${D}" stroke-width="3" fill="none"/><path d="M 284 393 Q 280 428 300 440 Q 320 428 316 393" stroke="${col}" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>`
     + `<circle cx="300" cy="443" r="4" fill="none" stroke="${D}" stroke-width="2.4"/>`
     + `<circle cx="300" cy="460" r="14" fill="${col}" stroke="${D}" stroke-width="2.4"/><circle cx="300" cy="460" r="10" fill="none" stroke="${lt(col,0.45)}" stroke-width="1.2"/>`
     + moon(298, 460, 8, fdk(col,0.5)) + starP(306, 455, 3, fdk(col,0.5)) + `<circle cx="294" cy="452" r="2.2" fill="#FFF" opacity=".85"/>`;
@@ -1398,8 +1403,8 @@ function renderDoll(st, opts={}){
   st = resolveLayers(st);
   const c = figColors(st);
   ANIM = !!opts.anim;
-  const canWave = !(st.acc && st.acc.bog);
-  IDLE = opts.greet && ANIM ? { T: 3, ev: canWave ? [{ kind:'wave', a:0.05, b:2.75 }] : [] } : opts.idle && ANIM ? makeIdle(canWave) : null;
+  IDLE = opts.greet && ANIM ? { T: 3, ev: [{ kind:'hop', a:0.1, b:0.8 }] } : opts.idle && ANIM ? makeIdle(false) : null;
+  if (IDLE && opts.idle){ const a = 3 + Math.random() * (IDLE.T - 6); if (IDLE.ev.every(e => a + 0.8 < e.a - 0.4 || a > e.b + 0.4)) IDLE.ev.push({ kind:'hop', a, b:a+0.7 }); }
   const hl = opts.hl || '';
   const vb = opts.viewBox || `0 0 ${W} ${H}`;
   const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${opts.size ? ` width="${opts.size[0]}" height="${opts.size[1]}"` : ''}>`];
@@ -1411,6 +1416,9 @@ function renderDoll(st, opts={}){
   }
   let content = `<g transform="${FIG_T}">${figureSvg(st, c, hl, opts.wave)}</g>`;
   content = squash(content, 400, 1046, ['1 1','1.006 1.012','1 1'], 3.6);
+  const hop = IDLE && ANIM && IDLE.ev.find(e => e.kind === 'hop');
+  if (hop){ const T = IDLE.T, a = hop.a, P = [[0,0],[a,0],[a+0.16,-30],[a+0.32,0],[a+0.44,-10],[a+0.56,0],[T,0]];
+    content = `<g><animateTransform attributeName="transform" type="translate" values="${P.map(p => '0 ' + p[1]).join(';')}" keyTimes="${P.map(p => (p[0]/T).toFixed(4)).join(';')}" dur="${T}s" repeatCount="indefinite"/>${content}</g>`; }
   if (opts.walk && ANIM) content = bob(spin(content, 400, 1046, [-3,3,-3], 0.64), -12, 0.32);
   if (opts.pet !== false) content += petDraw(st.pet, hl);
   o.push(hl ? hlCompose(content) : content);
@@ -1424,7 +1432,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 <script>
 'use strict';
 /* ================= Glimmer Studio — fælles værktøjer ================= */
-const VERSION = 'v0.9.5';
+const VERSION = 'v0.9.6';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
