@@ -302,18 +302,16 @@ function cuffBand(c, a1, b1, a2, b2, q1, q2){
   return `<path d="M ${a1} Q ${q1} ${b1} L ${b2} Q ${q2} ${a2} Z" fill="${r.b}" stroke="${r.bs}" stroke-width="2.5" stroke-linejoin="round"/>`
     + `<path d="M ${(a1[0]*0.6+a2[0]*0.4)} ${(a1[1]*0.6+a2[1]*0.4)} Q ${(q1[0]+q2[0])/2} ${(q1[1]+q2[1])/2} ${(b1[0]*0.6+b2[0]*0.4)} ${(b1[1]*0.6+b2[1]*0.4)}" stroke="${r.bL}" stroke-width="1.8" fill="none" stroke-dasharray="3 4"/>`;
 }
-/* hænge-hånd: fire samlede, let bøjede fingre og en tommelfinger foran; thumb=false ved bog */
-const HAND_FINGERS = [[201.6,626,-5],[208.4,632,-2],[215.2,635,1],[222,630,4]];
+/* hænge-hånd set fra siden: fingrene let bøjede ind mod kroppen, tommelfingeren foran langs pegefingeren */
+const HAND_L = 'M 205 578 C 200 588 197 598 198 608 C 199 619 203 628 210 634 C 214 637.5 219 637.5 221 633 C 223 627 223.5 618 224 610 L 227 580 Z';
 function handRest(c, dark, thumb=true){
-  const back = 'M 205 578 C 199 588 197 600 198 610 L 229 610 C 230 598 229 588 227 578 Z';
-  const shapes = `<path d="${back}"/>` + HAND_FINGERS.map(([x,tip,a]) => `<rect x="${x-3.7}" y="604" width="7.4" height="${tip-604}" rx="3.7" transform="rotate(${a} ${x} 606)"/>`).join('');
-  const cid = 'hr' + (CLIPN++);
-  let o = `<clipPath id="${cid}">${shapes}</clipPath>`;
-  o += `<g fill="${c.sk}" stroke="${c.sk}" stroke-width="4.4" stroke-linejoin="round">${shapes}</g><g fill="${c.skin}">${shapes}</g>`;
-  o += `<g clip-path="url(#${cid})"><path d="M 219 576 L 236 576 L 236 640 L 219 640 Z" fill="${c.skS}" opacity=".35"/>${dark ? `<path d="M 190 576 L 236 576 L 236 640 L 190 640 Z" fill="${c.skS}" opacity=".25"/>` : ''}</g>`;
-  o += [[205,-3.5],[211.8,-0.5],[218.6,2.5]].map(([x,a]) => `<path d="M ${x} 610 L ${x} 624" transform="rotate(${a} ${x} 606)" stroke="${c.sk}" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>`).join('');
-  o += `<path d="M 202 592 Q 200 602 201 610" stroke="${lt(c.skin,0.45)}" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/>`;
-  if (thumb) o += `<path d="${THUMB_L}" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="228.5" cy="613" rx="2.6" ry="3.2" fill="${lt(c.skin,0.5)}" stroke="${c.sk}" stroke-width="1"/><path d="M 222 603 Q 226 605 231 602" stroke="${c.sk}" stroke-width="1.4" fill="none" opacity=".7"/>`;
+  let o = `<path d="${HAND_L}" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  o += clipG(HAND_L, `<path d="M 216 576 L 236 576 L 236 640 L 216 640 Z" fill="${c.skS}" opacity=".35"/>` + (dark ? `<path d="M 190 576 L 236 576 L 236 640 L 190 640 Z" fill="${c.skS}" opacity=".25"/>` : ''));
+  o += `<path d="M 201 613 Q 205 624 212 631 M 206 610 Q 211 622 217.5 630" stroke="${c.sk}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+  o += `<path d="M 202 590 Q 200 598 201 606" stroke="${lt(c.skin,0.5)}" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  if (thumb) o += `<path d="M 223 590 C 229 593 233 603 233 612 C 233 620 231 625.5 228 625.5 C 225 625.5 224 621 224 616 C 224 608 223.5 600 223 590 Z" fill="${c.skin}"/>`
+    + `<path d="M 223.6 603 C 224 610 224 621 228 625.5 C 231 625.5 233 620 233 612 C 233 604 230 596 226 592" stroke="${c.sk}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
+    + `<path d="M 229 600 Q 231.5 608 231 617" stroke="${c.skS}" stroke-width="2.5" fill="none" stroke-linecap="round"/>` + (dark ? `<path d="M 226 596 Q 232 604 231 620" stroke="${c.skS}" stroke-width="4" fill="none" opacity=".35"/>` : '');
   return o;
 }
 const THUMB_L = 'M 224 590 C 231 592 234 600 233 608 C 232 615 230 620 226 620 C 222 620 220 615 221 610 C 222 603 222 596 224 590 Z';
