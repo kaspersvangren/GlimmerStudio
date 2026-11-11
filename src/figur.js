@@ -405,9 +405,11 @@ function bookF(col){
   const D = fdk(col,0.35), S = sd(col,0.3), G = '#F2C14E', P = '#FFF6E0', PL = '#E2D3B0';
   const x0 = 166, x1 = 260, y0 = 595, y1 = 661, t = 6;
   let o = `<path d="M ${x0+t} ${y0+t} L ${x1+t} ${y0+t} L ${x1+t} ${y1+t-3} Q ${x1+t} ${y1+t} ${x1+t-3} ${y1+t} L ${x0+t+3} ${y1+t} Q ${x0+t} ${y1+t} ${x0+t} ${y1+t-3} Z" fill="${S}" stroke="${D}" stroke-width="2"/>`;
-  o += `<path d="M ${x1} ${y0+2.5} L ${x1+t-1.5} ${y0+t+1} L ${x1+t-1.5} ${y1+t-2} L ${x1} ${y1-1} Z" fill="${P}" stroke="${PL}" stroke-width="1"/>`;
+  o += `<path d="M ${x1} ${y0+t+3} L ${x1+t-1.5} ${y0+t+3} L ${x1+t-1.5} ${y1+t-2} L ${x1} ${y1-1} Z" fill="${P}" stroke="${PL}" stroke-width="1"/>`;
+  /* ryggens afrundede ende i hjørnet: omslaget bøjer fra forsiden rundt til bagsiden */
+  o += `<path d="M ${x1-2} ${y0} C ${x1+2} ${y0} ${x1+t} ${y0+1.5} ${x1+t} ${y0+t+1} L ${x1+t} ${y0+t+4} L ${x1} ${y0+t+4} Z" fill="${S}" stroke="${D}" stroke-width="2" stroke-linejoin="round"/>`;
   o += `<path d="M ${x0+3} ${y1} L ${x1-1} ${y1} L ${x1+t-2} ${y1+t-1.5} L ${x0+t+2} ${y1+t-1.5} Z" fill="${P}" stroke="${PL}" stroke-width="1"/>`;
-  o += [1.5,3,4.5].map(k => `<path d="M ${x1+k} ${y0+3+k} L ${x1+k} ${y1-1+k}" stroke="${PL}" stroke-width=".8"/><path d="M ${x0+4+k} ${y1+k} L ${x1-1+k} ${y1+k}" stroke="${PL}" stroke-width=".8"/>`).join('');
+  o += [1.5,3,4.5].map(k => `<path d="M ${x1+k} ${y0+t+7} L ${x1+k} ${y1-1+k}" stroke="${PL}" stroke-width=".8"/><path d="M ${x0+4+k} ${y1+k} L ${x1-1+k} ${y1+k}" stroke="${PL}" stroke-width=".8"/>`).join('');
   o += `<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" rx="3" fill="${col}" stroke="${D}" stroke-width="2.5"/>`;
   o += `<path d="M ${x0+1.5} ${y0+9} L ${x1-1.5} ${y0+9}" stroke="${S}" stroke-width="2"/><path d="M ${x0+2} ${y0+2} L ${x1-2} ${y0+2} L ${x1-2} ${y0+8} L ${x0+2} ${y0+8} Z" fill="${S}" opacity=".45"/>`;
   o += `<path d="M ${x0+3} ${y0+14} L ${x0+3} ${y1-4}" stroke="${lt(col,0.35)}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
