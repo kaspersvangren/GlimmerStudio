@@ -20,7 +20,7 @@ Spillets navn står ét sted: `GAME_NAME` i `src/core.js` (og `name` i `manifest
 - `src/style.css`, `src/body.html`: udseende og skærmens opbygning
 - `sw.js`, `manifest.webmanifest`, ikoner: app/offline
 
-Steder (værelset, garderoben, butikken) er én stor SVG på 1600×1000, der fylder hele skærmen; loft, væg og gulv fortsætter ud over kanten, og alt man kan trykke på ligger inden for 1600×1000. Knapperne ligger ovenpå i hjørnerne. Alle personer er menneskelignende (mennesker, elvere, dværge, nisser).
+Steder (værelset, garderoben, butikken) er én stor SVG på 1600×1000, der fylder hele skærmen; loft, væg og gulv fortsætter ud over kanten, og alt man kan trykke på ligger inden for 1600×1000. Knapperne ligger ovenpå i hjørnerne. Byen er altid i skumringen eller om natten, og påklædningen er et prøverum ved et magisk spejl. Alle personer er menneskelignende (mennesker, elvere, dværge, nisser).
 
 Byg: `node build.js`, kopiér `dist/index.html` til roden, og ret `VERSION` i `sw.js`.
 

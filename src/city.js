@@ -8,13 +8,14 @@ const KEY_STAR = 'glimmerstudiet.gemtstjerne';
 function cityMood(){
   const d = new Date(), m = d.getMonth() + 1, h = d.getHours() + d.getMinutes() / 60;
   let season = (m === 12 || m <= 2) ? 'vinter' : m <= 5 ? 'foraar' : m <= 8 ? 'sommer' : 'efteraar', xmas = m === 12;
-  let time = (h >= 20.5 || h < 6) ? 'nat' : h < 8.5 ? 'morgen' : h < 17 ? 'dag' : 'aften';
+  /* skolebyen er altid i skumringen eller om natten — det er der, magien sker */
+  let time = (h >= 20.5 || h < 6) ? 'nat' : 'aften';
   if (CITY_OVR.season){ xmas = CITY_OVR.season === 'jul'; season = xmas ? 'vinter' : CITY_OVR.season; }
   if (CITY_OVR.time) time = CITY_OVR.time;
   return { season, xmas, time, night: time === 'nat', dark: time === 'nat' || time === 'aften', winter: season === 'vinter' };
 }
-const SKY = { morgen:['#FFB8D2','#FFE7C4'], dag:['#8FD0FF','#E8F6FF'], aften:['#7A5BD0','#FFAE86'], nat:['#141A4E','#3E3488'] };
-const SHADE = { morgen:['#FF9BBE',0.12], dag:null, aften:['#B0548C',0.24], nat:['#28307A',0.5] };
+const SKY = { morgen:['#FFB8D2','#FFE7C4'], dag:['#8FD0FF','#E8F6FF'], aften:['#2E2470','#B0608E'], nat:['#141A4E','#3E3488'] };
+const SHADE = { morgen:['#FF9BBE',0.12], dag:null, aften:['#4A3A9A',0.36], nat:['#28307A',0.5] };
 let CM = null, LITS = [], LAMPS = [];
 let SEED = 17;
 const rnd = () => { SEED |= 0; SEED = SEED + 0x6D2B79F5 | 0; let t = Math.imul(SEED ^ SEED >>> 15, 1 | SEED); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -231,7 +232,9 @@ function townSvg(){
 <pattern id="brick" width="40" height="20" patternUnits="userSpaceOnUse"><path d="M 0 1 H 40 M 0 11 H 40 M 10 1 V 11 M 30 11 V 21" stroke="#000" stroke-opacity=".08" stroke-width="2" fill="none"/></pattern>
 <pattern id="plank" width="30" height="16" patternUnits="userSpaceOnUse"><path d="M 0 15 H 30" stroke="#000" stroke-opacity=".07" stroke-width="2"/></pattern></defs>`;
   /* himmel og horisont */
-  s += `<rect width="${W}" height="${H}" fill="url(#skyG)"/>`;
+  s += `<rect x="-900" y="-700" width="${W+1800}" height="${H+700}" fill="${sa}"/><rect width="${W}" height="${H}" fill="url(#skyG)"/><rect x="-900" y="0" width="900" height="${H}" fill="url(#skyG)"/><rect x="${W}" y="0" width="900" height="${H}" fill="url(#skyG)"/>`;
+  /* skolen: et slot på bakken bag byen, med tændte vinduer */
+  s += `<g transform="translate(380 0)">${schoolOnHill()}</g>`;
   if (CM.night){ SEED = 3; s += Array.from({length:50},()=>`<circle cx="${(rnd()*W).toFixed(0)}" cy="${(rnd()*120).toFixed(0)}" r="${(1+rnd()*2).toFixed(1)}" fill="#FFF"><animate attributeName="opacity" values="1;.25;1" dur="${(2+rnd()*3).toFixed(1)}s" repeatCount="indefinite"/></circle>`).join('') + `<g transform="translate(1500,58)"><circle r="30" fill="#FFF6D8"/><circle cx="13" cy="-8" r="27" fill="${sa}"/></g>`; SEED = 17; }
   else { const sy = CM.time === 'dag' ? 60 : 110; s += `<circle cx="1500" cy="${sy}" r="34" fill="${CM.time === 'aften' ? '#FFC07A' : '#FFF3B0'}"/><circle cx="1500" cy="${sy}" r="52" fill="#FFF3B0" opacity=".35"/>`; }
   s += [[120,46,1,0],[480,30,1.2,1],[1060,52,.9,2],[1300,26,1,3]].map(([x,y,k,i])=>`<g opacity="${CM.night ? .2 : 1}"><animateTransform attributeName="transform" type="translate" values="0 0;${40+i*10} 0;0 0" dur="${40+i*7}s" repeatCount="indefinite"/><g transform="translate(${x},${y}) scale(${k})"><ellipse rx="54" ry="20" fill="#FFF"/><ellipse cx="30" cy="-10" rx="34" ry="22" fill="#FFF"/><ellipse cx="-28" cy="-6" rx="28" ry="17" fill="#FFF"/></g></g>`).join('');
@@ -243,9 +246,9 @@ function townSvg(){
   if (!CM.winter) s += [[220,128],[236,132],[380,124],[400,130],[392,120]].map(([x,y])=>`<g transform="translate(${x},${y})"><ellipse rx="7" ry="5" fill="#FFF"/><circle cx="6" cy="-2" r="3" fill="#33204F"/></g>`).join('');
   if (!CM.night) s += `<g><animateTransform attributeName="transform" type="translate" values="600 70;700 54;600 70" dur="50s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="5s" repeatCount="indefinite"/><path d="M -6 30 L -10 46 H 10 L 6 30" stroke="#8A5A35" stroke-width="1.5" fill="none"/><rect x="-10" y="44" width="20" height="13" rx="3" fill="#B9763F"/><circle r="34" fill="#FF5FA8"/><path d="M -34 0 A 34 34 0 0 0 34 0 Z" fill="#FFE27A" opacity=".9"/><path d="M -12 -32 Q -18 0 -8 30 M 12 -32 Q 18 0 8 30 M 0 -34 V 30" stroke="#FFF" stroke-width="5" fill="none" opacity=".7"/></g></g>`;
   /* græs og stier */
-  s += `<path d="M 0 168 C 300 160, 600 172, 900 164 C 1100 160, 1400 168, 1600 162 L 1600 1000 L 0 1000 Z" fill="url(#grass)"/>`;
+  s += `<path d="M -900 170 C -400 160, -200 172, 0 168 C 300 160, 600 172, 900 164 C 1100 160, 1400 168, 1600 162 C 1900 160, 2200 170, 2500 166 L 2500 1700 L -900 1700 Z" fill="url(#grass)"/>`;
   for (let x = 10; x < W; x += 46 + rnd()*30) s += tree(x, 186 + rnd()*10, 0.38 + rnd()*0.1, rnd() < 0.5);
-  const PATHS = ['M 800 600 L 800 360', 'M 800 600 C 620 520, 500 450, 430 395', 'M 800 600 C 980 520, 1220 450, 1318 395', 'M 800 600 C 980 610, 1120 600, 1200 590', 'M 800 600 L 800 1000', 'M 0 955 L 1600 955', 'M 800 600 C 620 690, 460 720, 450 955', 'M 800 600 C 980 690, 1140 720, 1150 955'];
+  const PATHS = ['M 800 600 L 800 360', 'M 800 600 C 620 520, 500 450, 430 395', 'M 800 600 C 980 520, 1220 450, 1318 395', 'M 800 600 C 980 610, 1120 600, 1200 590', 'M 800 600 L 800 1000', 'M -900 955 L 2500 955', 'M 800 600 C 620 690, 460 720, 450 955', 'M 800 600 C 980 690, 1140 720, 1150 955'];
   const pc = CM.winter ? ['#D2DCEC','#F6F9FF'] : ['#DCC79C','#F3E6C4'];
   s += PATHS.map(d => `<path d="${d}" stroke="${pc[0]}" stroke-width="66" fill="none" stroke-linecap="round"/>`).join('') + PATHS.map(d => `<path d="${d}" stroke="${pc[1]}" stroke-width="56" fill="none" stroke-linecap="round" stroke-dasharray="40 4"/>`).join('');
   /* søen */
@@ -317,11 +320,33 @@ function townSvg(){
   s += `<g id="birds">${[[180,650,'#7FB5FF'],[360,676,'#FF8FC7'],[1340,642,'#FFC02E'],[740,186,'#8ED8B8'],[1480,180,'#FF7A6B']].map(([x,y,c])=>`<g data-tap="bird" class="bird" transform="translate(${x},${y})"><g class="b-in">${birdShape(c)}</g><circle cx="0" cy="-8" r="18" fill="#FFF" fill-opacity="0" pointer-events="all"/></g>`).join('')}</g>`;
   /* aften- og natteskygge og lys */
   const sh = SHADE[CM.time];
-  if (sh) s += `<rect width="${W}" height="${H}" fill="${sh[0]}" opacity="${sh[1]}" style="mix-blend-mode:multiply" pointer-events="none"/>`;
+  if (sh) s += `<rect x="-900" y="-700" width="${W+1800}" height="${H+1400}" fill="${sh[0]}" opacity="${sh[1]}" style="mix-blend-mode:multiply" pointer-events="none"/>`;
   if (CM.dark) s += `<g opacity="${CM.night ? 1 : 0.6}" pointer-events="none">` + LITS.map(([x,y,w,h],i)=>(i%5===3 ? '' : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#FFD36E" opacity=".55" filter="url(#glowF)"/>`)).join('') + LAMPS.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="70" fill="url(#lampG)"/>`).join('') + `</g>`;
+  /* stemning: ildfluer og mørke kanter */
+  s += townFireflies() + placeMood([], { vign: CM.night ? .7 : .55, dx: 100, dw: 1400 });
   /* figurerne (dukken, dyret, folk) */
   s += `<g id="chars"></g><g id="bubbles" pointer-events="none"></g><g id="fx" pointer-events="none">${weather()}</g>`;
   return s + `</svg>`;
+}
+function schoolOnHill(){
+  const E = '#2A1E52', Wl = '#3E2E78', R = '#5A2A78', Y = '#FFD86B';
+  const tw = (x, w, top, apex) => `<rect x="${x}" y="${top}" width="${w}" height="${172-top}" fill="${Wl}" stroke="${E}" stroke-width="2.5"/><path d="M ${x-6} ${top+1} L ${x+w/2} ${apex} L ${x+w+6} ${top+1} Z" fill="${R}" stroke="${E}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const wn = (x, y) => `<rect x="${x}" y="${y}" width="7" height="11" rx="3.5" fill="${Y}"><animate attributeName="opacity" values="1;.7;1" dur="${(2.5 + (x % 7) / 3).toFixed(1)}s" repeatCount="indefinite"/></rect>`;
+  let o = `<g opacity=".95"><path d="M -40 172 C 0 110, 120 96, 200 104 C 260 110, 300 140, 330 172 Z" fill="#3A2C70"/>`;
+  o += tw(40, 26, 92, 50) + tw(150, 24, 98, 62) + `<rect x="66" y="112" width="84" height="60" fill="${Wl}" stroke="${E}" stroke-width="2.5"/>` + tw(96, 30, 70, 22);
+  o += `<path d="M 111 22 V 10" stroke="${E}" stroke-width="2"/><path d="M 111 10 l 12 4 l -12 4" fill="#FF5FA8"/>`;
+  o += wn(49, 110) + wn(49, 132) + wn(158, 116) + wn(78, 128) + wn(104, 90) + wn(124, 128) + wn(104, 124) + `<circle cx="111" cy="80" r="6" fill="${Y}"/>`;
+  return o + `</g>`;
+}
+function townFireflies(){
+  if (calm) return '';
+  SEED = 11; let o = '';
+  for (let i = 0; i < 22; i++){
+    const cx = 60 + rnd() * 1480, cy = 220 + rnd() * 720, d = (5 + rnd() * 6).toFixed(1), rad = 16 + rnd() * 40;
+    const pts = Array.from({ length: 4 }, (_, j) => { const a = j / 4 * Math.PI * 2; return `${(Math.cos(a) * rad * (0.6 + rnd() * 0.8)).toFixed(0)} ${(Math.sin(a) * rad * (0.4 + rnd() * 0.6)).toFixed(0)}`; });
+    o += `<g transform="translate(${cx.toFixed(0)} ${cy.toFixed(0)})" pointer-events="none"><g><animateMotion dur="${d}s" repeatCount="indefinite" path="M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]} S ${pts[1]} ${pts[0]} Z" begin="-${(rnd() * 6).toFixed(1)}s"/><circle r="14" fill="#F2FF9A" opacity=".18"/><circle r="3" fill="#FFFBD0"><animate attributeName="opacity" values="1;.2;1;.6;1" dur="${(1.4 + rnd() * 1.6).toFixed(1)}s" repeatCount="indefinite"/></circle></g></g>`;
+  }
+  return o;
 }
 function weather(){
   SEED = 5; let s = '';
@@ -598,9 +623,9 @@ function showTown(){
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
   const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'town-head' }, [ el('h1', { class:'logo small', id:'townLogo' }, GAME_NAME), el('div', { class:'head-right' }, [ starPill(), audioBtns() ]) ]),
-    el('div', { class:'map', id:'street', html: townSvg() }));
-  $('#street').style.background = SKY[CM.time][1];
+  box.append(el('div', { class:'map', id:'street', html: townSvg() }),
+    el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
+  $('#street').style.background = SKY[CM.time][0];
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
   SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),

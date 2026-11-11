@@ -60,6 +60,7 @@ const V = { 'acc-bog': 6,
     out.push({ id: 'sted-vaerelse', cat: 'Steder', title: 'Værelset med skrivebord og bog', kind: 'sted', fn: 'room', vbT: '0 0 1600 1000', vbZ: '940 470 360 360' });
     out.push({ id: 'sted-garderobe', cat: 'Steder', title: 'Garderoben', kind: 'sted', fn: 'ward', vbT: '0 0 1600 1000', vbZ: '20 120 560 800' });
     out.push({ id: 'sted-butik', cat: 'Steder', title: 'Boblebutikken', kind: 'sted', fn: 'shop', vbT: '0 0 1600 1000', vbZ: '40 280 860 580' });
+    out.push({ id: 'sted-by', cat: 'Steder', title: 'Byen i skumringen', kind: 'sted', fn: 'town', vbT: '0 0 1600 1000', vbZ: '300 0 700 420' });
     out.push({ id: 'nisse', cat: 'Steder', title: 'Nissen bag disken', kind: 'sted', fn: 'shop', vbT: '0 0 1600 1000', vbZ: '880 60 380 480' });
     out.push({ id: 'start-scene', cat: 'Startskærm', title: 'Nattehimmel og skolen', kind: 'start', vbT: '0 0 1600 1000', vbZ: '120 120 640 720' });
     return out;
@@ -75,7 +76,7 @@ const V = { 'acc-bog': 6,
         else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
         else if (it.kind === 'sted'){
           if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); }
-          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '');
+          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : it.fn === 'town' ? (CITY_OVR.time = 'aften', townSvg()) : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '').replace('id="townSvg" ', '');
           if (it.fn === 'shop') svg = svg.replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 25px sans-serif;color:#3A2340;text-align:center;padding-top:30px">Goddag, goddag! Velkommen i Boblebutikken.</div>');
         }
         else if (it.kind === 'start'){ svg = titleScene().replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('xMidYMax slice', 'xMidYMid meet'); }

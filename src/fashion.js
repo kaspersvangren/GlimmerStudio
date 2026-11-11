@@ -156,7 +156,7 @@ function renderTheme(){
 }
 function dressUp(){
   const temp = { temp:true, id: F.doll.id, name: F.doll.name, st: clone(F.doll.st) };
-  openEditor(temp, { tab:'overdel', game: { theme: F.theme } });
+  openEditor(temp, { tab:'kjole', game: { theme: F.theme } });
 }
 /* kaldes fra skaberen */
 function finishDress(){

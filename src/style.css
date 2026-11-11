@@ -234,8 +234,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .iconbtn.off{color:#B9B0CC}
 .iconbtn.off::after{content:"";position:absolute;width:30px;height:3px;background:#E0457A;border-radius:2px;transform:rotate(-45deg)}
 .iconbtn{position:relative}
-#town{overflow:hidden;background:#BDE4FF}
-.town-inner{height:100%;display:flex;flex-direction:column}
+#town{overflow:hidden;background:#2A2058;padding:0!important;position:relative}
+.town-inner{position:absolute;inset:0;display:flex;flex-direction:column}
 .town-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:10px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));background:linear-gradient(rgba(255,255,255,.75), rgba(255,255,255,.35))}
 .logo.small{font-size:clamp(26px,4vw,40px)}
 .street{flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;display:flex;align-items:flex-end}
@@ -411,3 +411,40 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .shop-veil{position:absolute;inset:0;z-index:8;background:rgba(30,15,60,.45);display:grid;place-items:center;padding:16px;animation:fadein .25s ease-out}
 .shop-veil .reveal{max-width:420px}
 @keyframes fadein{from{opacity:0}}
+
+/* byen fylder hele skærmen; navnet og knapperne ligger ovenpå */
+.town-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,36px);color:#FFF3D6;text-shadow:0 2px 0 #3A2340, 0 0 18px rgba(255,214,120,.55);cursor:default;user-select:none;-webkit-user-select:none}
+#town .map{position:absolute;inset:0}
+
+/* ---------- påklædningen: et prøverum ved det magiske spejl ---------- */
+#editor{background:radial-gradient(ellipse at 30% 40%, #4A3A7A 0%, transparent 60%), radial-gradient(circle, rgba(255,240,200,.18) 1px, transparent 1.5px) 0 0/46px 46px, linear-gradient(#2E2452, #1C1634)}
+#editor #nameInput{color:#FFF3D6}
+#editor #nameInput:hover,#editor #nameInput:focus{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)}
+#editor .mirror{border:12px solid #C9952E;box-shadow:0 0 0 3px #8A6420, inset 0 0 0 3px #8A6420, 0 0 60px rgba(255,200,110,.35), 0 18px 30px rgba(0,0,0,.4);background:#241C40}
+#editor .bulb{background:#FFF0C0;box-shadow:0 0 12px 4px rgba(255,200,100,.8), inset 0 -2px 0 #F2C14E}
+#editor .panel{background:#FFF6E4;border:4px solid #6A4430;box-shadow:0 8px 0 #3E2618, 0 16px 30px rgba(0,0,0,.35)}
+#editor .tabs{background:#FFF6E4;border-bottom-color:#E6D2B4}
+#editor .modes{background:#E9D7B8}
+#editor .mode[aria-pressed="true"]{background:#FFF6E4;color:#6B3FA0;box-shadow:inset 0 3px 0 #6B3FA0}
+#editor .tab{color:#7A5A48}
+#editor .tab[aria-selected="true"]{background:#6B3FA0;color:#FFFFFF}
+#editor .sec h3{color:#6B3FA0}
+#editor .tile{background:#FFFDF6;border-color:#E6D2B4;color:#7A5A48}
+#editor .tile[aria-pressed="true"]{border-color:#6B3FA0;background:#F3EAFF;color:#3A2340}
+#editor .tile[aria-pressed="true"]::after{background-color:#6B3FA0;border-color:#FFF6E4}
+#editor .tile.locked{background:#F4EDE0}
+#editor .theme-pill{background:#3A2E66;color:#FFE9A0}
+
+/* ---------- Modehuset: samme dunkle stemning som prøverummet ---------- */
+#game{background:radial-gradient(ellipse at 50% 0%, #4A3A7A 0%, transparent 60%), radial-gradient(circle, rgba(255,240,200,.16) 1px, transparent 1.5px) 0 0/46px 46px, linear-gradient(#2E2452, #1C1634)}
+#game .screen-head h2{color:#FFF3D6}
+#game .lead,#game .judge b{color:#F2E6FF}
+#game .btn:not(.hot){color:var(--ink)}
+#game .theme-card,#game .earned{color:#3A2340}
+#game .theme-card .lead,#game .theme-card .eyebrow{color:#7A5A48}
+#game .card{background:#FFF6E4;border:3px solid #6A4430;box-shadow:0 6px 0 #3E2618;color:#3A2340}
+#game .card img{background:#3E3270}
+#game .theme-card{background:#FFF6E4;color:#3A2340;border:3px solid #6A4430;box-shadow:0 6px 0 #3E2618}
+#game .judge small{color:#E6D6F4}
+#game .runway{box-shadow:0 0 0 6px #C9952E, 0 0 40px rgba(255,200,110,.3)}
+#game .theme-card .judge b{color:#3A2340} #game .theme-card .judge small{color:#7A5A48}
