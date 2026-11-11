@@ -306,7 +306,7 @@ function cuffBand(c, a1, b1, a2, b2, q1, q2){
 const HAND_L = 'M 205 578 C 200 588 197 598 198 608 C 199 619 203 628 210 634 C 214 637.5 219 637.5 221 633 C 223 627 223.5 618 224 610 L 227 580 Z';
 function handRest(c, dark, thumb=true){
   let o = `<path d="${HAND_L}" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/>`;
-  o += clipG(HAND_L, `<path d="M 216 576 L 236 576 L 236 640 L 216 640 Z" fill="${c.skS}" opacity=".35"/>` + (dark ? `<path d="M 190 576 L 236 576 L 236 640 L 190 640 Z" fill="${c.skS}" opacity=".25"/>` : ''));
+  o += clipG(HAND_L, `<path d="M 219 576 C 226 594 227 616 219 640 L 240 640 L 240 576 Z" fill="${c.skS}" opacity=".35"/>` + (dark ? `<path d="M 190 576 L 236 576 L 236 640 L 190 640 Z" fill="${c.skS}" opacity=".25"/>` : ''));
   o += `<path d="M 201 613 Q 205 624 212 631 M 206 610 Q 211 622 217.5 630" stroke="${c.sk}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
   o += `<path d="M 202 590 Q 200 598 201 606" stroke="${lt(c.skin,0.5)}" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>`;
   if (thumb) o += `<path d="M 223 590 C 229 593 233 603 233 612 C 233 620 231 625.5 228 625.5 C 225 625.5 224 621 224 616 C 224 608 223.5 600 223 590 Z" fill="${c.skin}"/>`
@@ -315,16 +315,23 @@ function handRest(c, dark, thumb=true){
   return o;
 }
 const THUMB_L = 'M 224 590 C 231 592 234 600 233 608 C 232 615 230 620 226 620 C 222 620 220 615 221 610 C 222 603 222 596 224 590 Z';
-/* fingrene bøjer ned over bogens forkant; tommelfingeren er bag bogen (åbne foroven, så de hænger sammen med hånden) */
-function bookFingers(c){
-  const W2 = 3.1, F = [[207.6,607],[213.8,610],[220,610.5],[226.2,607.5]];
-  const fp = (x, t, top) => `M ${x-W2} ${top} L ${x-W2} ${t-W2} A ${W2} ${W2} 0 0 0 ${x+W2} ${t-W2} L ${x+W2} ${top}`;
-  const shapes = F.map(([x,t]) => `<path d="${fp(x,t,595)} Z"/>`).join(''), cid = 'bf' + (CLIPN++);
-  return `<g transform="rotate(-8 214 640)">`
-    + `<g transform="translate(1.5,2.5)" fill="${SHC}" opacity=".22">${shapes}</g>`
-    + `<clipPath id="${cid}">${shapes}</clipPath><g fill="${c.skin}">${shapes}</g>`
-    + `<g clip-path="url(#${cid})"><path d="M 200 596 L 234 596 L 234 601 Q 216 603 200 600 Z" fill="${c.skS}" opacity=".45"/><path d="M 224 596 L 234 596 L 234 614 L 224 614 Z" fill="${c.skS}" opacity=".3"/></g>`
-    + F.map(([x,t]) => `<path d="${fp(x,t,598)}" fill="none" stroke="${c.sk}" stroke-width="1.7" stroke-linejoin="round"/>`).join('') + `</g>`;
+/* hånd der bærer bogen (som referencen, drejet så armen kommer oppefra):
+   håndryggen ligger foran bogens kant, fingrene fortsætter ned over omslaget; tommelfingeren er bag bogen */
+const GRIP_F = [[201.9,621],[209.6,626],[217.4,628],[225.1,624.5]];
+function handGrip(c){
+  const r = 3.9;
+  const back = 'M 205 576 C 201 586 198 595 198 606 L 229 606 C 229.5 594 228.5 586 227 576 Z';
+  const fingers = GRIP_F.map(([x,t]) => `<rect x="${x-r}" y="600" width="${2*r}" height="${t-600}" rx="${r}"/>`).join('');
+  const shapes = `<path d="${back}"/>` + fingers, cid = 'hg' + (CLIPN++);
+  let o = `<g transform="translate(1.6,2.4)" fill="${SHC}" opacity=".2">${fingers}</g>`;
+  o += `<clipPath id="${cid}">${shapes}</clipPath>`;
+  o += `<g fill="${c.sk}" stroke="${c.sk}" stroke-width="4.4" stroke-linejoin="round">${shapes}</g><g fill="${c.skin}">${shapes}</g>`;
+  o += `<g clip-path="url(#${cid})"><path d="M 220 574 C 228 592 230 612 226 632 L 240 632 L 240 574 Z" fill="${c.skS}" opacity=".35"/><path d="M 196 612 Q 214 617 232 612 L 232 632 L 196 632 Z" fill="${c.skS}" opacity=".2"/></g>`;
+  o += [205.75,213.5,221.25].map((x, i) => `<path d="M ${x} 607 L ${x} ${[619,624,623][i]}" stroke="${c.sk}" stroke-width="1.5" stroke-linecap="round"/>`).join('');
+  o += GRIP_F.map(([x]) => `<ellipse cx="${x}" cy="604.5" rx="2.2" ry="1.3" fill="${lt(c.skin,0.5)}" opacity=".55"/>`).join('');
+  o += GRIP_F.map(([x,t]) => `<rect x="${x-2.3}" y="${t-6.2}" width="4.6" height="4.8" rx="1.8" fill="${lt(c.skin,0.45)}" stroke="${c.sk}" stroke-width="0.9"/>`).join('');
+  o += `<path d="M 202 588 Q 200 596 201 602" stroke="${lt(c.skin,0.5)}" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  return o;
 }
 /* vinke-hånd: håndfladen fremad, let spredte fingre (tegnet opret og drejet ind i armen) */
 function handWave(c){
@@ -339,8 +346,8 @@ function handWave(c){
 function armOpen(c, dark, inHand='', wave=null){
   const r = c.robe;
   let s = `<path d="M 207 556 L 228 556 L 226 590 L 207 590 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2"/>`;
-  s += wave === 'vink' ? handWave(c) : handRest(c, dark, wave !== 'bog');
-  s += inHand;
+  if (wave === 'bog') s += inHand + handGrip(c);
+  else s += (wave === 'vink' ? handWave(c) : handRest(c, dark)) + inHand;
   s += `<path d="${SLEEVE_L}" fill="${r.a}" stroke="${r.s}" stroke-width="3" stroke-linejoin="round"/>`;
   s += clipG(SLEEVE_L, `<path d="M 230 430 C 222 480 226 530 240 580 L 280 580 L 280 430 Z" fill="${r.D}" opacity=".45"/><path d="M 214 500 Q 228 506 236 500 M 210 520 Q 226 528 238 520" stroke="${r.D}" stroke-width="3" fill="none" opacity=".7"/>`
     + (dark ? `<path d="M 180 420 L 280 420 L 280 600 L 180 600 Z" fill="${r.D}" opacity=".3"/>` : `<path d="M 236 440 Q 214 480 206 540" stroke="${r.L}" stroke-width="4" fill="none" opacity=".5"/>`));
@@ -394,9 +401,9 @@ function wandHeld(col){
 /* bog i venstre hånd */
 function bookF(col){
   const D = fdk(col,0.35);
-  return `<g transform="rotate(-8 214 640)"><rect x="190" y="602" width="54" height="68" rx="4" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><rect x="186" y="598" width="54" height="68" rx="5" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
-    + `<rect x="186" y="598" width="10" height="68" rx="4" fill="${sd(col,0.3)}"/><rect x="201" y="612" width="32" height="44" rx="3" fill="none" stroke="#F2C14E" stroke-width="2"/>`
-    + moon(215, 636, 9, '#F2C14E') + `<circle cx="224" cy="626" r="1.8" fill="#F2C14E"/></g>`;
+  return `<rect x="190" y="600" width="54" height="68" rx="4" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><rect x="186" y="596" width="54" height="68" rx="5" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
+    + `<rect x="186" y="596" width="10" height="68" rx="4" fill="${sd(col,0.3)}"/><rect x="200" y="630" width="32" height="28" rx="3" fill="none" stroke="#F2C14E" stroke-width="2"/>`
+    + moon(212, 644, 7, '#F2C14E') + `<circle cx="222" cy="638" r="1.6" fill="#F2C14E"/><circle cx="226" cy="650" r="1.2" fill="#F2C14E"/>`;
 }
 
 /* ================= TILBEHØR ================= */
@@ -496,7 +503,7 @@ function figureSvg(st, c, hl, wave){
   const AXIS = 'translate(252 418) rotate(100.88) scale(1,-1) rotate(-100.88) translate(-252 -418)';
   const raised = () => `<g transform="${AXIS}">${armOpen(c, false, '', 'vink')}</g>`;
   let left;
-  if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))) + bookFingers(c), 'bog');
+  if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))), 'bog');
   else if (wave && ANIM) left = waveArm(raised(), null, true);
   else if (waveEv && ANIM) left = showDuring(armOpen(c, false), [[0, waveEv.a], [waveEv.b, IDLE.T]]) + showDuring(waveArm(raised(), waveEv, false), [[waveEv.a, waveEv.b]]);
   else left = armOpen(c, false);
