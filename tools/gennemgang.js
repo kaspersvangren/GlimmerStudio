@@ -9,7 +9,11 @@ fs.mkdirSync(IMG, { recursive: true });
 const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
-const V = { 'pose-ro': 4, 'pose-vink': 2, 'acc-bog': 6 };
+const V = { 'pose-ro': 4, 'pose-vink': 3, 'acc-bog': 6,
+  /* rettet efter første gennemgang (v0.9.2) */
+  'acc-briller': 2, 'acc-halskaede': 2, 'acc-tryllestav': 2, 'bag-hestehale': 2, 'bag-kroeller': 2, 'hat-hue': 2, 'hat-knaek': 2, 'hat-kort': 2, 'hat-spids': 2,
+  'kappe-haette': 2, 'maerke-fregner': 2, 'maerke-glimmer': 2, 'maerke-hjerte': 2, 'maerke-stjerne': 2, 'pande-lige': 2, 'pande-midt': 2, 'pande-pjusket': 2,
+  'pande-side': 2, 'pande-tilbage': 2, 'sko-hoeje': 2, 'sko-snoer': 2 };
 
 (async () => {
   const b = await chromium.launch();
@@ -27,7 +31,7 @@ const V = { 'pose-ro': 4, 'pose-vink': 2, 'acc-bog': 6 };
     for (const k of Object.keys(BACK)) add('bag-' + k, 'Baghår', lab(BACK)(k), { back: k, hat: { id: 'ingen' } }, 'bag', '160 120 480 680');
     for (const k of Object.keys(HATS)) add('hat-' + k, 'Hatte', lab(HATS)(k), { hat: { id: k } }, 'hat', '150 20 500 360');
     for (const k of Object.keys(ROBES)) add('kjole-' + k, 'Kjoler', lab(ROBES)(k), { robe: { id: k }, cape: { id: 'ingen' } }, 'kjole', '200 470 400 560');
-    for (const k of Object.keys(CAPES)) add('kappe-' + k, 'Kapper', lab(CAPES)(k), { cape: { id: k } }, 'kappe', '140 220 520 820');
+    for (const k of Object.keys(CAPES)) add('kappe-' + k, 'Kapper', lab(CAPES)(k), k === 'haette' ? { cape: { id: k }, hat: { id: 'ingen' } } : { cape: { id: k } }, 'kappe', '140 220 520 820');
     for (const k of Object.keys(BOOTS)) add('sko-' + k, 'Fodtøj', lab(BOOTS)(k), { boots: { id: k }, robe: { id: 'kort' } }, 'sko', '270 880 260 180');
     for (const k of Object.keys(ACC)) add('acc-' + k, 'Tilbehør', ACC[k].label, { acc: { [k]: ACC[k].color } }, null, ACC_VB[k] || FULL);
     for (const k of Object.keys(PUPILS)) add('pupil-' + k, 'Øjne', 'Pupiller: ' + PUPILS[k], { eyes: { pupil: k } }, 'oejne', '330 360 140 80');
