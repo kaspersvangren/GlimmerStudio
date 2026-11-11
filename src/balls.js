@@ -54,8 +54,8 @@ function revealItem(cat, id){
   const info = CAT_INFO[cat];
   const st = showcaseState(cat);
   info.apply(st, id);
-  if (cat === 'liner' || cat === 'pupil') st.mk.shadow = st.mk.shadow || '#FF62B0';
-  if (cat === 'shoes' && st.bottom.id === 'jeans') st.bottom.id = 'plisse';
+  if (cat === 'boots') st.robe.id = 'kort';
+  if (cat === 'hat' || cat === 'front') st.acc = {};
   const vb = typeof info.vb === 'function' ? info.vb(id) : info.vb;
   const hl = info.multi ? cat + ':' + id : cat;
   const img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true, hl } : { viewBox: vb, pet: false, bg: true, hl });

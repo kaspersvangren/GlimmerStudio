@@ -11,25 +11,26 @@ const THEMES = [
 ];
 /* hvilke temaer hver ting passer til */
 const TAGS = {
-  top:{ stjerne:['sommer','sport','farverig'], haettetroeje:['sport','hyggelig','vinter'], stropper:['sommer','prinsesse'], striber:['sommer','hyggelig'], jakke:['rock','vinter'], glimmer:['prinsesse','rock','farverig'] },
-  bottom:{ plisse:['prinsesse','farverig'], tyl:['prinsesse','farverig'], shorts:['sommer','sport'], leggings:['sport','hyggelig','uhyggelig'], jeans:['rock','vinter'], prikker:['farverig','sommer'] },
-  shoes:{ sneakers:['sport','farverig'], stoevler:['vinter','rock','uhyggelig'], ballerina:['prinsesse'], rulle:['sport','farverig'], sandaler:['sommer'], hoeje:['rock','vinter','uhyggelig'] },
-  acc:{ sloejfe:['prinsesse','farverig'], tiara:['prinsesse'], katteoerer:['uhyggelig','hyggelig'], spaender:['farverig'], briller:['sommer','rock'], halskaede:['prinsesse','rock'],
-    armbaand:['sommer','farverig'], taske:['prinsesse'], stav:['prinsesse','uhyggelig'], kasket:['sport','sommer'], butterfly:['prinsesse','rock'] },
+  robe:{ stjerner:['prinsesse','farverig'], maane:['uhyggelig','hyggelig'], knapper:['vinter','rock'], lag:['prinsesse','sommer'], kort:['sommer','sport'] },
+  cape:{ lang:['prinsesse','vinter'], kort:['sport','sommer'], haette:['vinter','uhyggelig'], stjerner:['farverig','rock'] },
+  hat:{ spids:['uhyggelig','prinsesse'], knaek:['uhyggelig','farverig'], kort:['sommer','rock'], hue:['hyggelig','vinter'] },
+  boots:{ snoer:['vinter','sport'], spidse:['prinsesse','uhyggelig'], hoeje:['rock','vinter'] },
+  acc:{ stav:['prinsesse','uhyggelig'], tryllestav:['prinsesse','farverig'], bog:['hyggelig','uhyggelig'], baelte:['sport','rock'], toerklaede:['vinter','hyggelig'], halskaede:['prinsesse','rock'], briller:['sommer','rock'] },
   back:{ hestehale:['sport'], fletninger:['hyggelig','sport'], kroeller:['rock'], knolde:['farverig','hyggelig'], langt:['prinsesse'], kort:['sport'], kortkrol:['sport','rock'] },
   pet:{ drage:['uhyggelig','rock'], enhjoerning:['prinsesse','farverig'], kat:['uhyggelig','hyggelig'], hund:['sport'], bjoern:['hyggelig','vinter'], kanin:['hyggelig','sommer'] },
 };
 const hasTag = (group, id, tag) => ((TAGS[group]||{})[id]||[]).includes(tag);
 function hexHsl(h){ return rgb2hsl(...hex2rgb(h)); }
 function colorDist(a, b){ const A = hex2rgb(a), B = hex2rgb(b); return Math.hypot(A[0]-B[0], A[1]-B[1], A[2]-B[2]); }
-const outfitColors = st => [st.top.a, st.bottom.a, st.shoes.a];
+const outfitColors = st => [st.robe.a, st.cape.id !== 'ingen' ? st.cape.a : st.robe.b, st.hat.id !== 'ingen' ? st.hat.a : st.boots.a];
 
 /* Madame Mis: passer tøjet til temaet? */
 function themeScore(st, th){
   let hits = 0;
-  if (hasTag('top', st.top.id, th.tag)) hits += 1.4;
-  if (hasTag('bottom', st.bottom.id, th.tag)) hits += 1.4;
-  if (hasTag('shoes', st.shoes.id, th.tag)) hits += 1;
+  if (hasTag('robe', st.robe.id, th.tag)) hits += 1.4;
+  if (hasTag('cape', st.cape.id, th.tag)) hits += 1;
+  if (hasTag('hat', st.hat.id, th.tag)) hits += 1;
+  if (hasTag('boots', st.boots.id, th.tag)) hits += 0.6;
   if (hasTag('back', st.back, th.tag)) hits += 0.6;
   if (st.pet.kind !== 'ingen' && hasTag('pet', st.pet.kind, th.tag)) hits += 0.6;
   hits += Math.min(1.6, Object.keys(st.acc).filter(k => hasTag('acc', k, th.tag)).length * 0.8);
@@ -38,12 +39,12 @@ function themeScore(st, th){
 /* Robo-Rita: passer farverne? */
 function colorScore(st, th){
   if (th.rainbow){
-    const cols = [st.top.a, st.top.b, st.bottom.a, st.bottom.b, st.shoes.a, st.shoes.b, st.hair.a].concat(st.hair.ombre ? [st.hair.b] : []).concat(Object.values(st.acc));
+    const cols = [st.robe.a, st.robe.b, st.cape.a, st.cape.b, st.hat.a, st.hat.b, st.boots.a, st.hair.a].concat(st.hair.ombre ? [st.hair.b] : []).concat(Object.values(st.acc));
     const buckets = new Set(cols.map(hexHsl).filter(([h,s,l]) => s > 0.3 && l > 0.2 && l < 0.92).map(([h]) => Math.floor(h*8)));
     return 1.5 + buckets.size * 1.3;
   }
   if (th.pastel){
-    const cols = [st.top.a, st.top.b, st.bottom.a, st.bottom.b, st.shoes.a, st.shoes.b];
+    const cols = [st.robe.a, st.robe.b, st.cape.a, st.cape.b, st.hat.a, st.hat.b];
     return 1.5 + cols.filter(c => { const [,s,l] = hexHsl(c); return l > 0.72 && s > 0.15; }).length * 1.4;
   }
   const near = outfitColors(st).filter(c => Math.min(...th.colors.map(t => colorDist(c, t))) < 95).length;
@@ -53,12 +54,12 @@ function colorScore(st, th){
 /* Mormor Glimmer: elsker glimmer, pynt og lyserødt */
 function glitterScore(st){
   let p = 2;
-  if (st.mk.shadow && st.mk.glitter) p += 1.5;
-  if (st.mk.mark === 'glimmer') p += 1;
-  if (st.top.id === 'glimmer') p += 2.5;
-  if (st.bottom.id === 'tyl') p += 1.5;
+  if (st.mk.mark === 'glimmer') p += 1.5;
+  if (st.robe.id === 'stjerner' || st.cape.id === 'stjerner') p += 2;
+  if (st.robe.id === 'lag') p += 1.5;
+  if (st.eyes.pupil === 'glimt' || st.eyes.pupil === 'stjerne') p += 1;
   p += Math.min(3, Object.keys(st.acc).length * 0.9);
-  if ([st.top.a, st.bottom.a, st.shoes.a, st.hair.a].some(c => { const [h,s] = hexHsl(c); return s > 0.4 && (h > 0.83 || h < 0.03); })) p += 1;
+  if ([st.robe.a, st.cape.a, st.hat.a, st.hair.a].some(c => { const [h,s] = hexHsl(c); return s > 0.4 && (h > 0.83 || h < 0.03); })) p += 1;
   if (st.hair.ombre) p += 0.6;
   if (st.pet.acc && st.pet.acc.vinger) p += 0.6;
   return p;

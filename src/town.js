@@ -74,7 +74,7 @@ function showTitle(){
   box.append(
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
-    el('div', { class:'title-stage' }, [ el('div', { class:'spot', 'aria-hidden':'true' }), dollImg(heroState(), { viewBox:'40 60 720 1010', anim: !calm, idle: true, alt:'Din dukke' }), el('div', { class:'disc', 'aria-hidden':'true' }) ]),
+    el('div', { class:'title-stage' }, [ el('div', { class:'spot', 'aria-hidden':'true' }), dollImg(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true, alt:'Din figur' }), el('div', { class:'disc', 'aria-hidden':'true' }) ]),
     el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goTo(showTown); } } }),
     el('p', { class:'ver' }, 'Glimmer Studio ' + VERSION),
   );

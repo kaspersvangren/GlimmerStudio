@@ -1,24 +1,21 @@
 /* ================= Stjerner, låse og hvad der findes ================= */
-const PUPILS = { rund:'Runde', hjerte:'Hjerter', stjerne:'Stjerner', glimt:'Glimt' };
-const LINERS = { ingen:'Ingen', bloed:'Blød', vinge:'Vinge' };
-const LIPSHAPES = { pust:'Kyssemund', smil:'Smil', grin:'Stort grin' };
-const MARKS = { ingen:'Intet', hjerte:'Hjerte', stjerne:'Stjerne', fregner:'Fregner', glimmer:'Glimmer' };
+/* PUPILS, LIPSHAPES og MARKS ligger i figur.js */
 
 const FREE = {
-  front:['boelge','lige','kortside'], back:['rottehaler','page','kort'], top:['stjerne','haettetroeje','striber'], bottom:['plisse','shorts','jeans'],
-  shoes:['sneakers','ballerina','stoevler'], acc:['sloejfe','halskaede','kasket'], pupil:['rund','glimt'], liner:['ingen','bloed'], lip:['pust','smil'],
-  mark:['ingen','hjerte','fregner'], pet:['ingen','kat','hund'], petpat:['ingen','pletter'], petacc:['halsbaand'],
+  front:['side','lige','midt'], back:['langt','kort','hestehale'], robe:['stjerner','knapper','kort'], cape:['ingen','lang','kort'], hat:['ingen','spids','hue'],
+  boots:['snoer','spidse'], acc:['stav','baelte','toerklaede'], pupil:['rund','glimt'], lip:['smil','pust'],
+  mark:['ingen','fregner','hjerte'], pet:['ingen','kat','hund'], petpat:['ingen','pletter'], petacc:['halsbaand'],
 };
 const simple = (label, obj, getK, setK, vb, fallback, extra={}) => ({ label, ids: () => Object.keys(obj), name: k => (typeof obj[k]==='string' ? obj[k] : obj[k].label), get: getK, set: setK, apply: setK, vb: () => vb, fallback, ...extra });
 const CAT_INFO = {
-  front: simple('Pandehår', FRONT, st=>st.front, (st,v)=>{st.front=v;}, VB.head, 'boelge'),
-  back: simple('Baghår', BACK, st=>st.back, (st,v)=>{st.back=v;}, VB.hair, 'rottehaler'),
-  top: simple('Overdel', TOPS, st=>st.top.id, (st,v)=>{st.top.id=v;}, VB.top, 'stjerne'),
-  bottom: simple('Underdel', BOTTOMS, st=>st.bottom.id, (st,v)=>{st.bottom.id=v;}, VB.bottom, 'plisse'),
-  shoes: simple('Sko', SHOES, st=>st.shoes.id, (st,v)=>{st.shoes.id=v;}, VB.shoes, 'sneakers'),
+  front: simple('Pandehår', FRONT, st=>st.front, (st,v)=>{st.front=v;}, VB.head, 'side'),
+  back: simple('Baghår', BACK, st=>st.back, (st,v)=>{st.back=v;}, VB.hair, 'langt'),
+  robe: simple('Kjole', ROBES, st=>st.robe.id, (st,v)=>{st.robe.id=v;}, VB.robe, 'stjerner'),
+  cape: simple('Kappe', CAPES, st=>st.cape.id, (st,v)=>{st.cape.id=v;}, VB.cape, 'ingen'),
+  hat: simple('Hat', HATS, st=>st.hat.id, (st,v)=>{st.hat.id=v;}, VB.hat, 'ingen'),
+  boots: simple('Fodtøj', BOOTS, st=>st.boots.id, (st,v)=>{st.boots.id=v;}, VB.shoes, 'snoer'),
   pupil: simple('Pupiller', PUPILS, st=>st.eyes.pupil, (st,v)=>{st.eyes.pupil=v;}, VB.eye, 'rund'),
-  liner: simple('Eyeliner', LINERS, st=>st.mk.liner, (st,v)=>{st.mk.liner=v;}, VB.eye, 'bloed'),
-  lip: simple('Mund', LIPSHAPES, st=>st.mk.lipShape, (st,v)=>{st.mk.lipShape=v;}, VB.lips, 'pust'),
+  lip: simple('Mund', LIPSHAPES, st=>st.mk.lipShape, (st,v)=>{st.mk.lipShape=v;}, VB.lips, 'smil'),
   mark: simple('Ansigtsmærke', MARKS, st=>st.mk.mark, (st,v)=>{st.mk.mark=v;}, VB.face, 'ingen'),
   pet: simple('Kæledyr', PET_KINDS, st=>st.pet.kind, (st,v)=>{st.pet.kind=v;}, VB.pet, 'kat', { petOnly:true }),
   petpat: simple('Dyremønster', PET_PATTERNS, st=>st.pet.pattern, (st,v)=>{st.pet.pattern=v;}, VB.pet, 'ingen', { petOnly:true }),
@@ -32,7 +29,7 @@ const saveProg = () => store.set(KEY_PROG, prog);
 /* nye ting pulserer i skaberen, indtil man har trykket på dem */
 const isFresh = (cat, id) => prog.fresh.includes(cat + ':' + id);
 function clearFresh(cat, id){ const k = cat + ':' + id; if (prog.fresh.includes(k)){ prog.fresh = prog.fresh.filter(x => x !== k); saveProg(); } }
-const TAB_CATS = { oejne:['pupil'], makeup:['liner','lip','mark'], pande:['front'], bag:['back'], overdel:['top'], underdel:['bottom'], sko:['shoes'], tilbehoer:['acc'], dyr:['pet'], pels:['petpat'], dyretilbehoer:['petacc'] };
+const TAB_CATS = { oejne:['pupil'], ansigt:['lip','mark'], pande:['front'], bag:['back'], kjole:['robe'], kappe:['cape'], hat:['hat'], sko:['boots'], tilbehoer:['acc'], dyr:['pet'], pels:['petpat'], dyretilbehoer:['petacc'] };
 const catsHaveFresh = cats => prog.fresh.some(k => cats.includes(k.split(':')[0]));
 const isFree = (cat, id) => (FREE[cat]||[]).includes(id) || prog.unlocked.includes(cat + ':' + id);
 function lockedList(){ const out = []; for (const [cat, info] of Object.entries(CAT_INFO)) for (const id of info.ids()) if (!isFree(cat, id)) out.push([cat, id]); return out; }

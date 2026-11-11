@@ -1,20 +1,21 @@
 /* ================= Skaberen ================= */
 const STAGE_PET_VB = '440 600 360 495';
 /* zoom i spejlet pr. fane: [midte x, midte y, bredde]; højden følger spejlets form (1100/800) */
-const ZOOM = { hud:[400,470,560], oejne:[400,440,380], makeup:[400,450,440], pande:[400,360,520], bag:[400,520,720], haarfarve:[400,520,720],
-  overdel:[400,700,340], underdel:[400,880,380], sko:[400,935,300] };
+const ZOOM = { hud:[400,560,560], oejne:[400,420,300], ansigt:[400,440,360], pande:[400,330,440], bag:[400,500,640], haarfarve:[400,500,640],
+  kjole:[400,720,520], kappe:[400,720,620], hat:[400,250,500], sko:[400,960,320] };
 
 const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const DOLL_TABS = [
   ['hud','Hud', ic('<circle cx="12" cy="12" r="8"/><path d="M9 14.5c1.6 1.4 4.4 1.4 6 0"/><circle cx="9.5" cy="10.5" r=".6" fill="currentColor"/><circle cx="14.5" cy="10.5" r=".6" fill="currentColor"/>')],
   ['oejne','Øjne', ic('<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')],
-  ['makeup','Make-up', ic('<path d="M9 21h6v-8H9z"/><path d="M10 13V7l4-3v9"/>')],
+  ['ansigt','Ansigt', ic('<circle cx="12" cy="12" r="9"/><path d="M8 14.5c2 2 6 2 8 0"/><circle cx="7.5" cy="12" r="1.2" fill="currentColor"/><circle cx="16.5" cy="12" r="1.2" fill="currentColor"/>')],
   ['pande','Pandehår', ic('<path d="M4 15C4 8 7.5 4 12 4s8 4 8 11"/><path d="M4.5 12l3-3 2.5 3 2-4 2 4 2.5-3 3 3"/>')],
   ['bag','Baghår', ic('<path d="M5 21V11a7 7 0 0 1 14 0v10"/><path d="M9 21v-6M15 21v-6"/>')],
   ['haarfarve','Hårfarve', ic('<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>')],
-  ['overdel','Overdel', ic('<path d="M8 4L3 7l2 4 3-1v10h8V10l3 1 2-4-5-3c-1 2-2 2.5-4 2.5S9 6 8 4z"/>')],
-  ['underdel','Underdel', ic('<path d="M8 4h8l4 15H4z"/><path d="M8 7h8"/>')],
-  ['sko','Sko', ic('<path d="M3 18v-6l5-1 3 3h4l6 2v2z"/><path d="M3 18h18"/>')],
+  ['hat','Hat', ic('<path d="M3 19h18"/><path d="M7 19l3-9c1-4 3-6 7-7-2 3-2 6-1 9l2 7"/>')],
+  ['kjole','Kjole', ic('<path d="M9 3h6l-1 5 5 13H5l5-13z"/><path d="M10 8h4"/>')],
+  ['kappe','Kappe', ic('<path d="M8 3h8l4 18H4z"/><path d="M8 3c0 3 1.5 5 4 5s4-2 4-5"/>')],
+  ['sko','Fodtøj', ic('<path d="M7 3h5v11l7 3v3H5V14z"/><path d="M7 8h5"/>')],
   ['tilbehoer','Tilbehør', ic('<path d="M12 12L4 7v10zM12 12l8-5v10z"/><circle cx="12" cy="12" r="2"/>')],
 ];
 const PET_TABS = [
@@ -32,7 +33,7 @@ let gameDress = null;   /* sat når Modehuset bruger skaberen: { theme, onDone, 
 const saveAll = () => store.set(KEY, figures);
 let saveTimer = null;
 function saveSoon(){ if (!cur || cur.temp) return; clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ if (cur && !cur.temp){ cur.t = Date.now(); } saveAll(); }, 300); }
-function fixState(st){ const d = clone(DEFAULT_STATE); const s = Object.assign(d, st||{}); for (const k of ['eyes','mk','hair','top','bottom','shoes','pet']) s[k] = Object.assign(clone(DEFAULT_STATE[k]), (st||{})[k]||{}); if (!s.acc || typeof s.acc!=='object') s.acc = {}; if (!s.pet.acc || typeof s.pet.acc!=='object') s.pet.acc = {}; return s; }
+function fixState(st){ const d = clone(DEFAULT_STATE); const s = Object.assign(d, st||{}); for (const k of ['eyes','mk','hair','robe','cape','hat','boots','pet']) s[k] = Object.assign(clone(DEFAULT_STATE[k]), (st||{})[k]||{}); if (!s.acc || typeof s.acc!=='object') s.acc = {}; if (!s.pet.acc || typeof s.pet.acc!=='object') s.pet.acc = {}; return s; }
 
 const pic = (st, vb) => dollImg(st, mode === 'dyr' ? { viewBox: vb, petOnly: true } : { viewBox: vb, pet: false });
 
@@ -100,36 +101,37 @@ const entries = obj => Object.entries(obj).map(([k,v]) => [k, typeof v === 'stri
 const TAB_CONTENT = {
   hud: () => [ colorsSec('Hudfarve', SKIN, () => cur.st.skin, (st,v) => st.skin = v) ],
   oejne: () => [
-    optionsSec('Pupiller', entries(PUPILS), () => cur.st.eyes.pupil, (st,v) => st.eyes.pupil = v, VB.eye, 'pupil'),
-    colorsSec('Øjenfarve', EYES, () => cur.st.eyes.color, (st,v) => st.eyes.color = v) ],
-  makeup: () => [
-    colorsSec('Øjenskygge', SHADOW, () => cur.st.mk.shadow, (st,v) => st.mk.shadow = v, true),
-    cur.st.mk.shadow ? toggleSec('Glimmer på øjenskyggen', () => cur.st.mk.glitter, (st,v) => st.mk.glitter = v) : null,
-    optionsSec('Eyeliner', entries(LINERS), () => cur.st.mk.liner, (st,v) => st.mk.liner = v, VB.eye, 'liner'),
-    colorsSec('Rouge', BLUSH, () => cur.st.mk.blush, (st,v) => st.mk.blush = v, true),
+    colorsSec('Øjenfarve', EYES, () => cur.st.eyes.color, (st,v) => st.eyes.color = v),
+    optionsSec('Pupiller', entries(PUPILS), () => cur.st.eyes.pupil, (st,v) => st.eyes.pupil = v, VB.eye, 'pupil') ],
+  ansigt: () => [
     optionsSec('Mund', entries(LIPSHAPES), () => cur.st.mk.lipShape, (st,v) => st.mk.lipShape = v, VB.lips, 'lip'),
     colorsSec('Læbefarve', LIPS, () => cur.st.mk.lips, (st,v) => st.mk.lips = v),
+    colorsSec('Røde kinder', BLUSH, () => cur.st.mk.blush, (st,v) => st.mk.blush = v, true),
     optionsSec('Ansigtsmærke', entries(MARKS), () => cur.st.mk.mark, (st,v) => st.mk.mark = v, VB.face, 'mark'),
-    cur.st.mk.mark !== 'ingen' ? colorsSec('Farve på mærket', COLORS, () => cur.st.mk.markColor, (st,v) => st.mk.markColor = v) : null ],
+    cur.st.mk.mark !== 'ingen' ? colorsSec('Farve på mærket', COLORS.concat(['#B07A45','#8A5A35']), () => cur.st.mk.markColor, (st,v) => st.mk.markColor = v) : null ],
   pande: () => [ optionsSec('Pandehår', entries(FRONT), () => cur.st.front, (st,v) => st.front = v, VB.head, 'front') ],
   bag: () => [ optionsSec('Baghår', entries(BACK), () => cur.st.back, (st,v) => st.back = v, VB.hair, 'back') ],
   haarfarve: () => [
     colorsSec('Hårfarve', HAIR, () => cur.st.hair.a, (st,v) => st.hair.a = v),
     toggleSec('To farver (farvede spidser)', () => cur.st.hair.ombre, (st,v) => st.hair.ombre = v),
     cur.st.hair.ombre ? colorsSec('Farve i spidserne', HAIR, () => cur.st.hair.b, (st,v) => st.hair.b = v) : null,
-    ['rottehaler','hestehale','fletninger'].includes(cur.st.back) ? colorsSec('Hårelastikker', COLORS, () => cur.st.hair.tie, (st,v) => st.hair.tie = v) : null ],
-  overdel: () => [
-    optionsSec('Overdel', entries(TOPS), () => cur.st.top.id, (st,v) => st.top.id = v, VB.top, 'top'),
-    colorsSec('Farve', COLORS, () => cur.st.top.a, (st,v) => st.top.a = v),
-    colorsSec('Detaljer', COLORS, () => cur.st.top.b, (st,v) => st.top.b = v) ],
-  underdel: () => [
-    optionsSec('Underdel', entries(BOTTOMS), () => cur.st.bottom.id, (st,v) => st.bottom.id = v, VB.bottom, 'bottom'),
-    colorsSec('Farve', COLORS, () => cur.st.bottom.a, (st,v) => st.bottom.a = v),
-    colorsSec('Mønster og detaljer', COLORS, () => cur.st.bottom.b, (st,v) => st.bottom.b = v) ],
+    ['hestehale','fletninger'].includes(cur.st.back) ? colorsSec('Hårelastikker', COLORS, () => cur.st.hair.tie, (st,v) => st.hair.tie = v) : null ],
+  hat: () => [
+    optionsSec('Hat', entries(HATS), () => cur.st.hat.id, (st,v) => st.hat.id = v, VB.hat, 'hat'),
+    cur.st.hat.id !== 'ingen' ? colorsSec('Farve', COLORS, () => cur.st.hat.a, (st,v) => st.hat.a = v) : null,
+    cur.st.hat.id !== 'ingen' ? colorsSec('Bånd og pynt', COLORS, () => cur.st.hat.b, (st,v) => st.hat.b = v) : null ],
+  kjole: () => [
+    optionsSec('Kjole', entries(ROBES), () => cur.st.robe.id, (st,v) => st.robe.id = v, VB.robe, 'robe'),
+    colorsSec('Farve', COLORS, () => cur.st.robe.a, (st,v) => st.robe.a = v),
+    colorsSec('Kanter og mønster', COLORS, () => cur.st.robe.b, (st,v) => st.robe.b = v) ],
+  kappe: () => [
+    optionsSec('Kappe', entries(CAPES), () => cur.st.cape.id, (st,v) => st.cape.id = v, VB.cape, 'cape'),
+    cur.st.cape.id !== 'ingen' ? colorsSec('Farve', COLORS, () => cur.st.cape.a, (st,v) => st.cape.a = v) : null,
+    cur.st.cape.id !== 'ingen' ? colorsSec('Foer', COLORS, () => cur.st.cape.b, (st,v) => st.cape.b = v) : null ],
   sko: () => [
-    optionsSec('Sko', entries(SHOES), () => cur.st.shoes.id, (st,v) => st.shoes.id = v, VB.shoes, 'shoes'),
-    colorsSec('Farve', COLORS, () => cur.st.shoes.a, (st,v) => st.shoes.a = v),
-    colorsSec('Detaljer', COLORS, () => cur.st.shoes.b, (st,v) => st.shoes.b = v) ],
+    optionsSec('Fodtøj', entries(BOOTS), () => cur.st.boots.id, (st,v) => st.boots.id = v, VB.shoes, 'boots'),
+    colorsSec('Farve', COLORS, () => cur.st.boots.a, (st,v) => st.boots.a = v),
+    colorsSec('Detaljer', COLORS, () => cur.st.boots.b, (st,v) => st.boots.b = v) ],
   tilbehoer: () => multiSec('Tilbehør', 'acc', ACC, st => st.acc, () => activeAcc, v => { activeAcc = v; }, id => ACC_VB[id] || VB.full),
   /* ----- kæledyr ----- */
   dyr: () => {
@@ -165,7 +167,7 @@ function zoomAnim(){ const m = $('#mirror'); m.classList.remove('zoom'); void m.
 function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, anim: !calm, viewBox: stageViewBox() })); }
 function renderModes(){
   document.querySelectorAll('.mode').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
-    b.classList.toggle('has-fresh', catsHaveFresh(b.dataset.mode === 'dyr' ? ['pet','petpat','petacc'] : ['front','back','top','bottom','shoes','acc','pupil','liner','lip','mark'])); });
+    b.classList.toggle('has-fresh', catsHaveFresh(b.dataset.mode === 'dyr' ? ['pet','petpat','petacc'] : ['front','back','robe','cape','hat','boots','acc','pupil','lip','mark'])); });
   $('#tabs').classList.toggle('pet', mode === 'dyr');
 }
 function setMode(m){ if (m === mode) return; mode = m; sfx.pick(); renderModes(); renderStage(); zoomAnim(); renderTabs(); renderPanel(true); }

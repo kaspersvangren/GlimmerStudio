@@ -2,10 +2,13 @@
    Brug:  node build.js && node tools/tjek.js [mappe]      (kræver Playwright)
    Laver PNG-ark i mappen (standard tools/ud/), som gennemses ét for ét:
    - dyr_<mønster>.png : alle dyr × siddende/gående × hvert dyre-tilbehør alene + alle på én gang
-   - dukke_hoved.png   : alle pandehår × alt hovedpynt
-   - dukke_haar_top.png: alle frisurer × alle overdele
-   - dukke_bund_sko.png: alle underdele × alle sko
-   - dukke_top_hand.png: alle overdele × hals/hånd-tilbehør
+   - figur_hoved.png      : alle pandehår × alle hatte (og briller)
+   - figur_haar_hat.png   : alle baghår × alle hatte
+   - figur_haar_kappe.png : alle baghår × alle kapper
+   - figur_kjole_kappe.png: alle kjoler × alle kapper
+   - figur_kjole_fod.png  : alle kjoler × alt fodtøj
+   - figur_tilbehoer.png  : hvert tilbehør alene og i store kombinationer × alle baghår
+   - figur_vink.png       : vinkende arm × kjoler, kapper, hatte og hånd-tilbehør (i browseren, med animation)
    Se efter: noget der ligger oven på noget forkert, svæver, er skjult, eller dækker øjne/ansigt. */
 const path = require('path'), fs = require('fs'), { chromium } = require('playwright');
 const OUT = path.resolve(process.argv[2] || path.join(__dirname, 'ud')); fs.mkdirSync(OUT, { recursive: true });
@@ -27,20 +30,21 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
         const st = JSON.parse(JSON.stringify(DEFAULT_STATE)); st.pet.kind = kind; st.pet.acc = a; st.pet.pattern = pat;
         return renderDoll(st, { petOnly: true, petMode: mode === 'går' ? 'walk' : undefined, viewBox: '470 720 380 360', anim: false }); })]);
       GRID(sets.map(s => s[0]), 170, rows); }, pat);
-  const doll = (cols, rowsSpec, vb) => ({ cols, rowsSpec, vb });
-  await sheet('dukke_hoved.png', () => {
-    const base = JSON.parse(JSON.stringify(DEFAULT_STATE)); base.acc = {}; base.pet.kind = 'ingen';
-    const head = ['intet', ...['tiara','katteoerer','spaender','sloejfe','kasket','briller'].filter(k => ACC[k])];
-    GRID(head, 150, Object.keys(FRONT).map(f => [f, head.map(a => { const st = JSON.parse(JSON.stringify(base)); st.front = f; st.back = 'kort'; st.acc = a === 'intet' ? {} : { [a]: ACC[a].color }; return renderDoll(st, { viewBox: '130 90 540 540', anim: false }); })])); });
-  await sheet('dukke_haar_top.png', () => {
-    const base = JSON.parse(JSON.stringify(DEFAULT_STATE)); base.acc = { halskaede: '#4B2A9A' }; base.pet.kind = 'ingen';
-    GRID(Object.keys(TOPS), 150, Object.keys(BACK).map(bk => [bk, Object.keys(TOPS).map(t => { const st = JSON.parse(JSON.stringify(base)); st.back = bk; st.top = { id: t, a: '#62E0CB', b: '#FFE27A' }; return renderDoll(st, { viewBox: '40 80 720 900', anim: false }); })])); });
-  await sheet('dukke_bund_sko.png', () => {
-    const base = JSON.parse(JSON.stringify(DEFAULT_STATE)); base.acc = {}; base.pet.kind = 'ingen';
-    GRID(Object.keys(SHOES), 150, Object.keys(BOTTOMS).map(bt => [bt, Object.keys(SHOES).map(sh => { const st = JSON.parse(JSON.stringify(base)); st.bottom = { id: bt, a: '#2F6FE0', b: '#FFC02E' }; st.shoes = { id: sh, a: '#FF5FA8', b: '#FFE27A' }; return renderDoll(st, { viewBox: '230 700 340 380', anim: false }); })])); });
-  await sheet('dukke_top_hand.png', () => {
-    const base = JSON.parse(JSON.stringify(DEFAULT_STATE)); base.pet.kind = 'ingen';
-    const ex = [['halskæde',{halskaede:'#4B2A9A'}],['butterfly',{butterfly:'#C2272D'}],['taske',{taske:'#B79BFF'}],['stav',{stav:'#FFE27A'}],['armbånd+taske',{armbaand:'#FF5FA8',taske:'#B79BFF'}]];
-    GRID(ex.map(e => e[0]), 150, Object.keys(TOPS).map(t => [t, ex.map(([, a]) => { const st = JSON.parse(JSON.stringify(base)); st.top = { id: t, a: '#62E0CB', b: '#FFE27A' }; st.acc = a; return renderDoll(st, { viewBox: '220 520 420 420', anim: false }); })])); });
+  const F = (fn) => `(() => { const ks = o => Object.keys(o); const base = JSON.parse(JSON.stringify(DEFAULT_STATE)); base.pet.kind = 'ingen'; const S = (f) => { const st = JSON.parse(JSON.stringify(base)); f(st); return st; }; (${fn})(base, S); })()`;
+  const ks = o => Object.keys(o);
+  await sheet('figur_hoved.png', F((base, S) => { const cols = [...ks(HATS), 'briller']; GRID(cols, 150, ks(FRONT).map(f => [f, cols.map(h => renderDoll(S(st => { st.front = f; st.acc = {}; if (h === 'briller'){ st.hat.id = 'spids'; st.acc = { briller: ACC.briller.color }; } else st.hat.id = h; }), { viewBox: '170 20 460 480', pet: false }))])); }));
+  await sheet('figur_haar_hat.png', F((base, S) => GRID(ks(HATS), 150, ks(BACK).map(bk => [bk, ks(HATS).map(h => renderDoll(S(st => { st.back = bk; st.hat.id = h; st.acc = {}; }), { viewBox: '130 20 540 760', pet: false }))]))));
+  await sheet('figur_haar_kappe.png', F((base, S) => GRID(ks(CAPES), 150, ks(BACK).map(bk => [bk, ks(CAPES).map(k => renderDoll(S(st => { st.back = bk; st.cape.id = k; st.hat.id = 'ingen'; }), { viewBox: '120 30 560 1050', pet: false }))]))));
+  await sheet('figur_kjole_kappe.png', F((base, S) => GRID(ks(CAPES), 150, ks(ROBES).map(r => [r, ks(CAPES).map(k => renderDoll(S(st => { st.robe.id = r; st.cape.id = k; }), { viewBox: '120 30 560 1050', pet: false }))]))));
+  await sheet('figur_kjole_fod.png', F((base, S) => GRID(ks(BOOTS), 150, ks(ROBES).map(r => [r, ks(BOOTS).map(bt => renderDoll(S(st => { st.robe.id = r; st.boots.id = bt; st.cape.id = 'ingen'; }), { viewBox: '200 600 400 460', pet: false }))]))));
+  await sheet('figur_tilbehoer.png', F((base, S) => {
+    const sets = [['intet', {}], ...ks(ACC).map(k => [k, { [k]: ACC[k].color }]),
+      ['stav+bog+bælte+tørklæde+briller', { stav:'#5FD0FF', bog:'#7B4FD0', baelte:'#8A4B2E', toerklaede:'#E0457A', briller:'#B98516' }],
+      ['tryllestav+bog+kæde+bælte', { tryllestav:'#FFC02E', bog:'#2F8F86', halskaede:'#F2C14E', baelte:'#3A2340' }]];
+    GRID(ks(BACK), 150, sets.map(([lab, a]) => [lab, ks(BACK).map(bk => renderDoll(S(st => { st.back = bk; st.acc = a; }), { viewBox: '120 30 560 1050', pet: false }))])); }));
+  await sheet('figur_vink.png', F((base, S) => {
+    const rows = [...ks(ROBES).map(r => [r, st => { st.robe.id = r; }]), ...ks(CAPES).map(k => ['kappe ' + k, st => { st.cape.id = k; }]), ...ks(HATS).map(h => ['hat ' + h, st => { st.hat.id = h; }])];
+    const cols = [['stav', { stav:'#5FD0FF' }], ['tryllestav', { tryllestav:'#FFC02E' }], ['tom hånd', {}], ['tørklæde', { toerklaede:'#E0457A' }]];
+    GRID(cols.map(c => c[0]), 130, rows.map(([lab, f]) => [lab, cols.map(([, a]) => renderDoll(S(st => { f(st); st.acc = a; }), { viewBox: '60 30 680 1050', pet: false, anim: true, wave: true }))])); }));
   await b.close();
 })();

@@ -354,7 +354,7 @@ Object.assign(sfx, {
 const PET_SAY = { kat:'Mjav!', hund:'Vov vov!', kanin:'Snøf snøf!', enhjoerning:'Iiihh!', bjoern:'Brum!', drage:'Rawr!' };
 const PET_SND = { kat:'meow', hund:'bark', kanin:'squeak', enhjoerning:'chirp', bjoern:'roar', drage:'roar' };
 const PET_FACE = { enhjoerning: -1 };          // enhjørningen er tegnet med hovedet mod venstre
-const VB_DOLL = '40 60 720 1010', VB_PET = '460 700 400 380';
+const VB_DOLL = '40 40 720 1010', VB_PET = '460 700 400 380';
 const DOLL_H = 150, PET_H = 70;               // højde ved dybde-skala 1
 const depthS = y => 0.6 + (y - 380) / 575 * 0.5;
 /* ruter fra torvet (HUB) ud til hvert sted; figurer går altid via torvet */
@@ -471,7 +471,7 @@ function tickDog(p){
   // hunden går lidt foran i snor ad samme rute
   if (r && !p.c.paused){ const [x, y, dx] = routePos(r, Math.min(r.total, r.d + 40)); setDir(d, dx); d.x = x + 8; d.y = y + 4; }
   else if (!r && Math.abs(d.x - p.c.x) < 20){ d.x = p.c.x + 34; }
-  if (!d.leash){ d.leash = sv('path', { fill:'none', stroke: adj(p.st.top.a, -0.2), 'stroke-width': 2.5, 'stroke-linecap':'round', 'pointer-events':'none' }); $('#chars').append(d.leash); }
+  if (!d.leash){ d.leash = sv('path', { fill:'none', stroke: adj(p.st.robe.a, -0.2), 'stroke-width': 2.5, 'stroke-linecap':'round', 'pointer-events':'none' }); $('#chars').append(d.leash); }
   const s1 = depthS(p.c.y), s2 = depthS(d.y), side = d.x >= p.c.x ? 1 : -1, hx = p.c.x + side * 20 * s1, hy = p.c.y - 62 * s1, cx = d.x - side * 10 * s2, cy = d.y - 30 * s2;
   d.leash.setAttribute('d', `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${((hx+cx)/2).toFixed(1)} ${(Math.max(hy, cy) + 14).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`);
   d.bobStop = !r || p.c.paused;
@@ -613,7 +613,7 @@ function showTown(){
   sortChars();
   // en af hendes andre dukker kigger ud ad vinduet i Mit hus
   const sorted = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0));
-  if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 150 460 520', anim: !calm, idle: true, pet: false })));
+  if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
   else $('#homeDoll').remove();
   placeHiddenStar();
   $('#townLogo').addEventListener('click', logoTap);
