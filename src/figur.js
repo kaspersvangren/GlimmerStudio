@@ -399,11 +399,14 @@ function wandHeld(col){
   return { behind: `<path d="M 222 616 L ${tip[0]+4} ${tip[1]+8}" stroke="${w}" stroke-width="7" stroke-linecap="round"/><path d="M 220 612 L ${tip[0]+3} ${tip[1]+6}" stroke="${lt(w,0.35)}" stroke-width="2" stroke-linecap="round"/>` + t + sp };
 }
 /* bog i venstre hånd */
+/* bogen hænger med ryggen opad i hånden; sidekanterne ses forneden og til højre */
 function bookF(col){
-  const D = fdk(col,0.35);
-  return `<rect x="190" y="600" width="54" height="68" rx="4" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><rect x="186" y="596" width="54" height="68" rx="5" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
-    + `<rect x="186" y="596" width="10" height="68" rx="4" fill="${sd(col,0.3)}"/><rect x="200" y="630" width="32" height="28" rx="3" fill="none" stroke="#F2C14E" stroke-width="2"/>`
-    + moon(212, 644, 7, '#F2C14E') + `<circle cx="222" cy="638" r="1.6" fill="#F2C14E"/><circle cx="226" cy="650" r="1.2" fill="#F2C14E"/>`;
+  const D = fdk(col,0.35), S = sd(col,0.3), G = '#F2C14E';
+  return `<g transform="translate(213 596) scale(1.3) translate(-213 -596)"><rect x="185" y="600" width="66" height="86" rx="4" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><path d="M 189 682 L 247 682 M 247 606 L 247 680" stroke="#E8D9B8" stroke-width="1.2"/>`
+    + `<rect x="180" y="594" width="66" height="88" rx="5" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
+    + `<path d="M 180.5 606 L 245.5 606 L 245.5 599 Q 245.5 594.5 241 594.5 L 185 594.5 Q 180.5 594.5 180.5 599 Z" fill="${S}"/><path d="M 182 607 L 244 607" stroke="${D}" stroke-width="1.5"/>`
+    + `<path d="M 186 612 L 186 676" stroke="${lt(col,0.35)}" stroke-width="2" stroke-linecap="round" opacity=".7"/>`
+    + `<rect x="194" y="630" width="38" height="42" rx="3" fill="none" stroke="${G}" stroke-width="2"/>` + moon(210, 650, 9, G) + `<circle cx="222" cy="642" r="1.8" fill="${G}"/><circle cx="225" cy="658" r="1.3" fill="${G}"/></g>`;
 }
 
 /* ================= TILBEHØR ================= */
