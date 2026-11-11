@@ -10,11 +10,11 @@ let bubPick = null, bubTaps = 0, bubBusy = false, BUBN = 0;
 
 /* små tegninger inde i boblen */
 const BUB_ICON = {
-  toej: '<path d="M 150 64 L 186 136 Q 150 146 114 136 Z" fill="#7B4FD0" stroke="#4A2E8A" stroke-width="5" stroke-linejoin="round"/><ellipse cx="150" cy="138" rx="48" ry="11" fill="#7B4FD0" stroke="#4A2E8A" stroke-width="5"/><path d="M 136 112 L 164 112" stroke="#FFE27A" stroke-width="6"/>'
-    + '<path d="M 76 176 L 100 160 H 124 L 148 176 L 140 192 L 130 188 V 232 H 94 V 188 L 84 192 Z" fill="#43A3D3" stroke="#1F5F8A" stroke-width="5" stroke-linejoin="round"/><path d="M 102 160 Q 112 172 122 160" fill="none" stroke="#1F5F8A" stroke-width="4"/><path d="M 96 210 H 128" stroke="#FFFFFF" stroke-width="4" opacity=".7"/>'
-    + '<path d="M 186 160 H 214 L 220 182 L 236 232 Q 200 242 164 232 L 180 182 Z" fill="#FF8FC7" stroke="#B32268" stroke-width="5" stroke-linejoin="round"/><path d="M 192 160 Q 200 170 208 160" fill="none" stroke="#B32268" stroke-width="4"/><path d="M 174 210 Q 200 218 226 210" stroke="#FFE27A" stroke-width="5" fill="none"/>',
+  toej: '<g transform="rotate(-16 150 110)"><path d="M 150 64 L 186 136 Q 150 146 114 136 Z" fill="#7B4FD0" stroke="#4A2E8A" stroke-width="5" stroke-linejoin="round"/><ellipse cx="150" cy="138" rx="48" ry="11" fill="#7B4FD0" stroke="#4A2E8A" stroke-width="5"/><path d="M 136 112 L 164 112" stroke="#FFE27A" stroke-width="6"/></g>'
+    + '<g transform="rotate(13 112 196)"><path d="M 76 176 L 100 160 H 124 L 148 176 L 140 192 L 130 188 V 232 H 94 V 188 L 84 192 Z" fill="#43A3D3" stroke="#1F5F8A" stroke-width="5" stroke-linejoin="round"/><path d="M 102 160 Q 112 172 122 160" fill="none" stroke="#1F5F8A" stroke-width="4"/><path d="M 96 210 H 128" stroke="#FFFFFF" stroke-width="4" opacity=".7"/></g>'
+    + '<g transform="rotate(-9 200 200) translate(0 -6)"><path d="M 186 160 H 214 L 220 182 L 236 232 Q 200 242 164 232 L 180 182 Z" fill="#FF8FC7" stroke="#B32268" stroke-width="5" stroke-linejoin="round"/><path d="M 192 160 Q 200 170 208 160" fill="none" stroke="#B32268" stroke-width="4"/><path d="M 174 210 Q 200 218 226 210" stroke="#FFE27A" stroke-width="5" fill="none"/></g>',
   dyr: '<ellipse cx="150" cy="178" rx="40" ry="32" fill="#FFB547" stroke="#B9741A" stroke-width="5"/>' + [[106,132,15],[132,108,15],[168,108,15],[194,132,15]].map(([x,y,r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*1.25}" fill="#FFB547" stroke="#B9741A" stroke-width="5"/>`).join(''),
-  rum: '<rect x="88" y="104" width="20" height="112" rx="6" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="104" y="160" width="110" height="34" rx="8" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 108 138 Q 128 126 148 138 Q 150 150 148 160 L 108 160 Z" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 140 156 Q 180 146 214 156 L 218 194 L 140 194 Z" fill="#8A5BE8" stroke="#5E3BC4" stroke-width="4"/><rect x="88" y="194" width="134" height="14" rx="5" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="204" y="206" width="16" height="16" rx="4" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><path d="M 196 92 A 18 18 0 1 0 214 120 A 14 14 0 1 1 196 92 Z" fill="#FFE27A" stroke="#C99A12" stroke-width="3"/>',
+  rum: '<rect x="88" y="104" width="20" height="96" rx="6" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="104" y="160" width="110" height="34" rx="8" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 108 138 Q 128 126 148 138 Q 150 150 148 160 L 108 160 Z" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 140 156 Q 180 146 214 156 L 218 194 L 140 194 Z" fill="#8A5BE8" stroke="#5E3BC4" stroke-width="4"/><rect x="88" y="194" width="134" height="14" rx="5" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="92" y="206" width="16" height="18" rx="4" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="202" y="206" width="16" height="18" rx="4" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><path d="M 196 92 A 18 18 0 1 0 214 120 A 14 14 0 1 1 196 92 Z" fill="#FFE27A" stroke="#C99A12" stroke-width="3"/>',
 };
 /* en sæbeboble: næsten gennemsigtig, regnbuekant, lys fra venstre */
 function bubbleSvg(kind, small){
@@ -37,21 +37,31 @@ const bubbleIcon = kind => bubbleSvg(kind, true);
 const NISSE = { skin:'#F6D2B8', eyes:{ color:'#6A4A2E', pupil:'rund' }, mk:{ blush:'#FF8FA3', lips:'#C2465E', lipShape:'smil', mark:'ingen', markColor:'#B07A45' },
   front:'tilbage', back:'kort', hair:{ a:'#F4F2F8', b:'#D8D2E6', ombre:false, tie:'#E0457A' },
   robe:{ id:'knapper', a:'#4F8A5A', b:'#F2C14E' }, cape:{ id:'ingen', a:'#2E3F8F', b:'#B79BFF' }, hat:{ id:'spids', a:'#D8343A', b:'#F2C14E' },
-  boots:{ id:'snoer', a:'#8A4B2E', b:'#F2C14E' }, acc:{ briller:'#C9952E' }, pet:{ kind:'ingen', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'ingen', eyes:'#3D8BFF', acc:{}, name:'' } };
+  boots:{ id:'snoer', a:'#8A4B2E', b:'#F2C14E' }, acc:{}, pet:{ kind:'ingen', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'ingen', eyes:'#3D8BFF', acc:{}, name:'' } };
 const JARS = [{ id:'toej', x:200 }, { id:'dyr', x:440 }, { id:'rum', x:680 }];
 const NISSE_CHAT = ['Tryk tre gange på en boble, så springer den. Det er hele hemmeligheden!', 'Jeg har puttet bobler i krukker i over tre hundrede år.', 'Hver boble har noget nyt indeni. Man ved aldrig hvad!', 'Stjerner får du i Modehuset. Kom igen, når du har nogle!', 'Mit skæg? Det er helt ægte. Træk ikke i det!'];
 const NISSE_WOW = ['Sikke et fund!', 'Uh, den er da fin!', 'Den kan jeg godt lide!', 'Hvor heldigt!'];
 let nisseLine = '', chatN = 0;
 /* nissens skæg, store næse og overskæg, tegnet oven på figuren (figurens koordinater) */
-const NISSE_BEARD = `<path d="M 312 418 C 296 480 318 586 400 632 C 482 586 504 480 488 418 C 472 452 440 470 400 470 C 360 470 328 452 312 418 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="4"/>`
-  + `<path d="M 340 500 q 14 16 4 34 M 400 520 q 12 18 0 40 M 456 500 q -14 16 -4 34 M 370 560 q 10 14 2 28 M 430 560 q -10 14 -2 28" stroke="#DCD6EA" stroke-width="4" fill="none" stroke-linecap="round"/>`
-  + `<path d="M 400 444 C 380 428 346 430 336 452 C 352 466 382 466 400 452 C 418 466 448 466 464 452 C 454 430 420 428 400 444 Z" fill="#FFFFFF" stroke="#C9C2DA" stroke-width="3.5"/>`
-  + `<ellipse cx="400" cy="422" rx="20" ry="17" fill="#F2A08A" stroke="#C9745E" stroke-width="3"/><ellipse cx="393" cy="416" rx="6" ry="4" fill="#FFFFFF" opacity=".7"/>`
-  /* rynker: smilerynker ved øjnene, poser under øjnene og buskede hvide øjenbryn */
-  + [1, -1].map(f => { const X = x => 400 + f * (x - 400);
-      return `<path d="M ${X(316)} 430 Q ${X(322)} 440 ${X(332)} 444" stroke="#D49C88" stroke-width="3" fill="none" stroke-linecap="round"/>`
-        + `<path d="M ${X(390)} 358 Q ${X(394)} 363 ${X(393)} 368" stroke="#D49C88" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/>`
-        + `<path d="M ${X(312)} 350 Q ${X(318)} 330 ${X(340)} 334 Q ${X(352)} 322 ${X(368)} 332 Q ${X(386)} 328 ${X(388)} 344 Q ${X(372)} 352 ${X(350)} 350 Q ${X(330)} 360 ${X(312)} 350 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="3"/>`; }).join('');
+/* nissen gøres gammel oven på figuren (figurens koordinater): pjusket hår i siderne, tunge øjenlåg,
+   poser under øjnene, rynker, stor næse, briller, buskede bryn og langt skæg */
+const NISSE_EYE = [[355, 397], [446, 397]];
+const NISSE_BEARD = [1, -1].map(f => { const X = x => 400.5 + f * (x - 400.5);
+    return `<path d="M ${X(326)} 322 L ${X(290)} 326 L ${X(300)} 342 L ${X(266)} 352 L ${X(290)} 368 L ${X(258)} 386 L ${X(286)} 398 L ${X(262)} 420 L ${X(292)} 428 L ${X(274)} 456 L ${X(304)} 452 L ${X(298)} 478 L ${X(326)} 462 Z" fill="#F4F2F8" stroke="#C9C2DA" stroke-width="3" stroke-linejoin="round"/>`; }).join('')
+  + NISSE_EYE.map(([x, y]) => `<path d="M ${x-31} ${y+2} C ${x-30} ${y-36} ${x+30} ${y-36} ${x+31} ${y+2} C ${x+12} ${y-6} ${x-12} ${y-6} ${x-31} ${y+2} Z" fill="#F2CBB0"/><path d="M ${x-28} ${y+1} C ${x-12} ${y-6} ${x+12} ${y-6} ${x+28} ${y+1}" stroke="#A8745E" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+      + `<path d="M ${x-20} ${y+26} Q ${x} ${y+34} ${x+20} ${y+26} M ${x-14} ${y+34} Q ${x} ${y+40} ${x+14} ${y+34}" stroke="#C99A86" stroke-width="2.5" fill="none" stroke-linecap="round"/>`).join('')
+  + `<path d="M 312 418 C 296 480 318 586 400 640 C 482 586 504 480 488 418 C 472 452 440 470 400 470 C 360 470 328 452 312 418 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="4"/>`
+  + `<path d="M 340 500 q 14 16 4 34 M 400 520 q 12 18 0 40 M 456 500 q -14 16 -4 34 M 370 560 q 10 14 2 28 M 430 560 q -10 14 -2 28 M 400 590 q 8 14 0 30" stroke="#DCD6EA" stroke-width="4" fill="none" stroke-linecap="round"/>`
+  + `<path d="M 400 446 C 380 430 344 432 330 458 C 348 470 382 470 400 454 C 418 470 452 470 470 458 C 456 432 420 430 400 446 Z" fill="#FFFFFF" stroke="#C9C2DA" stroke-width="3.5"/>`
+  + `<ellipse cx="400" cy="426" rx="25" ry="21" fill="#EE9A84" stroke="#C06A56" stroke-width="3"/><ellipse cx="392" cy="418" rx="7" ry="5" fill="#FFFFFF" opacity=".7"/>`
+  /* briller */
+  + NISSE_EYE.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="31" fill="#E8F6FF" fill-opacity=".12" stroke="#B9862A" stroke-width="5.5"/><path d="M ${x-18} ${y-16} q 8 -8 18 -10" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>`).join('')
+  + `<path d="M 386 392 Q 400.5 382 415 392" stroke="#B9862A" stroke-width="5" fill="none"/><path d="M 324 392 L 304 386 M 477 392 L 497 386" stroke="#B9862A" stroke-width="5" stroke-linecap="round"/>`
+  /* rynker: i panden, ved næsen og på kinderne */
+  + `<path d="M 380 356 q 10 -5 20 0 q 10 5 20 0 M 384 364 q 8 -4 16 0 q 8 4 16 0" stroke="#C99A86" stroke-width="2.5" fill="none" stroke-linecap="round"/>`
+  + [1, -1].map(f => { const X = x => 400.5 + f * (x - 400.5);
+      return `<path d="M ${X(374)} 420 Q ${X(366)} 436 ${X(372)} 450" stroke="#C99A86" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M ${X(318)} 432 Q ${X(324)} 442 ${X(334)} 446" stroke="#C99A86" stroke-width="3" fill="none" stroke-linecap="round"/>`
+        + `<path d="M ${X(310)} 348 Q ${X(312)} 326 ${X(336)} 330 Q ${X(350)} 316 ${X(368)} 328 Q ${X(388)} 324 ${X(392)} 342 L ${X(400)} 350 Q ${X(372)} 354 ${X(350)} 350 Q ${X(328)} 362 ${X(304)} 356 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="3"/>`; }).join('');
 
 function shopBleed(){
   const WL = '#163C40', WD = '#5A3A28';
@@ -100,8 +110,11 @@ function shopScene(){
   o += shopBleed() + `<g data-hit="hylde-bg"><rect x="-1700" y="0" width="5000" height="520" fill="transparent"/></g>` + shopShelves() + lantern(1225, 120);
   o += `<g><path d="M 600 -30 V 40 M 960 -30 V 40" stroke="#3E2618" stroke-width="4"/><rect x="560" y="36" width="440" height="84" rx="16" fill="#9C6B43" stroke="#5A3A28" stroke-width="5"/><rect x="574" y="48" width="412" height="60" rx="10" fill="none" stroke="#F2C14E" stroke-width="3"/><text x="780" y="92" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="38" fill="#FFE9A0">Boblebutikken</text></g>`;
   /* nissen */
-  o += `<g data-hit="nisse"><g class="anim"><image href="${dollUrl(NISSE, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${nx}" y="${ny}" width="369" height="760"/>`
-    + `<g transform="translate(${nx} ${ny}) scale(${S}) translate(-150 -40)">${NISSE_BEARD}</g></g></g>`;
+  /* nissen er gammel og kroget: han hælder lidt frem, og ryggen buer op bag skuldrene */
+  o += `<g data-hit="nisse"><g class="anim"><g transform="rotate(-4 1060 560) translate(0 30)">`
+    + `<path d="M 930 560 C 930 470 970 440 1010 436 C 1030 434 1090 434 1110 436 C 1150 440 1190 470 1190 560 Z" fill="#3F7A4A" stroke="#2E5A3A" stroke-width="4"/><path d="M 960 470 C 980 452 1000 446 1020 446 M 1100 446 C 1120 446 1140 452 1160 470" stroke="#5A9A62" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>`
+    + `<image href="${dollUrl(NISSE, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${nx}" y="${ny}" width="369" height="760"/>`
+    + `<g transform="translate(${nx} ${ny}) scale(${S}) translate(-150 -40)">${NISSE_BEARD}</g></g></g></g>`;
   /* disken */
   const C = '#7A4E35', F = '#4A3022';
   o += `<rect x="-1700" y="880" width="5000" height="900" fill="${F}"/>` + Array.from({ length: 30 }, (_, i) => `<path d="M ${-1700 + i*170} 880 V 1800" stroke="${fdk(F,0.2)}" stroke-width="3"/>`).join('');

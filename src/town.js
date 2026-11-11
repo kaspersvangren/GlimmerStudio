@@ -71,6 +71,7 @@ function titleScene(){
   let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs>
 <linearGradient id="tsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E0A35"/><stop offset=".45" stop-color="#2A1C78"/><stop offset=".8" stop-color="#6A3AA6"/><stop offset="1" stop-color="#B456B2"/></linearGradient>
 <radialGradient id="tglow"><stop offset="0" stop-color="#FFF4C8" stop-opacity=".55"/><stop offset=".4" stop-color="#FFE9A8" stop-opacity=".18"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>
+<radialGradient id="tfly"><stop offset="0" stop-color="#FFF6B0" stop-opacity=".9"/><stop offset=".35" stop-color="#E8FF8A" stop-opacity=".35"/><stop offset="1" stop-color="#E8FF8A" stop-opacity="0"/></radialGradient>
 <radialGradient id="twin"><stop offset="0" stop-color="#FFD86B" stop-opacity=".7"/><stop offset="1" stop-color="#FFD86B" stop-opacity="0"/></radialGradient></defs>
 <rect width="1600" height="1000" fill="url(#tsky)"/>`;
   /* stjerner (faste pladser, så skærmen ser ens ud hver gang) */
@@ -99,6 +100,13 @@ function titleScene(){
   o += `<circle cx="406" cy="420" r="26" fill="#FFD86B" stroke="${E}" stroke-width="3"/><path d="M 406 394 V 446 M 380 420 H 432" stroke="${E}" stroke-width="3"/><circle cx="406" cy="420" r="60" fill="url(#twin)"/>`;
   o += win(206, 520, 30, 50, 3.1) + win(206, 640, 30, 50, 4.2) + win(575, 560, 28, 46, 3.6) + win(649, 620, 22, 38, 2.8) + win(290, 610, 32, 56, 3.3) + win(350, 610, 32, 56, 4.4) + win(470, 610, 32, 56, 3.9);
   o += `<path d="M 380 790 V 712 A 26 26 0 0 1 432 712 V 790 Z" fill="#5A2E1E" stroke="${E}" stroke-width="4"/><circle cx="422" cy="752" r="4" fill="#FFD86B"/><path d="M 360 790 L 452 790 L 470 820 L 342 820 Z" fill="#4A3A8F"/>`;
+  /* en sværm af ildfluer der flyver rundt om slottet */
+  for (let i = 0; i < 26; i++){
+    const cx = 150 + r() * 620, cy = 360 + r() * 380, d = (5 + r() * 6).toFixed(1), rad = 18 + r() * 46, k = r() < .5 ? 1 : -1;
+    const pts = Array.from({ length: 5 }, (_, j) => { const a = j / 5 * Math.PI * 2 * k; return `${(Math.cos(a) * rad * (0.6 + r() * 0.8)).toFixed(0)} ${(Math.sin(a) * rad * (0.4 + r() * 0.6)).toFixed(0)}`; });
+    o += `<g transform="translate(${cx.toFixed(0)} ${cy.toFixed(0)})"><g><animateMotion dur="${d}s" repeatCount="indefinite" path="M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]} S ${pts[4]} ${pts[0]} Z" begin="-${(r() * 6).toFixed(1)}s"/>`
+      + `<circle r="20" fill="url(#tfly)"/><circle r="3.6" fill="#FFFBD0"><animate attributeName="opacity" values="1;.25;1;.6;1" dur="${(1.4 + r() * 1.6).toFixed(1)}s" repeatCount="indefinite"/></circle></g></g>`;
+  }
   /* forgrunden: bakken figuren står på */
   o += `<path d="M 0 830 C 260 790 520 840 800 836 C 1080 832 1340 780 1600 820 L 1600 1000 L 0 1000 Z" fill="#241A5C"/><path d="M 0 830 C 260 790 520 840 800 836 C 1080 832 1340 780 1600 820" stroke="#4E3C9C" stroke-width="5" fill="none"/>`;
   o += [[110,880],[1480,870],[1180,900],[300,930]].map(([x,y]) => `<g fill="#3A2C80">${[[-14,-26],[0,-34],[14,-24]].map(([dx,dy]) => `<ellipse cx="${x+dx}" cy="${y+dy}" rx="7" ry="16" transform="rotate(${dx*1.6} ${x+dx} ${y+dy})"/>`).join('')}</g>`).join('');

@@ -177,7 +177,7 @@ const LAMPE = {
       o += [[-80,270,16],[-30,300,12],[0,330,22],[40,296,13],[86,268,15]].map(([dx,yy,r]) => `<path d="M ${x+dx} ${y + 20} V ${yy - r}" stroke="#C9B6A6" stroke-width="1.5"/>` + glowAt(x+dx, yy, r*1.8, lt(c,0.4)) + `<g transform="translate(${x+dx} ${yy})"><polygon points="${star5pts(0,0,r,r*0.45)}" fill="${c}" ${RS(c,2)}/></g>`).join('');
       return o; } },
   maanelampe: { label:'Månelampe', draw: c => { const x = 890, y = 210, M = mixC('#FFF1B8', c, 0.18);
-      let o = `<path d="M ${x+10} 0 V 96" stroke="#3A3046" stroke-width="4" stroke-dasharray="7 4"/>` + glowAt(x, y, 150, lt(c,0.5));
+      let o = `<ellipse cx="${x+10}" cy="0" rx="26" ry="9" fill="#5A3A28" stroke="#3A2618" stroke-width="3"/><circle cx="${x+10}" cy="10" r="6" fill="none" stroke="#3A3046" stroke-width="4"/>` + Array.from({ length: 7 }, (_, i) => `<ellipse cx="${x+10}" cy="${22 + i*11}" rx="${i % 2 ? 3 : 5}" ry="7" fill="none" stroke="#3A3046" stroke-width="3"/>`).join('') + glowAt(x, y, 150, lt(c,0.5));
       o += `<path d="M ${x+10} 96 C ${x-90} 100 ${x-120} 260 ${x+4} 316 C ${x-50} 270 ${x-46} 150 ${x+10} 96 Z" fill="${M}" stroke="${fdk(M,0.35)}" stroke-width="4"/>`;
       o += `<path d="M ${x-36} 170 q -14 50 6 96" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" opacity=".55"/>`;
       o += `<path d="M ${x-44} 196 q 8 8 16 0" stroke="${fdk(M,0.5)}" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="${x-50}" cy="214" r="7" fill="#FF8FA3" opacity=".55"/><path d="M ${x-40} 232 q 6 6 12 0" stroke="${fdk(M,0.5)}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
@@ -225,15 +225,18 @@ const TING = {
   globus: { label:'Stjerneglobus', draw: c => { const W = '#5A3A26', WL = '#7A5236', B = '#C9952E', P = mixC('#D9B77A', c, 0.25), gx = 1415, gy = 700, r = 92;
       const leg = (x, w) => `<path d="M ${x-w} 748 Q ${x-w*1.5} 790 ${x-w} 820 Q ${x-w*1.8} 850 ${x-w*0.9} 900 L ${x+w*0.9} 900 Q ${x+w*1.8} 850 ${x+w} 820 Q ${x+w*1.5} 790 ${x+w} 748 Z" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${x}" cy="820" rx="${w*1.6}" ry="6" fill="${W}"/>`;
       let o = `<ellipse cx="${gx}" cy="936" rx="130" ry="14" fill="${SHC}" opacity=".22"/>`;
-      o += leg(gx, 7) + `<path d="M 1320 912 L 1510 912 L 1500 932 L 1330 932 Z" fill="${WL}" stroke="${W}" stroke-width="3"/><circle cx="${gx}" cy="906" r="14" fill="${WL}" stroke="${W}" stroke-width="3"/>`;
+      o += `<ellipse cx="${gx}" cy="922" rx="128" ry="14" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${gx}" cy="918" rx="120" ry="10" fill="${lt(WL,0.12)}"/>` + [-112, 112].map(dx => `<ellipse cx="${gx+dx}" cy="934" rx="12" ry="7" fill="${W}"/>`).join('');
+      o += leg(gx, 7) + `<rect x="${gx-90}" y="866" width="180" height="10" rx="4" fill="${WL}" stroke="${W}" stroke-width="2.5"/>`;
       o += `<ellipse cx="${gx}" cy="${gy+46}" rx="128" ry="26" fill="${W}"/>`;
+      o += `<path d="M ${gx-r-10} ${gy+40} A ${r+10} ${r+10} 0 1 1 ${gx+r+10} ${gy+40}" stroke="${B}" stroke-width="9" fill="none"/>`;
       o += `<circle cx="${gx}" cy="${gy}" r="${r}" fill="${P}" stroke="#6A4A2A" stroke-width="4"/>` + rClip(`M ${gx} ${gy-r} A ${r} ${r} 0 1 1 ${gx-0.1} ${gy-r} Z`,
         `<ellipse cx="${gx}" cy="${gy}" rx="${r*0.45}" ry="${r}" fill="none" stroke="#8A6A3A" stroke-width="2" opacity=".6"/><path d="M ${gx-r} ${gy} H ${gx+r} M ${gx-r} ${gy-40} H ${gx+r} M ${gx-r} ${gy+40} H ${gx+r}" stroke="#8A6A3A" stroke-width="2" opacity=".5"/>`
         + `<path d="M 1360 650 L 1392 668 L 1420 640 L 1450 660 M 1380 720 L 1414 740 L 1446 716 L 1470 744" stroke="#5A3A1A" stroke-width="2.5" fill="none"/>` + [[1360,650],[1392,668],[1420,640],[1450,660],[1380,720],[1414,740],[1446,716],[1470,744]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#3A2410"/>`).join('')
-        + crescent(1370, 760, 12, '#5A3A1A', .8, 20) + `<path d="M ${gx+40} ${gy-r} A ${r} ${r} 0 0 1 ${gx+40} ${gy+r} L ${gx+r+10} ${gy+r} L ${gx+r+10} ${gy-r} Z" fill="${SHC}" opacity=".25"/><path d="M 1352 650 Q 1340 680 1346 710" stroke="#FFF6E0" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/>`);
-      o += `<path d="M ${gx-r-10} ${gy} A ${r+10} ${r+10} 0 0 1 ${gx} ${gy-r-10}" stroke="${B}" stroke-width="9" fill="none"/><path d="M ${gx} ${gy-r-10} A ${r+10} ${r+10} 0 0 1 ${gx+r+10} ${gy}" stroke="${B}" stroke-width="9" fill="none"/><circle cx="${gx}" cy="${gy-r-14}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/>`;
-      o += `<path d="M ${gx-128} ${gy+46} A 128 26 0 0 0 ${gx+128} ${gy+46}" fill="none" stroke="${WL}" stroke-width="18"/><path d="M ${gx-128} ${gy+46} A 128 26 0 0 0 ${gx+128} ${gy+46}" fill="none" stroke="#E9D4A8" stroke-width="4" stroke-dasharray="2 10"/>`;
-      o += leg(gx - 104, 9) + leg(gx + 104, 9);
+        + `<path d="M ${gx+40} ${gy-r} A ${r} ${r} 0 0 1 ${gx+40} ${gy+r} L ${gx+r+10} ${gy+r} L ${gx+r+10} ${gy-r} Z" fill="${SHC}" opacity=".25"/><path d="M 1352 650 Q 1340 680 1346 710" stroke="#FFF6E0" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/>`);
+      o += `<circle cx="${gx}" cy="${gy-r-10}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/><path d="M ${gx-128} ${gy+46} A 128 26 0 0 0 ${gx+128} ${gy+46}" fill="none" stroke="${WL}" stroke-width="18"/><path d="M ${gx-128} ${gy+46} A 128 26 0 0 0 ${gx+128} ${gy+46}" fill="none" stroke="#E9D4A8" stroke-width="4" stroke-dasharray="2 10"/>`;
+      /* benene går fra ringen ned på foden */
+      const leg2 = (x) => `<path d="M ${x-8} 760 Q ${x-14} 800 ${x-9} 830 Q ${x-16} 862 ${x-8} 916 L ${x+8} 916 Q ${x+16} 862 ${x+9} 830 Q ${x+14} 800 ${x+8} 760 Z" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${x}" cy="830" rx="14" ry="6" fill="${W}"/>`;
+      o += leg2(gx - 96) + leg2(gx + 96);
       return o; } },
 
 };
@@ -254,11 +257,11 @@ const DYRESENG = {
       + [[1060,912],[1280,912],[1170,946]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="9" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`).join('') + starP(1170, 880, 14, lt(c,0.7)) },
   slot: { label:'Lille slot', draw: c => { const S = lt(c,0.18), R = '#E0457A';
       const tower = (x) => `<path d="M ${x-28} 950 V 770 Q ${x-28} 756 ${x-14} 756 H ${x+14} Q ${x+28} 756 ${x+28} 770 V 950 Z" fill="${c}" ${RS(c)}/><path d="M ${x-38} 762 Q ${x} 676 ${x+38} 762 Z" fill="${R}" ${RS(R)}/><circle cx="${x}" cy="690" r="6" fill="#F2C14E" stroke="#B98516" stroke-width="2"/><path d="M ${x-8} 800 q 8 -14 16 0 v 16 h -16 Z" fill="#3A2340"/>`;
-      let o = `<path d="M 1086 950 V 810 Q 1086 792 1104 792 H 1276 Q 1294 792 1294 810 V 950 Z" fill="${S}" ${RS(c)}/>`;
-      o += [1100,1140,1180,1220,1260].map(x => `<rect x="${x}" y="772" width="24" height="26" rx="8" fill="${S}" ${RS(c,2.5)}/>`).join('');
-      o += tower(1076) + tower(1304);
-      o += `<path d="M 1124 950 V 868 Q 1124 812 1190 812 Q 1256 812 1256 868 V 950 Z" fill="#3A2340" ${RS(c)}/><path d="M 1134 950 V 870 Q 1134 822 1190 822 Q 1246 822 1246 870 V 950" fill="none" stroke="${lt(c,0.35)}" stroke-width="5"/><ellipse cx="1190" cy="940" rx="56" ry="10" fill="${c}" opacity=".9"/>`;
-      o += `<path d="M 1076 690 V 664 l 22 8 l -22 8" fill="${R}" stroke="#8A1A4A" stroke-width="2"/><path d="M 1304 690 V 664 l 22 8 l -22 8" fill="${R}" stroke="#8A1A4A" stroke-width="2"/>`;
+      let o = `<path d="M 1106 950 V 810 Q 1106 792 1124 792 H 1256 Q 1274 792 1274 810 V 950 Z" fill="${S}" ${RS(c)}/>`;
+      o += [1124,1160,1196,1232].map(x => `<rect x="${x}" y="772" width="24" height="26" rx="8" fill="${S}" ${RS(c,2.5)}/>`).join('');
+      o += tower(1096) + tower(1284);
+      o += `<path d="M 1132 950 V 870 Q 1132 818 1190 818 Q 1248 818 1248 870 V 950 Z" fill="#3A2340" ${RS(c)}/><path d="M 1141 950 V 872 Q 1141 828 1190 828 Q 1239 828 1239 872 V 950" fill="none" stroke="${lt(c,0.35)}" stroke-width="5"/><ellipse cx="1190" cy="940" rx="50" ry="10" fill="${c}" opacity=".9"/>`;
+      o += `<path d="M 1096 690 V 664 l 22 8 l -22 8" fill="${R}" stroke="#8A1A4A" stroke-width="2"/><path d="M 1284 690 V 664 l 22 8 l -22 8" fill="${R}" stroke="#8A1A4A" stroke-width="2"/>`;
       return o + `<g transform="translate(1190 790)"><polygon points="${star5pts(0,0,13,6)}" fill="#F2C14E" stroke="#B98516" stroke-width="2"/></g>`; } },
 
 };
@@ -277,7 +280,7 @@ const ROOM_FREE = { vaeg:['stjerner','striber'], vindue:['gardiner'], seng:['enk
 const ROOM_DEFAULT = { vaeg:'stjerner', vindue:'gardiner', seng:'enkel', hylde:'boeger', lampe:'lys', gulv:'rund', ting:'kedel', dyreseng:'kurv',
   c:{ vaeg:'#35306A', vindue:'#E0457A', seng:'#7B4FD0', hylde:'#7B4FD0', lampe:'#FFC02E', gulv:'#7A2E4A', ting:'#5FD0B0', dyreseng:'#E07A45' } };
 /* udsnit til små billeder af én ting */
-const ROOM_VB = { vaeg:'0 0 1600 700', vindue:'200 50 500 520', seng:'30 220 560 660', hylde:'1050 50 440 340', lampe:'680 0 440 380', gulv:'460 780 720 220', ting:'1240 440 360 530', dyreseng:'990 650 350 320' };
+const ROOM_VB = { vaeg:'0 0 1600 700', vindue:'200 50 500 520', seng:'30 220 560 660', hylde:'1050 50 440 340', lampe:'680 0 440 380', gulv:'460 780 720 220', ting:'1240 440 360 530', dyreseng:'1020 640 340 330' };
 const ROOM_WALL_COLORS = ['#35306A','#24305E','#4E2E6A','#1F4F56','#6A2E4E','#2E5A44','#7A5E36','#3E3448','#4A4590','#2F6F78'];
 
 function roomFloor(){
@@ -320,7 +323,7 @@ function setRoom(r){ prog.room = r; saveProg(); }
 /* ================= Værelset som sted: hele skærmen, ting man kan trykke på, og indretningsbogen ================= */
 /* hvor dyret står: ved siden af figuren, eller i sin seng (fødder i rumkoordinater) */
 const PET_SPOT = { x: 1000, y: 952 };
-const PET_BED = { kurv: { x: 1160, y: 888 }, pude: { x: 1160, y: 885 }, slot: { x: 1160, y: 942 } };
+const PET_BED = { kurv: { x: 1130, y: 888 }, pude: { x: 1130, y: 885 }, slot: { x: 1130, y: 942 } };
 const BOOK_SIDE = { vaeg:'r', vindue:'r', seng:'r', gulv:'r', hylde:'l', lampe:'l', ting:'l', dyreseng:'l' };
 let roomBook = null, roomLight = true, roomCurtain = false, petInBed = false;
 
@@ -411,14 +414,14 @@ function roomScene(room){
   o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
   o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
   o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
-  o += `<g data-hit="bog"><g transform="translate(468 0)">${desk(fresh)}</g></g>`;
+  o += `<g data-hit="bog"><g transform="translate(1040 714) scale(0.88) translate(-556 -810)">${desk(fresh)}</g></g>`;
   o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
-  o += `<g data-hit="dyreseng"><g transform="translate(-30 0)">${roomItem('dyreseng', room)}</g></g>`;
+  o += `<g data-hit="dyreseng"><g transform="translate(-60 0)">${roomItem('dyreseng', room)}</g></g>`;
   /* figuren og dyret er billeder i scenen */
   o += `<g data-hit="figur"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="650" y="266" width="340" height="700"/></g></g>`;
   if (hasPet) o += `<g data-hit="dyr" class="petg" style="transform:translate(${at.x - PET_SPOT.x}px,${at.y - PET_SPOT.y}px)"><g class="anim"><image href="${dollUrl(hero, { viewBox: VB.pet, petOnly: true })}" x="${PET_SPOT.x - 95}" y="${PET_SPOT.y - 203}" width="190" height="210"/></g></g>`;
   const bedF = (DYRESENG[room.dyreseng] || {}).front;
-  if (hasPet && bedF) o += `<g class="bedfront${petInBed ? ' on' : ''}" pointer-events="none"><g transform="translate(-30 0)">${bedF(room.c.dyreseng)}</g></g>`;
+  if (hasPet && bedF) o += `<g class="bedfront${petInBed ? ' on' : ''}" pointer-events="none"><g transform="translate(-60 0)">${bedF(room.c.dyreseng)}</g></g>`;
   o += `<g data-hit="lampe"><g class="anim">${roomItem('lampe', room)}</g></g>`;
   if (!roomLight){
     o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#0B0A2E" opacity=".58" pointer-events="none"/>`;
