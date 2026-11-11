@@ -1552,7 +1552,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.12.3';
+const VERSION = 'v0.12.4';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -2452,16 +2452,17 @@ const TING = {
       o += leg(gx, ringY - ry + 6, baseY - ry*0.7, 7, fdk(WL,0.15));
       o += `<path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 1 ${gx+128} ${ringY}" fill="none" stroke="${fdk(WL,0.2)}" stroke-width="16"/>`;
       /* messingringen (meridianen) om globussen: en hel ring i billedplanet, der går ned i den vandrette ring */
-      const R = r + 12, ex = Math.sqrt(R*R - 44*44).toFixed(1);
-      o += `<path d="M ${gx-ex} ${ringY} A ${R} ${R} 0 1 1 ${gx+ (+ex)} ${ringY}" stroke="#8A6420" stroke-width="12" fill="none"/><path d="M ${gx-ex} ${ringY} A ${R} ${R} 0 1 1 ${gx+ (+ex)} ${ringY}" stroke="${B}" stroke-width="8" fill="none"/>`;
+      const R = r + 12, my = ringY + 16, ex = Math.sqrt(R*R - (my-gy)*(my-gy)).toFixed(1), cy2 = ringY + 26*Math.sqrt(1 - (ex/128)**2);
+      o += `<path d="M ${gx-ex} ${my} A ${R} ${R} 0 1 1 ${gx+ (+ex)} ${my}" stroke="#8A6420" stroke-width="12" fill="none"/><path d="M ${gx-ex} ${my} A ${R} ${R} 0 1 1 ${gx+ (+ex)} ${my}" stroke="${B}" stroke-width="8" fill="none"/>`;
       o += `<circle cx="${gx}" cy="${gy}" r="${r}" fill="${P}" stroke="#6A4A2A" stroke-width="4"/>` + rClip(`M ${gx} ${gy-r} A ${r} ${r} 0 1 1 ${gx-0.1} ${gy-r} Z`,
         `<ellipse cx="${gx}" cy="${gy}" rx="${r*0.45}" ry="${r}" fill="none" stroke="#8A6A3A" stroke-width="2" opacity=".6"/><path d="M ${gx-r} ${gy} H ${gx+r} M ${gx-r} ${gy-40} H ${gx+r} M ${gx-r} ${gy+40} H ${gx+r}" stroke="#8A6A3A" stroke-width="2" opacity=".5"/>`
         + `<path d="M 1362 642 L 1392 660 L 1420 632 L 1450 652 M 1380 712 L 1414 732 L 1446 708 L 1468 736" stroke="#5A3A1A" stroke-width="2.5" fill="none"/>` + [[1362,642],[1392,660],[1420,632],[1450,652],[1380,712],[1414,732],[1446,708],[1468,736]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#3A2410"/>`).join('')
         + `<path d="M ${gx+40} ${gy-r} A ${r} ${r} 0 0 1 ${gx+40} ${gy+r} L ${gx+r+10} ${gy+r} L ${gx+r+10} ${gy-r} Z" fill="${SHC}" opacity=".25"/><path d="M 1354 642 Q 1342 672 1348 702" stroke="#FFF6E0" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/>`);
-      o += `<path d="M ${gx-ex} ${ringY} A ${R} ${R} 0 0 1 ${gx-R*0.55} ${gy-R*0.83}" stroke="#F2D27A" stroke-width="3" fill="none" opacity=".8"/><path d="M ${gx} ${gy-r} V ${gy-R-4}" stroke="#8A6420" stroke-width="4"/><circle cx="${gx}" cy="${gy-R-8}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/>`;
+      o += `<path d="M ${gx-ex} ${my} A ${R} ${R} 0 0 1 ${gx-R*0.55} ${gy-R*0.83}" stroke="#F2D27A" stroke-width="3" fill="none" opacity=".8"/><path d="M ${gx} ${gy-r} V ${gy-R-4}" stroke="#8A6420" stroke-width="4"/><circle cx="${gx}" cy="${gy-R-8}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/>`;
       /* forreste ben fra ringens underside ned på foden, og forreste halvdel af ringen over dem */
       o += leg(gx - 92, ringY + 10, baseY + 8, 8, WL) + leg(gx + 92, ringY + 10, baseY + 8, 8, WL);
       o += `<path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 0 ${gx+128} ${ringY}" fill="none" stroke="${WL}" stroke-width="16"/><path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 0 ${gx+128} ${ringY}" fill="none" stroke="#E9D4A8" stroke-width="4" stroke-dasharray="2 10"/>`;
+      o += [-1, 1].map(k => `<rect x="${gx + k*ex - 9}" y="${cy2 - 12}" width="18" height="24" rx="4" fill="${B}" stroke="#8A6420" stroke-width="2.5"/><circle cx="${gx + k*ex}" cy="${cy2}" r="3.5" fill="#8A6420"/>`).join('');
       o += `<ellipse cx="${gx-128}" cy="${ringY}" rx="8" ry="9" fill="${WL}" stroke="${W}" stroke-width="2"/><ellipse cx="${gx+128}" cy="${ringY}" rx="8" ry="9" fill="${WL}" stroke="${W}" stroke-width="2"/>`;
       return o; } },
 };
