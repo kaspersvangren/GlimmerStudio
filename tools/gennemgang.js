@@ -16,7 +16,10 @@ const V = { 'acc-bog': 6,
   /* v0.9.3: rettet efter anden gennemgang — håret foran er nu én form, så alle frisurer er tegnet om */
   'pande-side': 3, 'pande-lige': 3, 'pande-midt': 3, 'pande-pjusket': 3, 'pande-tilbage': 3,
   'bag-langt': 2, 'bag-kort': 2, 'bag-hestehale': 3, 'bag-fletninger': 2, 'bag-knolde': 2, 'bag-kroeller': 3,
-  'kappe-haette': 3, 'acc-halskaede': 3, 'acc-tryllestav': 3, 'pose-vink': 4, 'pose-ro': 4 };
+  /* v0.9.4: tredje gennemgang — striberne i sidehåret løber ud i spidser */
+  'pande-side': 4, 'pande-lige': 4, 'pande-midt': 4, 'pande-pjusket': 4, 'pande-tilbage': 4, 'bag-langt': 3, 'bag-kort': 3, 'bag-hestehale': 4,
+  'bag-fletninger': 3, 'bag-knolde': 3, 'bag-kroeller': 4, 'hat-hue': 3, 'acc-halskaede': 4, 'acc-tryllestav': 4, 'pose-vink': 5,
+  'kappe-haette': 3, 'pose-ro': 4 };
 
 (async () => {
   const b = await chromium.launch();
@@ -41,7 +44,7 @@ const V = { 'acc-bog': 6,
     for (const k of Object.keys(LIPSHAPES)) add('mund-' + k, 'Ansigt', 'Mund: ' + LIPSHAPES[k], { mk: { lipShape: k } }, 'ansigt', '350 420 100 70');
     for (const k of Object.keys(MARKS)) add('maerke-' + k, 'Ansigt', 'Mærke: ' + MARKS[k], { mk: { mark: k, markColor: '#E0457A' } }, 'ansigt', '300 370 200 140');
     add('pose-ro', 'Stillinger', 'Hænderne i ro', { acc: {} }, null, '250 680 300 160');
-    add('pose-vink', 'Stillinger', 'Vinker', { acc: {} }, null, '150 220 300 300', { wave: true });
+    add('pose-vink', 'Stillinger', 'Vinker', { acc: {}, back: 'kort' }, null, '150 220 300 300', { wave: true });
     return out;
   });
   for (const it of items) it.v = V[it.id] || 1;

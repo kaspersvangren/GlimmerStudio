@@ -38,7 +38,7 @@ function strandWedges(c, list){
   return list.map(([x1,y1,x2,y2]) => { const cx = (x1+x2)/2 + (x1 < 300 ? -8 : 8), cy = (y1+y2)/2; return `<path d="M ${x1-8} ${y1} Q ${cx-8} ${cy} ${x2} ${y2} Q ${cx+8} ${cy} ${x1+8} ${y1} Z" fill="${c.hair}" opacity=".6"/>`; }).join('');
 }
 function capBack(c){
-  return hairFill(c,'hcG',190,410,sd(c.hair,0.36)) + `<path d="${HAIR_CAP}" fill="${hairUrl(c,'hcG',sd(c.hair,0.36))}" stroke="${c.hs}" stroke-width="3" stroke-linejoin="round"/>`;
+  return hairFill(c,'hcG',190,410,mixC(c.hair,c.hs,0.35)) + `<path d="${HAIR_CAP}" fill="${hairUrl(c,'hcG',mixC(c.hair,c.hs,0.35))}" stroke="${c.hs}" stroke-width="3" stroke-linejoin="round"/>`;
 }
 function braid(c, x){
   let o = '';
@@ -81,13 +81,13 @@ const BACK = {
         + clipG(HAIR_LONG, strandWedges(c, [[196,350,214,560],[214,360,232,600],[404,350,386,560],[386,360,368,600]])
           + `<path d="M 200 380 C 196 450 194 520 204 590 M 400 380 C 404 450 406 520 396 590" stroke="${c.hs}" stroke-width="2" fill="none" opacity=".55"/>`); } },
   kort: { label:'Kort hår', lock:'kort', back: c => capBack(c) },
-  hestehale: { label:'Hestehale', lock:'ingen', back: c => capBack(c) + spin(hairFill(c,'pnG',220,500,c.hair)
+  hestehale: { label:'Hestehale', lock:'ingen', back: c => spin(hairFill(c,'pnG',220,500,c.hair)
       + `<path d="${PONY}" fill="${hairUrl(c,'pnG',c.hair)}" stroke="${c.hs}" stroke-width="3" stroke-linejoin="round"/>`
       + clipG(PONY, `<path d="M 380 250 C 420 280 432 360 428 430 C 424 380 414 310 372 262 Z" fill="${c.hD}" opacity=".5"/><path d="M 412 224 C 440 260 444 320 438 380" stroke="${c.hL}" stroke-width="5" fill="none" opacity=".7" stroke-linecap="round"/>`)
       + `<ellipse cx="372" cy="214" rx="12" ry="18" transform="rotate(-40 372 214)" fill="${c.tie}" stroke="${fdk(c.tie,0.4)}" stroke-width="2.5"/>`, 372, 214, [0,-3,0,2.5,0], 2.8) },
   fletninger: { label:'Fletninger', lock:'kort', back: c => capBack(c), over: c => spin(braid(c, 222), 222, 380, [0,2,0,-1.6,0], 3.4) + spin(braid(c, 378), 378, 380, [0,-2,0,1.6,0], 3.4) },
   knolde: { label:'Knolde', lock:'kort', back: c => capBack(c) + bunAt(c, 204, 258) + bunAt(c, 396, 258) },
-  kroeller: { label:'Krøller', lock:'krol', back: c => curls(c) },
+  kroeller: { label:'Krøller', lock:'krol', back: c => '' },
 };
 
 /* ---- håret foran: ÉN form med én kontur (sidehår + isse + pandehårets kant), så der ingen samlinger er ved tindingen ----
@@ -116,8 +116,8 @@ function hairShape(fringe, lockKind){
 }
 function lockDetails(c, kind){
   let one;
-  if (kind === 'lang') one = `<path d="M 240 300 C 246 350 242 420 228 466 C 238 420 238 350 234 300 Z" fill="${c.hD}" opacity=".5"/><path d="M 214 300 C 210 344 214 392 208 436 C 218 394 222 344 222 300 Z" fill="${c.hL}" opacity=".85"/><path d="M 228 330 C 228 380 224 420 216 452 C 224 420 226 380 230 330 Z" fill="${c.hL}" opacity=".5"/>`;
-  else if (kind === 'kort') one = `<path d="M 240 296 C 244 320 238 340 228 360 C 234 336 236 316 234 296 Z" fill="${c.hD}" opacity=".5"/><path d="M 214 296 C 212 320 212 338 212 356 C 218 338 220 318 222 296 Z" fill="${c.hL}" opacity=".85"/>`;
+  if (kind === 'lang') one = `<path d="M 238 270 C 248 340 242 420 228 466 C 238 420 236 340 238 270 Z" fill="${c.hD}" opacity=".5"/><path d="M 217 266 C 208 330 214 392 208 436 C 218 394 223 330 217 266 Z" fill="${c.hL}" opacity=".85"/><path d="M 228 330 C 228 380 224 420 216 452 C 224 420 226 380 230 330 Z" fill="${c.hL}" opacity=".5"/>`;
+  else if (kind === 'kort') one = `<path d="M 238 270 C 246 316 238 340 228 360 C 234 336 238 310 238 270 Z" fill="${c.hD}" opacity=".5"/><path d="M 217 266 C 209 310 212 338 212 356 C 219 338 223 306 217 266 Z" fill="${c.hL}" opacity=".85"/>`;
   else if (kind === 'krol'){ one = ''; for (let y = 312; y < 490; y += 26){ const x = 214 + ((y/26)%2) * 6;
       one += `<path d="M ${x} ${y} c -8 -2 -10 9 -2 12 c 9 3 13 -9 4 -15" fill="none" stroke="${c.hs}" stroke-width="2.4" opacity=".5" stroke-linecap="round"/><path d="M ${x-8} ${y-8} q -5 8 0 16" stroke="${c.hL}" stroke-width="3.5" fill="none" opacity=".6" stroke-linecap="round"/>`; } }
   else one = `<path d="M 216 296 C 214 306 216 314 222 320" stroke="${c.hL}" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>`;
@@ -164,7 +164,7 @@ function hatBrim(c, w=1){
 const CONE = 'M 236 206 C 250 150 268 100 300 64 C 320 40 352 30 378 38 C 360 50 350 62 352 80 C 346 120 356 170 366 206 Z';
 const CONE_BENT = 'M 236 206 C 246 158 262 118 288 90 C 304 74 330 68 352 76 C 378 86 396 106 404 132 C 390 118 372 112 356 116 C 344 128 350 172 366 206 Z';
 const CONE_LOW = 'M 246 206 C 254 170 270 138 300 118 C 330 138 346 170 354 206 Z';
-const CAP_SOFT = 'M 222 236 C 220 172 258 132 306 130 C 352 132 374 162 386 200 C 398 240 424 270 446 296 C 414 296 394 274 382 252 L 380 236 Z';
+const CAP_SOFT = 'M 204 240 C 208 172 258 132 306 130 C 352 132 374 162 386 200 C 398 240 424 270 446 296 C 414 296 394 274 382 252 L 380 236 Z';
 const HATS = {
   ingen: { label:'Ingen hat' },
   spids: { label:'Spids hat', draw: c => {
@@ -191,7 +191,7 @@ const HATS = {
         + clipG(CAP_SOFT, `<path d="M 330 130 C 360 160 372 200 392 240 C 404 262 420 282 450 300 L 460 120 Z" fill="${h.D}" opacity=".5"/><path d="M 244 214 C 248 178 266 152 296 142" stroke="${lt(h.a,0.22)}" stroke-width="6" fill="none" opacity=".5" stroke-linecap="round"/>`
           + [[260,170],[300,160],[332,190],[284,206],[360,226],[392,262]].map(([x,y]) => twinkle(x, y, 6, h.bL)).join(''))
         + `<circle cx="446" cy="298" r="16" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5"/><circle cx="441" cy="292" r="5" fill="${h.bL}"/>`
-        + `<path d="M 214 222 Q 300 200 386 222 L 388 250 Q 300 230 212 250 Z" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5" stroke-linejoin="round"/>`
+        + `<path d="M 198 226 Q 300 198 402 226 L 406 256 Q 300 230 194 256 Z" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5" stroke-linejoin="round"/>`
         + `<path d="M 220 238 Q 300 218 380 238" stroke="${h.bL}" stroke-width="2" fill="none" stroke-dasharray="3 5"/><path d="M 344 222 Q 370 224 386 228 L 388 250 Q 370 244 346 242 Z" fill="${h.bD}" opacity=".5"/>`; } },
 };
 
@@ -404,13 +404,15 @@ function armOpen(c, dark, inHand='', wave=null){
   return s + cuffBand(c, [192.6,550.3], [248.6,558.3], [190,562], [246,570], [220,560], [218,590]);
 }
 /* knytnæve i venstre side (spejles til højre), med noget i hånden */
-function armFist(c, held){
+function armFist(c, held, flip){
   const r = c.robe, X = 210, Y = 600;
   let s = `<path d="M 207 556 L 228 556 L 226 590 L 207 590 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2"/>`;
   s += held.behind || '';
+  s += flip ? `<g transform="translate(420 0) scale(-1 1)">` : '';
   s += `<path d="M ${X-16} ${Y-12} Q ${X-16} ${Y-22} ${X-6} ${Y-22} L ${X+10} ${Y-20} Q ${X+20} ${Y-18} ${X+19} ${Y-9} Q ${X+23} ${Y-4} ${X+19} ${Y+1} Q ${X+23} ${Y+6} ${X+19} ${Y+11} Q ${X+20} ${Y+20} ${X+10} ${Y+20} L ${X-6} ${Y+20} Q ${X-17} ${Y+19} ${X-17} ${Y+9} Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.4" stroke-linejoin="round"/>`;
   s += `<path d="M ${X+11} ${Y-9} h 9 M ${X+11} ${Y+1} h 9 M ${X+11} ${Y+11} h 8" stroke="${c.sk}" stroke-width="2" stroke-linecap="round" opacity=".7"/><path d="M ${X-12} ${Y-14} Q ${X-4} ${Y-24} ${X+10} ${Y-17} Q ${X+8} ${Y-9} ${X-4} ${Y-9} Q ${X-11} ${Y-9} ${X-12} ${Y-14} Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/>`;
   s += `<path d="M ${X-16} ${Y+4} L ${X+20} ${Y+4} L ${X+20} ${Y+20} L ${X-16} ${Y+20} Z" fill="${c.skS}" opacity=".3"/>`;
+  s += flip ? '</g>' : '';
   s += held.front || '';
   s += `<path d="${SLEEVE_L}" fill="${r.a}" stroke="${r.s}" stroke-width="3" stroke-linejoin="round"/>`;
   s += clipG(SLEEVE_L, `<path d="M 230 430 C 222 480 226 530 240 580 L 280 580 L 280 430 Z" fill="${r.D}" opacity=".45"/><path d="M 180 420 L 280 420 L 280 600 L 180 600 Z" fill="${r.D}" opacity=".3"/><path d="M 214 500 Q 228 506 236 500 M 210 520 Q 226 528 238 520" stroke="${r.D}" stroke-width="3" fill="none" opacity=".7"/>`);
@@ -449,7 +451,7 @@ function armWand(c, col){
   let s = `<path d="M ${base[0].toFixed(1)} ${base[1].toFixed(1)} L ${tip[0].toFixed(1)} ${(tip[1]+8).toFixed(1)}" stroke="${w}" stroke-width="7" stroke-linecap="round"/><path d="M ${(base[0]-1.5).toFixed(1)} ${base[1].toFixed(1)} L ${(tip[0]-1.5).toFixed(1)} ${(tip[1]+8).toFixed(1)}" stroke="${lt(w,0.35)}" stroke-width="2" stroke-linecap="round"/>`;
   s += starP(tip[0], tip[1], 13, col) + starP(tip[0], tip[1], 6, lt(col,0.6));
   s += [[-16,-14,5],[18,-10,4],[10,16,3.5],[-10,12,3]].map(([dx,dy,rr], i) => { const tw = twinkle(tip[0]+dx, tip[1]+dy, rr, lt(col,0.5)); return ANIM ? `<g>${tw}<animate attributeName="opacity" values="1;0.15;1" dur="${1.4+i*0.4}s" repeatCount="indefinite"/></g>` : tw; }).join('');
-  s += MIR(`<g transform="rotate(${A} ${px} ${py})">${armFist(c, {})}</g>`);
+  s += MIR(`<g transform="rotate(${A} ${px} ${py})">${armFist(c, {}, true)}</g>`);
   return s;
 }
 /* tryllestav i knytnæven (tegnes i venstre sides mål og spejles) */
@@ -517,7 +519,7 @@ function scarfF(col){
 }
 function necklaceF(col){
   const D = fdk(col,0.3);
-  return `<path d="M 285 388 Q 280 428 300 440 Q 320 428 315 388" stroke="${D}" stroke-width="3" fill="none"/><path d="M 285 388 Q 280 428 300 440 Q 320 428 315 388" stroke="${col}" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>`
+  return `<path d="M 284 398 Q 280 428 300 440 Q 320 428 316 398" stroke="${D}" stroke-width="3" fill="none"/><path d="M 284 398 Q 280 428 300 440 Q 320 428 316 398" stroke="${col}" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>`
     + `<circle cx="300" cy="443" r="4" fill="none" stroke="${D}" stroke-width="2.4"/>`
     + `<circle cx="300" cy="460" r="14" fill="${col}" stroke="${D}" stroke-width="2.4"/><circle cx="300" cy="460" r="10" fill="none" stroke="${lt(col,0.45)}" stroke-width="1.2"/>`
     + moon(298, 460, 8, fdk(col,0.5)) + starP(306, 455, 3, fdk(col,0.5)) + `<circle cx="294" cy="452" r="2.2" fill="#FFF" opacity=".85"/>`;
