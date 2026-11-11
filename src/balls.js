@@ -10,9 +10,11 @@ let bubPick = null, bubTaps = 0, bubBusy = false, BUBN = 0;
 
 /* små tegninger inde i boblen */
 const BUB_ICON = {
-  toej: '<path d="M 128 96 L 172 96 L 180 118 C 192 160 206 196 214 214 C 186 226 114 226 86 214 C 94 196 108 160 120 118 Z" fill="#FF8FC7" stroke="#B32268" stroke-width="5" stroke-linejoin="round"/><path d="M 132 96 Q 150 112 168 96" fill="none" stroke="#B32268" stroke-width="5"/><path d="M 110 168 Q 150 178 190 168" stroke="#FFE27A" stroke-width="7" fill="none"/>',
+  toej: '<path d="M 150 64 L 186 136 Q 150 146 114 136 Z" fill="#7B4FD0" stroke="#4A2E8A" stroke-width="5" stroke-linejoin="round"/><ellipse cx="150" cy="138" rx="48" ry="11" fill="#7B4FD0" stroke="#4A2E8A" stroke-width="5"/><path d="M 136 112 L 164 112" stroke="#FFE27A" stroke-width="6"/>'
+    + '<path d="M 76 176 L 100 160 H 124 L 148 176 L 140 192 L 130 188 V 232 H 94 V 188 L 84 192 Z" fill="#43A3D3" stroke="#1F5F8A" stroke-width="5" stroke-linejoin="round"/><path d="M 102 160 Q 112 172 122 160" fill="none" stroke="#1F5F8A" stroke-width="4"/><path d="M 96 210 H 128" stroke="#FFFFFF" stroke-width="4" opacity=".7"/>'
+    + '<path d="M 186 160 H 214 L 220 182 L 236 232 Q 200 242 164 232 L 180 182 Z" fill="#FF8FC7" stroke="#B32268" stroke-width="5" stroke-linejoin="round"/><path d="M 192 160 Q 200 170 208 160" fill="none" stroke="#B32268" stroke-width="4"/><path d="M 174 210 Q 200 218 226 210" stroke="#FFE27A" stroke-width="5" fill="none"/>',
   dyr: '<ellipse cx="150" cy="178" rx="40" ry="32" fill="#FFB547" stroke="#B9741A" stroke-width="5"/>' + [[106,132,15],[132,108,15],[168,108,15],[194,132,15]].map(([x,y,r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*1.25}" fill="#FFB547" stroke="#B9741A" stroke-width="5"/>`).join(''),
-  rum: '<rect x="88" y="104" width="20" height="112" rx="6" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="104" y="160" width="110" height="34" rx="8" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 108 138 Q 128 126 148 138 Q 150 150 148 160 L 108 160 Z" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 140 156 Q 180 146 214 156 L 218 194 L 140 194 Z" fill="#8A5BE8" stroke="#5E3BC4" stroke-width="4"/><rect x="88" y="194" width="134" height="14" rx="5" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><path d="M 196 92 A 18 18 0 1 0 214 120 A 14 14 0 1 1 196 92 Z" fill="#FFE27A" stroke="#C99A12" stroke-width="3"/>',
+  rum: '<rect x="88" y="104" width="20" height="112" rx="6" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="104" y="160" width="110" height="34" rx="8" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 108 138 Q 128 126 148 138 Q 150 150 148 160 L 108 160 Z" fill="#FFF8F0" stroke="#C9B6A6" stroke-width="4"/><path d="M 140 156 Q 180 146 214 156 L 218 194 L 140 194 Z" fill="#8A5BE8" stroke="#5E3BC4" stroke-width="4"/><rect x="88" y="194" width="134" height="14" rx="5" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><rect x="204" y="206" width="16" height="16" rx="4" fill="#9C6B43" stroke="#6A4528" stroke-width="4"/><path d="M 196 92 A 18 18 0 1 0 214 120 A 14 14 0 1 1 196 92 Z" fill="#FFE27A" stroke="#C99A12" stroke-width="3"/>',
 };
 /* en sæbeboble: næsten gennemsigtig, regnbuekant, lys fra venstre */
 function bubbleSvg(kind, small){
@@ -44,13 +46,18 @@ let nisseLine = '', chatN = 0;
 const NISSE_BEARD = `<path d="M 312 418 C 296 480 318 586 400 632 C 482 586 504 480 488 418 C 472 452 440 470 400 470 C 360 470 328 452 312 418 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="4"/>`
   + `<path d="M 340 500 q 14 16 4 34 M 400 520 q 12 18 0 40 M 456 500 q -14 16 -4 34 M 370 560 q 10 14 2 28 M 430 560 q -10 14 -2 28" stroke="#DCD6EA" stroke-width="4" fill="none" stroke-linecap="round"/>`
   + `<path d="M 400 444 C 380 428 346 430 336 452 C 352 466 382 466 400 452 C 418 466 448 466 464 452 C 454 430 420 428 400 444 Z" fill="#FFFFFF" stroke="#C9C2DA" stroke-width="3.5"/>`
-  + `<ellipse cx="400" cy="422" rx="20" ry="17" fill="#F2A08A" stroke="#C9745E" stroke-width="3"/><ellipse cx="393" cy="416" rx="6" ry="4" fill="#FFFFFF" opacity=".7"/>`;
+  + `<ellipse cx="400" cy="422" rx="20" ry="17" fill="#F2A08A" stroke="#C9745E" stroke-width="3"/><ellipse cx="393" cy="416" rx="6" ry="4" fill="#FFFFFF" opacity=".7"/>`
+  /* rynker: smilerynker ved øjnene, poser under øjnene og buskede hvide øjenbryn */
+  + [1, -1].map(f => { const X = x => 400 + f * (x - 400);
+      return `<path d="M ${X(316)} 430 Q ${X(322)} 440 ${X(332)} 444" stroke="#D49C88" stroke-width="3" fill="none" stroke-linecap="round"/>`
+        + `<path d="M ${X(390)} 358 Q ${X(394)} 363 ${X(393)} 368" stroke="#D49C88" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".8"/>`
+        + `<path d="M ${X(312)} 350 Q ${X(318)} 330 ${X(340)} 334 Q ${X(352)} 322 ${X(368)} 332 Q ${X(386)} 328 ${X(388)} 344 Q ${X(372)} 352 ${X(350)} 350 Q ${X(330)} 360 ${X(312)} 350 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="3"/>`; }).join('');
 
 function shopBleed(){
-  const WL = '#1F6F6A', WD = '#8C5A3C';
+  const WL = '#163C40', WD = '#5A3A28';
   let o = `<rect x="-1700" y="-700" width="5000" height="2400" fill="${WL}"/>`;
-  for (let x = -1700; x < 3300; x += 80) for (let y = 0; y < 560; y += 80) o += `<path d="M ${x+40} ${y} L ${x+80} ${y+40} L ${x+40} ${y+80} L ${x} ${y+40} Z" fill="none" stroke="#2C8A82" stroke-width="3"/>`;
-  for (let x = -1660; x < 3300; x += 160) for (let y = 40; y < 560; y += 160) o += starP(x, y, 6, '#F2C14E', .5);
+  for (let x = -1700; x < 3300; x += 80) for (let y = 0; y < 560; y += 80) o += `<path d="M ${x+40} ${y} L ${x+80} ${y+40} L ${x+40} ${y+80} L ${x} ${y+40} Z" fill="none" stroke="#1F5157" stroke-width="3"/>`;
+  for (let x = -1660; x < 3300; x += 160) for (let y = 40; y < 560; y += 160) o += starP(x, y, 6, '#C9A04A', .35);
   o += `<rect x="-1700" y="-700" width="5000" height="700" fill="#5A3A28"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="70" height="700" fill="#3E2618"/>`).join('');
   o += `<rect x="-1700" y="-30" width="5000" height="40" fill="${WD}"/><rect x="-1700" y="2" width="5000" height="8" fill="#3E2618" opacity=".5"/>`;
   return o;
@@ -96,7 +103,7 @@ function shopScene(){
   o += `<g data-hit="nisse"><g class="anim"><image href="${dollUrl(NISSE, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${nx}" y="${ny}" width="369" height="760"/>`
     + `<g transform="translate(${nx} ${ny}) scale(${S}) translate(-150 -40)">${NISSE_BEARD}</g></g></g>`;
   /* disken */
-  const C = '#A8734A', F = '#7A5236';
+  const C = '#7A4E35', F = '#4A3022';
   o += `<rect x="-1700" y="880" width="5000" height="900" fill="${F}"/>` + Array.from({ length: 30 }, (_, i) => `<path d="M ${-1700 + i*170} 880 V 1800" stroke="${fdk(F,0.2)}" stroke-width="3"/>`).join('');
   o += `<rect x="-1700" y="540" width="5000" height="350" fill="${C}"/><rect x="-1700" y="850" width="5000" height="40" fill="${fdk(C,0.2)}"/>`;
   /* vitrinerne i disken: bobler der svæver rundt */
@@ -108,11 +115,13 @@ function shopScene(){
         return `<g class="vbub" style="animation-delay:${-(i*0.7).toFixed(1)}s;animation-duration:${(3 + i%3).toFixed(1)}s"><circle cx="${bx}" cy="${by}" r="${r}" fill="${c}" opacity=".4" stroke="${lt(c,0.3)}" stroke-width="3"/><circle cx="${bx - r*0.35}" cy="${by - r*0.35}" r="${r*0.22}" fill="#FFFFFF" opacity=".8"/></g>`; }).join('')
       + `<path d="M ${x0+20} 600 L ${x0+80} 600 L ${x0+20} 680 Z" fill="#FFFFFF" opacity=".12"/>`);
   }
-  o += `<rect x="-1700" y="514" width="5000" height="34" rx="8" fill="#C99A5B" stroke="#7A5236" stroke-width="4"/><rect x="-1700" y="514" width="5000" height="8" fill="#E2B87A"/>`;
+  o += `<rect x="-1700" y="514" width="5000" height="34" rx="8" fill="#9C6B43" stroke="#5A3A28" stroke-width="4"/><rect x="-1700" y="514" width="5000" height="8" fill="#B88A5A"/>`;
   o += JARS.map(bigJar).join('');
   /* klokke og prisskilt */
   o += `<g data-hit="klokke"><g class="anim"><ellipse cx="1240" cy="512" rx="40" ry="8" fill="#7A5236"/><path d="M 1206 508 C 1206 470 1222 446 1240 446 C 1258 446 1274 470 1274 508 Z" fill="#F2C14E" stroke="#A87A1A" stroke-width="4"/><circle cx="1240" cy="440" r="8" fill="#F2C14E" stroke="#A87A1A" stroke-width="3"/><path d="M 1222 470 q 6 -14 14 -18" stroke="#FFF6D0" stroke-width="5" fill="none" stroke-linecap="round"/></g></g>`;
   o += `<g><path d="M 1400 512 L 1430 360 M 1530 512 L 1500 360" stroke="#7A5236" stroke-width="8" stroke-linecap="round"/><rect x="1380" y="350" width="170" height="120" rx="10" fill="#3A4A44" stroke="#9C6B43" stroke-width="8"/><text x="1465" y="400" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="24" fill="#FFFFFF">1 boble</text><text x="1452" y="440" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="26" fill="#FFE27A">${BUB_PRICE}</text>${starP(1490, 431, 13, '#FFE27A')}</g>`;
+  o += cobweb(-10, 0, 1) + cobweb(1610, 0, -1);
+  o += placeMood([[1225, 160, 420, 320], [1100, 360, 360, 300], [430, 640, 520, 220]], { vign: .8, dx: 200, dw: 1200 });
   /* nissens taleboble */
   o += `<g class="say" pointer-events="none"><path d="M 600 160 Q 600 132 628 132 H 952 Q 980 132 980 160 V 262 Q 980 290 952 290 H 940 L 990 336 L 896 290 H 628 Q 600 290 600 262 Z" fill="#FFFFFF" stroke="#4A3A6A" stroke-width="4"/>`
     + `<foreignObject x="612" y="136" width="356" height="150"><div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div></foreignObject></g>`;

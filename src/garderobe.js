@@ -5,24 +5,39 @@ const FRAME_BG = ['#FFE3F0','#E6E0FF','#DDF3FF','#E2FAEF','#FFF3D6','#FFE6DC'];
 const FRAMES = [[690,240],[860,240],[1030,240],[690,505],[860,505],[1030,505]];
 
 function wardBleed(){
-  const WALL = '#E7B7D2', W2 = '#F1CCE0', PAN = '#FFF1E6', F = '#C9956A', B = '#7A4E6A';
-  let o = `<rect x="-1700" y="-700" width="5000" height="2400" fill="${WALL}"/>`;
-  for (let x = -1700; x < 3300; x += 100) o += `<rect x="${x}" y="0" width="44" height="680" fill="${W2}"/>`;
-  for (let x = -1678; x < 3300; x += 100) for (let y = 40; y < 660; y += 80) o += `<circle cx="${x + 50}" cy="${y + (x/100 % 2 ? 40 : 0)}" r="5" fill="#FFFFFF" opacity=".55"/>`;
-  o += `<rect x="-1700" y="-700" width="5000" height="700" fill="${B}"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="60" height="700" fill="${fdk(B,0.25)}"/>`).join('');
-  o += `<rect x="-1700" y="-24" width="5000" height="34" fill="#F7E2EC"/><rect x="-1700" y="4" width="5000" height="6" fill="${B}" opacity=".35"/>`;
-  o += `<rect x="-1700" y="0" width="5000" height="680" fill="url(#wallG)"/>`;
-  o += `<defs><linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${SHC}" stop-opacity=".18"/><stop offset=".35" stop-color="${SHC}" stop-opacity="0"/><stop offset="1" stop-color="${SHC}" stop-opacity=".08"/></linearGradient></defs>`;
-  o += `<rect x="-1700" y="660" width="5000" height="100" fill="${PAN}"/><rect x="-1700" y="660" width="5000" height="10" fill="#E6CDBE"/>` + Array.from({ length: 34 }, (_, i) => `<rect x="${-1680 + i*150}" y="682" width="126" height="60" rx="6" fill="none" stroke="#E6CDBE" stroke-width="4"/>`).join('');
+  const ST = '#4A4560', SL = '#36324A', B = '#3E2A22', F = '#4E3628';
+  let o = `<rect x="-1700" y="-700" width="5000" height="2400" fill="${ST}"/>`;
+  /* stenmur: rækker af blokke, forskudt, nogle lidt lysere eller mørkere */
+  for (let r = 0; r < 11; r++){ const y = r * 70, off = r % 2 ? 70 : 0;
+    for (let x = -1700 - off; x < 3300; x += 140){ const k = Math.abs((x / 140 | 0) * 7 + r * 13) % 9;
+      const col = k === 0 ? '#524C6A' : k === 1 ? '#423D58' : k === 2 ? '#4E4866' : ST;
+      o += `<rect x="${x + 3}" y="${y + 3}" width="134" height="64" rx="8" fill="${col}" stroke="${SL}" stroke-width="4"/>`; } }
+  o += `<rect x="-1700" y="-700" width="5000" height="700" fill="${B}"/>` + Array.from({ length: 22 }, (_, i) => `<rect x="${-1700 + i*240}" y="-700" width="70" height="700" fill="#2A1C16"/>`).join('');
+  o += `<rect x="-1700" y="-30" width="5000" height="40" fill="#5A3A28"/><rect x="-1700" y="4" width="5000" height="8" fill="#1E1410" opacity=".5"/>`;
+  o += `<rect x="-1700" y="0" width="5000" height="760" fill="url(#wallG)"/>`;
+  o += `<defs><linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#120A28" stop-opacity=".35"/><stop offset=".4" stop-color="#120A28" stop-opacity="0"/><stop offset="1" stop-color="#120A28" stop-opacity=".2"/></linearGradient></defs>`;
   o += `<rect x="-1700" y="760" width="5000" height="1000" fill="${F}"/>`;
-  for (let i = 0; i < 14; i++){ const y = 760 + i*i*4 + i*8; o += `<path d="M -1700 ${y} H 3300" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".5"/>`; }
-  for (let i = -14; i <= 14; i++) o += `<path d="M ${800 + i*90} 760 L ${800 + i*330} 1500" stroke="${fdk(F,0.15)}" stroke-width="2" opacity=".3"/>`;
-  o += `<rect x="-1700" y="752" width="5000" height="16" fill="#9C6B43"/>`;
+  for (let i = 0; i < 14; i++){ const y = 760 + i*i*4 + i*8; o += `<path d="M -1700 ${y} H 3300" stroke="#3A281E" stroke-width="2" opacity=".6"/>`; }
+  for (let i = -14; i <= 14; i++) o += `<path d="M ${800 + i*90} 760 L ${800 + i*330} 1500" stroke="#3A281E" stroke-width="2" opacity=".4"/>`;
+  o += `<rect x="-1700" y="748" width="5000" height="20" fill="#3E2A22"/><rect x="-1700" y="748" width="5000" height="5" fill="#6A4A3A"/>`;
   return o;
+}
+/* lysestager på muren og en lille lysekrone */
+function sconce(x, y){
+  return `<path d="M ${x} ${y+40} q 0 -20 -16 -26 M ${x} ${y+40} q 0 -20 16 -26" stroke="#2A2238" stroke-width="5" fill="none"/><rect x="${x-18}" y="${y+36}" width="36" height="10" rx="4" fill="#2A2238"/><path d="M ${x-10} ${y+52} L ${x} ${y+70} L ${x+10} ${y+52} Z" fill="#2A2238"/>`
+    + `<rect x="${x-8}" y="${y}" width="16" height="36" rx="3" fill="#FFF3DC" stroke="#C9B6A6" stroke-width="2"/><path d="M ${x} ${y} q -8 -14 0 -28 q 8 14 0 28" fill="#FFC02E" stroke="#E07A1F" stroke-width="2"><animate attributeName="opacity" values="1;.75;1;.9;1" dur="1.3s" repeatCount="indefinite"/></path>`;
+}
+function chandelier(x, y){
+  let o = `<path d="M ${x} -30 V ${y-30} M ${x} ${y-30} L ${x-70} ${y} M ${x} ${y-30} L ${x+70} ${y}" stroke="#2A2238" stroke-width="4"/><ellipse cx="${x}" cy="${y}" rx="76" ry="16" fill="none" stroke="#2A2238" stroke-width="8"/>`;
+  return o + [-60, 0, 60].map(dx => `<rect x="${x+dx-7}" y="${y-30}" width="14" height="30" rx="3" fill="#FFF3DC" stroke="#C9B6A6" stroke-width="2"/><path d="M ${x+dx} ${y-30} q -6 -12 0 -22 q 6 10 0 22" fill="#FFC02E" stroke="#E07A1F" stroke-width="2"/>`).join('');
+}
+function banner(x){
+  return `<path d="M ${x} -10 H ${x+70} V 420 L ${x+35} 390 L ${x} 420 Z" fill="#5A2346" stroke="#3A1430" stroke-width="4"/><path d="M ${x+8} -10 V 404 M ${x+62} -10 V 404" stroke="#C9952E" stroke-width="4"/>`
+    + crescent(x + 35, 150, 20, '#E9C46A', 1, -20) + `<g transform="translate(${x+35} 250)"><polygon points="${star5pts(0,0,16,7)}" fill="#E9C46A"/></g><rect x="${x-8}" y="-14" width="86" height="14" rx="6" fill="#2A2238"/>`;
 }
 /* klædeskabet med åbne låger og tøj på bøjler */
 function wardrobe(){
-  const W = '#9A6440', WD = fdk(W, 0.2), IN = '#4A2E40';
+  const W = '#6A4430', WD = fdk(W, 0.2), IN = '#2E1C2A';
   let o = `<ellipse cx="290" cy="905" rx="250" ry="22" fill="${SHC}" opacity=".18"/>`;
   o += `<path d="M 100 900 V 230 Q 290 120 480 230 V 900 Z" fill="${W}" ${RS(W,4)}/><path d="M 440 236 Q 462 214 480 230 V 900 H 440 Z" fill="${WD}" opacity=".5"/>`;
   o += `<g transform="translate(290 168)"><polygon points="${star5pts(0,0,26,11)}" fill="#F2C14E" stroke="#B98516" stroke-width="3"/></g>`;
@@ -84,9 +99,11 @@ function wardScene(){
   wardPage = Math.min(wardPage, pages - 1);
   const shown = list.slice(wardPage * WARD_PER, wardPage * WARD_PER + WARD_PER);
   let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
-  o += wardBleed() + `<ellipse cx="860" cy="880" rx="300" ry="62" fill="#B79BFF" stroke="#8A6AE0" stroke-width="4"/><ellipse cx="860" cy="880" rx="250" ry="44" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-dasharray="4 12"/>`;
+  o += wardBleed() + `<ellipse cx="860" cy="880" rx="300" ry="62" fill="#6A2236" stroke="#3E1220" stroke-width="5"/><ellipse cx="860" cy="880" rx="262" ry="48" fill="none" stroke="#C9952E" stroke-width="5"/><ellipse cx="860" cy="880" rx="230" ry="38" fill="none" stroke="#C9952E" stroke-width="2" stroke-dasharray="3 10"/>`;
+  o += banner(1520) + chandelier(860, 80) + sconce(578, 300) + sconce(1144, 300);
   o += `<g data-hit="skab">${wardrobe()}</g>`;
   o += `<g data-hit="spejl">${wardMirror(heroState())}</g>`;
+  o += placeMood([[578, 300, 200, 200], [1144, 300, 200, 200], [860, 120, 320, 220]], { vign: .8, warm: .3, dx: 300, dw: 1000 });
   o += portrait(-1, null, FRAMES[0][0], FRAMES[0][1]);
   shown.forEach((f, k) => { const idx = list.indexOf(f); o += portrait(idx, f, FRAMES[k+1][0], FRAMES[k+1][1]); });
   if (pages > 1){

@@ -102,9 +102,6 @@ function titleScene(){
   /* forgrunden: bakken figuren står på */
   o += `<path d="M 0 830 C 260 790 520 840 800 836 C 1080 832 1340 780 1600 820 L 1600 1000 L 0 1000 Z" fill="#241A5C"/><path d="M 0 830 C 260 790 520 840 800 836 C 1080 832 1340 780 1600 820" stroke="#4E3C9C" stroke-width="5" fill="none"/>`;
   o += [[110,880],[1480,870],[1180,900],[300,930]].map(([x,y]) => `<g fill="#3A2C80">${[[-14,-26],[0,-34],[14,-24]].map(([dx,dy]) => `<ellipse cx="${x+dx}" cy="${y+dy}" rx="7" ry="16" transform="rotate(${dx*1.6} ${x+dx} ${y+dy})"/>`).join('')}</g>`).join('');
-  /* ildfluer */
-  for (let i = 0; i < 14; i++){ const x = 80 + r()*1440, y = 700 + r()*240, d = (3 + r()*3).toFixed(1);
-    o += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="3.5" fill="#FFF0A0"><animate attributeName="opacity" values="0;1;0" dur="${d}s" begin="${(r()*3).toFixed(1)}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;${(r()*30-15).toFixed(0)} -18;0 0" dur="${(+d*2).toFixed(1)}s" repeatCount="indefinite"/></circle>`; }
   return o + '</svg>';
 }
 const RING_SVG = `<svg viewBox="0 0 400 80" aria-hidden="true"><ellipse cx="200" cy="40" rx="190" ry="32" fill="#FFE9A8" opacity=".18"/><ellipse cx="200" cy="40" rx="170" ry="26" fill="none" stroke="#FFE27A" stroke-width="4" opacity=".9"/><ellipse cx="200" cy="40" rx="140" ry="19" fill="none" stroke="#FFE27A" stroke-width="2" stroke-dasharray="3 9" opacity=".8"/>${[[40,40],[360,40],[200,14],[200,66],[90,22],[310,58],[90,58],[310,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#FFF6D0"/>`).join('')}</svg>`;
