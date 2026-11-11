@@ -9,11 +9,14 @@ fs.mkdirSync(IMG, { recursive: true });
 const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
-const V = { 'pose-ro': 4, 'pose-vink': 3, 'acc-bog': 6,
-  /* rettet efter første gennemgang (v0.9.2) */
-  'acc-briller': 2, 'acc-halskaede': 2, 'acc-tryllestav': 2, 'bag-hestehale': 2, 'bag-kroeller': 2, 'hat-hue': 2, 'hat-knaek': 2, 'hat-kort': 2, 'hat-spids': 2,
-  'kappe-haette': 2, 'maerke-fregner': 2, 'maerke-glimmer': 2, 'maerke-hjerte': 2, 'maerke-stjerne': 2, 'pande-lige': 2, 'pande-midt': 2, 'pande-pjusket': 2,
-  'pande-side': 2, 'pande-tilbage': 2, 'sko-hoeje': 2, 'sko-snoer': 2 };
+const V = { 'acc-bog': 6,
+  /* v0.9.2: rettet efter første gennemgang */
+  'acc-briller': 2, 'hat-hue': 2, 'hat-knaek': 2, 'hat-kort': 2, 'hat-spids': 2, 'maerke-fregner': 2, 'maerke-glimmer': 2, 'maerke-hjerte': 2, 'maerke-stjerne': 2,
+  'sko-hoeje': 2, 'sko-snoer': 2,
+  /* v0.9.3: rettet efter anden gennemgang — håret foran er nu én form, så alle frisurer er tegnet om */
+  'pande-side': 3, 'pande-lige': 3, 'pande-midt': 3, 'pande-pjusket': 3, 'pande-tilbage': 3,
+  'bag-langt': 2, 'bag-kort': 2, 'bag-hestehale': 3, 'bag-fletninger': 2, 'bag-knolde': 2, 'bag-kroeller': 3,
+  'kappe-haette': 3, 'acc-halskaede': 3, 'acc-tryllestav': 3, 'pose-vink': 4, 'pose-ro': 4 };
 
 (async () => {
   const b = await chromium.launch();
