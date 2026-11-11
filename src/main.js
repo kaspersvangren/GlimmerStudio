@@ -39,7 +39,7 @@ function openTest(){
 
 /* ---------- knapper ---------- */
 function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(() => { logoTaps = 0; }, 2500); if (logoTaps >= 5){ logoTaps = 0; openTest(); } }
-$('#homeBack').onclick = () => { sfx.undo(); goTo(showTown); };
+$('#homeBack').onclick = () => { sfx.undo(); goTo(showRoom); };
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }

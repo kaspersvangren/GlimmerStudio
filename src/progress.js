@@ -23,7 +23,7 @@ const CAT_INFO = {
   petacc: { label:'Dyretilbehør', ids: () => Object.keys(PET_ACC), name: k => PET_ACC[k].label, multi:true, get: st=>st.pet.acc, apply: (st,k)=>{ st.pet.acc[k] = st.pet.acc[k] || PET_ACC[k].color; }, vb: () => VB.pet, petOnly:true },
 };
 
-function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [] } : { stars:0, unlocked:[], fresh:[] }; }
+function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [], room: (p.room && typeof p.room === 'object') ? p.room : null } : { stars:0, unlocked:[], fresh:[], room:null }; }
 let prog = loadProg();
 const saveProg = () => store.set(KEY_PROG, prog);
 /* nye ting pulserer i skaberen, indtil man har trykket på dem */
@@ -33,7 +33,7 @@ const TAB_CATS = { oejne:['pupil'], ansigt:['lip','mark'], pande:['front'], bag:
 const catsHaveFresh = cats => prog.fresh.some(k => cats.includes(k.split(':')[0]));
 const isFree = (cat, id) => (FREE[cat]||[]).includes(id) || prog.unlocked.includes(cat + ':' + id);
 function lockedList(){ const out = []; for (const [cat, info] of Object.entries(CAT_INFO)) for (const id of info.ids()) if (!isFree(cat, id)) out.push([cat, id]); return out; }
-function unlockAll(){ prog.unlocked = []; for (const [cat, info] of Object.entries(CAT_INFO)) for (const id of info.ids()) if (!(FREE[cat]||[]).includes(id)) prog.unlocked.push(cat + ':' + id); saveProg(); }
+function unlockAll(){ prog.unlocked = []; for (const [cat, info] of Object.entries(CAT_INFO)) for (const id of info.ids()) if (!(FREE[cat]||[]).includes(id)) prog.unlocked.push(cat + ':' + id); for (const [c, id] of roomLocked()) prog.unlocked.push(c + ':' + id); saveProg(); }
 function enforce(st){
   for (const [cat, info] of Object.entries(CAT_INFO)){
     if (info.multi){ const o = info.get(st) || {}; for (const k of Object.keys(o)) if (!isFree(cat, k)) delete o[k]; }

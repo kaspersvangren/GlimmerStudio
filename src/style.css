@@ -219,20 +219,11 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @media (prefers-reduced-motion: reduce){ .tile.fresh,.tab.has-fresh::after,.mode.has-fresh::after{animation:none} }
 
 /* ---------- v0.5: titelskærm, by, tæppe ---------- */
-#title{overflow:hidden;background:radial-gradient(ellipse at 50% 110%, #FF8FC7 0%, transparent 55%), linear-gradient(#3A1F6E, #7B3FA8 60%, #C25AB8);color:#FFFFFF;position:relative}
-#title::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle, rgba(255,255,255,.9) 0 1.5px, transparent 2px), radial-gradient(circle, rgba(255,240,180,.8) 0 1px, transparent 1.5px);background-size:90px 90px, 140px 140px;background-position:0 0, 40px 60px;animation:twinkleBg 6s linear infinite;opacity:.7;pointer-events:none}
-@keyframes twinkleBg{50%{opacity:.35}}
-.title-inner{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2vh,20px);padding-block:16px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));box-sizing:border-box}
 .title-top{position:absolute;top:12px;right:max(16px, env(safe-area-inset-right, 0px))}
 .title-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(46px,10vw,104px);line-height:1;letter-spacing:-0.01em;text-align:center;user-select:none;-webkit-user-select:none;cursor:default}
 .title-logo span{display:inline-block;background:linear-gradient(180deg,#FFFFFF 10%,#FFE27A 55%,#FF8FC7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8A2E7A) drop-shadow(0 0 16px rgba(255,200,255,.6));animation:letterIn .7s cubic-bezier(.2,1.6,.4,1) both, bob 3s ease-in-out .8s infinite}
 @keyframes letterIn{from{transform:translateY(-60px) scale(.4);opacity:0}to{transform:none;opacity:1}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.title-stage{position:relative;height:min(52vh,520px);aspect-ratio:720/1010;max-width:80vw;display:flex;align-items:flex-end;justify-content:center}
-.title-stage img{position:relative;z-index:2;width:100%;height:100%;object-fit:contain}
-.title-stage .spot{position:absolute;inset:-10% -30% 8%;background:radial-gradient(ellipse at 50% 20%, rgba(255,255,255,.45), transparent 60%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);z-index:1}
-.title-stage .disc{position:absolute;left:-12%;right:-12%;bottom:-4%;height:16%;border-radius:50%;background:radial-gradient(ellipse at 50% 35%, #FFD9EA, #FF5FA8 70%, #B32268);box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:0}
-.playbtn{width:clamp(96px,16vh,136px);aspect-ratio:1;border-radius:50%;border:6px solid #FFFFFF;background:radial-gradient(circle at 35% 30%, #FF8FC7, #FF3D8F 55%, #C21D68);box-shadow:0 8px 0 #8A1550, 0 0 0 10px rgba(255,255,255,.18), 0 0 40px rgba(255,120,200,.7);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
 .playbtn svg{width:58%;height:58%}
 .playbtn:active{transform:translateY(4px);box-shadow:0 4px 0 #8A1550}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
@@ -259,7 +250,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .curtain .c-r{right:0;transform:translateX(102%);border-left:6px solid #FFC02E}
 .curtain.closed .c-l,.curtain.closed .c-r{transform:none}
 #home{padding-block:14px 30px}
-@media (prefers-reduced-motion: reduce){ .title-logo span,.playbtn,#title::before{animation:none} }
+@media (prefers-reduced-motion: reduce){ .title-logo span,.playbtn,.title-bubbles span,.shoot,.bub,.bub.wobble,.bub.pop,.bub-drops span,.room-hot{animation:none!important} .title-bubbles,.shoot{display:none} }
 
 /* ---------- v0.8: byen som overblik ---------- */
 .map{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -284,3 +275,82 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #townSvg .hstar.found{animation:sfound .9s ease-out forwards;transform-box:fill-box;transform-origin:50% 50%}
 @keyframes sfound{40%{transform:scale(2.4)}100%{transform:translateY(-40px) scale(.5);opacity:0}}
 @media (prefers-reduced-motion: reduce){ .bubble .pop,#jets.big,#townSvg .jump,#townSvg .bird.away .b-in,#townSvg .bird.back .b-in{animation:none} }
+
+/* ---------- titelskærm: magisk nat ved skolen ---------- */
+#title{overflow:hidden;background:#2A1C78;color:#FFFFFF;position:relative}
+.title-inner{position:relative;height:100%;overflow:hidden}
+.title-scene{position:absolute;inset:0}
+.title-scene svg{width:100%;height:100%;display:block}
+.title-top{z-index:5}
+.title-inner .title-logo{position:absolute;left:0;right:0;top:max(4vh,14px);z-index:4}
+.title-stage{position:absolute;left:50%;bottom:4vh;height:min(60vh,600px);aspect-ratio:720/1010;transform:translateX(-50%);z-index:3}
+.title-stage img{position:relative;z-index:2;width:100%;height:100%;object-fit:contain;display:block}
+.title-stage .ring{position:absolute;left:-30%;right:-30%;bottom:-3%;z-index:1}
+.title-stage .ring svg{width:100%;display:block;animation:ringglow 3s ease-in-out infinite}
+@keyframes ringglow{0%,100%{opacity:.75}50%{opacity:1}}
+.playbtn{position:absolute;z-index:4;left:calc(50% + min(30vh,300px) + 6vw);bottom:22vh;width:clamp(100px,17vh,150px);aspect-ratio:1;border-radius:50%;border:6px solid #FFFFFF;background:radial-gradient(circle at 35% 30%, #FF8FC7, #FF3D8F 55%, #C21D68);box-shadow:0 8px 0 #8A1550, 0 0 0 10px rgba(255,255,255,.18), 0 0 50px rgba(255,140,220,.8);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
+#title .ver{position:absolute;z-index:4;left:max(16px, env(safe-area-inset-left, 0px));bottom:10px;color:rgba(255,255,255,.6);margin:0;font-size:13px}
+.title-bubbles{position:absolute;inset:0;z-index:2;pointer-events:none}
+.title-bubbles span{position:absolute;bottom:-80px;width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.9) 0 8%, rgba(255,255,255,.08) 22%, rgba(255,255,255,.04) 60%, rgba(127,216,255,.35) 82%, rgba(255,143,199,.6) 100%);box-shadow:inset 0 0 0 1.5px rgba(255,226,122,.5);animation:rise 12s linear infinite}
+@keyframes rise{0%{transform:translate(0,0);opacity:0}8%{opacity:1}50%{transform:translate(30px,-55vh)}90%{opacity:1}100%{transform:translate(-10px,-110vh);opacity:0}}
+.shoot{position:absolute;z-index:1;top:8vh;left:60%;width:140px;height:3px;border-radius:3px;background:linear-gradient(90deg,rgba(255,246,216,0),#FFF6D8);transform:rotate(-20deg);opacity:0;animation:shoot 9s ease-in 3s infinite}
+@keyframes shoot{0%{opacity:0;transform:translate(0,0) rotate(-20deg)}2%{opacity:1}8%{opacity:0;transform:translate(-420px,150px) rotate(-20deg)}100%{opacity:0}}
+@media (orientation:portrait){ .title-stage{height:min(52vh,520px);bottom:20vh} .playbtn{left:50%;bottom:4vh;transform:translateX(-50%);animation:none} }
+
+/* ---------- Boblebutikken ---------- */
+.bub-stage{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 16px 26px;margin-top:6px;border-radius:30px;background:radial-gradient(ellipse at 50% 120%, #B456B2 0%, transparent 60%), linear-gradient(#1E1660, #3E2A92 70%, #6A3AA6);color:#FFFFFF;overflow:hidden;min-height:calc(100vh - 110px);justify-content:center;box-sizing:border-box}
+.bub-sky{position:absolute;inset:0;background-image:radial-gradient(circle, rgba(255,255,255,.9) 0 1.4px, transparent 2px), radial-gradient(circle, rgba(255,240,180,.8) 0 1px, transparent 1.5px);background-size:80px 80px, 130px 130px;background-position:0 0, 30px 50px;opacity:.6;pointer-events:none}
+.bub-stage > *{position:relative}
+.bub-msg{margin:0;font-size:20px;font-weight:800;text-align:center;max-width:620px}
+.bub-row{display:flex;justify-content:center;align-items:flex-start;gap:clamp(12px,4vw,56px);flex-wrap:wrap;width:100%}
+.bub-col{display:flex;flex-direction:column;align-items:center;gap:2px}
+.bub{border:none;background:transparent;padding:0;width:clamp(150px,24vw,250px);aspect-ratio:1;cursor:pointer;animation:float 3.2s ease-in-out infinite;transform:scale(var(--grow,1));transition:transform .25s}
+.bub svg{width:100%;height:100%;display:block;overflow:visible}
+.bub.empty{opacity:.45;filter:saturate(.4)}
+.bub.big{width:min(46vh,380px,70vw)}
+.bub.wobble{animation:bwobble .4s ease-in-out}
+.bub.pop{animation:bpopout .3s ease-out forwards}
+@keyframes bwobble{0%,100%{transform:scale(var(--grow,1))}30%{transform:scale(calc(var(--grow,1)*1.08),calc(var(--grow,1)*.92))}65%{transform:scale(calc(var(--grow,1)*.94),calc(var(--grow,1)*1.06))}}
+@keyframes bpopout{to{transform:scale(1.5);opacity:0}}
+.bub-name{margin:6px 0 0;font-family:var(--display);font-weight:700;font-size:24px}
+.bub-left{margin:0;color:rgba(255,255,255,.75);font-size:15px}
+.bub-one{position:relative;display:grid;place-items:center}
+.bub-drops{position:absolute;left:50%;top:50%;width:0;height:0}
+.bub-drops span{position:absolute;border-radius:50%;opacity:.9;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7);animation:drop .6s ease-out forwards}
+@keyframes drop{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+.bub-stage .hint{color:rgba(255,255,255,.75)}
+.bub-stage .btn{color:var(--ink)} .bub-stage .btn.hot{color:#FFFFFF}
+.bub-stage .reveal{color:var(--ink)}
+
+/* ---------- Mit værelse ---------- */
+#room{overflow:auto;padding-block:14px 20px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.room-wrap{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin-top:8px}
+.room-stage{position:relative;flex:0 1 auto;width:min(100%, calc((100vh - 120px) * 1.6));aspect-ratio:16/10;border-radius:24px;overflow:hidden;box-shadow:0 8px 0 var(--line), 0 0 0 4px #FFFFFF}
+.room-wrap:has(.room-panel) .room-stage{width:min(calc(100% - 316px), calc((100vh - 120px) * 1.6))}
+.room-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.room-fig{position:absolute;left:39%;bottom:3%;height:72%;aspect-ratio:700/1060;pointer-events:none}
+.room-fig img{width:100%;height:100%;display:block}
+.room-hot{position:absolute;width:clamp(40px,5.2%,58px);aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #FFFFFF;border-radius:50%;background:rgba(123,92,255,.85);box-shadow:0 3px 0 rgba(0,0,0,.25), 0 0 16px rgba(255,226,122,.8);padding:7px;display:grid;place-items:center;animation:hotglow 2.4s ease-in-out infinite}
+.room-hot svg{width:100%;height:100%}
+.room-hot.on{background:#FF3D8F;animation:none}
+.room-hot.fresh::after{content:"NY";position:absolute;top:-12px;right:-16px;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:12px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
+@keyframes hotglow{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.1)}}
+.room-hint{position:absolute;left:0;right:0;bottom:-36px}
+.room-wrap{position:relative;padding-bottom:36px}
+.room-panel{flex:0 0 300px;background:var(--panel);border-radius:24px;padding:12px;box-shadow:0 6px 0 var(--line);max-height:calc(100vh - 120px);overflow:auto;box-sizing:border-box}
+.room-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.room-panel-head h3{margin:0;font-family:var(--display);font-size:24px}
+.room-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.room-item{border:3px solid transparent;background:var(--tile);border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.room-item img{width:100%;aspect-ratio:1;object-fit:contain;display:block}
+.room-item .nm{font-size:13px;text-align:center;line-height:1.15}
+.room-item.sel{border-color:var(--berry);background:#FFF0F7}
+.room-item.locked .nm{color:var(--ink-soft)}
+.room-item .lockbub{width:76%;aspect-ratio:1;display:block;margin:6%}
+.room-item .lockbub svg{width:100%;height:100%;display:block}
+.room-item.fresh{animation:freshpulse 1.6s ease-in-out infinite}
+.room-colors{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.room-colors .dot{width:34px;height:34px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px var(--line)}
+.room-colors .dot.sel{box-shadow:0 0 0 3px var(--berry)}
+@media (orientation:portrait){ .room-wrap{flex-direction:column;align-items:center} .room-wrap:has(.room-panel) .room-stage{width:100%} .room-panel{flex:none;width:100%;max-height:none} }
+.screen-inner.room-inner{max-width:1500px}

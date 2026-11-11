@@ -1,6 +1,7 @@
 const fs=require('fs');
+const NAME=(fs.readFileSync('src/core.js','utf8').match(/const GAME_NAME = '([^']+)'/)||[])[1]||'Glimmerskolen';
 const css=fs.readFileSync('src/style.css','utf8'), body=fs.readFileSync('src/body.html','utf8');
-const draw=fs.readFileSync('src/draw.js','utf8')+'\n'+fs.readFileSync('src/figur.js','utf8').replace(/^'use strict';/,''), app=['core','progress','guests','app','balls','fashion','town','city','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
+const draw=fs.readFileSync('src/draw.js','utf8')+'\n'+fs.readFileSync('src/figur.js','utf8').replace(/^'use strict';/,''), app=['core','progress','guests','app','balls','rum','fashion','town','city','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
 const fonts='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">';
 const scripts=`<script>\n${draw}\n</script>\n<script>\n${app}\n</script>`;
 const sw=`<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}</script>`;
@@ -10,7 +11,7 @@ fs.writeFileSync('dist/index.html',`<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Glimmer Studio</title>
+<title>${NAME}</title>
 <meta name="theme-color" content="#FFD9EA">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -30,7 +31,7 @@ ${sw}
 </body>
 </html>
 `);
-fs.writeFileSync('dist/artifact.html',`<title>Glimmer Studio</title>
+fs.writeFileSync('dist/artifact.html',`<title>${NAME}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 ${fonts}
 <style>

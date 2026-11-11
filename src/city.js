@@ -145,13 +145,13 @@ function bKugler(){
   s += `<path d="M ${gx-30} ${top-20} h 60 l -6 -16 h -48 Z" fill="#E0233F" stroke="#9C1530" stroke-width="2"/><circle cx="${gx}" cy="${gy}" r="46" fill="#E9FFFB" fill-opacity=".9" stroke="#1F8E80" stroke-width="3"/>`;
   s += [[-22,-12,'#FF5FA8'],[0,-26,'#FFE27A'],[22,-10,'#7B5CFF'],[-12,10,'#6FA8FF'],[14,14,'#FF9A4D'],[-28,12,'#43D3BE'],[28,10,'#FF3D8F'],[2,-2,'#B79BFF'],[-4,28,'#9BE36A'],[20,28,'#FFC02E']].map(([dx,dy,cc])=>`<circle cx="${gx+dx}" cy="${gy+dy}" r="11" fill="${cc}"/><path d="M ${gx+dx-9} ${gy+dy} q 9 -3 18 0" stroke="#FFF" stroke-width="2" fill="none" opacity=".7"/>`).join('') + `<path d="M ${gx-28} ${gy-28} q 10 -12 24 -14" stroke="#FFF" stroke-width="5" stroke-linecap="round" fill="none" opacity=".8"/>`;
   s += `<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="5" fill="${c}" stroke="${lineC(c)}" stroke-width="3"/>`;
-  s += `<text x="${x+w/2}" y="${top+26}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="18" fill="#1F8E80">KUGLER</text>` + awning(x+10, x+w-10, top+38, 22, '#FF5FA8');
+  s += `<text x="${x+w/2}" y="${top+26}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="18" fill="#1F8E80">BOBLER</text>` + awning(x+10, x+w-10, top+38, 22, '#FF5FA8');
   let balls = ''; const cols = ['#FF5FA8','#7B5CFF','#FFE27A','#43D3BE','#FF9A4D','#6FA8FF','#B79BFF'];
   for (let r = 0; r < 3; r++) for (let i = 0; i < 6 - (r%2); i++){ const bx = x+28+i*17+(r%2)*8, by = base-16-r*15; balls += `<circle cx="${bx}" cy="${by}" r="8.5" fill="${cols[Math.floor(rnd()*7)]}"/><path d="M ${bx-8.5} ${by} q 8.5 -3 17 0" stroke="#FFF" stroke-width="2.5" fill="none" opacity=".8"/>`; }
   s += `<rect x="${x+16}" y="${base-74}" width="112" height="70" rx="6" fill="#E9FFFB" stroke="${lineC(c)}" stroke-width="2.5"/><rect x="${x+20}" y="${base-70}" width="104" height="62" rx="4" fill="#FFF"/>${balls}`;
   LITS.push([x+20, base-70, 104, 62]);
   s += door(x+w-52, base, 42, 70, '#FFFFFF', { frame:'#43D3BE' });
-  return placeG('kugler', 'Kuglebutikken', false, s + sign(x + w/2, top - 140, 'Kuglebutikken', '#1F8E80'));
+  return placeG('kugler', 'Boblebutikken', false, s + sign(x + w/2, top - 140, 'Boblebutikken', '#1F8E80'));
 }
 function bZoo(){
   const x0 = 1190, x1 = 1580, y0 = 440, y1 = 640;
@@ -373,9 +373,9 @@ const ROUTES = {
   baenkH: [HUB, [900,724], [960,640], [960,576]],
 };
 const PLACES = [
-  { id:'hus', name:'Mit hus', open: () => showHome() },
+  { id:'hus', name:'Mit hus', open: () => showRoom() },
   { id:'mode', name:'Modehuset', open: () => startFashion() },
-  { id:'kugler', name:'Kuglebutikken', open: () => showBalls() },
+  { id:'kugler', name:'Boblebutikken', open: () => showBalls() },
   { id:'cafe', name:'Caféen', soon:true },
   { id:'dyr', name:'Dyreparken', soon:true },
   { id:'foto', name:'Fotostudiet', soon:true },
@@ -598,7 +598,7 @@ function showTown(){
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
   const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'town-head' }, [ el('h1', { class:'logo small', id:'townLogo' }, 'Glimmer Studio'), el('div', { class:'head-right' }, [ starPill(), audioBtns() ]) ]),
+  box.append(el('div', { class:'town-head' }, [ el('h1', { class:'logo small', id:'townLogo' }, GAME_NAME), el('div', { class:'head-right' }, [ starPill(), audioBtns() ]) ]),
     el('div', { class:'map', id:'street', html: townSvg() }));
   $('#street').style.background = SKY[CM.time][1];
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';

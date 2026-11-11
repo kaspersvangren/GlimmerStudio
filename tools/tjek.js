@@ -8,6 +8,7 @@
    - figur_kjole_kappe.png: alle kjoler × alle kapper
    - figur_kjole_fod.png  : alle kjoler × alt fodtøj
    - figur_tilbehoer.png  : hvert tilbehør alene og i store kombinationer × alle baghår
+   - rum_<a>_<b>.png      : værelset — alle ting i to nabopladser mod hinanden, med figur og dyr stående som i spillet
    Se efter: noget der ligger oven på noget forkert, svæver, er skjult, eller dækker øjne/ansigt. */
 const path = require('path'), fs = require('fs'), { chromium } = require('playwright');
 const OUT = path.resolve(process.argv[2] || path.join(__dirname, 'ud')); fs.mkdirSync(OUT, { recursive: true });
@@ -41,5 +42,14 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
       ['stav+bog+bælte+tørklæde+briller', { stav:'#5FD0FF', bog:'#7B4FD0', baelte:'#8A4B2E', toerklaede:'#E0457A', briller:'#B98516' }],
       ['tryllestav+bog+kæde+bælte', { tryllestav:'#FFC02E', bog:'#2F8F86', halskaede:'#F2C14E', baelte:'#3A2340' }]];
     GRID(ks(BACK), 150, sets.map(([lab, a]) => [lab, ks(BACK).map(bk => renderDoll(S(st => { st.back = bk; st.acc = a; }), { viewBox: '120 30 560 1050', pet: false }))])); }));
+  /* værelset: naboer der kan overlappe hinanden, med figuren og dyret ovenpå som på skærmen */
+  for (const [a, bb] of [['seng','vindue'], ['hylde','lampe'], ['ting','dyreseng'], ['gulv','dyreseng'], ['vaeg','lampe']])
+    await sheet(`rum_${a}_${bb}.png`, ([a, bb]) => {
+      const fig = (() => { const st = JSON.parse(JSON.stringify(DEFAULT_STATE)); st.pet.kind = 'hund'; return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(renderDoll(st, { viewBox:'110 20 700 1060', anim:false })); })();
+      const A = Object.keys(ROOM_SLOTS.find(s => s.id === a).cat), B = Object.keys(ROOM_SLOTS.find(s => s.id === bb).cat);
+      let h = `<div style="display:grid;grid-template-columns:110px repeat(${B.length},320px);gap:3px;background:#fff;font:13px sans-serif"><div></div>` + B.map(x => '<b>' + x + '</b>').join('');
+      for (const x of A){ h += '<b>' + x + '</b>'; for (const y of B){ const r = Object.assign({}, ROOM_DEFAULT, { [a]: x, [bb]: y }); r.c = Object.assign({}, ROOM_DEFAULT.c);
+        h += `<div style="position:relative;width:320px;height:200px"><img style="width:100%;height:100%;display:block" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(roomSvg(r))}"><img style="position:absolute;left:39%;bottom:3%;height:72%" src="${fig}"></div>`; } }
+      document.body.innerHTML = h + '</div>'; document.body.style.margin = 0; }, [a, bb]);
   await b.close();
 })();

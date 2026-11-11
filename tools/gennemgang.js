@@ -48,6 +48,11 @@ const V = { 'acc-bog': 6,
     for (const k of Object.keys(LIPSHAPES)) add('mund-' + k, 'Ansigt', 'Mund: ' + LIPSHAPES[k], { mk: { lipShape: k } }, 'ansigt', '350 420 100 70');
     for (const k of Object.keys(MARKS)) add('maerke-' + k, 'Ansigt', 'Mærke: ' + MARKS[k], { mk: { mark: k, markColor: '#E0457A' } }, 'ansigt', '300 370 200 140');
     add('pose-ro', 'Stillinger', 'Hænderne i ro', { acc: {} }, null, '250 680 300 160');
+    /* værelset: hele rummet med tingen (som på tabletten) og tingen tæt på */
+    for (const s of ROOM_SLOTS) for (const k of Object.keys(s.cat))
+      out.push({ id: 'rum-' + s.id + '-' + k, cat: 'Værelset', title: s.label + ': ' + s.cat[k].label, kind: 'rum', slot: s.id, item: k, vbT: '0 0 1600 1000', vbZ: ROOM_VB[s.id] });
+    for (const b of BUBBLES) out.push({ id: 'boble-' + b.id, cat: 'Boblebutikken', title: 'Boble: ' + b.label, kind: 'boble', bub: b.id, vbT: '0 0 300 300', vbZ: '0 0 300 300' });
+    out.push({ id: 'start-scene', cat: 'Startskærm', title: 'Nattehimmel og skolen', kind: 'start', vbT: '0 0 1600 1000', vbZ: '120 120 640 720' });
     return out;
   });
   for (const it of items) it.v = V[it.id] || 1;
@@ -55,13 +60,20 @@ const V = { 'acc-bog': 6,
   for (const it of items){
     for (const [suf, vb, w] of [['t', it.vbT, 560], ['z', it.vbZ, 640]]){
       const h = await p.evaluate(({ it, vb, w }) => {
-        const st = enforce ? JSON.parse(JSON.stringify(DEFAULT_STATE)) : null;
-        for (const [k, v] of Object.entries(it.patch)) st[k] = (v && typeof v === 'object' && !Array.isArray(v) && k !== 'acc') ? Object.assign({}, st[k], v) : v;
         const [, , vw, vh] = vb.split(' ').map(Number), hh = Math.round(w * vh / vw);
-        document.body.innerHTML = `<div id="shot" style="width:${w}px;height:${hh}px;background:linear-gradient(#FFF3F8,#EBDDFF)"><img style="width:100%;height:100%;display:block" src="${svgUrl(renderDoll(st, Object.assign({ viewBox: vb, pet: false, anim: !!it.opts.wave }, it.opts)))}"></div>`;
+        let svg, bg = 'linear-gradient(#FFF3F8,#EBDDFF)';
+        if (it.kind === 'rum'){ const r = Object.assign({}, ROOM_DEFAULT, { [it.slot]: it.item }); r.c = Object.assign({}, ROOM_DEFAULT.c); svg = roomSvg(r, { viewBox: vb }); }
+        else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
+        else if (it.kind === 'start'){ svg = titleScene().replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('xMidYMax slice', 'xMidYMid meet'); }
+        else {
+          const st = JSON.parse(JSON.stringify(DEFAULT_STATE));
+          for (const [k, v] of Object.entries(it.patch)) st[k] = (v && typeof v === 'object' && !Array.isArray(v) && k !== 'acc') ? Object.assign({}, st[k], v) : v;
+          svg = renderDoll(st, Object.assign({ viewBox: vb, pet: false, anim: !!it.opts.wave }, it.opts));
+        }
+        document.body.innerHTML = `<div id="shot" style="width:${w}px;height:${hh}px;background:${bg}"><img style="width:100%;height:100%;display:block" src="${svgUrl(svg)}"></div>`;
         document.body.style.margin = 0; return hh;
       }, { it, vb, w });
-      await p.waitForTimeout(it.opts.wave ? 500 : 80);
+      await p.waitForTimeout(it.opts && it.opts.wave ? 500 : 80);
       await p.locator('#shot').screenshot({ path: path.join(IMG, `${it.id}-${suf}.jpg`), type: 'jpeg', quality: 82 });
     }
   }
