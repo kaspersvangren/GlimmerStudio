@@ -315,11 +315,14 @@ function handRest(c, dark, thumb=true){
   return o;
 }
 const THUMB_L = 'M 224 590 C 231 592 234 600 233 608 C 232 615 230 620 226 620 C 222 620 220 615 221 610 C 222 603 222 596 224 590 Z';
-/* tommelfinger der vokser ud af hånden og ned over bogens forkant (åben foroven, så den hænger sammen med hånden) */
-function bookThumb(c){
-  return `<path d="M 213 588 L 225 588 C 228 600 229 608 228 615 C 227 622 222 626 217 623 C 213 620 212 612 213 604 Z" fill="${c.skin}"/>`
-    + `<path d="M 213 597 C 212 610 213 620 217 623 C 222 626 227 622 228 615 C 229 608 228 602 226 597" stroke="${c.sk}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
-    + `<ellipse cx="221" cy="616" rx="3" ry="3.6" fill="${lt(c.skin,0.5)}" stroke="${c.sk}" stroke-width="1"/><path d="M 225 598 L 228 612" stroke="${c.skS}" stroke-width="3" opacity=".5"/>`;
+/* fingrene bøjer ned over bogens forkant; tommelfingeren er bag bogen (åbne foroven, så de hænger sammen med hånden) */
+function bookFingers(c){
+  const F = [[202,606.5],[208.3,609.5],[214.6,610],[221,607]];
+  const fill = F.map(([x,t]) => `<path d="M ${x-3.4} 596 L ${x-3.4} ${t-3.4} A 3.4 3.4 0 0 0 ${x+3.4} ${t-3.4} L ${x+3.4} 596 Z" fill="${c.skin}"/>`).join('');
+  const line = F.map(([x,t]) => `<path d="M ${x-3.4} 597 L ${x-3.4} ${t-3.4} A 3.4 3.4 0 0 0 ${x+3.4} ${t-3.4} L ${x+3.4} 597" fill="none" stroke="${c.sk}" stroke-width="1.8" stroke-linejoin="round"/>`).join('');
+  const shapes = F.map(([x,t]) => `<path d="M ${x-3.4} 596 L ${x-3.4} ${t-3.4} A 3.4 3.4 0 0 0 ${x+3.4} ${t-3.4} L ${x+3.4} 596 Z"/>`).join(''), cid = 'bf' + (CLIPN++);
+  return `<g transform="rotate(-8 214 640)"><clipPath id="${cid}">${shapes}</clipPath>${fill}<g clip-path="url(#${cid})"><path d="M 196 596 L 228 596 L 228 601 Q 212 602 196 599 Z" fill="${c.skS}" opacity=".35"/><path d="M 218 596 L 228 596 L 228 612 L 218 612 Z" fill="${c.skS}" opacity=".3"/></g>${line}`
+    + F.map(([x,t]) => `<path d="M ${x-1.5} ${t-6} Q ${x} ${t-4.5} ${x+1.5} ${t-6}" stroke="${lt(c.skin,0.5)}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>`).join('') + `</g>`;
 }
 /* vinke-hånd: håndfladen fremad, let spredte fingre (tegnet opret og drejet ind i armen) */
 function handWave(c){
@@ -492,7 +495,7 @@ function figureSvg(st, c, hl, wave){
   const AXIS = 'translate(252 418) rotate(100.88) scale(1,-1) rotate(-100.88) translate(-252 -418)';
   const raised = () => `<g transform="${AXIS}">${armOpen(c, false, '', 'vink')}</g>`;
   let left;
-  if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))) + bookThumb(c), 'bog');
+  if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))) + bookFingers(c), 'bog');
   else if (wave && ANIM) left = waveArm(raised(), null, true);
   else if (waveEv && ANIM) left = showDuring(armOpen(c, false), [[0, waveEv.a], [waveEv.b, IDLE.T]]) + showDuring(waveArm(raised(), waveEv, false), [[waveEv.a, waveEv.b]]);
   else left = armOpen(c, false);
