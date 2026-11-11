@@ -317,12 +317,14 @@ function handRest(c, dark, thumb=true){
 const THUMB_L = 'M 224 590 C 231 592 234 600 233 608 C 232 615 230 620 226 620 C 222 620 220 615 221 610 C 222 603 222 596 224 590 Z';
 /* fingrene bøjer ned over bogens forkant; tommelfingeren er bag bogen (åbne foroven, så de hænger sammen med hånden) */
 function bookFingers(c){
-  const F = [[202,606.5],[208.3,609.5],[214.6,610],[221,607]];
-  const fill = F.map(([x,t]) => `<path d="M ${x-3.4} 596 L ${x-3.4} ${t-3.4} A 3.4 3.4 0 0 0 ${x+3.4} ${t-3.4} L ${x+3.4} 596 Z" fill="${c.skin}"/>`).join('');
-  const line = F.map(([x,t]) => `<path d="M ${x-3.4} 597 L ${x-3.4} ${t-3.4} A 3.4 3.4 0 0 0 ${x+3.4} ${t-3.4} L ${x+3.4} 597" fill="none" stroke="${c.sk}" stroke-width="1.8" stroke-linejoin="round"/>`).join('');
-  const shapes = F.map(([x,t]) => `<path d="M ${x-3.4} 596 L ${x-3.4} ${t-3.4} A 3.4 3.4 0 0 0 ${x+3.4} ${t-3.4} L ${x+3.4} 596 Z"/>`).join(''), cid = 'bf' + (CLIPN++);
-  return `<g transform="rotate(-8 214 640)"><clipPath id="${cid}">${shapes}</clipPath>${fill}<g clip-path="url(#${cid})"><path d="M 196 596 L 228 596 L 228 601 Q 212 602 196 599 Z" fill="${c.skS}" opacity=".35"/><path d="M 218 596 L 228 596 L 228 612 L 218 612 Z" fill="${c.skS}" opacity=".3"/></g>${line}`
-    + F.map(([x,t]) => `<path d="M ${x-1.5} ${t-6} Q ${x} ${t-4.5} ${x+1.5} ${t-6}" stroke="${lt(c.skin,0.5)}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>`).join('') + `</g>`;
+  const W2 = 3.1, F = [[207.6,607],[213.8,610],[220,610.5],[226.2,607.5]];
+  const fp = (x, t, top) => `M ${x-W2} ${top} L ${x-W2} ${t-W2} A ${W2} ${W2} 0 0 0 ${x+W2} ${t-W2} L ${x+W2} ${top}`;
+  const shapes = F.map(([x,t]) => `<path d="${fp(x,t,595)} Z"/>`).join(''), cid = 'bf' + (CLIPN++);
+  return `<g transform="rotate(-8 214 640)">`
+    + `<g transform="translate(1.5,2.5)" fill="${SHC}" opacity=".22">${shapes}</g>`
+    + `<clipPath id="${cid}">${shapes}</clipPath><g fill="${c.skin}">${shapes}</g>`
+    + `<g clip-path="url(#${cid})"><path d="M 200 596 L 234 596 L 234 601 Q 216 603 200 600 Z" fill="${c.skS}" opacity=".45"/><path d="M 224 596 L 234 596 L 234 614 L 224 614 Z" fill="${c.skS}" opacity=".3"/></g>`
+    + F.map(([x,t]) => `<path d="${fp(x,t,598)}" fill="none" stroke="${c.sk}" stroke-width="1.7" stroke-linejoin="round"/>`).join('') + `</g>`;
 }
 /* vinke-hånd: håndfladen fremad, let spredte fingre (tegnet opret og drejet ind i armen) */
 function handWave(c){
@@ -392,10 +394,9 @@ function wandHeld(col){
 /* bog i venstre hånd */
 function bookF(col){
   const D = fdk(col,0.35);
-  return `<g transform="rotate(-8 214 640)"><rect x="176" y="602" width="70" height="86" rx="5" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><rect x="172" y="598" width="70" height="86" rx="6" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
-    + `<rect x="172" y="598" width="12" height="86" rx="4" fill="${sd(col,0.3)}"/><rect x="190" y="612" width="44" height="58" rx="3" fill="none" stroke="#F2C14E" stroke-width="2"/>`
-    + moon(212, 640, 11, '#F2C14E') + `<circle cx="222" cy="630" r="2" fill="#F2C14E"/></g>`
-
+  return `<g transform="rotate(-8 214 640)"><rect x="190" y="602" width="54" height="68" rx="4" fill="#FFF6E0" stroke="${D}" stroke-width="2"/><rect x="186" y="598" width="54" height="68" rx="5" fill="${col}" stroke="${D}" stroke-width="2.5"/>`
+    + `<rect x="186" y="598" width="10" height="68" rx="4" fill="${sd(col,0.3)}"/><rect x="201" y="612" width="32" height="44" rx="3" fill="none" stroke="#F2C14E" stroke-width="2"/>`
+    + moon(215, 636, 9, '#F2C14E') + `<circle cx="224" cy="626" r="1.8" fill="#F2C14E"/></g>`;
 }
 
 /* ================= TILBEHØR ================= */
