@@ -1,0 +1,239 @@
+<title>Tegnebordet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Lysbord til korrektur: hver tegning ligger som et prøvetryk; status stemples i hjørnet */
+:root{
+  --bg:#F3EFFA; --paper:#FFFFFF; --ink:#2B1F3D; --muted:#6E6386; --line:#DDD3EE;
+  --accent:#6B3FD0; --accent-ink:#FFFFFF; --gold:#E2A817;
+  --ok:#1F8A5B; --ok-bg:#DDF3E8; --bad:#C2304F; --bad-bg:#FBE1E7; --new:#6E6386; --new-bg:#ECE7F5; --again:#B8730A; --again-bg:#FCEFD6;
+  --mark:#2F7BFF;
+  --display:'Fredoka', 'Nunito', system-ui, sans-serif; --body:'Nunito', system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#17121F; --paper:#221A2E; --ink:#F1EAFB; --muted:#A99DC0; --line:#3A2F4C;
+  --accent:#A98BFF; --accent-ink:#17121F; --gold:#F2C14E;
+  --ok:#5FD39C; --ok-bg:#1C3A2D; --bad:#FF7F9A; --bad-bg:#40202A; --new:#B3A8C8; --new-bg:#2C2439; --again:#F5B54A; --again-bg:#3D2E14; --mark:#6FA8FF; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#17121F; --paper:#221A2E; --ink:#F1EAFB; --muted:#A99DC0; --line:#3A2F4C;
+  --accent:#A98BFF; --accent-ink:#17121F; --gold:#F2C14E;
+  --ok:#5FD39C; --ok-bg:#1C3A2D; --bad:#FF7F9A; --bad-bg:#40202A; --new:#B3A8C8; --new-bg:#2C2439; --again:#F5B54A; --again-bg:#3D2E14; --mark:#6FA8FF; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+h1{font-size:30px;font-weight:700;letter-spacing:.2px}
+.sub{color:var(--muted);font-weight:700;font-size:13px;margin-top:2px}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 12px;font:800 13px var(--body);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.chip .n{font-variant-numeric:tabular-nums;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"] .n{color:inherit;opacity:.8}
+.chip:focus-visible,.btn:focus-visible,.card:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.hint{color:var(--muted);font-size:13px;margin:0 0 18px;max-width:70ch}
+.notice{background:var(--again-bg);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;margin-bottom:16px}
+section.cat{margin-bottom:26px}
+section.cat h2{font-size:19px;font-weight:600;margin-bottom:10px;display:flex;gap:10px;align-items:baseline}
+section.cat h2 small{font:700 12px var(--body);color:var(--muted);letter-spacing:.4px;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{position:relative;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:0;cursor:pointer;text-align:left;color:var(--ink);font:inherit;overflow:hidden;display:flex;flex-direction:column}
+.card img{display:block;width:100%;aspect-ratio:560/770;object-fit:cover;background:#F6EEFF}
+.card .t{padding:8px 10px 10px;font-weight:800;font-size:13px;min-width:0}
+.pill{font:800 11px var(--body);letter-spacing:.3px;padding:3px 8px;border-radius:999px;display:inline-block;white-space:nowrap}
+.card .pill{position:absolute;top:8px;left:8px}
+.s-new{background:var(--new-bg);color:var(--new)} .s-ok{background:var(--ok-bg);color:var(--ok)} .s-bad{background:var(--bad-bg);color:var(--bad)} .s-again{background:var(--again-bg);color:var(--again)}
+.card.st-bad{border-color:var(--bad)} .card.st-again{border-color:var(--again)}
+.empty{color:var(--muted);font-weight:700;padding:30px 0}
+/* gennemsyn af én ting */
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;overflow:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet .wrap{padding-block:14px 40px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bar .left{display:flex;gap:10px;align-items:center;min-width:0}
+.bar h2{font-size:22px;font-weight:600}
+.btn{border:1.5px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:9px 14px;font:800 14px var(--body);cursor:pointer}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:var(--paper)}
+.btn.bad{background:var(--bad);border-color:var(--bad);color:var(--paper)}
+.btn.sel{box-shadow:0 0 0 3px var(--mark)}
+.btn[disabled]{opacity:.45;cursor:default}
+.views{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}
+.view{min-width:0}
+.view h3{font:800 12px var(--body);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
+.shot{position:relative;display:inline-block;max-width:100%;vertical-align:top;border-radius:12px;overflow:hidden;border:1.5px solid var(--line);background:#F6EEFF;cursor:crosshair;touch-action:manipulation}
+.shot img{display:block;width:auto;max-width:100%;height:auto;max-height:calc(100vh - 130px);user-select:none;-webkit-user-drag:none}
+.ring{position:absolute;width:56px;height:56px;margin:-28px 0 0 -28px;border:4px solid var(--mark);border-radius:50%;pointer-events:auto;cursor:pointer;display:grid;place-items:center}
+.ring b{position:absolute;top:-12px;right:-12px;background:var(--mark);color:#fff;font:800 12px var(--body);border-radius:999px;min-width:22px;height:22px;display:grid;place-items:center}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+textarea{width:100%;min-height:96px;border:1.5px solid var(--line);border-radius:10px;padding:10px;font:600 15px var(--body);color:var(--ink);background:var(--bg);resize:vertical}
+.refs{display:flex;flex-wrap:wrap;gap:8px}
+.ref{position:relative;width:96px;height:96px;border-radius:10px;overflow:hidden;border:1.5px solid var(--line);background:var(--bg)}
+.ref img{width:100%;height:100%;object-fit:cover;display:block}
+.ref button{position:absolute;top:4px;right:4px;border:0;border-radius:999px;width:24px;height:24px;background:var(--ink);color:var(--paper);font:800 13px var(--body);cursor:pointer}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:12px;color:var(--muted);font-weight:700;font-size:13px;text-align:center}
+.drop.over{border-color:var(--accent);color:var(--accent)}
+.status-line{font-size:13px;font-weight:700;color:var(--muted);min-height:1.2em}
+.prev{font-size:13px;color:var(--muted);background:var(--again-bg);border-radius:10px;padding:8px 10px}
+@media (max-width:820px){ .views{grid-template-columns:1fr} .shot img{max-height:none} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+</style>
+
+<div class="wrap" id="main">
+  <header class="top">
+    <div><h1>Tegnebordet</h1><div class="sub" id="sub">Glimmer Studio</div></div>
+    <div class="filters" id="filters" role="toolbar" aria-label="Vis"></div>
+  </header>
+  <p class="hint">Tryk på en tegning for at se den, som den ser ud på tabletten, og helt tæt på. Tryk på billedet for at sætte en ring om fejlen. Skriv kort hvad der er galt, og læg gerne et referencebillede ind. Claude læser det hele herfra og retter i én omgang.</p>
+  <div id="notice" class="notice" hidden></div>
+  <div id="list"><p class="empty">Henter tegningerne …</p></div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="wrap">
+    <div class="bar">
+      <div class="left"><button class="btn" id="back" type="button">← Alle</button><h2 id="dTitle"></h2><span class="pill" id="dPill"></span></div>
+      <div class="row"><button class="btn" id="prev" type="button">Forrige</button><button class="btn" id="next" type="button">Næste</button></div>
+    </div>
+    <div class="views">
+      <div class="view"><h3>Som på tabletten</h3><div class="shot" id="shotT"><img id="imgT" alt=""></div></div>
+      <div class="side">
+        <div class="panel">
+          <div class="row"><button class="btn ok" id="bOk" type="button">Ser rigtig ud</button><button class="btn bad" id="bBad" type="button">Noget er forkert</button></div>
+          <div id="prevNote" class="prev" hidden></div>
+          <label for="note" class="status-line" style="color:var(--ink)">Hvad er galt?</label>
+          <textarea id="note" placeholder="Fx: tommelfingeren sidder forkert, ryggen skal være den lange side …"></textarea>
+          <div class="status-line">Referencer</div>
+          <div class="refs" id="refs"></div>
+          <div class="drop" id="drop">Træk et billede herind, sæt ind med indsæt, eller <label style="color:var(--accent);cursor:pointer;text-decoration:underline">vælg en fil<input id="file" type="file" accept="image/*" multiple hidden></label></div>
+          <div class="status-line" id="saved"></div>
+        </div>
+        <div class="view"><h3>Tæt på</h3><div class="shot" id="shotZ"><img id="imgZ" alt=""></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const STATUS = { new:['Til gennemsyn','s-new'], ok:['Godkendt','s-ok'], bad:['Fejl','s-bad'], again:['Rettet – se igen','s-again'] };
+let ITEMS = [], META = {}, REV = {}, filter = 'alle', cur = -1, db = null, assets = null, saveTimer = null, draft = null;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* status for en ting: rettet siden sidste gennemsyn tæller som "se igen" */
+function stateOf(it){
+  const r = REV[it.id];
+  if (!r || !r.status) return 'new';
+  if ((r.v || 0) < it.v) return 'again';
+  return r.status === 'ok' ? 'ok' : 'bad';
+}
+function counts(){ const c = { alle: ITEMS.length, new:0, again:0, bad:0, ok:0 }; ITEMS.forEach(it => c[stateOf(it)]++); return c; }
+function renderFilters(){
+  const c = counts(), F = [['alle','Alle'],['new','Til gennemsyn'],['again','Rettet – se igen'],['bad','Fejl'],['ok','Godkendt']];
+  $('#filters').innerHTML = F.map(([k,l]) => `<button class="chip" type="button" data-f="${k}" aria-pressed="${filter===k}">${l}<span class="n">${c[k]}</span></button>`).join('');
+}
+function renderList(){
+  renderFilters();
+  const shown = ITEMS.map((it,i) => [it,i]).filter(([it]) => filter === 'alle' || stateOf(it) === filter);
+  if (!ITEMS.length){ $('#list').innerHTML = '<p class="empty">Der er ingen tegninger endnu.</p>'; return; }
+  if (!shown.length){ $('#list').innerHTML = '<p class="empty">Ingen tegninger her lige nu.</p>'; return; }
+  const cats = [...new Set(shown.map(([it]) => it.cat))];
+  $('#list').innerHTML = cats.map(cat => {
+    const its = shown.filter(([it]) => it.cat === cat);
+    return `<section class="cat"><h2>${esc(cat)} <small>${its.length}</small></h2><div class="grid">` + its.map(([it,i]) => {
+      const s = stateOf(it), [lab, cls] = STATUS[s];
+      return `<button class="card st-${s}" type="button" data-i="${i}"><img loading="lazy" src="img/${it.id}-t.jpg" alt=""><span class="pill ${cls}">${lab}</span><span class="t">${esc(it.title)}</span></button>`;
+    }).join('') + `</div></section>`;
+  }).join('');
+}
+$('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; renderList(); });
+$('#list').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) open(+b.dataset.i); });
+
+/* ---------- én ting ---------- */
+function open(i){
+  flush(); cur = i; const it = ITEMS[i], r = REV[it.id] || {};
+  const again = (r.v || 0) < it.v && r.status;
+  draft = { status: again ? '' : (r.status || ''), note: again ? '' : (r.note || ''), marks: again ? [] : (r.marks || []).slice(), refs: (r.refs || []).slice() };
+  $('#dTitle').textContent = it.title;
+  const [lab, cls] = STATUS[stateOf(it)]; $('#dPill').textContent = lab; $('#dPill').className = 'pill ' + cls;
+  $('#imgT').src = `img/${it.id}-t.jpg?v=${it.v}`; $('#imgZ').src = `img/${it.id}-z.jpg?v=${it.v}`;
+  $('#note').value = draft.note;
+  const pn = $('#prevNote'); pn.hidden = !(again && r.note); pn.textContent = again && r.note ? 'Din note sidst: ' + r.note : '';
+  $('#saved').textContent = '';
+  paintButtons(); paintMarks(); paintRefs();
+  $('#prev').disabled = i <= 0; $('#next').disabled = i >= ITEMS.length - 1;
+  $('#sheet').hidden = false; $('#sheet').scrollTop = 0; document.body.style.overflow = 'hidden';
+}
+function close(){ flush(); $('#sheet').hidden = true; document.body.style.overflow = ''; cur = -1; renderList(); }
+function paintButtons(){ $('#bOk').classList.toggle('sel', draft.status === 'ok'); $('#bBad').classList.toggle('sel', draft.status === 'bad'); }
+function paintMarks(){
+  for (const k of ['T','Z']){
+    const box = $('#shot' + k); box.querySelectorAll('.ring').forEach(n => n.remove());
+    draft.marks.forEach((m, j) => { if (m.img !== k) return; const d = document.createElement('div'); d.className = 'ring'; d.style.left = (m.x*100) + '%'; d.style.top = (m.y*100) + '%'; d.dataset.j = j; d.title = 'Tryk for at fjerne'; d.innerHTML = `<b>${j+1}</b>`; box.append(d); });
+  }
+}
+function paintRefs(){
+  $('#refs').innerHTML = draft.refs.map((r, j) => `<div class="ref"><a href="${esc(r.url)}" target="_blank" rel="noopener"><img src="${esc(r.url)}" alt="Reference ${j+1}"></a>${assets ? `<button type="button" data-r="${j}" aria-label="Fjern reference">×</button>` : ''}</div>`).join('');
+}
+for (const k of ['T','Z']) $('#shot' + k).addEventListener('click', e => {
+  const ring = e.target.closest('.ring');
+  if (ring){ draft.marks.splice(+ring.dataset.j, 1); }
+  else { const r = e.currentTarget.getBoundingClientRect(); draft.marks.push({ img:k, x:+((e.clientX - r.left)/r.width).toFixed(4), y:+((e.clientY - r.top)/r.height).toFixed(4) }); if (draft.status !== 'bad'){ draft.status = 'bad'; paintButtons(); } }
+  paintMarks(); queueSave();
+});
+$('#bOk').addEventListener('click', () => { draft.status = 'ok'; draft.marks = []; paintButtons(); paintMarks(); queueSave(true); });
+$('#bBad').addEventListener('click', () => { draft.status = 'bad'; paintButtons(); queueSave(true); $('#note').focus(); });
+$('#note').addEventListener('input', () => { draft.note = $('#note').value; if (draft.note.trim() && draft.status !== 'bad'){ draft.status = 'bad'; paintButtons(); } queueSave(); });
+$('#back').addEventListener('click', close);
+$('#prev').addEventListener('click', () => cur > 0 && open(cur - 1));
+$('#next').addEventListener('click', () => cur < ITEMS.length - 1 && open(cur + 1));
+document.addEventListener('keydown', e => { if ($('#sheet').hidden || e.target.tagName === 'TEXTAREA') return; if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') $('#next').click(); if (e.key === 'ArrowLeft') $('#prev').click(); });
+
+/* ---------- referencebilleder ---------- */
+async function addFiles(files){
+  if (!assets){ $('#saved').textContent = 'Referencer kan ikke gemmes her. Send dem i chatten i stedet.'; return; }
+  for (const f of files){ if (!f.type.startsWith('image/')) continue;
+    $('#saved').textContent = 'Lægger billedet op …';
+    try { const a = await assets.upload(f); draft.refs.push({ id:a.id, url:a.url }); paintRefs(); queueSave(true); }
+    catch(e){ $('#saved').textContent = 'Billedet kunne ikke lægges op (' + (e.code || 'fejl') + '). Prøv et mindre billede.'; } }
+}
+$('#file').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
+const drop = $('#drop');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles([...e.dataTransfer.files]); });
+document.addEventListener('paste', e => { if ($('#sheet').hidden) return; const fs = [...(e.clipboardData?.files || [])]; if (fs.length){ e.preventDefault(); addFiles(fs); } });
+$('#refs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; draft.refs.splice(+b.dataset.r, 1); paintRefs(); queueSave(true); });
+
+/* ---------- gemning ---------- */
+function queueSave(now){ clearTimeout(saveTimer); $('#saved').textContent = 'Gemmer …'; saveTimer = setTimeout(save, now ? 50 : 700); }
+function flush(){ if (saveTimer){ clearTimeout(saveTimer); save(); } }
+async function save(){
+  saveTimer = null; if (cur < 0 || !draft) return;
+  const it = ITEMS[cur], body = { status: draft.status || 'new', note: draft.note.trim(), marks: draft.marks, refs: draft.refs, v: it.v, title: it.title, ts: Date.now() };
+  if (body.status === 'new' && !body.note && !body.marks.length && !body.refs.length) { $('#saved').textContent = ''; return; }
+  REV[it.id] = body;
+  if (!db){ $('#saved').textContent = 'Kan ikke gemme her – åbn siden i Claude, logget ind.'; return; }
+  try { await db.collection('reviews').doc(it.id).set(body); $('#saved').textContent = 'Gemt'; const [lab, cls] = STATUS[stateOf(it)]; $('#dPill').textContent = lab; $('#dPill').className = 'pill ' + cls; }
+  catch(e){ $('#saved').textContent = 'Kunne ikke gemme (' + (e.code || 'fejl') + ').'; }
+}
+
+/* ---------- start ---------- */
+(async () => {
+  try { const r = await fetch('items.json', { cache:'no-store' }); const j = await r.json(); ITEMS = j.items; META = j;
+    $('#sub').textContent = `Glimmer Studio ${j.version} · ${ITEMS.length} tegninger`; }
+  catch(e){ $('#list').innerHTML = '<p class="empty">Tegningerne kunne ikke hentes.</p>'; return; }
+  renderList();
+  try { db = await window.claude?.use?.('db'); } catch(e){ db = null; }
+  try { assets = await window.claude?.use?.('assets'); } catch(e){ assets = null; }
+  if (!assets){ drop.innerHTML = 'Referencer kan kun lægges ind af ejeren. Send dem i chatten i stedet.'; }
+  if (!db){ const n = $('#notice'); n.hidden = false; n.textContent = 'Dine svar kan ikke gemmes her. Åbn siden i Claude, mens du er logget ind.'; return; }
+  const t = setTimeout(() => { const n = $('#notice'); n.hidden = false; n.textContent = 'Dine tidligere svar er ikke hentet endnu. Du kan godt gennemgå imens.'; }, 10000);
+  db.collection('reviews').onSnapshot(snap => {
+    clearTimeout(t); $('#notice').hidden = true;
+    const next = {}; snap.docs.forEach(d => { if (d.exists) next[d.id] = d.data(); }); REV = next;
+    if (cur < 0) renderList(); else renderFilters();
+  }, e => { clearTimeout(t); const n = $('#notice'); n.hidden = false; n.textContent = 'Dine svar kunne ikke hentes (' + (e.code || 'fejl') + ').'; });
+})();
+</script>

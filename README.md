@@ -37,3 +37,10 @@ og gennemse arkene i `tools/ud/`. Alle tænkelige kombinationer skal se rigtige 
    To ting der vil sidde samme sted, skal enten udelukke hinanden (`ACC_SLOTS`) eller have en
    alternativ placering (som dyrenes `bowCrown`, når sløjfen deler hoved med kronen).
 6. Tilføj det nye tilbehør i `tools/tjek.js`, hvis arket ikke allerede tager det med automatisk.
+
+## Tegnebordet (gennemgang af tegninger)
+Kasper gennemgår tegningerne på artifact-siden "Tegnebordet" (claude.ai/artifact/5ttk23aff8VN37S7Lzfyy3): godkend, marker fejl med ringe, skriv en note og læg referencer ind. Svarene ligger i sidens database (samlingen `reviews`, ét dokument pr. ting).
+Arbejdsgang for Claude:
+1. Før en ny ting eller stilling tegnes: skriv kort ned hvordan den ser ud i virkeligheden (fx "bogens ryg er den lange side"), find referencer hvis i tvivl, og tjek tegningen mod dem i tablet-størrelse og tæt på, før den sendes.
+2. Læs `reviews` (status `bad`, noter, ringe, referencer), ret, hæv tingens version i `V` i tools/gennemgang.js.
+3. `node build.js && node tools/gennemgang.js`, og udgiv tools/tegnebordet.html med filerne i tools/gennemgang/ til samme adresse. Rettede ting står så som "Rettet – se igen".
