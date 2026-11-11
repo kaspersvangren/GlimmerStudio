@@ -829,10 +829,13 @@ function curls(c){
   o += clipG(d, det + `<path d="M 340 200 C 400 220 420 300 420 400 L 440 400 L 440 180 Z" fill="${c.hD}" opacity=".35"/>`);
   return o;
 }
-function bunAt(c, x, y){
-  return `<circle cx="${x}" cy="${y}" r="32" fill="${c.hair}" stroke="${c.hs}" stroke-width="3"/>`
-    + `<path d="M ${x-20} ${y-10} C ${x-8} ${y-28} ${x+18} ${y-24} ${x+20} ${y-2} C ${x+20} ${y+14} ${x+4} ${y+20} ${x-8} ${y+14}" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>`
-    + `<path d="M ${x-22} ${y+2} C ${x-22} ${y-14} ${x-12} ${y-24} ${x} ${y-26}" stroke="${c.hL}" stroke-width="5" fill="none" opacity=".8" stroke-linecap="round"/>`;
+function bunAt(c, x, y, r=32){
+  const k = r / 32, f = x < 300 ? 1 : -1;
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${c.hair}" stroke="${c.hs}" stroke-width="3"/>`
+    + `<path d="M ${x-20*k} ${y-10*k} C ${x-8*k} ${y-28*k} ${x+18*k} ${y-24*k} ${x+20*k} ${y-2*k} C ${x+20*k} ${y+14*k} ${x+4*k} ${y+20*k} ${x-8*k} ${y+14*k}" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>`
+    + `<path d="M ${x-14*k} ${y+4*k} C ${x-10*k} ${y-8*k} ${x+4*k} ${y-12*k} ${x+12*k} ${y-4*k}" stroke="${c.hD}" stroke-width="2.5" fill="none" opacity=".45" stroke-linecap="round"/>`
+    + `<path d="M ${x-22*k} ${y+2*k} C ${x-22*k} ${y-14*k} ${x-12*k} ${y-24*k} ${x} ${y-26*k}" stroke="${c.hL}" stroke-width="5" fill="none" opacity=".8" stroke-linecap="round"/>`
+    + `<path d="M ${x+f*r*0.7} ${y-r*0.75} q ${f*10} -10 ${f*4} -18" stroke="${c.hs}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
 }
 /* baghår: back = bag kroppen, over = foran skuldrene, lock = sidelokkernes længde */
 const BACK = {
@@ -848,7 +851,7 @@ const BACK = {
       + clipG(PONY, `<path d="M 380 250 C 420 280 432 360 428 430 C 424 380 414 310 372 262 Z" fill="${c.hD}" opacity=".5"/><path d="M 412 224 C 440 260 444 320 438 380" stroke="${c.hL}" stroke-width="5" fill="none" opacity=".7" stroke-linecap="round"/>`)
       + `<ellipse cx="372" cy="214" rx="12" ry="18" transform="rotate(-40 372 214)" fill="${c.tie}" stroke="${fdk(c.tie,0.4)}" stroke-width="2.5"/>`, 372, 214, [0,-3,0,2.5,0], 2.8) },
   fletninger: { label:'Fletninger', lock:'kort', back: c => capBack(c), over: c => spin(braid(c, 222), 222, 380, [0,2,0,-1.6,0], 3.4) + spin(braid(c, 378), 378, 380, [0,-2,0,1.6,0], 3.4) },
-  knolde: { label:'Knolde', lock:'kort', back: c => capBack(c) + bunAt(c, 204, 258) + bunAt(c, 396, 258) },
+  knolde: { label:'Knolde', lock:'ingen', back: c => '', top: c => bunAt(c, 232, 186, 38) + bunAt(c, 368, 186, 38) },
   kroeller: { label:'Krøller', lock:'krol', back: c => '' },
 };
 
@@ -926,6 +929,7 @@ function hatBrim(c, w=1){
 const CONE = 'M 236 206 C 250 150 268 100 300 64 C 320 40 352 30 378 38 C 360 50 350 62 352 80 C 346 120 356 170 366 206 Z';
 const CONE_BENT = 'M 236 206 C 246 158 262 118 288 90 C 304 74 330 68 352 76 C 378 86 396 106 404 132 C 390 118 372 112 356 116 C 344 128 350 172 366 206 Z';
 const CONE_LOW = 'M 246 206 C 254 170 270 138 300 118 C 330 138 346 170 354 206 Z';
+const CAP_TAIL = 'M 330 140 C 372 150 400 186 412 222 C 422 252 438 276 456 296 C 426 302 404 284 392 260 C 382 238 372 214 350 196 Z';
 const CAP_SOFT = 'M 204 240 C 208 172 258 132 306 130 C 352 132 374 162 386 200 C 398 240 424 270 446 296 C 414 296 394 274 382 252 L 380 236 Z';
 const HATS = {
   ingen: { label:'Ingen hat' },
@@ -948,13 +952,15 @@ const HATS = {
         + hatBand(c) + `<g transform="translate(350,190) rotate(18)"><path d="M 0 0 C -6 -24 6 -40 14 -46 C 12 -30 10 -14 0 0 Z" fill="${h.bL}" stroke="${h.bs}" stroke-width="2"/><path d="M 2 -4 C 4 -20 8 -32 12 -40" stroke="${h.bs}" stroke-width="1.5" fill="none"/></g>`
         + hatBrim(c, 1.22); } },
   hue: { label:'Nathue', draw: c => {
-      const h = c.hat;
-      return `<path d="${CAP_SOFT}" fill="${h.a}" stroke="${h.s}" stroke-width="3" stroke-linejoin="round"/>`
-        + clipG(CAP_SOFT, `<path d="M 330 130 C 360 160 372 200 392 240 C 404 262 420 282 450 300 L 460 120 Z" fill="${h.D}" opacity=".5"/><path d="M 244 214 C 248 178 266 152 296 142" stroke="${lt(h.a,0.22)}" stroke-width="6" fill="none" opacity=".5" stroke-linecap="round"/>`
-          + [[260,170],[300,160],[332,190],[284,206],[360,226],[392,262]].map(([x,y]) => twinkle(x, y, 6, h.bL)).join(''))
-        + `<circle cx="446" cy="298" r="16" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5"/><circle cx="441" cy="292" r="5" fill="${h.bL}"/>`
+      const h = c.hat, body = 'M 204 240 C 208 172 258 132 306 130 C 350 132 384 160 396 210 L 400 240 Z';
+      return `<path d="${body}" fill="${h.a}" stroke="${h.s}" stroke-width="3" stroke-linejoin="round"/>`
+        + clipG(body, `<path d="M 330 130 C 360 160 372 200 392 240 L 420 240 L 420 120 Z" fill="${h.D}" opacity=".5"/><path d="M 244 214 C 248 178 266 152 296 142" stroke="${lt(h.a,0.22)}" stroke-width="6" fill="none" opacity=".5" stroke-linecap="round"/>`
+          + [[260,170],[300,160],[332,190],[284,206],[248,218]].map(([x,y]) => twinkle(x, y, 6, h.bL)).join(''))
         + `<path d="M 198 226 Q 300 198 402 226 L 406 256 Q 300 230 194 256 Z" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5" stroke-linejoin="round"/>`
-        + `<path d="M 220 238 Q 300 218 380 238" stroke="${h.bL}" stroke-width="2" fill="none" stroke-dasharray="3 5"/><path d="M 344 222 Q 370 224 386 228 L 388 250 Q 370 244 346 242 Z" fill="${h.bD}" opacity=".5"/>`; } },
+        + `<path d="M 220 238 Q 300 218 380 238" stroke="${h.bL}" stroke-width="2" fill="none" stroke-dasharray="3 5"/><path d="M 344 222 Q 370 224 400 228 L 404 252 Q 370 244 346 242 Z" fill="${h.bD}" opacity=".5"/>`
+        + `<path d="${CAP_TAIL}" fill="${h.a}" stroke="${h.s}" stroke-width="3" stroke-linejoin="round"/>`
+        + clipG(CAP_TAIL, `<path d="M 380 150 C 410 200 420 250 460 300 L 470 300 L 470 140 Z" fill="${h.D}" opacity=".55"/><path d="M 352 156 C 380 176 392 206 400 232" stroke="${lt(h.a,0.25)}" stroke-width="4" fill="none" opacity=".5" stroke-linecap="round"/>` + twinkle(392, 236, 5, h.bL))
+        + `<circle cx="452" cy="300" r="16" fill="${h.b}" stroke="${h.bs}" stroke-width="2.5"/><circle cx="447" cy="294" r="5" fill="${h.bL}"/>`; } },
 };
 
 /* ================= ANSIGT (hovedets mål) ================= */
@@ -1347,8 +1353,8 @@ function figureSvg(st, c, hl, wave){
   const raised = () => `<g transform="${AXIS}">${armOpen(c, false, '', 'vink')}</g>`;
   let left;
   if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))), 'bog');
-  else if (wave && ANIM) left = `<g transform="translate(-12 22)">${waveArm(raised(), null, true)}</g>`;
-  else if (waveEv && ANIM) left = showDuring(armOpen(c, false), [[0, waveEv.a], [waveEv.b, IDLE.T]]) + showDuring(`<g transform="translate(-12 22)">${waveArm(raised(), waveEv, false)}</g>`, [[waveEv.a, waveEv.b]]);
+  else if (wave && ANIM) left = `<g transform="translate(-26 50)">${waveArm(raised(), null, true)}</g>`;
+  else if (waveEv && ANIM) left = showDuring(armOpen(c, false), [[0, waveEv.a], [waveEv.b, IDLE.T]]) + showDuring(`<g transform="translate(-26 50)">${waveArm(raised(), waveEv, false)}</g>`, [[waveEv.a, waveEv.b]]);
   else left = armOpen(c, false);
   s += HLW(hl === 'robe', left);
   /* højre arm: stav, tryllestav eller tom hånd */
@@ -1375,6 +1381,7 @@ function figureSvg(st, c, hl, wave){
   const fr = FRONT[st.front] || FRONT.side;
   const hoodUp = st.cape.id === 'haette' && !hat.draw;
   let head = hoodUp ? HLW(hl === 'cape', hoodBack(c)) : '';
+  if (back.top) head += HLW(hl === 'back', back.top(c));
   const hair = hairFront(c, fr, hoodUp && back.lock === 'lang' ? 'kort' : back.lock, !!hat.draw);
   head += faceF(c, hl, hair.d);
   if (A('briller')) head += HLW(hl === 'acc:briller', glassesArms(A('briller')));
@@ -1417,7 +1424,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 <script>
 'use strict';
 /* ================= Glimmer Studio — fælles værktøjer ================= */
-const VERSION = 'v0.9.4';
+const VERSION = 'v0.9.5';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);

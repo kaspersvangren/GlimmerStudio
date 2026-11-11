@@ -19,6 +19,8 @@ const V = { 'acc-bog': 6,
   /* v0.9.4: tredje gennemgang — striberne i sidehåret løber ud i spidser */
   'pande-side': 4, 'pande-lige': 4, 'pande-midt': 4, 'pande-pjusket': 4, 'pande-tilbage': 4, 'bag-langt': 3, 'bag-kort': 3, 'bag-hestehale': 4,
   'bag-fletninger': 3, 'bag-knolde': 3, 'bag-kroeller': 4, 'hat-hue': 3, 'acc-halskaede': 4, 'acc-tryllestav': 4, 'pose-vink': 5,
+  /* v0.9.5: fjerde gennemgang */
+  'bag-knolde': 4, 'hat-hue': 4, 'pose-vink': 6,
   'kappe-haette': 3, 'pose-ro': 4 };
 
 (async () => {
