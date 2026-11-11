@@ -26,7 +26,7 @@ const V = { 'acc-bog': 6,
   /* v0.12.0: mere dunkelt; værelsets ting rettet efter gennemgangen */
   'rum-seng-enkel': 2, 'rum-seng-himmelseng': 2, 'rum-seng-skyseng': 2, 'rum-seng-maaneseng': 2, 'rum-vindue-gardiner': 2, 'rum-vindue-stjernegardiner': 2, 'rum-vindue-farvet': 2, 'rum-vaeg-blomster': 2, 'rum-vaeg-maaner': 2, 'rum-hylde-boeger': 2, 'rum-hylde-krystaller': 2, 'rum-hylde-planter': 2, 'rum-lampe-lys': 2, 'rum-lampe-maanelampe': 2, 'rum-lampe-stjernelampe': 2, 'rum-ting-globus': 2, 'rum-ting-kost': 2, 'rum-ting-plante': 2, 'rum-dyreseng-kurv': 2, 'rum-dyreseng-slot': 2, 'rum-gulv-sky': 2, 'boble-toej': 2, 'boble-rum': 2, 'nisse': 2, 'sted-butik': 2, 'sted-garderobe': 2, 'sted-vaerelse': 2, 'start-scene': 2,
   /* v0.12.1: anden runde — ildfluer, gammel nisse, skrivebord mod væggen */
-  'boble-rum': 3, 'boble-toej': 3, 'nisse': 3, 'rum-dyreseng-slot': 3, 'rum-lampe-maanelampe': 3, 'rum-ting-globus': 3, 'sted-vaerelse': 3, 'start-scene': 3, 'sted-butik': 3,
+  'boble-rum': 3, 'boble-toej': 4, 'nisse': 4, 'rum-dyreseng-slot': 4, 'rum-lampe-maanelampe': 3, 'rum-ting-globus': 4, 'sted-vaerelse': 4, 'start-scene': 3, 'sted-butik': 3,
   'kappe-haette': 3, 'pose-ro': 4 };
 
 (async () => {

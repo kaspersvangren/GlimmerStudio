@@ -222,23 +222,29 @@ const TING = {
       const tips = [[-70,-190],[-22,-250],[34,-226],[80,-170],[-84,-120],[92,-104]];
       o += tips.map(([dx,dy]) => `<path d="M 1410 810 Q ${1410+dx*0.3} ${810+dy*0.55} ${1410+dx} ${810+dy}" stroke="#3E7A4A" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M ${1410+dx*0.55} ${810+dy*0.6} q ${dx>0?24:-24} -10 ${dx>0?30:-30} -34 q ${dx>0?-20:20} 4 ${dx>0?-30:30} 34" fill="#4F9A5A" stroke="#2E5A3A" stroke-width="2.5"/>`).join('');
       return o + tips.slice(0,4).map(([dx,dy],i) => glowAt(1410+dx, 810+dy-14, 40, c) + crescent(1410+dx, 810+dy-14, 24, mixC('#FFF1B8', c, 0.2), 1, [-30,-15,15,30][i]) ).join(''); } },
-  globus: { label:'Stjerneglobus', draw: c => { const W = '#5A3A26', WL = '#7A5236', B = '#C9952E', P = mixC('#D9B77A', c, 0.25), gx = 1415, gy = 700, r = 92;
-      const leg = (x, w) => `<path d="M ${x-w} 748 Q ${x-w*1.5} 790 ${x-w} 820 Q ${x-w*1.8} 850 ${x-w*0.9} 900 L ${x+w*0.9} 900 Q ${x+w*1.8} 850 ${x+w} 820 Q ${x+w*1.5} 790 ${x+w} 748 Z" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${x}" cy="820" rx="${w*1.6}" ry="6" fill="${W}"/>`;
-      let o = `<ellipse cx="${gx}" cy="936" rx="130" ry="14" fill="${SHC}" opacity=".22"/>`;
-      o += `<ellipse cx="${gx}" cy="922" rx="128" ry="14" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${gx}" cy="918" rx="120" ry="10" fill="${lt(WL,0.12)}"/>` + [-112, 112].map(dx => `<ellipse cx="${gx+dx}" cy="934" rx="12" ry="7" fill="${W}"/>`).join('');
-      o += leg(gx, 7) + `<rect x="${gx-90}" y="866" width="180" height="10" rx="4" fill="${WL}" stroke="${W}" stroke-width="2.5"/>`;
-      o += `<ellipse cx="${gx}" cy="${gy+46}" rx="128" ry="26" fill="${W}"/>`;
-      o += `<path d="M ${gx-r-10} ${gy+40} A ${r+10} ${r+10} 0 1 1 ${gx+r+10} ${gy+40}" stroke="${B}" stroke-width="9" fill="none"/>`;
+  globus: { label:'Stjerneglobus', draw: c => {
+      /* gulvglobus: rund fod, tre drejede ben op til en vandret ring, globussen hviler i ringen og en messingbue holder den */
+      const W = '#5A3A26', WL = '#7A5236', B = '#C9952E', P = mixC('#D9B77A', c, 0.25), gx = 1415, gy = 690, r = 90, ry = 24, ringY = gy + 44, baseY = 918;
+      const leg = (x, top, bot, w, col) => `<path d="M ${x-w} ${top} Q ${x-w*1.7} ${(top+bot)/2 - 30} ${x-w*1.1} ${(top+bot)/2} Q ${x-w*2} ${(top+bot)/2 + 30} ${x-w} ${bot} L ${x+w} ${bot} Q ${x+w*2} ${(top+bot)/2 + 30} ${x+w*1.1} ${(top+bot)/2} Q ${x+w*1.7} ${(top+bot)/2 - 30} ${x+w} ${top} Z" fill="${col}" stroke="${W}" stroke-width="3"/><ellipse cx="${x}" cy="${(top+bot)/2}" rx="${w*1.9}" ry="5" fill="${W}"/>`;
+      let o = `<ellipse cx="${gx}" cy="${baseY + 22}" rx="140" ry="16" fill="${SHC}" opacity=".22"/>`;
+      /* foden: en skive set lidt ovenfra, med kant */
+      o += `<path d="M ${gx-120} ${baseY} A 120 ${ry} 0 0 0 ${gx+120} ${baseY} V ${baseY+12} A 120 ${ry} 0 0 1 ${gx-120} ${baseY+12} Z" fill="${W}"/>`;
+      o += `<ellipse cx="${gx}" cy="${baseY}" rx="120" ry="${ry}" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${gx}" cy="${baseY}" rx="96" ry="${ry*0.78}" fill="none" stroke="${W}" stroke-width="2" opacity=".5"/>`;
+      /* bageste ben og bagerste halvdel af ringen */
+      o += leg(gx, ringY - ry + 6, baseY - ry*0.7, 7, fdk(WL,0.15));
+      o += `<path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 1 ${gx+128} ${ringY}" fill="none" stroke="${fdk(WL,0.2)}" stroke-width="16"/>`;
+      /* messingbuen bag og globussen */
+      o += `<path d="M ${gx-r-12} ${ringY} A ${r+12} ${r+12} 0 1 1 ${gx+r+12} ${ringY}" stroke="${B}" stroke-width="9" fill="none"/><path d="M ${gx-r-12} ${ringY} A ${r+12} ${r+12} 0 1 1 ${gx+r+12} ${ringY}" stroke="#8A6420" stroke-width="2" fill="none" opacity=".6"/>`;
       o += `<circle cx="${gx}" cy="${gy}" r="${r}" fill="${P}" stroke="#6A4A2A" stroke-width="4"/>` + rClip(`M ${gx} ${gy-r} A ${r} ${r} 0 1 1 ${gx-0.1} ${gy-r} Z`,
         `<ellipse cx="${gx}" cy="${gy}" rx="${r*0.45}" ry="${r}" fill="none" stroke="#8A6A3A" stroke-width="2" opacity=".6"/><path d="M ${gx-r} ${gy} H ${gx+r} M ${gx-r} ${gy-40} H ${gx+r} M ${gx-r} ${gy+40} H ${gx+r}" stroke="#8A6A3A" stroke-width="2" opacity=".5"/>`
-        + `<path d="M 1360 650 L 1392 668 L 1420 640 L 1450 660 M 1380 720 L 1414 740 L 1446 716 L 1470 744" stroke="#5A3A1A" stroke-width="2.5" fill="none"/>` + [[1360,650],[1392,668],[1420,640],[1450,660],[1380,720],[1414,740],[1446,716],[1470,744]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#3A2410"/>`).join('')
-        + `<path d="M ${gx+40} ${gy-r} A ${r} ${r} 0 0 1 ${gx+40} ${gy+r} L ${gx+r+10} ${gy+r} L ${gx+r+10} ${gy-r} Z" fill="${SHC}" opacity=".25"/><path d="M 1352 650 Q 1340 680 1346 710" stroke="#FFF6E0" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/>`);
-      o += `<circle cx="${gx}" cy="${gy-r-10}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/><path d="M ${gx-128} ${gy+46} A 128 26 0 0 0 ${gx+128} ${gy+46}" fill="none" stroke="${WL}" stroke-width="18"/><path d="M ${gx-128} ${gy+46} A 128 26 0 0 0 ${gx+128} ${gy+46}" fill="none" stroke="#E9D4A8" stroke-width="4" stroke-dasharray="2 10"/>`;
-      /* benene går fra ringen ned på foden */
-      const leg2 = (x) => `<path d="M ${x-8} 760 Q ${x-14} 800 ${x-9} 830 Q ${x-16} 862 ${x-8} 916 L ${x+8} 916 Q ${x+16} 862 ${x+9} 830 Q ${x+14} 800 ${x+8} 760 Z" fill="${WL}" stroke="${W}" stroke-width="3"/><ellipse cx="${x}" cy="830" rx="14" ry="6" fill="${W}"/>`;
-      o += leg2(gx - 96) + leg2(gx + 96);
+        + `<path d="M 1362 642 L 1392 660 L 1420 632 L 1450 652 M 1380 712 L 1414 732 L 1446 708 L 1468 736" stroke="#5A3A1A" stroke-width="2.5" fill="none"/>` + [[1362,642],[1392,660],[1420,632],[1450,652],[1380,712],[1414,732],[1446,708],[1468,736]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#3A2410"/>`).join('')
+        + `<path d="M ${gx+40} ${gy-r} A ${r} ${r} 0 0 1 ${gx+40} ${gy+r} L ${gx+r+10} ${gy+r} L ${gx+r+10} ${gy-r} Z" fill="${SHC}" opacity=".25"/><path d="M 1354 642 Q 1342 672 1348 702" stroke="#FFF6E0" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/>`);
+      o += `<circle cx="${gx}" cy="${gy-r-12}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/>`;
+      /* forreste ben fra ringens underside ned på foden, og forreste halvdel af ringen over dem */
+      o += leg(gx - 92, ringY + 10, baseY + 8, 8, WL) + leg(gx + 92, ringY + 10, baseY + 8, 8, WL);
+      o += `<path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 0 ${gx+128} ${ringY}" fill="none" stroke="${WL}" stroke-width="16"/><path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 0 ${gx+128} ${ringY}" fill="none" stroke="#E9D4A8" stroke-width="4" stroke-dasharray="2 10"/>`;
+      o += `<ellipse cx="${gx-128}" cy="${ringY}" rx="8" ry="9" fill="${WL}" stroke="${W}" stroke-width="2"/><ellipse cx="${gx+128}" cy="${ringY}" rx="8" ry="9" fill="${WL}" stroke="${W}" stroke-width="2"/>`;
       return o; } },
-
 };
 
 /* ---------- dyrets seng (foran til højre for figuren) ---------- */
@@ -280,7 +286,7 @@ const ROOM_FREE = { vaeg:['stjerner','striber'], vindue:['gardiner'], seng:['enk
 const ROOM_DEFAULT = { vaeg:'stjerner', vindue:'gardiner', seng:'enkel', hylde:'boeger', lampe:'lys', gulv:'rund', ting:'kedel', dyreseng:'kurv',
   c:{ vaeg:'#35306A', vindue:'#E0457A', seng:'#7B4FD0', hylde:'#7B4FD0', lampe:'#FFC02E', gulv:'#7A2E4A', ting:'#5FD0B0', dyreseng:'#E07A45' } };
 /* udsnit til små billeder af én ting */
-const ROOM_VB = { vaeg:'0 0 1600 700', vindue:'200 50 500 520', seng:'30 220 560 660', hylde:'1050 50 440 340', lampe:'680 0 440 380', gulv:'460 780 720 220', ting:'1240 440 360 530', dyreseng:'1020 640 340 330' };
+const ROOM_VB = { vaeg:'0 0 1600 700', vindue:'200 50 500 520', seng:'30 220 560 660', hylde:'1050 50 440 340', lampe:'680 0 440 380', gulv:'460 780 720 220', ting:'1240 440 360 530', dyreseng:'1000 640 340 330' };
 const ROOM_WALL_COLORS = ['#35306A','#24305E','#4E2E6A','#1F4F56','#6A2E4E','#2E5A44','#7A5E36','#3E3448','#4A4590','#2F6F78'];
 
 function roomFloor(){
@@ -305,7 +311,7 @@ function roomSvg(room, opts = {}){
   }
   let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">`;
   o += wallBase(room.c.vaeg) + roomItem('vaeg', room) + wallTop() + roomFloor();
-  o += roomItem('vindue', room) + roomItem('hylde', room) + roomItem('gulv', room) + roomItem('seng', room) + roomItem('ting', room) + `<g transform="translate(-30 0)">${roomItem('dyreseng', room)}</g>` + roomItem('lampe', room);
+  o += roomItem('vindue', room) + roomItem('hylde', room) + roomItem('gulv', room) + roomItem('seng', room) + roomItem('ting', room) + `<g transform="translate(${BED_DX} 0)">${roomItem('dyreseng', room)}</g>` + roomItem('lampe', room);
   return o + `<rect x="0" y="0" width="1600" height="1000" fill="${SHC}" opacity=".06"/></svg>`;
 }
 
@@ -322,8 +328,9 @@ function setRoom(r){ prog.room = r; saveProg(); }
 
 /* ================= Værelset som sted: hele skærmen, ting man kan trykke på, og indretningsbogen ================= */
 /* hvor dyret står: ved siden af figuren, eller i sin seng (fødder i rumkoordinater) */
-const PET_SPOT = { x: 1000, y: 952 };
-const PET_BED = { kurv: { x: 1130, y: 888 }, pude: { x: 1130, y: 885 }, slot: { x: 1130, y: 942 } };
+const BED_DX = -80;
+const PET_SPOT = { x: 590, y: 962 };
+const PET_BED = { kurv: { x: 1110, y: 888 }, pude: { x: 1110, y: 885 }, slot: { x: 1110, y: 942 } };
 const BOOK_SIDE = { vaeg:'r', vindue:'r', seng:'r', gulv:'r', hylde:'l', lampe:'l', ting:'l', dyreseng:'l' };
 let roomBook = null, roomLight = true, roomCurtain = false, petInBed = false;
 
@@ -414,14 +421,14 @@ function roomScene(room){
   o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
   o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
   o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
-  o += `<g data-hit="bog"><g transform="translate(1040 714) scale(0.88) translate(-556 -810)">${desk(fresh)}</g></g>`;
+  o += `<g data-hit="bog"><g transform="translate(1050 724) scale(0.8) translate(-556 -872)">${desk(fresh)}</g></g>`;
   o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
-  o += `<g data-hit="dyreseng"><g transform="translate(-60 0)">${roomItem('dyreseng', room)}</g></g>`;
+  o += `<g data-hit="dyreseng"><g transform="translate(${BED_DX} 0)">${roomItem('dyreseng', room)}</g></g>`;
   /* figuren og dyret er billeder i scenen */
   o += `<g data-hit="figur"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="650" y="266" width="340" height="700"/></g></g>`;
   if (hasPet) o += `<g data-hit="dyr" class="petg" style="transform:translate(${at.x - PET_SPOT.x}px,${at.y - PET_SPOT.y}px)"><g class="anim"><image href="${dollUrl(hero, { viewBox: VB.pet, petOnly: true })}" x="${PET_SPOT.x - 95}" y="${PET_SPOT.y - 203}" width="190" height="210"/></g></g>`;
   const bedF = (DYRESENG[room.dyreseng] || {}).front;
-  if (hasPet && bedF) o += `<g class="bedfront${petInBed ? ' on' : ''}" pointer-events="none"><g transform="translate(-60 0)">${bedF(room.c.dyreseng)}</g></g>`;
+  if (hasPet && bedF) o += `<g class="bedfront${petInBed ? ' on' : ''}" pointer-events="none"><g transform="translate(${BED_DX} 0)">${bedF(room.c.dyreseng)}</g></g>`;
   o += `<g data-hit="lampe"><g class="anim">${roomItem('lampe', room)}</g></g>`;
   if (!roomLight){
     o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#0B0A2E" opacity=".58" pointer-events="none"/>`;

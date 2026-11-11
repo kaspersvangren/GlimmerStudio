@@ -95,7 +95,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--line);border-radius
   <div class="wrap">
     <div class="bar">
       <div class="left"><button class="btn" id="back" type="button">← Alle</button><h2 id="dTitle"></h2><span class="pill" id="dPill"></span></div>
-      <div class="row"><button class="btn" id="prev" type="button">Forrige</button><button class="btn" id="next" type="button">Næste</button></div>
+      <div class="row"><span class="status-line" id="pos"></span><button class="btn" id="prev" type="button">Forrige</button><button class="btn" id="next" type="button">Næste</button></div>
     </div>
     <div class="views">
       <div class="view"><h3>Som på tabletten</h3><div class="shot" id="shotT"><img id="imgT" alt=""></div></div>
@@ -119,7 +119,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--line);border-radius
 <script>
 const $ = s => document.querySelector(s);
 const STATUS = { new:['Til gennemsyn','s-new'], ok:['Godkendt','s-ok'], bad:['Fejl','s-bad'], again:['Rettet – se igen','s-again'] };
-let ITEMS = [], META = {}, REV = {}, filter = 'alle', cur = -1, db = null, assets = null, saveTimer = null, draft = null;
+let ITEMS = [], META = {}, REV = {}, filter = 'alle', cur = -1, nav = [], navLabel = '', db = null, assets = null, saveTimer = null, draft = null;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 /* status for en ting: rettet siden sidste gennemsyn tæller som "se igen" */
 function stateOf(it){
@@ -148,7 +148,14 @@ function renderList(){
   }).join('');
 }
 $('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; renderList(); });
-$('#list').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) open(+b.dataset.i); });
+/* Forrige/Næste bliver i den visning man kom fra (fx kun "Rettet – se igen"), i samme rækkefølge som listen */
+function shownOrder(){
+  const shown = ITEMS.map((it,i) => [it,i]).filter(([it]) => filter === 'alle' || stateOf(it) === filter);
+  const cats = [...new Set(shown.map(([it]) => it.cat))];
+  return cats.flatMap(cat => shown.filter(([it]) => it.cat === cat).map(([, i]) => i));
+}
+$('#list').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return;
+  nav = shownOrder(); navLabel = filter === 'alle' ? 'alle' : STATUS[filter][0].toLowerCase(); open(+b.dataset.i); });
 
 /* ---------- én ting ---------- */
 function open(i){
@@ -162,7 +169,10 @@ function open(i){
   const pn = $('#prevNote'); pn.hidden = !(again && r.note); pn.textContent = again && r.note ? 'Din note sidst: ' + r.note : '';
   $('#saved').textContent = '';
   paintButtons(); paintMarks(); paintRefs();
-  $('#prev').disabled = i <= 0; $('#next').disabled = i >= ITEMS.length - 1;
+  if (!nav.includes(i)){ nav = ITEMS.map((_, k) => k); navLabel = 'alle'; }
+  const p = nav.indexOf(i);
+  $('#pos').textContent = `${p + 1} af ${nav.length}` + (navLabel === 'alle' ? '' : ` · ${navLabel}`);
+  $('#prev').disabled = p <= 0; $('#next').disabled = p >= nav.length - 1;
   $('#sheet').hidden = false; $('#sheet').scrollTop = 0; document.body.style.overflow = 'hidden';
 }
 function close(){ flush(); $('#sheet').hidden = true; document.body.style.overflow = ''; cur = -1; renderList(); }
@@ -186,8 +196,8 @@ $('#bOk').addEventListener('click', () => { draft.status = 'ok'; draft.marks = [
 $('#bBad').addEventListener('click', () => { draft.status = 'bad'; paintButtons(); queueSave(true); $('#note').focus(); });
 $('#note').addEventListener('input', () => { draft.note = $('#note').value; if (draft.note.trim() && draft.status !== 'bad'){ draft.status = 'bad'; paintButtons(); } queueSave(); });
 $('#back').addEventListener('click', close);
-$('#prev').addEventListener('click', () => cur > 0 && open(cur - 1));
-$('#next').addEventListener('click', () => cur < ITEMS.length - 1 && open(cur + 1));
+$('#prev').addEventListener('click', () => { const p = nav.indexOf(cur); if (p > 0) open(nav[p - 1]); });
+$('#next').addEventListener('click', () => { const p = nav.indexOf(cur); if (p >= 0 && p < nav.length - 1) open(nav[p + 1]); });
 document.addEventListener('keydown', e => { if ($('#sheet').hidden || e.target.tagName === 'TEXTAREA') return; if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') $('#next').click(); if (e.key === 'ArrowLeft') $('#prev').click(); });
 
 /* ---------- referencebilleder ---------- */
