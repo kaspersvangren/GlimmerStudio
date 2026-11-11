@@ -233,13 +233,14 @@ const TING = {
       /* bageste ben og bagerste halvdel af ringen */
       o += leg(gx, ringY - ry + 6, baseY - ry*0.7, 7, fdk(WL,0.15));
       o += `<path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 1 ${gx+128} ${ringY}" fill="none" stroke="${fdk(WL,0.2)}" stroke-width="16"/>`;
-      /* messingbuen bag og globussen */
-      o += `<path d="M ${gx-r-12} ${ringY} A ${r+12} ${r+12} 0 1 1 ${gx+r+12} ${ringY}" stroke="${B}" stroke-width="9" fill="none"/><path d="M ${gx-r-12} ${ringY} A ${r+12} ${r+12} 0 1 1 ${gx+r+12} ${ringY}" stroke="#8A6420" stroke-width="2" fill="none" opacity=".6"/>`;
+      /* messingringen (meridianen) om globussen: en hel ring i billedplanet, der går ned i den vandrette ring */
+      const R = r + 12, ex = Math.sqrt(R*R - 44*44).toFixed(1);
+      o += `<path d="M ${gx-ex} ${ringY} A ${R} ${R} 0 1 1 ${gx+ (+ex)} ${ringY}" stroke="#8A6420" stroke-width="12" fill="none"/><path d="M ${gx-ex} ${ringY} A ${R} ${R} 0 1 1 ${gx+ (+ex)} ${ringY}" stroke="${B}" stroke-width="8" fill="none"/>`;
       o += `<circle cx="${gx}" cy="${gy}" r="${r}" fill="${P}" stroke="#6A4A2A" stroke-width="4"/>` + rClip(`M ${gx} ${gy-r} A ${r} ${r} 0 1 1 ${gx-0.1} ${gy-r} Z`,
         `<ellipse cx="${gx}" cy="${gy}" rx="${r*0.45}" ry="${r}" fill="none" stroke="#8A6A3A" stroke-width="2" opacity=".6"/><path d="M ${gx-r} ${gy} H ${gx+r} M ${gx-r} ${gy-40} H ${gx+r} M ${gx-r} ${gy+40} H ${gx+r}" stroke="#8A6A3A" stroke-width="2" opacity=".5"/>`
         + `<path d="M 1362 642 L 1392 660 L 1420 632 L 1450 652 M 1380 712 L 1414 732 L 1446 708 L 1468 736" stroke="#5A3A1A" stroke-width="2.5" fill="none"/>` + [[1362,642],[1392,660],[1420,632],[1450,652],[1380,712],[1414,732],[1446,708],[1468,736]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#3A2410"/>`).join('')
         + `<path d="M ${gx+40} ${gy-r} A ${r} ${r} 0 0 1 ${gx+40} ${gy+r} L ${gx+r+10} ${gy+r} L ${gx+r+10} ${gy-r} Z" fill="${SHC}" opacity=".25"/><path d="M 1354 642 Q 1342 672 1348 702" stroke="#FFF6E0" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/>`);
-      o += `<circle cx="${gx}" cy="${gy-r-12}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/>`;
+      o += `<path d="M ${gx-ex} ${ringY} A ${R} ${R} 0 0 1 ${gx-R*0.55} ${gy-R*0.83}" stroke="#F2D27A" stroke-width="3" fill="none" opacity=".8"/><path d="M ${gx} ${gy-r} V ${gy-R-4}" stroke="#8A6420" stroke-width="4"/><circle cx="${gx}" cy="${gy-R-8}" r="7" fill="${B}" stroke="#8A6420" stroke-width="2"/>`;
       /* forreste ben fra ringens underside ned på foden, og forreste halvdel af ringen over dem */
       o += leg(gx - 92, ringY + 10, baseY + 8, 8, WL) + leg(gx + 92, ringY + 10, baseY + 8, 8, WL);
       o += `<path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 0 ${gx+128} ${ringY}" fill="none" stroke="${WL}" stroke-width="16"/><path d="M ${gx-128} ${ringY} A 128 ${ry+2} 0 0 0 ${gx+128} ${ringY}" fill="none" stroke="#E9D4A8" stroke-width="4" stroke-dasharray="2 10"/>`;
@@ -381,6 +382,17 @@ function desk(fresh){
   if (fresh) o += `<g><rect x="648" y="580" width="46" height="26" rx="13" fill="#FF3D8F" stroke="#FFFFFF" stroke-width="3"/><text x="671" y="599" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="16" fill="#FFFFFF">NY</text></g>`;
   return o;
 }
+/* en træstol trukket lidt ud fra skrivebordet, set forfra */
+function deskChair(){
+  const W = '#7A4E35', D = '#5A3A26';
+  let o = `<ellipse cx="1190" cy="770" rx="70" ry="9" fill="${SHC}" opacity=".2"/>`;
+  o += `<rect x="1136" y="560" width="14" height="210" rx="5" fill="${W}" stroke="${D}" stroke-width="3"/><rect x="1230" y="560" width="14" height="210" rx="5" fill="${W}" stroke="${D}" stroke-width="3"/>`;
+  o += `<path d="M 1130 572 Q 1190 536 1250 572 L 1250 600 Q 1190 574 1130 600 Z" fill="${W}" stroke="${D}" stroke-width="3"/>` + `<g transform="translate(1190 600)"><polygon points="${star5pts(0,0,13,6)}" fill="#E9C46A" stroke="#8A6420" stroke-width="2"/></g>`;
+  o += `<rect x="1150" y="618" width="80" height="8" rx="3" fill="${W}" stroke="${D}" stroke-width="2"/>`;
+  o += `<path d="M 1122 676 H 1258 L 1262 692 H 1118 Z" fill="${W}" stroke="${D}" stroke-width="3"/><rect x="1118" y="692" width="144" height="10" rx="3" fill="${D}"/><path d="M 1130 680 H 1250" stroke="#9C6B43" stroke-width="3"/>`;
+  o += `<rect x="1126" y="700" width="12" height="74" rx="4" fill="${W}" stroke="${D}" stroke-width="2.5"/><rect x="1242" y="700" width="12" height="74" rx="4" fill="${W}" stroke="${D}" stroke-width="2.5"/><path d="M 1132 742 H 1248" stroke="${W}" stroke-width="6"/>`;
+  return o;
+}
 /* stemning for et sted: mørke kanter, varme lyspletter og støv der svæver i lyset */
 function placeMood(pools = [], opts = {}){
   const id = 'pm' + (CLIPN++);
@@ -421,7 +433,7 @@ function roomScene(room){
   o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
   o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
   o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
-  o += `<g data-hit="bog"><g transform="translate(1050 724) scale(0.8) translate(-556 -872)">${desk(fresh)}</g></g>`;
+  o += `<g data-hit="bog"><g transform="translate(960 716) scale(1.15) translate(-556 -872)">${desk(fresh)}</g>${deskChair()}</g>`;
   o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
   o += `<g data-hit="dyreseng"><g transform="translate(${BED_DX} 0)">${roomItem('dyreseng', room)}</g></g>`;
   /* figuren og dyret er billeder i scenen */

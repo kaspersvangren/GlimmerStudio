@@ -48,7 +48,7 @@ let nisseLine = '', chatN = 0;
 const NISSE_EYE = [[355, 397], [446, 397]];
 const NISSE_BEARD = [1, -1].map(f => { const X = x => 400.5 + f * (x - 400.5);
     return `<path d="M ${X(326)} 322 L ${X(290)} 326 L ${X(300)} 342 L ${X(266)} 352 L ${X(290)} 368 L ${X(258)} 386 L ${X(286)} 398 L ${X(262)} 420 L ${X(292)} 428 L ${X(274)} 456 L ${X(304)} 452 L ${X(298)} 478 L ${X(326)} 462 Z" fill="#F4F2F8" stroke="#C9C2DA" stroke-width="3" stroke-linejoin="round"/>`; }).join('')
-  + NISSE_EYE.map(([x, y]) => `<path d="M ${x-31} ${y+2} C ${x-30} ${y-36} ${x+30} ${y-36} ${x+31} ${y+2} C ${x+12} ${y-6} ${x-12} ${y-6} ${x-31} ${y+2} Z" fill="#F2CBB0"/><path d="M ${x-28} ${y+1} C ${x-12} ${y-6} ${x+12} ${y-6} ${x+28} ${y+1}" stroke="#A8745E" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+  + NISSE_EYE.map(([x, y]) => `<path d="M ${x-31} ${y-8} C ${x-30} ${y-40} ${x+30} ${y-40} ${x+31} ${y-8} C ${x+12} ${y-18} ${x-12} ${y-18} ${x-31} ${y-8} Z" fill="#F2CBB0"/><path d="M ${x-28} ${y-9} C ${x-12} ${y-18} ${x+12} ${y-18} ${x+28} ${y-9}" stroke="#A8745E" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
       + `<path d="M ${x-20} ${y+26} Q ${x} ${y+34} ${x+20} ${y+26} M ${x-14} ${y+34} Q ${x} ${y+40} ${x+14} ${y+34}" stroke="#C99A86" stroke-width="2.5" fill="none" stroke-linecap="round"/>`).join('')
   + `<path d="M 312 418 C 296 480 318 586 400 640 C 482 586 504 480 488 418 C 472 452 440 470 400 470 C 360 470 328 452 312 418 Z" fill="#FBFAFF" stroke="#C9C2DA" stroke-width="4"/>`
   + `<path d="M 340 500 q 14 16 4 34 M 400 520 q 12 18 0 40 M 456 500 q -14 16 -4 34 M 370 560 q 10 14 2 28 M 430 560 q -10 14 -2 28 M 400 590 q 8 14 0 30" stroke="#DCD6EA" stroke-width="4" fill="none" stroke-linecap="round"/>`

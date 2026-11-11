@@ -26,7 +26,7 @@ const V = { 'acc-bog': 6,
   /* v0.12.0: mere dunkelt; værelsets ting rettet efter gennemgangen */
   'rum-seng-enkel': 2, 'rum-seng-himmelseng': 2, 'rum-seng-skyseng': 2, 'rum-seng-maaneseng': 2, 'rum-vindue-gardiner': 2, 'rum-vindue-stjernegardiner': 2, 'rum-vindue-farvet': 2, 'rum-vaeg-blomster': 2, 'rum-vaeg-maaner': 2, 'rum-hylde-boeger': 2, 'rum-hylde-krystaller': 2, 'rum-hylde-planter': 2, 'rum-lampe-lys': 2, 'rum-lampe-maanelampe': 2, 'rum-lampe-stjernelampe': 2, 'rum-ting-globus': 2, 'rum-ting-kost': 2, 'rum-ting-plante': 2, 'rum-dyreseng-kurv': 2, 'rum-dyreseng-slot': 2, 'rum-gulv-sky': 2, 'boble-toej': 2, 'boble-rum': 2, 'nisse': 2, 'sted-butik': 2, 'sted-garderobe': 2, 'sted-vaerelse': 2, 'start-scene': 2,
   /* v0.12.1: anden runde — ildfluer, gammel nisse, skrivebord mod væggen */
-  'boble-rum': 3, 'boble-toej': 4, 'nisse': 4, 'rum-dyreseng-slot': 4, 'rum-lampe-maanelampe': 3, 'rum-ting-globus': 4, 'sted-vaerelse': 4, 'start-scene': 3, 'sted-butik': 3,
+  'boble-rum': 3, 'boble-toej': 4, 'nisse': 5, 'rum-dyreseng-slot': 4, 'rum-lampe-maanelampe': 3, 'rum-ting-globus': 5, 'sted-vaerelse': 5, 'start-scene': 3, 'sted-butik': 3,
   'kappe-haette': 3, 'pose-ro': 4 };
 
 (async () => {
@@ -57,7 +57,7 @@ const V = { 'acc-bog': 6,
       out.push({ id: 'rum-' + s.id + '-' + k, cat: 'Værelset', title: s.label + ': ' + s.cat[k].label, kind: 'rum', slot: s.id, item: k, vbT: '0 0 1600 1000', vbZ: ROOM_VB[s.id] });
     for (const b of BUBBLES) out.push({ id: 'boble-' + b.id, cat: 'Boblebutikken', title: 'Boble: ' + b.label, kind: 'boble', bub: b.id, vbT: '0 0 300 300', vbZ: '0 0 300 300' });
     /* stederne som hele skærme */
-    out.push({ id: 'sted-vaerelse', cat: 'Steder', title: 'Værelset med skrivebord og bog', kind: 'sted', fn: 'room', vbT: '0 0 1600 1000', vbZ: '1008 560 320 330' });
+    out.push({ id: 'sted-vaerelse', cat: 'Steder', title: 'Værelset med skrivebord og bog', kind: 'sted', fn: 'room', vbT: '0 0 1600 1000', vbZ: '940 470 360 360' });
     out.push({ id: 'sted-garderobe', cat: 'Steder', title: 'Garderoben', kind: 'sted', fn: 'ward', vbT: '0 0 1600 1000', vbZ: '20 120 560 800' });
     out.push({ id: 'sted-butik', cat: 'Steder', title: 'Boblebutikken', kind: 'sted', fn: 'shop', vbT: '0 0 1600 1000', vbZ: '40 280 860 580' });
     out.push({ id: 'nisse', cat: 'Steder', title: 'Nissen bag disken', kind: 'sted', fn: 'shop', vbT: '0 0 1600 1000', vbZ: '880 60 380 480' });
