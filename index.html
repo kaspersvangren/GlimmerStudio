@@ -653,6 +653,23 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-bobfin{animation:kfbob 3.2s ease-in-out infinite}
 @keyframes kfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 @media (prefers-reduced-motion: reduce){ .kf-bobfin{animation:none!important} }
+/* ting der sker i baggrunden */
+.kf-rocket{animation:kfrocket .85s ease-out forwards}
+@keyframes kfrocket{to{transform:translateY(var(--h))}}
+.kf-burst{animation:kfburst 1.4s ease-out forwards}
+@keyframes kfburst{0%{transform:translate(0,0);opacity:1}70%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 40px));opacity:0}}
+.kf-fly{animation:kffly var(--dur,7s) linear forwards}
+@keyframes kffly{to{transform:translateX(-2100px)}}
+.kf-flap{transform-box:fill-box;transform-origin:50% 50%;animation:kfflap .28s ease-in-out infinite alternate}
+@keyframes kfflap{to{transform:scaleY(.35)}}
+.kf-shoot{animation:kfshoot 1.2s ease-out forwards}
+@keyframes kfshoot{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(-420px,140px);opacity:0}}
+.kf-lantern{animation:kflantern 9s ease-out forwards}
+@keyframes kflantern{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x),-760px);opacity:0}}
+.kf-mill{animation:mcspin 14s linear infinite;transform-box:view-box;transform-origin:0 0}
+.kf-beam{transform-box:fill-box;transform-origin:0% 50%;animation:kfbeam 4s ease-in-out infinite}
+@keyframes kfbeam{0%,100%{opacity:.04}50%{opacity:.16}}
+@media (prefers-reduced-motion: reduce){ .kf-mill,.kf-beam,.kf-flap{animation:none!important} }
 
 </style>
 </head>
@@ -1782,7 +1799,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.15.8';
+const VERSION = 'v0.16.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3912,11 +3929,13 @@ function lessonDone(){
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 490;
-  const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 260;
+  const BOOST_N = 3, LOOP_R = 150, LOOP_T = .95, HOLD_MS = 260, BOOST_V = 2.3;
   /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
   /* banerne står i lige store trin bagud: samme forskydning fra din bane til den midterste som fra den midterste til den bagerste */
-  const STEP_X = -110, STEP_Y = -85, STEP_K = .27;
-  const LANES = [2, 1].map(n => ({ n, k: 1 - n * STEP_K, dx: n * STEP_X, dy: n * STEP_Y, op: n === 2 ? .62 : .8 }));
+  /* lige stor luft mellem ringenes kanter: forskydningen er luften plus de to ringes halve bredder */
+  const STEP_K = .27, GAP = 46, HALF = 52, SLOPE = .78;
+  const K = [1, 1 - STEP_K, 1 - 2 * STEP_K], DX1 = -(GAP + HALF * (K[0] + K[1])), DX2 = DX1 - (GAP + HALF * (K[1] + K[2]));
+  const LANES = [{ n: 2, k: K[2], dx: DX2, dy: DX2 * SLOPE, op: .62 }, { n: 1, k: K[1], dx: DX1, dy: DX1 * SLOPE, op: .8 }];
   const laneY = (L, y) => 480 + (y - 480) * L.k + L.dy;
   const RIDER_H = 250;
   const NS = 'http://www.w3.org/2000/svg';
@@ -4067,61 +4086,126 @@ const Kost = (() => {
   }
   const laneGate = (x, L) => floatGate(x, laneY(L, 150), laneY(L, 790), L.k, false);
   const gate = x => floatGate(x, 150, 820, 1, true);
-  /* baggrunden i tre lag, der glider forskelligt hurtigt */
-  function farTile(){
-    let o = `<path d="M 0 700 L 160 520 L 300 640 L 470 470 L 640 620 L 820 500 L 1000 650 L 1180 480 L 1380 640 L 1600 520 L 1800 660 L 2000 540 L 2200 680 L 2400 500 L 2600 640 L 2800 520 L 3000 650 L 3200 700 V 1400 H 0 Z" fill="#2A2058"/>`;
-    /* skolen på bjerget */
-    const sx = 1180, sy = 480;
-    o += `<rect x="${sx-70}" y="${sy-60}" width="140" height="70" fill="#1E1844"/><rect x="${sx-90}" y="${sy-120}" width="34" height="130" fill="#1E1844"/><rect x="${sx+56}" y="${sy-110}" width="34" height="120" fill="#1E1844"/><rect x="${sx-18}" y="${sy-150}" width="36" height="160" fill="#1E1844"/>`
-      + `<path d="M ${sx-96} ${sy-118} L ${sx-73} ${sy-170} L ${sx-50} ${sy-118} Z M ${sx+50} ${sy-108} L ${sx+73} ${sy-158} L ${sx+96} ${sy-108} Z M ${sx-24} ${sy-148} L ${sx} ${sy-214} L ${sx+24} ${sy-148} Z" fill="#1E1844"/>`
-      + [[sx-78, sy-90], [sx+68, sy-80], [sx-6, sy-120], [sx-40, sy-36], [sx+20, sy-36]].map(([x, y]) => `<rect x="${x}" y="${y}" width="10" height="16" rx="5" fill="#FFD86B" opacity=".85"/>`).join('');
-    return o;
+  /* baggrunden i lag, der glider forskelligt hurtigt; hvert lag har flere forskellige stykker efter hinanden */
+  const TW = 3200;
+  const rng = seed => () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  /* alle stykker begynder og slutter i samme højde, så der ikke er kanter mellem dem */
+  const mtn = (pts, fill) => `<path d="M 0 700 ${pts.filter(([x]) => x > 0 && x < TW).map(([x, y]) => `L ${x} ${y}`).join(' ')} L ${TW} 700 V 1400 H 0 Z" fill="${fill}"/>`;
+  const win = (x, y, w = 10, h = 14) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w / 2}" fill="#FFD86B" opacity=".85"/>`;
+  function castle(sx, sy, c){
+    return `<rect x="${sx-70}" y="${sy-60}" width="140" height="70" fill="${c}"/><rect x="${sx-90}" y="${sy-120}" width="34" height="130" fill="${c}"/><rect x="${sx+56}" y="${sy-110}" width="34" height="120" fill="${c}"/><rect x="${sx-18}" y="${sy-150}" width="36" height="160" fill="${c}"/>`
+      + `<path d="M ${sx-96} ${sy-118} L ${sx-73} ${sy-170} L ${sx-50} ${sy-118} Z M ${sx+50} ${sy-108} L ${sx+73} ${sy-158} L ${sx+96} ${sy-108} Z M ${sx-24} ${sy-148} L ${sx} ${sy-214} L ${sx+24} ${sy-148} Z" fill="${c}"/>`
+      + [[sx-78, sy-90], [sx+68, sy-80], [sx-6, sy-120], [sx-40, sy-36], [sx+20, sy-36]].map(([x, y]) => win(x, y)).join('');
   }
-  function midTile(){
-    let o = `<path d="M 0 820 C 200 740 380 760 560 800 C 760 840 940 730 1140 760 C 1340 790 1480 760 1600 790 C 1800 830 2000 740 2200 770 C 2400 800 2600 730 2800 780 C 3000 820 3100 800 3200 820 V 1400 H 0 Z" fill="#3A2E6A"/>`;
-    for (let i = 0; i < 26; i++){ const x = 40 + i * 123 + (i % 3) * 20, y = 800 + Math.sin(i * 1.7) * 28, s = .7 + (i % 4) * .12;
-      o += `<path d="M ${x} ${y - 90*s} L ${x + 30*s} ${y} L ${x - 30*s} ${y} Z" fill="#2A2050"/>`; }
-    /* små huse med lys i vinduerne */
-    for (const x of [380, 1260, 2140, 2900]) o += `<rect x="${x}" y="764" width="70" height="50" fill="#2A2050"/><path d="M ${x - 8} 766 L ${x + 35} 730 L ${x + 78} 766 Z" fill="#2A2050"/><rect x="${x + 14}" y="778" width="12" height="14" fill="#FFD86B" opacity=".8"/><rect x="${x + 44}" y="778" width="12" height="14" fill="#FFD86B" opacity=".6"/>`;
-    return o;
-  }
+  const FAR = [
+    () => mtn([[160,520],[300,640],[470,470],[640,620],[820,500],[1000,650],[1180,480],[1380,640],[1600,520],[1800,660],[2000,540],[2200,680],[2400,500],[2600,640],[2800,520],[3000,650],[3200,700]], '#2A2058') + castle(1180, 480, '#1E1844'),
+    /* høje fjelde med sne på toppene */
+    () => { const P = [[200,600],[420,360],[640,560],[900,300],[1160,580],[1400,420],[1640,640],[1900,330],[2160,560],[2420,400],[2700,620],[2950,380],[3200,700]];
+      return mtn(P, '#2A2058') + P.filter(([, y]) => y < 450).map(([x, y]) => `<path d="M ${x - 50} ${y + 60} L ${x} ${y} L ${x + 50} ${y + 60} L ${x + 26} ${y + 48} L ${x + 8} ${y + 64} L ${x - 14} ${y + 46} Z" fill="#B8AEE0" opacity=".55"/>`).join(''); },
+    /* havet med et fyrtårn på en klippe */
+    () => mtn([[300,640],[700,620],[1100,660],[1500,640],[1700,560],[1820,520],[1940,600],[2300,640],[2800,620],[3200,650]], '#2A2058')
+      + `<rect x="250" y="644" width="${TW - 500}" height="70" rx="35" fill="#3A3A8A" opacity=".5"/>` + [300, 900, 1500, 2400, 2900].map(x => `<path d="M ${x} 660 q 20 -6 40 0" stroke="#8A8AD8" stroke-width="3" fill="none" opacity=".5"/>`).join('')
+      + `<path d="M 1800 520 L 1806 380 H 1834 L 1840 520 Z" fill="#1E1844"/><rect x="1802" y="360" width="36" height="22" fill="#FFE27A"/><path d="M 1798 360 L 1820 336 L 1842 360 Z" fill="#1E1844"/><path class="kf-beam" d="M 1820 371 L 2300 330 L 2300 412 Z" fill="#FFE27A" opacity=".12"/>`,
+  ];
+  const MID = [
+    () => { let o = `<path d="M 0 815 C 200 740 380 760 560 800 C 760 840 940 730 1140 760 C 1340 790 1480 760 1600 790 C 1800 830 2000 740 2200 770 C 2400 800 2600 730 2800 780 C 3000 820 3100 810 3200 815 V 1400 H 0 Z" fill="#3A2E6A"/>`;
+      for (let i = 0; i < 26; i++){ const x = 40 + i * 123 + (i % 3) * 20, y = 800 + Math.sin(i * 1.7) * 28, k = .7 + (i % 4) * .12; o += `<path d="M ${x} ${y - 90*k} L ${x + 30*k} ${y} L ${x - 30*k} ${y} Z" fill="#2A2050"/>`; }
+      for (const x of [380, 1260, 2140, 2900]) o += `<rect x="${x}" y="764" width="70" height="50" fill="#2A2050"/><path d="M ${x - 8} 766 L ${x + 35} 730 L ${x + 78} 766 Z" fill="#2A2050"/>` + win(x + 14, 778, 12) + win(x + 44, 778, 12);
+      return o; },
+    /* en tæt skov og en vindmølle */
+    () => { const R = rng(11); let o = `<path d="M 0 815 C 400 770 800 790 1200 780 C 1600 770 2000 800 2400 780 C 2800 770 3000 800 3200 815 V 1400 H 0 Z" fill="#3A2E6A"/>`;
+      for (let x = 0; x < TW; x += 46){ const h = 70 + R() * 70; o += `<path d="M ${x} ${790 - h} L ${x + 26} ${800} L ${x - 26} ${800} Z" fill="${R() < .5 ? '#2A2050' : '#30245A'}"/>`; }
+      o += `<path d="M 1580 800 L 1596 660 H 1624 L 1640 800 Z" fill="#2A2050"/>` + win(1604, 700, 12) + `<g transform="translate(1610 664)"><g class="kf-mill">${[0, 90, 180, 270].map(a => `<path d="M 0 0 L -10 -110 L 10 -110 Z" transform="rotate(${a})" fill="#30245A"/>`).join('')}</g><circle r="8" fill="#2A2050"/></g>`;
+      return o; },
+    /* en sø med en bro og månens spejlbillede */
+    () => { let o = `<path d="M 0 815 C 300 780 500 790 700 800 L 700 830 H 2300 L 2300 800 C 2600 780 2900 800 3200 815 V 1400 H 0 Z" fill="#3A2E6A"/>`;
+      o += `<rect x="700" y="790" width="1600" height="60" fill="#4A4AA8" opacity=".55"/>` + [900, 1300, 1700, 2100].map(x => `<path d="M ${x} 812 q 30 -8 60 0" stroke="#A8A8F0" stroke-width="3" fill="none" opacity=".5"/>`).join('');
+      o += `<path d="M 1300 790 Q 1500 700 1700 790" fill="none" stroke="#2A2050" stroke-width="14"/>` + [1340, 1400, 1460, 1540, 1600, 1660].map(x => `<path d="M ${x} ${790 - Math.sin((x - 1300) / 400 * Math.PI) * 88} V 790" stroke="#2A2050" stroke-width="5"/>`).join('');
+      for (const x of [200, 420, 2450, 2700, 2980]) o += `<path d="M ${x} 720 L ${x + 34} 800 L ${x - 34} 800 Z" fill="#2A2050"/>`;
+      return o; },
+    /* en landsby med kirketårn og mange tændte vinduer */
+    () => { const R = rng(23); let o = `<path d="M 0 815 C 400 790 800 800 1200 790 C 1600 780 2000 800 2400 790 C 2800 780 3000 805 3200 815 V 1400 H 0 Z" fill="#3A2E6A"/>`;
+      for (let x = 60; x < TW; x += 120 + R() * 80){ const w = 60 + R() * 40, h = 40 + R() * 30, y = 800 - h;
+        o += `<rect x="${x}" y="${y}" width="${w}" height="${h + 10}" fill="#2A2050"/><path d="M ${x - 8} ${y + 2} L ${x + w / 2} ${y - 30} L ${x + w + 8} ${y + 2} Z" fill="#2A2050"/>` + (R() < .8 ? win(x + 10, y + 12, 10, 13) : '') + (R() < .6 ? win(x + w - 22, y + 12, 10, 13) : ''); }
+      o += `<rect x="1500" y="640" width="50" height="170" fill="#2A2050"/><path d="M 1490 642 L 1525 560 L 1560 642 Z" fill="#2A2050"/><circle cx="1525" cy="670" r="12" fill="#FFE27A" opacity=".85"/>`;
+      return o; },
+  ];
   function cloudTile(){
     const cl = (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})" opacity=".55"><ellipse rx="90" ry="30" fill="#6A5AA8"/><ellipse cx="40" cy="-20" rx="56" ry="34" fill="#7A6AB8"/><ellipse cx="-40" cy="-12" rx="46" ry="26" fill="#7A6AB8"/></g>`;
     return cl(200, 260, 1) + cl(900, 160, .8) + cl(1500, 330, 1.2) + cl(2300, 210, .9) + cl(2900, 380, 1);
   }
-  function nearTile(){
-    let o = `<rect x="0" y="985" width="3200" height="500" fill="#14102E"/>`;
-    for (let i = 0; i < 34; i++){ const x = i * 96 + (i % 2) * 30, h = 70 + (i * 37) % 50;
-      o += `<path d="M ${x} ${1000 - h} C ${x + 40} ${1000 - h + 24} ${x + 56} ${1000 - h/2} ${x + 60} 1000 H ${x - 60} C ${x - 56} ${1000 - h/2} ${x - 40} ${1000 - h + 24} ${x} ${1000 - h} Z" fill="#1A1438"/>`; }
-    return o;
-  }
+  const NEAR = [
+    () => { let o = `<rect x="0" y="985" width="${TW}" height="500" fill="#14102E"/>`;
+      for (let i = 0; i < 34; i++){ const x = i * 96 + (i % 2) * 30, h = 70 + (i * 37) % 50; o += `<path d="M ${x} ${1000 - h} C ${x + 40} ${1000 - h + 24} ${x + 56} ${1000 - h/2} ${x + 60} 1000 H ${x - 60} C ${x - 56} ${1000 - h/2} ${x - 40} ${1000 - h + 24} ${x} ${1000 - h} Z" fill="#1A1438"/>`; }
+      return o; },
+    /* grantoppe */
+    () => { const R = rng(5); let o = `<rect x="0" y="980" width="${TW}" height="500" fill="#14102E"/>`;
+      for (let x = 0; x < TW; x += 70){ const h = 90 + R() * 60; o += `<path d="M ${x} ${1000 - h} L ${x + 22} ${1000 - h * .6} L ${x + 12} ${1000 - h * .6} L ${x + 36} ${1000 - h * .25} L ${x + 18} ${1000 - h * .25} L ${x + 44} 1000 H ${x - 44} L ${x - 18} ${1000 - h * .25} L ${x - 36} ${1000 - h * .25} L ${x - 12} ${1000 - h * .6} L ${x - 22} ${1000 - h * .6} Z" fill="#1A1438"/>`; }
+      return o; },
+    /* tage og skorstene med lys i et enkelt vindue */
+    () => { const R = rng(9); let o = `<rect x="0" y="980" width="${TW}" height="500" fill="#14102E"/>`;
+      for (let x = 0; x < TW; x += 220 + R() * 80){ const w = 160 + R() * 60, h = 60 + R() * 40;
+        o += `<path d="M ${x} 1000 V ${1000 - h * .4} L ${x + w / 2} ${1000 - h} L ${x + w} ${1000 - h * .4} V 1000 Z" fill="#1A1438"/><rect x="${x + w * .7}" y="${1000 - h * .95}" width="16" height="${h * .4}" fill="#1A1438"/>` + (R() < .4 ? win(x + w / 2 - 8, 1000 - h * .55, 16, 18) : ''); }
+      return o; },
+  ];
+  /* hvert lag: stykkerne efter hinanden og det første igen til sidst, så det kan køre i ring */
+  const layer = (arr, cls) => `<g class="${cls}">${arr.map((f, i) => `<g transform="translate(${i * TW} 0)">${f()}</g>`).join('')}<g transform="translate(${arr.length * TW} 0)">${arr[0]()}</g></g>`;
   function sceneSvg(){
     let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="kf-svg"><defs>`
       + `<linearGradient id="kfSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141A4E"/><stop offset=".55" stop-color="#3E2E88"/><stop offset="1" stop-color="#B0608E"/></linearGradient></defs>`;
     o += `<rect x="-1700" y="-700" width="5000" height="700" fill="#141A4E"/><rect x="-1700" y="0" width="5000" height="1000" fill="url(#kfSky)"/><rect x="-1700" y="1000" width="5000" height="700" fill="#14102E"/>`;
-    let seed = 5; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const r = rng(5);
     for (let i = 0; i < 70; i++) o += `<circle cx="${(-700 + r() * 3000).toFixed(0)}" cy="${(r() * 520).toFixed(0)}" r="${(1 + r() * 2.2).toFixed(1)}" fill="#FFFFFF" opacity="${(.4 + r() * .6).toFixed(2)}"/>`;
     o += `<g transform="translate(1320 150)"><circle r="120" fill="#FFF6D8" opacity=".12"/><circle r="62" fill="#FFF6D8"/><circle cx="24" cy="-14" r="56" fill="#3A2E7A" opacity=".9"/></g>`;
-    o += `<g class="kf-far">${farTile()}<g transform="translate(3200 0)">${farTile()}</g></g>`;
-    o += `<g class="kf-mid">${midTile()}<g transform="translate(3200 0)">${midTile()}</g></g>`;
-    o += `<g class="kf-cloud">${cloudTile()}<g transform="translate(3200 0)">${cloudTile()}</g></g>`;
+    o += `<g class="kf-ev"></g>`;
+    o += layer(FAR, 'kf-far') + layer(MID, 'kf-mid');
+    o += `<g class="kf-cloud">${cloudTile()}<g transform="translate(${TW} 0)">${cloudTile()}</g></g>`;
+    o += `<g class="kf-ev2"></g>`;
     o += `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
-    o += `<g class="kf-near">${nearTile()}<g transform="translate(3200 0)">${nearTile()}</g></g>`;
+    o += layer(NEAR, 'kf-near');
     o += `<g class="kf-fx"></g>`;
     o += placeMood([], { vign: .6, dx: 200, dw: 1200 });
     return o + `</svg>`;
   }
 
+  /* ---------- små ting der sker i baggrunden en gang imellem ---------- */
+  const EVENTS = ['fyrvaerkeri', 'fyrvaerkeri', 'flagermus', 'stjerneskud', 'lanterne', 'heks'];
+  function spawnEvent(kind){
+    const sc = $('#kfScene'); if (!sc || calm) return;
+    const g = sc.querySelector(kind === 'fyrvaerkeri' || kind === 'lanterne' ? '.kf-ev2' : '.kf-ev'); if (!g) return;
+    const x = 300 + Math.random() * 1100, add = (html, ms) => { const e = mk('g', {}, html); g.append(e); setTimeout(() => e.remove(), ms); return e; };
+    if (kind === 'fyrvaerkeri'){
+      /* en lille skikkelse på jorden fyrer en raket af, som springer ud i en stjerneregn */
+      const top = 180 + Math.random() * 220, col = pick(['#FF5FA8', '#FFE27A', '#7FD8FF', '#9BE36A', '#C79BFF', '#FF8A3D']);
+      add(`<g transform="translate(${x} 900)"><circle cx="0" cy="-34" r="7" fill="#1A1438"/><path d="M -8 0 L -6 -26 H 6 L 8 0 Z M 4 -24 L 16 -38" stroke="#1A1438" stroke-width="5" fill="#1A1438"/></g>`, 3200);
+      add(`<g class="kf-rocket" style="--h:${top - 880}px"><circle cx="${x + 16}" cy="880" r="4" fill="#FFF6D0"/><path d="M ${x + 16} 884 v 26" stroke="#FFC86A" stroke-width="3" opacity=".7"/></g>`, 900);
+      setTimeout(() => { if (!g.isConnected) return; for (let i = 0; i < 16; i++){ const a = i / 16 * Math.PI * 2, d = 70 + Math.random() * 40;
+        add(`<g transform="translate(${x + 16} ${top})"><g class="kf-burst" style="--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d).toFixed(0)}px"><circle r="4.5" fill="${i % 3 ? col : '#FFFFFF'}"/></g></g>`, 1500); }
+        tone(180, 0.25, 'sine', 0.03, 0, 0.6); }, 850);
+    } else if (kind === 'flagermus'){
+      const y = 140 + Math.random() * 200;
+      add(`<g class="kf-fly" style="--dur:7s">${[0, 1, 2, 3, 4].map(i => `<g transform="translate(${1750 + i * 50 + (i % 2) * 20} ${y + (i % 3) * 26})"><g class="kf-flap" style="animation-delay:${i * .07}s"><path d="M 0 0 Q -10 -12 -24 -6 Q -18 -2 -16 4 Q -8 0 0 4 Q 8 0 16 4 Q 18 -2 24 -6 Q 10 -12 0 0 Z" fill="#14102E"/></g></g>`).join('')}</g>`, 7200);
+    } else if (kind === 'stjerneskud'){
+      const y = 60 + Math.random() * 160, x0 = 400 + Math.random() * 1000;
+      add(`<g class="kf-shoot"><path d="M ${x0} ${y} l -180 60" stroke="#FFF6D0" stroke-width="3" stroke-linecap="round"/><circle cx="${x0}" cy="${y}" r="4" fill="#FFFFFF"/></g>`, 1300);
+    } else if (kind === 'lanterne'){
+      add(`<g class="kf-lantern" style="--x:${(Math.random() * 120 - 60).toFixed(0)}px"><rect x="${x - 10}" y="880" width="20" height="26" rx="5" fill="#FFB347"/><circle cx="${x}" cy="893" r="22" fill="#FFB347" opacity=".25"/></g>`, 9000);
+    } else if (kind === 'heks'){
+      /* en anden heks langt væk, som en lille skygge foran månen */
+      add(`<g class="kf-fly" style="--dur:9s"><g transform="translate(1800 ${130 + Math.random() * 60}) scale(.5)"><path d="M -60 0 H 60 M -60 0 l -20 -8 v 16 Z" stroke="#14102E" stroke-width="5" fill="#14102E"/><path d="M -6 0 L 0 -40 L 12 -40 L 14 0 Z M -2 -40 L 30 -70 L 18 -38 Z M 0 -44 a 10 10 0 1 0 1 0" fill="#14102E"/></g></g>`, 9200);
+    }
+  }
+
   /* ---------- banen ---------- */
   function makeCourse(){
-    const rings = [], bubbles = [], dbl = new Set([6, 15, 24]);
+    const rings = [], bubbles = [], dbl = new Set([6, 15, 24, 33, 42]);
     let x = 1500, y = 520;
-    for (let i = 0; i < 32; i++){
+    for (let i = 0; i < 50; i++){
       if (dbl.has(i)){ const lo = { x, y: 660, dbl:'lo' }, hi = { x, y: 360, dbl:'hi' }; lo.pair = hi; hi.pair = lo; rings.push(lo, hi); y = 540; x += 700; continue; }
       y = clamp(y + (Math.random() * 2 - 1) * 240, 260, 700); rings.push({ x, y }); x += 470 + Math.random() * 130;
     }
     const singles = rings.filter(r => !r.dbl);
-    for (let i = 0; i + 1 < singles.length && bubbles.length < 10; i += 3){ const a = singles[i], b = singles[i + 1];
+    for (let i = 0; i + 1 < singles.length && bubbles.length < 16; i += 3){ const a = singles[i], b = singles[i + 1];
       bubbles.push({ x: (a.x + b.x) / 2, y: clamp((a.y + b.y) / 2 + (Math.random() < .5 ? -170 : 170), 200, 820) }); }
     return { rings, bubbles, end: x + 300 };
   }
@@ -4130,7 +4214,7 @@ const Kost = (() => {
   function makeRivals(mates){
     const good = Math.random() < .5 ? 0 : 1;
     return mates.map((m, i) => { const g = i === good, j = () => Math.random() * .08;
-      return { st: m.st, lane: LANES[i], li: i, x: i ? 40 : -40, y: 420 + i * 120, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0, els: new Map(),
+      return { st: m.st, lane: LANES[i], li: i, x: 0, y: 520, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0, els: new Map(),
         off: g ? 120 : -160, hit: g ? .74 + j() : .5 + j(), tryLoop: g ? .6 + j() : .35 + j(), aim: g ? .72 + j() : .45 + j(), wob: Math.random() * 6 }; });
   }
 
@@ -4139,7 +4223,7 @@ const Kost = (() => {
     showScreen('#broom'); playMusic('show');
     const hero = heroState(), taken = [];
     const mates = [0, 1].map(i => { const own = i === 0 && Math.random() < 0.3 ? ownGuest(figures.length ? figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].id : null) : null; const g = own || randomGuest(taken); taken.push(g.name); return g; });
-    S = { hero, mates, course: makeCourse(), x: 0, y: 520, vy: 0, v: V0, ang: 0, t: 0, run: 'wait', cam: 0, seen: new Set(), me: true,
+    S = { hero, mates, course: makeCourse(), x: 0, y: 520, vy: 0, v: V0, ang: 0, t: 0, run: 'wait', cam: -PX, evT: 3, seen: new Set(), me: true,
       rings: 0, ringsAll: 0, bubbles: 0, loop: null, boost: 0, flash: 0, bonk: 0, finT: 0, auto: !!(window.KOST_AUTO) };
     S.rivals = makeRivals(mates);
     S.ringsAll = S.course.rings.length;
@@ -4156,6 +4240,8 @@ const Kost = (() => {
     S.rivals.forEach(rv => { const tb = scene.querySelector('.kf-trackB.l' + rv.li), tf = scene.querySelector('.kf-trackF.l' + rv.li), col = lt(rv.st.robe.a, .25);
       for (const r of S.course.rings){ const [b, f] = ringEls({ x: r.x + rv.lane.dx, y: r.y, dbl: r.dbl }, rv.lane.k, y => laneY(rv.lane, y), col); tb.append(b); tf.append(f); rv.els.set(r, [b, f]); } });
     world.append(mk('g', {}, gate(S.course.end)));
+    world.append(mk('g', {}, floatGate(130, 150, 820, 1, false)));
+    LANES.forEach((L, i) => scene.querySelector('.kf-trackB.l' + i).append(mk('g', {}, laneGate(130 + L.dx, L))));
     /* målstregen går skråt gennem alle tre baner, så man kan se, hvem der krydser først */
     const E = S.course.end, lanesG = scene.querySelector('.kf-lanes'), far = LANES[0];
     lanesG.prepend(mk('g', { class:'kf-finish kf-bobfin' }, `<path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#FFFFFF" stroke-width="16" opacity=".8"/><path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#2A2340" stroke-width="16" stroke-dasharray="16 16" opacity=".8"/>`));
@@ -4251,7 +4337,7 @@ const Kost = (() => {
     if (t >= 1){ f.loop = null; f.x = L.x0; f.y = L.y0; f.ang = 0; f.vy = 0;
       /* boost: loopet gik gennem den øverste ring, og den nederste er taget (i loopet eller lige før) */
       const pair = L.got && [...L.got].find(r => r.dbl === 'hi' && f.seen.has(r.pair));
-      if (pair){ f.loopN = (f.loopN || 0) + 1; f.boost = BOOST_N; f.v = V0 * 1.5; if (f === S) boostStart(); } }
+      if (pair){ f.loopN = (f.loopN || 0) + 1; f.boost = BOOST_N; f.v = V0 * BOOST_V; if (f === S) boostStart(); } }
   }
   function moveBoost(f, dt){
     const x0 = f.x; f.x += f.v * dt;
@@ -4259,7 +4345,7 @@ const Kost = (() => {
     const nr = S.course.rings.find(r => !f.seen.has(r) && r.x > x0 && !r.dbl);
     if (!nr){ f.boost = 0; if (f === S) boostEnd(); return; }
     f.y += (nr.y - f.y) * Math.min(1, dt * 6); f.vy = 0; f.ang = 0;
-    if (x0 < nr.x && f.x >= nr.x){ passRing(f, nr); f.boost--; f.bN = (f.bN || 0) + 1; if (f.boost <= 0){ f.v = V0 * 1.3; if (f === S) boostEnd(); } }
+    if (x0 < nr.x && f.x >= nr.x){ passRing(f, nr); f.boost--; f.bN = (f.bN || 0) + 1; if (f.boost <= 0){ f.v = V0 * 1.5; if (f === S) boostEnd(); } }
   }
   function crossRings(f, x0){
     for (const r of S.course.rings){
@@ -4272,6 +4358,7 @@ const Kost = (() => {
   }
   function step(dt){
     if (S.run === 'fly' || S.run === 'done') S.t += dt;
+    if (S.run === 'fly' && S.t > S.evT){ spawnEvent(pick(EVENTS)); S.evT = S.t + 4 + Math.random() * 5; }
     for (const rv of S.rivals) if (S.run === 'fly' || S.run === 'done') rivalStep(rv, dt);
     if (S.loop){ moveLoop(S, dt); if (S.loop){ if (S.loop.pre === undefined || S.loop.pre >= 1) S.cam = S.loop.cam; } else S.cam = S.x - PX; return; }
     const x0 = S.x;
@@ -4325,7 +4412,8 @@ const Kost = (() => {
     const sc = $('#kfScene'); if (!sc || !S) return;
     const cam = S.cam;
     const par = (sel, k) => { const g = sc.querySelector(sel); if (g) g.setAttribute('transform', `translate(${(-((cam * k) % 3200 + 3200) % 3200 - 800).toFixed(1)} 0)`); };
-    par('.kf-far', .12); par('.kf-mid', .35); par('.kf-cloud', .6); par('.kf-near', 1.25);
+    const parN = (sel, k, n) => { const g = sc.querySelector(sel); if (g) g.setAttribute('transform', `translate(${(-((cam * k) % (n * TW) + n * TW) % (n * TW) - 800).toFixed(1)} 0)`); };
+    parN('.kf-far', .12, FAR.length); parN('.kf-mid', .35, MID.length); par('.kf-cloud', .6); parN('.kf-near', 1.25, NEAR.length);
     sc.querySelector('.kf-world').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-front').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-fx').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
@@ -4385,7 +4473,7 @@ const Kost = (() => {
     return scopeIds(div.innerHTML, 'kp');
   }
   const teacherSvg = vb => renderDoll(TEACHER, { viewBox: vb, pet:false }).replace(/<\/svg>$/, GOGGLES + '</svg>');
-  return { show, state: () => S, previewSvg, teacherSvg, riderSvg: st => riderArt(st), test: { step, tryLoop } };
+  return { show, state: () => S, previewSvg, teacherSvg, riderSvg: st => riderArt(st), test: { step, tryLoop, layers: () => ({ far: layer(FAR, 'a'), mid: layer(MID, 'b'), near: layer(NEAR, 'c'), n: [FAR.length, MID.length, NEAR.length] }) } };
 })();
 
 /* ================= Titelskærm, byen, tæppet og musikken ================= */

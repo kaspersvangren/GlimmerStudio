@@ -638,3 +638,20 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-bobfin{animation:kfbob 3.2s ease-in-out infinite}
 @keyframes kfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 @media (prefers-reduced-motion: reduce){ .kf-bobfin{animation:none!important} }
+/* ting der sker i baggrunden */
+.kf-rocket{animation:kfrocket .85s ease-out forwards}
+@keyframes kfrocket{to{transform:translateY(var(--h))}}
+.kf-burst{animation:kfburst 1.4s ease-out forwards}
+@keyframes kfburst{0%{transform:translate(0,0);opacity:1}70%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 40px));opacity:0}}
+.kf-fly{animation:kffly var(--dur,7s) linear forwards}
+@keyframes kffly{to{transform:translateX(-2100px)}}
+.kf-flap{transform-box:fill-box;transform-origin:50% 50%;animation:kfflap .28s ease-in-out infinite alternate}
+@keyframes kfflap{to{transform:scaleY(.35)}}
+.kf-shoot{animation:kfshoot 1.2s ease-out forwards}
+@keyframes kfshoot{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(-420px,140px);opacity:0}}
+.kf-lantern{animation:kflantern 9s ease-out forwards}
+@keyframes kflantern{0%{transform:translate(0,0);opacity:0}10%{opacity:1}100%{transform:translate(var(--x),-760px);opacity:0}}
+.kf-mill{animation:mcspin 14s linear infinite;transform-box:view-box;transform-origin:0 0}
+.kf-beam{transform-box:fill-box;transform-origin:0% 50%;animation:kfbeam 4s ease-in-out infinite}
+@keyframes kfbeam{0%,100%{opacity:.04}50%{opacity:.16}}
+@media (prefers-reduced-motion: reduce){ .kf-mill,.kf-beam,.kf-flap{animation:none!important} }

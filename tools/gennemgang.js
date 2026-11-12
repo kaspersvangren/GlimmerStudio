@@ -31,7 +31,7 @@ const V = { 'acc-bog': 6,
   /* v0.14.0: skolen erstatter Modehuset */
   'sted-by': 2,
   /* v0.15.0: kosteflyvning */
-  'sted-skole': 2, 'sted-kost': 6, 'kost-rytter': 2 };
+  'sted-skole': 2, 'sted-kost': 7, 'kost-rytter': 2 };
 
 (async () => {
   const b = await chromium.launch();
