@@ -30,21 +30,28 @@ function torch(x, y){
 }
 function fagDoor(f){
   const x = f.x, top = 300, base = 800, w = 230, open = !!f.open;
-  let o = `<g data-hit="fag:${f.id}"><g class="anim">`;
+  let o = `<g data-hit="fag:${f.id}" class="fag-door"><g class="anim">`;
   o += `<path d="M ${x-w/2-24} ${base} V ${top+90} Q ${x-w/2-24} ${top-34} ${x} ${top-40} Q ${x+w/2+24} ${top-34} ${x+w/2+24} ${top+90} V ${base} Z" fill="#4A4266" stroke="#2A2340" stroke-width="5"/>`;
   for (let i = 0; i < 9; i++){ const a = Math.PI * (i / 8), rx = w/2 + 12, cx = x - Math.cos(a) * rx, cy = top + 90 - Math.sin(a) * (rx + 4);
     o += `<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="9" fill="#5A527A" stroke="#2A2340" stroke-width="2"/>`; }
   const D = `M ${x-w/2} ${base} V ${top+90} Q ${x-w/2} ${top-14} ${x} ${top-18} Q ${x+w/2} ${top-14} ${x+w/2} ${top+90} V ${base} Z`;
-  o += `<path d="${D}" fill="${f.col}" stroke="#2A1810" stroke-width="5"/>`;
-  o += clipG(D, [ -70, -35, 0, 35, 70 ].map(dx => `<path d="M ${x+dx} ${top-30} V ${base}" stroke="${fdk(f.col, .3)}" stroke-width="4"/>`).join('')
-    + [top + 120, base - 120].map(y => `<rect x="${x-w/2}" y="${y}" width="${w}" height="16" fill="#2E2A38"/>` + [-90, -30, 30, 90].map(dx => `<circle cx="${x+dx}" cy="${y+8}" r="4" fill="#7A7290"/>`).join('')).join('')
-    + `<path d="M ${x-w/2+20} ${top+40} Q ${x-w/2+20} ${top+10} ${x-w/2+50} ${top} V ${base} H ${x-w/2+20} Z" fill="#FFFFFF" opacity=".06"/>`);
-  o += `<circle cx="${x+70}" cy="${(top+base)/2+20}" r="12" fill="#E9C46A" stroke="#8A6420" stroke-width="3"/><circle cx="${x-70}" cy="${(top+base)/2+20}" r="12" fill="#E9C46A" stroke="#8A6420" stroke-width="3"/>`;
+  /* bag dørene: lyset fra klasseværelset, som ses, når de går op */
+  o += `<path d="${D}" fill="#FFD27A"/><path d="${D}" fill="url(#doorIn)"/>`;
+  /* to dørfløje, der hver drejer om sit hængsel */
+  const half = side => side < 0 ? `M ${x-w/2} ${base} V ${top+90} Q ${x-w/2} ${top-14} ${x} ${top-18} V ${base} Z` : `M ${x} ${base} V ${top-18} Q ${x+w/2} ${top-14} ${x+w/2} ${top+90} V ${base} Z`;
+  const leaf = side => { const hx = side < 0 ? x - w/2 : x + w/2, H = half(side);
+    return `<g class="leaf ${side < 0 ? 'l' : 'r'}" style="transform-origin:${hx}px 0px"><path d="${H}" fill="${f.col}" stroke="#2A1810" stroke-width="5" stroke-linejoin="round"/>`
+      + clipG(H, (side < 0 ? [-70, -35] : [35, 70]).map(dx => `<path d="M ${x+dx} ${top-30} V ${base}" stroke="${fdk(f.col, .3)}" stroke-width="4"/>`).join('')
+        + [top + 120, base - 120].map(y => `<rect x="${side < 0 ? x-w/2 : x}" y="${y}" width="${w/2}" height="16" fill="#2E2A38"/>` + (side < 0 ? [-90, -30] : [30, 90]).map(dx => `<circle cx="${x+dx}" cy="${y+8}" r="4" fill="#7A7290"/>`).join('')).join('')
+        + (side < 0 ? `<path d="M ${x-w/2+20} ${top+40} Q ${x-w/2+20} ${top+10} ${x-w/2+50} ${top} V ${base} H ${x-w/2+20} Z" fill="#FFFFFF" opacity=".06"/>` : `<path d="M ${x+w/2-24} ${top+60} V ${base}" stroke="#000000" stroke-width="10" opacity=".08"/>`))
+      + `<circle cx="${x + side * 70}" cy="${(top+base)/2+20}" r="12" fill="#E9C46A" stroke="#8A6420" stroke-width="3"/></g>`; };
+  o += leaf(-1) + leaf(1);
   /* skilt over døren med fagets tegn og navn */
   o += `<g transform="translate(${x} ${top-92})"><rect x="-108" y="-34" width="216" height="68" rx="14" fill="#3A2A20" stroke="#C9A04A" stroke-width="4"/><g transform="translate(-78 2) scale(.78)">${FAG_ICON[f.id]}</g><text x="24" y="9" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="${f.name.length > 10 ? 20 : 24}" fill="#FFE9A0"${f.name.length > 10 ? ' textLength="138" lengthAdjust="spacingAndGlyphs"' : ''}>${f.name}</text></g>`;
   if (open){
     o += `<path d="M ${x-w/2} ${base} L ${x-w/2-30} ${base+60} H ${x+w/2+30} L ${x+w/2} ${base} Z" fill="#FFD27A" opacity=".18"/>`;
-    o += `<rect x="${x-3}" y="${top+80}" width="6" height="${base-top-80}" fill="#FFE27A" opacity=".55" class="doorglow"/>`;
+    /* lyset siver ud gennem sprækken mellem fløjene, hele vejen fra buen og ned */
+    o += `<rect x="${x-3}" y="${top-16}" width="6" height="${base-top+16}" fill="#FFE27A" opacity=".55" class="doorglow"/>`;
   } else {
     o += `<g transform="translate(${x} ${top+170}) rotate(-8)"><rect x="-86" y="-22" width="172" height="44" rx="6" fill="#E9D3A6" stroke="#6A4430" stroke-width="3"/><text x="0" y="8" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="22" fill="#3A2340">Kommer snart</text><circle cx="-76" cy="-12" r="3" fill="#6A4430"/><circle cx="76" cy="-12" r="3" fill="#6A4430"/></g>`;
   }
@@ -62,6 +69,7 @@ function schoolScene(){
   let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
   o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#231C3A"/>`;
   o += stoneWall(-1700, 3300, 0, 820, '#4A4466', 3);
+  o += `<defs><radialGradient id="doorIn" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="#FFF3C0"/><stop offset=".6" stop-color="#FFB347" stop-opacity=".6"/><stop offset="1" stop-color="#8A4A2A" stop-opacity=".9"/></radialGradient></defs>`;
   /* hvælvinger i loftet */
   o += `<rect x="-1700" y="-700" width="5000" height="700" fill="#1A1430"/>`;
   for (let x = -1690; x < 3300; x += 320) o += `<path d="M ${x} 0 Q ${x+160} -90 ${x+320} 0" fill="none" stroke="#2E2650" stroke-width="40"/><rect x="${x-24}" y="-20" width="48" height="840" fill="#3E3858" stroke="#2A2340" stroke-width="3"/><rect x="${x-34}" y="790" width="68" height="34" fill="#353050"/>`;
@@ -78,6 +86,7 @@ function schoolScene(){
   o += `<g class="fx" pointer-events="none"></g></svg>`;
   return scopeIds(o, 'sk');
 }
+let SCHOOL_BUSY = false;
 function showSchool(){ showScreen('#school'); playMusic('kaelder'); renderSchool(); }
 function renderSchool(){
   const box = $('#schoolBody'); box.innerHTML = '';
@@ -88,7 +97,8 @@ function renderSchool(){
     if (k !== 'fag') return; const f = FAG.find(x => x.id === v);
     replay(g, 'jiggle');
     if (!f.open){ sfx.nope(); toast(f.name + ' kommer snart!'); return; }
-    sfx.open(); goTo(f.open); });
+    if (SCHOOL_BUSY) return; SCHOOL_BUSY = true;
+    sfx.open(); g.classList.add('open'); setTimeout(() => { SCHOOL_BUSY = false; goTo(f.open); }, calm ? 0 : 650); });
 }
 
 /* ================= Eliksirtimen ================= */

@@ -21,7 +21,7 @@ const Fald = (() => {
   const rng = seed => () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
   const SCX = 800, SCY = 500;
   /* frit fald */
-  const FREE_T = 16, TA = 2.2, ALT0 = 3000, ALT1 = 1000;
+  const FREE_T = 17, TA = 2.6, ALT0 = 3000, ALT1 = 1000;
   const BX0 = 170, BX1 = 1430, BY0 = 170, BY1 = 830;
   /* skærmen: højden i meter i spillet, og hvor stor jorden ser ud (kameraet følger lige over skærmen) */
   const H0 = 160, FOCAL = 720, CAM_UP = 30;
@@ -35,8 +35,47 @@ const Fald = (() => {
   /* ---------- tegninger ---------- */
   const treeTop = (x, y, r, c) => `<circle cx="${(x + r * .3).toFixed(1)}" cy="${(y + r * .35).toFixed(1)}" r="${r.toFixed(1)}" fill="#0E1A12" opacity=".28"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" stroke="${fdk(c, .35)}" stroke-width="${(r * .12).toFixed(2)}"/><circle cx="${(x - r * .3).toFixed(1)}" cy="${(y - r * .3).toFixed(1)}" r="${(r * .45).toFixed(1)}" fill="${lt(c, .18)}" opacity=".6"/>`;
   /* et lille menneske set ovenfra: skuldre og hoved (i meter) */
-  /* (lidt større end i virkeligheden, så de kan ses fra luften) */
-  const personTop = (x, y, body, hair, a = 0) => `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a}) scale(2.4)"><ellipse cx=".15" cy=".2" rx=".42" ry=".26" fill="#0E1A12" opacity=".3"/><ellipse rx=".4" ry=".24" fill="${body}" stroke="${fdk(body, .4)}" stroke-width=".05"/><circle r=".2" fill="${hair}" stroke="${fdk(hair, .4)}" stroke-width=".04"/></g>`;
+  /* et menneske set ovenfra, i meter (lidt større end i virkeligheden, så de kan ses fra luften):
+     skuldre, arme (vinkende arme strækkes op mod os), hoved med hår, og måske en spids hat set ovenfra */
+  const personTop = (x, y, body, hair, a = 0, o = {}) => { const k = 5.2, bd = fdk(body, .4);
+    let g = `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(0)}) scale(${k})"><ellipse cx=".12" cy=".16" rx=".46" ry=".3" fill="#0E1A12" opacity=".3"/>`;
+    if (o.cape) g += `<path d="M -.36 0 Q -.4 .5 0 .62 Q .4 .5 .36 0 Z" fill="${o.cape}" stroke="${fdk(o.cape, .4)}" stroke-width=".04"/>`;
+    g += o.wave ? `<path d="M -.34 -.04 L -.5 -.42 M .34 -.04 L .5 -.42" stroke="${body}" stroke-width=".14" stroke-linecap="round"/><circle cx="-.52" cy="-.46" r=".08" fill="#F1C9A6"/><circle cx=".52" cy="-.46" r=".08" fill="#F1C9A6"/>`
+      : `<path d="M -.38 0 L -.44 .26 M .38 0 L .44 .26" stroke="${body}" stroke-width=".13" stroke-linecap="round"/>`;
+    g += `<ellipse rx=".4" ry=".24" fill="${body}" stroke="${bd}" stroke-width=".04"/><circle cy="-.02" r=".19" fill="${hair}" stroke="${fdk(hair, .4)}" stroke-width=".035"/>`;
+    if (o.hat) g += `<circle cy="-.02" r=".3" fill="${body}" stroke="${bd}" stroke-width=".035"/><path d="M -.15 -.02 L 0 -.17 L .15 -.02 L 0 .13 Z" fill="${lt(body, .15)}" stroke="${bd}" stroke-width=".03"/><circle cy="-.02" r=".04" fill="${lt(body, .4)}"/>`;
+    return g + `</g>`; };
+  /* små magiske ting på engen omkring målet (i meter) */
+  function meadowMagic(){
+    const r = rng(41); let o = '';
+    /* en ring af lysende svampe */
+    o += `<circle cx="42" cy="40" r="7" fill="#C79BFF" opacity=".12"/>` + Array.from({ length: 11 }, (_, i) => { const a = i / 11 * Math.PI * 2, x = 42 + Math.cos(a) * 5.4, y = 40 + Math.sin(a) * 5.4;
+      return `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r=".9" fill="#FFB8F0" opacity=".25"/><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r=".5" fill="${i % 3 ? '#E0457A' : '#7FD8FF'}" stroke="#5A1A3A" stroke-width=".06"/><circle cx="${(x - .15).toFixed(2)}" cy="${(y - .12).toFixed(2)}" r=".1" fill="#FFFFFF"/><circle cx="${(x + .15).toFixed(2)}" cy="${(y + .1).toFixed(2)}" r=".07" fill="#FFFFFF"/>`; }).join('');
+    /* en stencirkel med glødende runer */
+    o += `<circle cx="-48" cy="-44" r="9" fill="#5E8F52"/><circle cx="-48" cy="-44" r="3" fill="#7FD8FF" opacity=".35"/><circle cx="-48" cy="-44" r="1.2" fill="#BFF0FF" opacity=".8"/>` + Array.from({ length: 8 }, (_, i) => { const a = i / 8 * Math.PI * 2, x = -48 + Math.cos(a) * 7, y = -44 + Math.sin(a) * 7;
+      return `<ellipse cx="${(x + .3).toFixed(2)}" cy="${(y + .35).toFixed(2)}" rx="1.3" ry="1" fill="#0E1A12" opacity=".3"/><ellipse cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" rx="1.2" ry=".9" fill="#9A94B0" stroke="#5A5470" stroke-width=".12" transform="rotate(${(a * 57).toFixed(0)} ${x.toFixed(2)} ${y.toFixed(2)})"/><path d="M ${(x - .35).toFixed(2)} ${y.toFixed(2)} l .35 -.35 l .35 .35" stroke="#7FD8FF" stroke-width=".14" fill="none"/>`; }).join('');
+    /* et lille skur med koste til springerne */
+    o += `<g transform="translate(38 -34) rotate(-12)"><rect x="-4.3" y="-3" width="9" height="6.4" fill="#0E1A12" opacity=".3"/><rect x="-4.6" y="-3.4" width="9" height="6.4" fill="#8A4A2A" stroke="#4A2A1A" stroke-width=".2"/><path d="M -4.6 -.2 H 4.4" stroke="#5A2E1A" stroke-width=".3"/><path d="M -4.6 -2.4 H 4.4 M -4.6 1.6 H 4.4" stroke="#A86A3A" stroke-width=".12"/>`
+      + [0, 1, 2].map(i => `<g transform="translate(-3 ${4.6 + i * 1.1})"><path d="M 0 0 H 5.6" stroke="#8A5A3C" stroke-width=".22"/><path d="M 5.4 -.4 L 7.4 -.55 L 7.4 .55 L 5.4 .4 Z" fill="#E9C46A"/></g>`).join('') + `</g>`;
+    /* et tæppe med kurv til tilskuerne */
+    o += `<g transform="translate(-34 30) rotate(18)"><rect x="-3" y="-2.2" width="6" height="4.4" fill="#FFFFFF"/>` + [0, 1, 2, 3, 4, 5].map(i => `<rect x="${-3 + (i % 3) * 2}" y="${-2.2 + Math.floor(i / 3) * 2.2}" width="1" height="1.1" fill="#E0457A"/><rect x="${-2 + (i % 3) * 2}" y="${-1.1 + Math.floor(i / 3) * 2.2}" width="1" height="1.1" fill="#E0457A"/>`).join('')
+      + `<rect x="1.2" y="-1" width="1.6" height="1.2" rx=".3" fill="#B9763F" stroke="#7E4307" stroke-width=".1"/><circle cx="-1.6" cy=".8" r=".35" fill="#FF5A5A"/><circle cx="-.8" cy="1.2" r=".3" fill="#9BE36A"/></g>`;
+    /* et lille nissehus med rundt græstag og en skorsten, der ryger */
+    o += `<g transform="translate(-58 6)"><circle cx=".5" cy=".6" r="3.4" fill="#0E1A12" opacity=".3"/><circle r="3.2" fill="#B5432A" stroke="#6A2A1A" stroke-width=".2"/>` + [0, 1, 2, 3, 4, 5, 6, 7].map(i => `<circle cx="${(Math.cos(i * .8) * 2).toFixed(2)}" cy="${(Math.sin(i * .8) * 2).toFixed(2)}" r=".35" fill="#FFFFFF"/>`).join('')
+      + `<rect x="1.4" y="-2.6" width="1" height="1" fill="#6A6488"/><g class="fs-smoke">${[0, 1, 2].map(i => `<circle cx="${2 + i * .9}" cy="${-3.4 - i * 1.1}" r="${.5 + i * .25}" fill="#E8E2FA" opacity="${.7 - i * .2}"/>`).join('')}</g></g>`;
+    /* en lille robåd og åkander med blomster på dammen */
+    o += `<g transform="translate(${POND.x + 7} ${POND.y - 3}) rotate(30)"><path d="M -2.6 0 Q 0 -1.4 2.6 0 Q 0 1.4 -2.6 0 Z" fill="#8A5A3C" stroke="#4A2E1E" stroke-width=".15"/><path d="M -1 -.6 V .6 M .6 -.7 V .7" stroke="#5A3A28" stroke-width=".15"/></g>`
+      + [[-74, 54], [-58, 66], [-52, 54]].map(([x, y]) => `<circle cx="${x + .4}" cy="${y - .3}" r=".45" fill="#FF8FC7"/>`).join('');
+    /* lygtepæle langs stien fra skolen, og flag rundt om målet */
+    for (let i = 0; i < 6; i++){ const t = i / 5, x = 230 + (70 - 230) * t + Math.sin(t * 3) * 10, y = -190 + (-50 + 190) * t; o += `<circle cx="${(x + 4).toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#FFE08A" opacity=".18"/><circle cx="${(x + 4).toFixed(1)}" cy="${y.toFixed(1)}" r="1.1" fill="#FFE08A"/>`; }
+    const N = 28; let flags = '';
+    for (let i = 0; i < N; i++){ const a = i / N * Math.PI * 2, x = Math.cos(a) * 23.5, y = Math.sin(a) * 23.5, c = ['#E0457A', '#F2C14E', '#7FD8FF', '#9BE36A', '#C79BFF'][i % 5];
+      flags += `<path d="M ${(Math.cos(a - .08) * 23.5).toFixed(2)} ${(Math.sin(a - .08) * 23.5).toFixed(2)} L ${(Math.cos(a) * 24.6).toFixed(2)} ${(Math.sin(a) * 24.6).toFixed(2)} L ${(Math.cos(a + .08) * 23.5).toFixed(2)} ${(Math.sin(a + .08) * 23.5).toFixed(2)} Z" fill="${c}"/>`; }
+    o += `<circle r="23.5" fill="none" stroke="#F2EEFF" stroke-width=".12"/>${flags}` + [0, 1, 2, 3, 4, 5].map(i => `<circle cx="${(Math.cos(i * Math.PI / 3) * 23.5).toFixed(2)}" cy="${(Math.sin(i * Math.PI / 3) * 23.5).toFixed(2)}" r=".3" fill="#5A3A28"/>`).join('');
+    /* ildfluer, der blinker over engen */
+    if (!calm) for (let i = 0; i < 22; i++){ const a = r() * Math.PI * 2, d = 30 + r() * 55; o += `<circle cx="${(Math.cos(a) * d).toFixed(1)}" cy="${(Math.sin(a) * d * .9).toFixed(1)}" r=".45" fill="#FFF3A0" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="${(2 + r() * 2).toFixed(1)}s" begin="${(r() * 3).toFixed(1)}s" repeatCount="indefinite"/></circle>`; }
+    return o;
+  }
   /* jorden ovenfra, i meter, med målet i (0, 0) */
   function groundSvg(){
     const r = rng(7); let o = `<rect x="-4200" y="-4200" width="8400" height="8400" fill="#47703F"/>`;
@@ -75,10 +114,11 @@ const Fald = (() => {
     const RC = ['#F2C14E', '#E0457A', '#FFF3E0', '#E0457A'];
     o += `<circle r="${RINGS[3] + 1.2}" fill="#FFF3E0" opacity=".9"/>` + [3, 2, 1, 0].map(i => `<circle r="${RINGS[i]}" fill="${RC[i]}" stroke="#2A2340" stroke-width=".25"/>`).join('');
     o += `<polygon points="${star5pts(0, .1, 1.5, .65)}" fill="#FFF6D0" stroke="#A87A1A" stroke-width=".15"/>`;
-    /* tilskuere og læreren ved kanten af målet */
-    const KIDS = [['#2E4A7A', '#B5432A'], ['#6B3FA0', '#F2C14E'], ['#3E7A4A', '#3A2A20'], ['#A0526B', '#E8E4F4'], ['#5A3A28', '#F2A04E'], ['#2E6A7A', '#2A2238']];
-    KIDS.forEach(([b, h], i) => { const a = -2.2 + i * .34; o += personTop(Math.cos(a) * 27, Math.sin(a) * 27, b, h, a * 57 + 90); });
-    o += personTop(27, 8, '#8A2A2A', '#B5432A', 100);
+    o += meadowMagic();
+    /* tilskuere og læreren ved kanten af målet: klassekammerater, nogle vinker, nogle har hat på */
+    const KIDS = [['#2E4A7A', '#B5432A', 0, 1], ['#6B3FA0', '#F2C14E', 1, 0], ['#3E7A4A', '#3A2A20', 0, 0], ['#A0526B', '#E8E4F4', 1, 1], ['#5A3A28', '#F2A04E', 0, 0], ['#2E6A7A', '#2A2238', 1, 0], ['#7A2E5A', '#C68653', 0, 1], ['#4A4A9A', '#FFE27A', 1, 0], ['#3E5A3A', '#8A4A2A', 0, 0]];
+    KIDS.forEach(([b, h, wave, hat], i) => { const a = -2.5 + i * .3, d = 29 + (i % 2) * 2.5; o += personTop(Math.cos(a) * d, Math.sin(a) * d, b, h, a * 57 + 90, { wave, hat }); });
+    o += personTop(26, 9, '#2E4A7A', '#B5432A', 110, { cape: '#8A2A2A', wave: 1 });
     /* vindposen */
     o += `<g class="fs-sock" transform="translate(30 -8)"><circle r=".35" fill="#2A2340"/><g class="fs-sockr"><path d="M 0 -.5 L 4 -.3 L 4 .3 L 0 .5 Z" fill="#FF8A3D" stroke="#A8442A" stroke-width=".12"/><path d="M 1.3 -.45 V .45 M 2.6 -.38 V .38" stroke="#FFFFFF" stroke-width=".35"/></g></g>`;
     return o;
@@ -149,7 +189,7 @@ const Fald = (() => {
     o += `<circle cx="0" cy="-4" r="17" fill="${st.hat.a}" stroke="${fdk(st.hat.a, .42)}" stroke-width="3"/><path d="M 0 -21 V 13" stroke="${st.hat.b}" stroke-width="6"/><path d="M -8 -14 Q 0 -18 8 -14" stroke="#FFFFFF" stroke-width="3" fill="none" opacity=".45" stroke-linecap="round"/>`;
     return o + `</g>`;
   }
-  const bubbleArt = gold => `<circle r="60" fill="#FFFFFF" fill-opacity=".1" stroke="${gold ? '#FFE27A' : '#BFE8FF'}" stroke-width="5"/><circle r="60" fill="none" stroke="#FF8FC7" stroke-width="2.5" opacity=".7" stroke-dasharray="40 50"/>${starP(0, 4, gold ? 36 : 30, gold ? '#FFC02E' : '#FFE27A')}<path d="M -30 -32 Q -16 -46 2 -46" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  const bubbleArt = gold => `<circle r="60" fill="${gold ? '#FFE9A0' : '#BFE8FF'}" fill-opacity=".3" stroke="${gold ? '#FFE27A' : '#DFF4FF'}" stroke-width="6"/><circle r="60" fill="none" stroke="#FF8FC7" stroke-width="2.5" opacity=".7" stroke-dasharray="40 50"/>${starP(0, 4, gold ? 36 : 30, gold ? '#FFC02E' : '#FFE27A')}<path d="M -30 -32 Q -16 -46 2 -46" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>`;
   const cloudArt = (k, seed) => { const r = rng(seed); let o = ''; for (let i = 0; i < 7; i++){ const a = r() * Math.PI * 2, d = r() * 220 * k; o += `<ellipse cx="${(Math.cos(a) * d).toFixed(0)}" cy="${(Math.sin(a) * d * .7).toFixed(0)}" rx="${(150 + r() * 130) * k}" ry="${(100 + r() * 80) * k}" fill="${i % 2 ? '#E8E2FA' : '#D6CCF2'}"/>`; } return o; };
 
   /* ---------- skærmen ---------- */
@@ -159,9 +199,9 @@ const Fald = (() => {
       + `<radialGradient id="haze" cx=".5" cy=".5" r=".75"><stop offset="0" stop-color="#C8B8F0" stop-opacity=".12"/><stop offset="1" stop-color="#2A2260" stop-opacity=".75"/></radialGradient></defs>`;
     o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#2A2350"/>`;
     o += `<g class="fs-ground">${groundSvg()}</g>`;
-    o += `<g class="fs-gtop"><g class="fs-shadow" opacity=".3"></g></g>`;
+    o += `<g class="fs-gtop"><g class="fs-shadow" opacity=".3"></g></g><g class="fs-float"></g>`;
     o += `<rect class="fs-haze" x="-1700" y="-700" width="5000" height="2400" fill="url(#haze)"/>`;
-    o += `<g class="fs-below"></g><g class="fs-hero"></g><g class="fs-can"></g><g class="fs-above"></g><path class="fs-motes" d="" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".55" fill="none"/>`;
+    o += `<g class="fs-rings"></g><g class="fs-below"></g><g class="fs-hero"></g><g class="fs-can"></g><g class="fs-above"></g><path class="fs-motes" d="" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".55" fill="none"/>`;
     o += `<g class="fs-pin"></g><g class="fs-fx"></g>`;
     o += placeMood([], { vign: .55, dx: 200, dw: 1200 });
     return o + `</svg>`;
@@ -195,6 +235,8 @@ const Fald = (() => {
       x: Math.cos(a0) * d0, y: Math.sin(a0) * d0, th: Math.atan2(-Math.cos(a0), Math.sin(a0)) * 180 / Math.PI + (Math.random() < .5 ? 1 : -1) * (70 + Math.random() * 50),
       h: H0, v: 9, sink: 3.8, turnV: 0, wind: { x: Math.cos(wa) * wind, y: Math.sin(wa) * wind, s: wind, a: wa }, ctl: { L: false, R: false, F: false }, keys: {}, ptrs: new Map(), soft: false };
     makeSpawns();
+    /* svævende lanterner mellem hende og jorden: de stiger langsomt, og hun daler forbi dem */
+    S.floaters = Array.from({ length: 16 }, (_, i) => ({ x: (Math.random() - .5) * 280, y: (Math.random() - .5) * 240, a: 20 + Math.random() * 110, c: ['#FFB347', '#FF8FC7', '#FFE27A', '#7FD8FF'][i % 4] }));
     const box = $('#faldBody'); box.innerHTML = '';
     const scene = el('div', { class:'scene-wrap', id:'fsScene' });
     const count = el('span', { class:'starpill kf-count fs-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
@@ -261,13 +303,15 @@ const Fald = (() => {
   function skipIntro(){ if (S && S.run === 'intro' && S.t < T_UP + T_HOVER) S.t = T_UP + T_HOVER; }
 
   /* ---------- frit fald ---------- */
+  /* boblerne stiger lige op nedefra mod det sted, hvor de når op til hende. En stiplet ring viser stedet,
+     så man kan nå derhen i tide; ringen lyser op lige før boblen når op. */
   function makeSpawns(){
     let px = SCX, py = SCY, n = 0;
-    for (let t = 1.2; t < FREE_T - TA - .2; t += .78){
-      px = clamp(px + (Math.random() * 2 - 1) * 420, BX0 + 60, BX1 - 60); py = clamp(py + (Math.random() * 2 - 1) * 300, BY0 + 60, BY1 - 60);
-      S.spawn.push({ t, kind:'bub', x: px, y: py, gold: ++n % 7 === 0 });
+    for (let t = 1.4; t < FREE_T - TA - .2; t += .95){
+      px = clamp(px + (Math.random() * 2 - 1) * 380, BX0 + 70, BX1 - 70); py = clamp(py + (Math.random() * 2 - 1) * 280, BY0 + 70, BY1 - 70);
+      S.spawn.push({ t, kind:'bub', x: px, y: py, gold: ++n % 6 === 0 });
     }
-    for (let t = .4; t < FREE_T - TA; t += 1.3 + Math.random() * .6) S.spawn.push({ t, kind:'cloud', x: 200 + Math.random() * 1200, y: 150 + Math.random() * 700, k: .7 + Math.random() * .6, seed: 1 + Math.floor(Math.random() * 50) });
+    for (let t = 2.2; t < FREE_T - TA; t += 2.6 + Math.random() * 1.2) S.spawn.push({ t, kind:'cloud', x: 200 + Math.random() * 1200, y: 150 + Math.random() * 700, k: .6 + Math.random() * .5, seed: 1 + Math.floor(Math.random() * 50) });
     S.spawn.sort((a, b) => a.t - b.t);
     S.bubN = S.spawn.filter(s => s.kind === 'bub').length;
     for (let i = 0; i < 26; i++) S.motes.push({ x: Math.random() * 1600, y: Math.random() * 1000, z: Math.random() });
@@ -277,26 +321,34 @@ const Fald = (() => {
     sc.querySelector('.fs-hero').innerHTML = `<g class="fs-htilt"><g transform="scale(.8)">${heroTop(S.hero)}</g></g>`;
     $('#faldBody .fs-skip') && $('#faldBody .fs-skip').remove();
     flash();
-    S.run = 'free'; S.t = 0;
-    big('Saml stjernerne!');
+    S.run = 'free'; S.t = 0; S.firstBub = true;
+    big('Flyv hen over boblerne!');
+    const tip = el('div', { class:'fs-skip fs-tip' }, 'Hold fingeren og træk for at flyve'); $('#faldBody').append(tip); setTimeout(() => tip.remove(), S.auto ? 50 : 5500);
   }
   const proj = (o, z) => { const s = 1 / (1 + 5 * z); return { s, x: SCX + (o.x - SCX) * s, y: SCY + (o.y - SCY) * s }; };
   function stepFree(dt){
     S.t += dt;
     /* nye ting dukker op langt nede */
-    while (S.spawn.length && S.spawn[0].t <= S.t){ const o = S.spawn.shift(); o.z = 1; o.el = mk('g', { class: 'fs-obj ' + o.kind }, o.kind === 'bub' ? bubbleArt(o.gold) : cloudArt(o.k, o.seed)); $('#fsScene .fs-below').append(o.el); S.objs.push(o); }
+    while (S.spawn.length && S.spawn[0].t <= S.t){ const o = S.spawn.shift(); o.z = 1;
+      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow">${bubbleArt(o.gold)}</g>` : cloudArt(o.k, o.seed));
+      if (o.kind === 'bub'){ o.ring = mk('g', { class: 'fs-ring' + (S.firstBub ? ' first' : ''), transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>` + (S.firstBub ? `<g class="fs-point"><path d="M 0 -150 V -92 M -20 -112 L 0 -90 L 20 -112" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''));
+        S.firstBub = false; $('#fsScene .fs-rings').append(o.ring); }
+      $('#fsScene .fs-below').append(o.el); S.objs.push(o); }
     if (S.auto){ const nb = S.objs.filter(o => o.kind === 'bub' && o.z > 0 && !o.got).sort((a, b) => a.z - b.z)[0]; if (nb){ S.tx = nb.x; S.ty = nb.y; } }
-    /* hun glider mod fingeren */
-    if (S.keys.ArrowLeft) S.tx -= 900 * dt; if (S.keys.ArrowRight) S.tx += 900 * dt; if (S.keys.ArrowUp) S.ty -= 900 * dt; if (S.keys.ArrowDown) S.ty += 900 * dt;
+    /* piletasterne flyver hende direkte, også skråt med to taster */
+    const kx = (S.keys.ArrowRight ? 1 : 0) - (S.keys.ArrowLeft ? 1 : 0), ky = (S.keys.ArrowDown ? 1 : 0) - (S.keys.ArrowUp ? 1 : 0);
+    if (kx || ky){ const l = Math.hypot(kx, ky), sp = 820 * dt / l; S.tx = S.hx + kx * sp * 6; S.ty = S.hy + ky * sp * 6; }
     S.tx = clamp(S.tx, BX0, BX1); S.ty = clamp(S.ty, BY0, BY1);
-    let vx = (S.tx - S.hx) * 5, vy = (S.ty - S.hy) * 5; const sp = Math.hypot(vx, vy); if (sp > 1300){ vx *= 1300 / sp; vy *= 1300 / sp; }
+    /* hun glider efter målpunktet, som fingeren trækker rundt */
+    let vx = (S.tx - S.hx) * 7, vy = (S.ty - S.hy) * 7; const sp = Math.hypot(vx, vy); if (sp > 1300){ vx *= 1300 / sp; vy *= 1300 / sp; }
     S.hx += vx * dt; S.hy += vy * dt; S.tilt += (clamp(vx / 45, -22, 22) - S.tilt) * Math.min(1, dt * 6);
     for (const o of S.objs){
       const z0 = o.z; o.z -= dt / TA;
       if (z0 > 0 && o.z <= 0){
-        $('#fsScene .fs-above').append(o.el);
-        if (o.kind === 'bub' && Math.hypot(o.x - S.hx, o.y - S.hy) < 125){ o.got = true; S.bubbles += o.gold ? 3 : 1; sfx.coin(); if (o.gold) sfx.magic(); spark(o.x, o.y, o.gold ? '#FFC02E' : '#FFE27A'); const n = $('#faldBody .fs-count .n'); if (n) n.textContent = S.bubbles; o.el.remove(); o.dead = true; }
-        if (o.kind === 'cloud' && Math.hypot(o.x - S.hx, o.y - S.hy) < 330 * o.k) puff();
+        $('#fsScene .fs-above').append(o.el); if (o.ring){ o.ring.remove(); o.ring = null; }
+        if (o.kind === 'bub' && Math.hypot(o.x - S.hx, o.y - S.hy) < 130){ o.got = true; const v = o.gold ? 3 : 1; S.bubbles += v; sfx.coin(); if (o.gold) sfx.magic(); spark(o.x, o.y, o.gold ? '#FFC02E' : '#FFE27A'); plus(o.x, o.y, v);
+          const n = $('#faldBody .fs-count .n'); if (n){ n.textContent = S.bubbles; const c = n.closest('.fs-count'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); } o.el.remove(); o.dead = true; }
+        if (o.kind === 'cloud' && Math.hypot(o.x - S.hx, o.y - S.hy) < 300 * o.k) puff();
       }
       if (o.z < -.16){ o.el.remove(); o.dead = true; }
     }
@@ -311,8 +363,15 @@ const Fald = (() => {
     sc.querySelector('.fs-haze').setAttribute('opacity', (.75 - f * .4).toFixed(2));
     sc.querySelector('.fs-hero').setAttribute('transform', `translate(${S.hx.toFixed(1)} ${S.hy.toFixed(1)})`);
     sc.querySelector('.fs-htilt').setAttribute('transform', `rotate(${S.tilt.toFixed(1)})`);
-    for (const o of S.objs){ const p = proj(o, o.z), op = o.z > .8 ? (1 - o.z) / .2 : o.z < 0 ? Math.max(0, 1 + o.z / .16) * (o.kind === 'cloud' ? .55 : 1) : 1;
-      o.el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${p.s.toFixed(3)})`); o.el.setAttribute('opacity', (op * (o.kind === 'cloud' ? .9 : 1)).toFixed(2)); }
+    for (const o of S.objs){
+      if (o.kind === 'bub'){
+        /* boblen bliver på sit sted og vokser, mens den stiger op mod hende */
+        const k = 1 - Math.max(0, o.z), s = o.z > 0 ? .42 + .58 * k * k : 1 + (-o.z) * 4, op = o.z > .85 ? .35 + .65 * (1 - o.z) / .15 : o.z < 0 ? Math.max(0, 1 + o.z / .16) : 1;
+        o.el.setAttribute('transform', `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
+        if (o.ring){ o.ring.setAttribute('opacity', (.45 + .55 * k).toFixed(2)); o.ring.classList.toggle('hot', o.z < .3); }
+        continue; }
+      const p = proj(o, o.z), op = o.z > .8 ? (1 - o.z) / .2 : o.z < 0 ? Math.max(0, 1 + o.z / .16) * .5 : 1;
+      o.el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${p.s.toFixed(3)})`); o.el.setAttribute('opacity', (op * .8).toFixed(2)); }
     let d = ''; for (const m of S.motes){ if (m.z > 1 || m.z < -.1) continue; const a = proj(m, m.z), b = proj(m, m.z + .06); d += `M ${a.x.toFixed(0)} ${a.y.toFixed(0)} L ${b.x.toFixed(0)} ${b.y.toFixed(0)} `; }
     sc.querySelector('.fs-motes').setAttribute('d', d);
     setAlt(Math.round((ALT0 - (ALT0 - ALT1) * f) / 50) * 50, 1 - f * (1 - ALT1 / ALT0));
@@ -327,6 +386,8 @@ const Fald = (() => {
     const sc = $('#fsScene');
     sc.querySelector('.fs-can').innerHTML = `<g class="fs-cscale"><g class="fs-crot">${canopyTop(S.hero)}</g></g>`;
     sc.querySelector('.fs-shadow').innerHTML = canopyTop(S.hero, true);
+    const fl = sc.querySelector('.fs-float');
+    for (const f of S.floaters){ f.el = mk('g', { opacity: '0' }, `<circle r="2.2" fill="${f.c}" opacity=".18"/><circle r="1.1" fill="${f.c}" opacity=".35"/><rect x="-.45" y="-.45" width=".9" height=".9" rx=".15" fill="#FFF3D0" stroke="${fdk(f.c, .3)}" stroke-width=".1"/><path d="M -.45 0 H .45 M 0 -.45 V .45" stroke="${fdk(f.c, .25)}" stroke-width=".06"/>`); fl.append(f.el); }
     for (const o of S.objs) o.el.remove(); S.objs = [];
     sc.querySelector('.fs-motes').setAttribute('d', '');
     tone(300, 0.3, 'sine', 0.06, 0, .5); setTimeout(() => tone(120, 0.35, 'triangle', 0.08, 0, .7), 400);
@@ -349,7 +410,13 @@ const Fald = (() => {
     sc.querySelector('.fs-cscale').setAttribute('transform', `scale(${(sx * back).toFixed(3)} ${(sy * back).toFixed(3)})`);
     sc.querySelector('.fs-crot').setAttribute('transform', `rotate(${(S.th * e).toFixed(1)})`);
     sc.querySelector('.fs-can').setAttribute('opacity', clamp(u * 3, 0, 1).toFixed(2));
-    drawShadow(e);
+    drawShadow(e); drawFloaters();
+  }
+  function drawFloaters(){
+    for (const f of S.floaters || []){ if (!f.el) continue; const dh = S.h - f.a;
+      if (dh < 3){ f.el.setAttribute('opacity', '0'); continue; }
+      const p = FOCAL / (CAM_UP + dh), x = SCX + (f.x - S.x) * p, y = SCY + (f.y - S.y) * p;
+      f.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${p.toFixed(2)})`); f.el.setAttribute('opacity', clamp((dh - 3) / 10, 0, 1).toFixed(2)); }
   }
   function drawShadow(k = 1){
     const sh = $('#fsScene .fs-shadow'); if (!sh) return;
@@ -386,6 +453,7 @@ const Fald = (() => {
     S.v += (vt - S.v) * Math.min(1, dt * 1.8); S.sink += (st - S.sink) * Math.min(1, dt * 1.8);
     const rad = S.th * Math.PI / 180;
     S.x += (Math.sin(rad) * S.v + S.wind.x) * dt; S.y += (-Math.cos(rad) * S.v + S.wind.y) * dt; S.h -= S.sink * dt;
+    for (const f of S.floaters) { f.a += .5 * dt; f.x += Math.sin(S.t * .7 + f.a) * .3 * dt + S.wind.x * dt; f.y += S.wind.y * dt; }
     if (S.h < 6) S.soft = brake;
     if (S.h <= 0){ S.h = 0; land(); }
   }
@@ -396,7 +464,7 @@ const Fald = (() => {
     sc.querySelector('.fs-cscale').setAttribute('transform', `scale(${(1 - Math.abs(S.turnV) / 80 * .05).toFixed(3)} 1)`);
     sc.querySelector('.fs-crot').setAttribute('transform', `rotate(${S.th.toFixed(1)})`);
     sc.querySelector('.fs-crot').classList.toggle('pl', S.ctl.L); sc.querySelector('.fs-crot').classList.toggle('pr', S.ctl.R);
-    drawShadow();
+    drawShadow(); drawFloaters();
     for (const [k, on] of [['l', S.ctl.L], ['r', S.ctl.R], ['f', S.ctl.F && !(S.ctl.L && S.ctl.R)]]){ const p = $('#faldBody .fs-pad.' + k); if (p) p.classList.toggle('on', on); }
     const b = $('#faldBody .fs-both'); if (b) b.classList.toggle('on', S.ctl.L && S.ctl.R);
     setAlt(Math.round(ALT1 * S.h / H0 / 10) * 10, ALT1 / ALT0 * S.h / H0);
@@ -421,7 +489,7 @@ const Fald = (() => {
     $('#faldBody .fs-pads').hidden = true; $('#faldBody .fs-wind').hidden = true;
     const sc = $('#fsScene');
     sc.querySelector('.fs-can').innerHTML = `<g class="fs-landed" transform="rotate(${S.th.toFixed(1)})">${landedTop(S.hero)}</g>`;
-    sc.querySelector('.fs-shadow').innerHTML = ''; sc.querySelector('.fs-pin').innerHTML = '';
+    sc.querySelector('.fs-shadow').innerHTML = ''; sc.querySelector('.fs-pin').innerHTML = ''; sc.querySelector('.fs-float').innerHTML = '';
     if (pond){ for (let i = 0; i < 3; i++) spark(SCX + (i - 1) * 60, SCY, '#BFE8FF'); tone(200, 0.3, 'sine', 0.07, 0, .4); }
     else { tone(160, 0.12, 'sine', 0.07, 0, .7); if (zi === 0) sfx.magic(); }
     big(msg);
@@ -461,16 +529,18 @@ const Fald = (() => {
   /* ---------- styring ---------- */
   function bindInput(scene){
     const zone = e => { const b = scene.getBoundingClientRect(), f = (e.clientX - b.left) / b.width; return f < .38 ? 'L' : f > .62 ? 'R' : 'F'; };
-    const aim = e => { const svg = scene.querySelector('svg'); if (!svg) return; const p = svgPoint(svg, e); S.tx = p.x; S.ty = p.y; };
+    /* frit fald: hold fingeren et vilkårligt sted og træk — hun flytter sig samme vej som fingeren */
+    const last = new Map();
+    const drag = e => { const svg = scene.querySelector('svg'); if (!svg) return; const p = svgPoint(svg, e), q = last.get(e.pointerId); last.set(e.pointerId, p); if (!q) return; S.tx += (p.x - q.x) * 1.5; S.ty += (p.y - q.y) * 1.5; };
     scene.addEventListener('pointerdown', e => {
       if (!S || e.target.closest('button')) return;
       if (S.run === 'intro'){ skipIntro(); return; }
       try { scene.setPointerCapture(e.pointerId); } catch (er) {}
-      if (S.run === 'free') aim(e);
+      if (S.run === 'free'){ S.tx = S.hx; S.ty = S.hy; last.delete(e.pointerId); drag(e); }
       S.ptrs.set(e.pointerId, zone(e));
     });
-    scene.addEventListener('pointermove', e => { if (!S) return; if (S.run === 'free' && (S.ptrs.has(e.pointerId) || e.pointerType === 'mouse')) aim(e); if (S.ptrs.has(e.pointerId)) S.ptrs.set(e.pointerId, zone(e)); });
-    for (const ev of ['pointerup', 'pointercancel']) scene.addEventListener(ev, e => { if (S) S.ptrs.delete(e.pointerId); });
+    scene.addEventListener('pointermove', e => { if (!S) return; if (S.run === 'free' && S.ptrs.has(e.pointerId)) drag(e); if (S.ptrs.has(e.pointerId)) S.ptrs.set(e.pointerId, zone(e)); });
+    for (const ev of ['pointerup', 'pointercancel']) scene.addEventListener(ev, e => { last.delete(e.pointerId); if (S) S.ptrs.delete(e.pointerId); });
     if (!keyOn){ keyOn = true;
       document.addEventListener('keydown', e => { if (!S || $('#fald').hidden) return; if (e.key.startsWith('Arrow')){ e.preventDefault(); S.keys[e.key] = true; } if (e.key === ' ') skipIntro(); });
       document.addEventListener('keyup', e => { if (S) S.keys[e.key] = false; }); }
@@ -498,6 +568,7 @@ const Fald = (() => {
   /* ---------- små effekter ---------- */
   function big(t){ const b = el('div', { class:'kf-big fs-big' }, t); $('#faldBody').append(b); b.classList.add('pop'); setTimeout(() => b.remove(), S && S.auto ? 50 : 1500); }
   function flash(){ const f = el('div', { class:'fs-flash', 'aria-hidden':'true' }); $('#faldBody').append(f); sfx.whoosh(); setTimeout(() => f.remove(), 900); }
+  function plus(x, y, v){ const fx = $('#fsScene .fs-fx'); if (!fx) return; const e = mk('g', { transform: `translate(${x.toFixed(0)} ${(y - 70).toFixed(0)})` }, `<g class="fs-plus"><text x="0" y="0" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="64" fill="${v > 1 ? '#FFC02E' : '#FFF6D0'}" stroke="#3A1F60" stroke-width="8" paint-order="stroke">+${v}</text></g>`); fx.append(e); setTimeout(() => e.remove(), 1100); }
   function puff(){ const f = el('div', { class:'fs-flash puff', 'aria-hidden':'true' }); $('#faldBody').append(f); tone(260, 0.2, 'sine', 0.03, 0, 1.4); setTimeout(() => f.remove(), 700); }
   function spark(x, y, col){ const fx = $('#fsScene .fs-fx'); if (!fx || calm) return; for (let i = 0; i < 7; i++){ const a = i / 7 * Math.PI * 2, e = mk('g', { transform: `translate(${x.toFixed(0)} ${y.toFixed(0)})` }, `<g class="kf-burst" style="--dx:${(Math.cos(a) * 80).toFixed(0)}px;--dy:${(Math.sin(a) * 80).toFixed(0)}px">${star4(0, 0, 12, col)}</g>`); fx.append(e); setTimeout(() => e.remove(), 1400); } }
 
