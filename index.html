@@ -1779,7 +1779,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.15.3';
+const VERSION = 'v0.15.4';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3908,10 +3908,10 @@ function lessonDone(){
    samme bane i baggrunden, og pladsen giver guld, sølv eller bronze. */
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
-  const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 430;
-  const BOOST_N = 5, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 380;
+  const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 490;
+  const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 380;
   /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
-  const LANES = [{ k: .42, y0: 175, op: .62 }, { k: .55, y0: 120, op: .8 }];
+  const LANES = [{ k: .4, y0: 120, dx: -200, op: .62 }, { k: .52, y0: 150, dx: -100, op: .8 }];
   const laneY = (L, y) => L.y0 + y * L.k;
   const RIDER_H = 250;
   const NS = 'http://www.w3.org/2000/svg';
@@ -4029,7 +4029,7 @@ const Kost = (() => {
   function rider(st, opts = {}){
     const g = mk('g', { class:'kf-rider' + (opts.cls ? ' ' + opts.cls : '') });
     const tilt = mk('g', { class:'kf-tilt' });
-    let inner = `<g transform="translate(0 34) scale(.58)">${riderArt(st)}</g>`;
+    let inner = `<g transform="translate(0 28) scale(.48)">${riderArt(st)}</g>`;
     if (opts.trail) inner = `<g class="kf-trail">${[0, 1, 2, 3].map(i => star4(-150 - i * 30, 30 + (i % 2) * 10, 10 - i * 1.5, '#FFF6D0', .9 - i * .2)).join('')}</g>` + inner;
     tilt.innerHTML = inner; g.append(tilt);
     return g;
@@ -4138,7 +4138,7 @@ const Kost = (() => {
     for (const r of S.course.rings){ const [b, f] = ringEls(r); r.back = b; r.front = f; world.append(b); front.append(f); }
     for (const b of S.course.bubbles){ b.el = bubbleEl(b); world.append(b.el); }
     S.rivals.forEach(rv => { const tb = scene.querySelector('.kf-trackB.l' + rv.li), tf = scene.querySelector('.kf-trackF.l' + rv.li), col = lt(rv.st.robe.a, .25);
-      for (const r of S.course.rings){ const [b, f] = ringEls(r, rv.lane.k, y => laneY(rv.lane, y), col); tb.append(b); tf.append(f); rv.els.set(r, [b, f]); } });
+      for (const r of S.course.rings){ const [b, f] = ringEls({ x: r.x + rv.lane.dx, y: r.y, dbl: r.dbl }, rv.lane.k, y => laneY(rv.lane, y), col); tb.append(b); tf.append(f); rv.els.set(r, [b, f]); } });
     world.append(mk('g', {}, gate(S.course.end)));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
     S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
@@ -4179,12 +4179,15 @@ const Kost = (() => {
 
   /* ---------- loop og boost ----------
      Man kan altid loope. Starter loopet lige i den nederste af to ringe over hinanden, går det op gennem
-     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste tre ringe. */
-  const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r) && Math.abs(r.x - f.x) < 75 && Math.abs(r.y - f.y) < 100);
+     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste tre ringe (fem ringe i alt).
+     Det er tilgivende: er man nogenlunde ud for den nederste ring, bliver man trukket ind i den. */
+  const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r) && r.x - f.x < 180 && r.x - f.x > -70 && Math.abs(r.y - f.y) < 170);
   const nearDouble = () => S.course.rings.some(r => r.dbl === 'lo' && !S.seen.has(r) && r.x - S.x < 650 && r.x - S.x > -60);
   function startLoop(f){
     if (f.loop || f.boost > 0) return false;
-    f.loop = { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: pairAt(f) || null };
+    const hit = pairAt(f) || null;
+    /* rammer man tæt nok på, bliver man trukket ind i den nederste ring, før loopet begynder */
+    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, pre: 0, t: 0, cam: hit.x - PX, hit } : { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: null };
     return true;
   }
   function tryLoop(){ if (!S || S.run !== 'fly') return; if (startLoop(S)){ S.vy = 0; S.loop.hit ? sfx.magic() : tone(500, 0.3, 'sine', 0.04, 0, 1.8); } }
@@ -4216,7 +4219,9 @@ const Kost = (() => {
   }
   /* fælles for figuren og klassekammeraterne: loop, boost og ringene man flyver igennem */
   function moveLoop(f, dt){
-    const L = f.loop; L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, cy = L.y0 - LOOP_R;
+    const L = f.loop;
+    if (L.pre !== undefined && L.pre < 1){ L.pre = Math.min(1, L.pre + dt / .22); const e = L.pre * (2 - L.pre); f.x = L.sx + (L.x0 - L.sx) * e; f.y = L.sy + (L.y0 - L.sy) * e; f.ang = 0; if (f === S) S.cam = f.x - PX; return; }
+    L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, cy = L.y0 - LOOP_R;
     f.x = L.x0 + LOOP_R * Math.cos(a); f.y = cy + LOOP_R * Math.sin(a); f.ang = Math.atan2(-Math.cos(a), Math.sin(a)) * 180 / Math.PI;
     if (L.hit){ if (t > .05) passRing(f, L.hit); if (t >= .5) passRing(f, L.hit.pair); }
     if (t >= 1){ f.loop = null; f.x = L.x0; f.y = L.y0; f.ang = 0; f.vy = 0;
@@ -4241,7 +4246,7 @@ const Kost = (() => {
   function step(dt){
     if (S.run === 'fly' || S.run === 'done') S.t += dt;
     for (const rv of S.rivals) if (S.run === 'fly' || S.run === 'done') rivalStep(rv, dt);
-    if (S.loop){ moveLoop(S, dt); if (S.loop) S.cam = S.loop.cam; else S.cam = S.x - PX; return; }
+    if (S.loop){ moveLoop(S, dt); if (S.loop){ if (S.loop.pre === undefined || S.loop.pre >= 1) S.cam = S.loop.cam; } else S.cam = S.x - PX; return; }
     const x0 = S.x;
     if (S.boost > 0) moveBoost(S, dt);
     else {
@@ -4302,7 +4307,7 @@ const Kost = (() => {
     S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
     /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */
     S.rivals.forEach((rv, i) => {
-      rv.el.setAttribute('transform', `translate(${rv.x.toFixed(1)} ${laneY(rv.lane, rv.y).toFixed(1)}) scale(${rv.lane.k})`);
+      rv.el.setAttribute('transform', `translate(${(rv.x + rv.lane.dx).toFixed(1)} ${laneY(rv.lane, rv.y).toFixed(1)}) scale(${rv.lane.k})`);
       rv.el.firstChild.setAttribute('transform', `rotate(${(rv.ang || 0).toFixed(1)})`);
       rv.el.classList.toggle('boost', rv.boost > 0);
       const dot = $('#broomBody .kf-dot.r' + i); if (dot) dot.style.left = (clamp(rv.x / S.course.end, 0, 1) * 100).toFixed(1) + '%';
@@ -4347,8 +4352,8 @@ const Kost = (() => {
     world.append(bubbleEl({ x: 1000, y: 300 }));
     const me = rider(hero); me.setAttribute('transform', 'translate(430 560)'); q('.kf-me').append(me);
     LANES.forEach((L, i) => { const m = randomGuest([]), col = lt(m.st.robe.a, .25);
-      for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }, { x: 1700, y: 400 }]){ const [b, f] = ringEls(r, L.k, y => laneY(L, y), col); q('.kf-trackB.l' + i).append(b); q('.kf-trackF.l' + i).append(f); }
-      const rv = rider(m.st, { cls:'kf-rival' }); rv.setAttribute('transform', `translate(${i ? 1240 : 760} ${laneY(L, i ? 660 : 470)}) scale(${L.k})`); q('.kf-rivals.l' + i).append(rv); });
+      for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }, { x: 1700, y: 400 }]){ const [b, f] = ringEls({ x: r.x + L.dx, y: r.y, dbl: r.dbl }, L.k, y => laneY(L, y), col); q('.kf-trackB.l' + i).append(b); q('.kf-trackF.l' + i).append(f); }
+      const rv = rider(m.st, { cls:'kf-rival' }); rv.setAttribute('transform', `translate(${(i ? 1240 : 760) + L.dx} ${laneY(L, i ? 660 : 470)}) scale(${L.k})`); q('.kf-rivals.l' + i).append(rv); });
     for (const [c, k] of [['.kf-far', .12], ['.kf-mid', .35], ['.kf-cloud', .6], ['.kf-near', 1.25]]) q(c).setAttribute('transform', 'translate(-800 0)');
     return scopeIds(div.innerHTML, 'kp');
   }
