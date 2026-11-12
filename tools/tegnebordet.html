@@ -183,8 +183,13 @@ function paintMarks(){
     draft.marks.forEach((m, j) => { if (m.img !== k) return; const d = document.createElement('div'); d.className = 'ring'; d.style.left = (m.x*100) + '%'; d.style.top = (m.y*100) + '%'; d.dataset.j = j; d.title = 'Tryk for at fjerne'; d.innerHTML = `<b>${j+1}</b>`; box.append(d); });
   }
 }
+const IMGC = {};
+async function loadImg(id){ if (IMGC[id] || !db) return; IMGC[id] = 'loading';
+  try { const d = await db.collection('refimg').doc(id).get(); IMGC[id] = d && d.exists ? d.data().data : ''; } catch(e){ IMGC[id] = ''; }
+  if (draft && draft.refs.some(r => r.img === id)) paintRefs(); }
+function refSrc(r){ if (r.url) return r.url; const v = IMGC[r.img]; if (!v){ loadImg(r.img); return ''; } return v === 'loading' ? '' : v; }
 function paintRefs(){
-  $('#refs').innerHTML = draft.refs.map((r, j) => `<div class="ref"><a href="${esc(r.url)}" target="_blank" rel="noopener"><img src="${esc(r.url)}" alt="Reference ${j+1}"></a>${assets ? `<button type="button" data-r="${j}" aria-label="Fjern reference">×</button>` : ''}</div>`).join('');
+  $('#refs').innerHTML = draft.refs.map((r, j) => { const src = refSrc(r); return `<div class="ref">${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener">` : '<a>'}<img src="${esc(src)}" alt="Reference ${j+1}"></a><button type="button" data-r="${j}" aria-label="Fjern reference">×</button></div>`; }).join('');
 }
 for (const k of ['T','Z']) $('#shot' + k).addEventListener('click', e => {
   const ring = e.target.closest('.ring');
@@ -201,12 +206,24 @@ $('#next').addEventListener('click', () => { const p = nav.indexOf(cur); if (p >
 document.addEventListener('keydown', e => { if ($('#sheet').hidden || e.target.tagName === 'TEXTAREA') return; if (e.key === 'Escape') close(); if (e.key === 'ArrowRight') $('#next').click(); if (e.key === 'ArrowLeft') $('#prev').click(); });
 
 /* ---------- referencebilleder ---------- */
+/* hvis siden ikke må lægge filer op (fx når den er åbnet inde i chatten), gøres billedet mindre og gemmes direkte sammen med noten */
+function shrink(f, max = 900, q = .72){
+  return new Promise((res, rej) => { const u = URL.createObjectURL(f), im = new Image();
+    im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      const g = c.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', q)); };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('billede')); }; im.src = u; });
+}
 async function addFiles(files){
-  if (!assets){ $('#saved').textContent = 'Referencer kan ikke gemmes her. Send dem i chatten i stedet.'; return; }
   for (const f of files){ if (!f.type.startsWith('image/')) continue;
     $('#saved').textContent = 'Lægger billedet op …';
-    try { const a = await assets.upload(f); draft.refs.push({ id:a.id, url:a.url }); paintRefs(); queueSave(true); }
-    catch(e){ $('#saved').textContent = 'Billedet kunne ikke lægges op (' + (e.code || 'fejl') + '). Prøv et mindre billede.'; } }
+    if (assets){ try { const a = await assets.upload(f); draft.refs.push({ id:a.id, url:a.url }); paintRefs(); queueSave(true); continue; } catch(e){} }
+    if (!db){ $('#saved').textContent = 'Kan ikke gemme her – åbn siden i Claude, logget ind.'; continue; }
+    try {
+      let data = await shrink(f); if (data.length > 200000) data = await shrink(f, 700, .6); if (data.length > 200000) data = await shrink(f, 520, .55);
+      const id = ITEMS[cur].id + '-' + Date.now().toString(36);
+      await db.collection('refimg').doc(id).set({ item: ITEMS[cur].id, data, ts: Date.now() });
+      IMGC[id] = data; draft.refs.push({ img: id }); paintRefs(); queueSave(true);
+    } catch(e){ $('#saved').textContent = 'Billedet kunne ikke gemmes (' + (e.code || e.message || 'fejl') + ').'; } }
 }
 $('#file').addEventListener('change', e => { addFiles([...e.target.files]); e.target.value = ''; });
 const drop = $('#drop');
@@ -214,7 +231,7 @@ drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add(
 drop.addEventListener('dragleave', () => drop.classList.remove('over'));
 drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles([...e.dataTransfer.files]); });
 document.addEventListener('paste', e => { if ($('#sheet').hidden) return; const fs = [...(e.clipboardData?.files || [])]; if (fs.length){ e.preventDefault(); addFiles(fs); } });
-$('#refs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; draft.refs.splice(+b.dataset.r, 1); paintRefs(); queueSave(true); });
+$('#refs').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; const [r] = draft.refs.splice(+b.dataset.r, 1); if (r && r.img && db) db.collection('refimg').doc(r.img).delete().catch(() => {}); paintRefs(); queueSave(true); });
 
 /* ---------- gemning ---------- */
 function queueSave(now){ clearTimeout(saveTimer); $('#saved').textContent = 'Gemmer …'; saveTimer = setTimeout(save, now ? 50 : 700); }
@@ -237,7 +254,6 @@ async function save(){
   renderList();
   try { db = await window.claude?.use?.('db'); } catch(e){ db = null; }
   try { assets = await window.claude?.use?.('assets'); } catch(e){ assets = null; }
-  if (!assets){ drop.innerHTML = 'Referencer kan kun lægges ind af ejeren. Send dem i chatten i stedet.'; }
   if (!db){ const n = $('#notice'); n.hidden = false; n.textContent = 'Dine svar kan ikke gemmes her. Åbn siden i Claude, mens du er logget ind.'; return; }
   const t = setTimeout(() => { const n = $('#notice'); n.hidden = false; n.textContent = 'Dine tidligere svar er ikke hentet endnu. Du kan godt gennemgå imens.'; }, 10000);
   db.collection('reviews').onSnapshot(snap => {
