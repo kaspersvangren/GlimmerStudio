@@ -326,7 +326,8 @@ const Kost = (() => {
   }
   function moveBoost(f, dt){
     const x0 = f.x; f.x += f.v * dt;
-    const nr = S.course.rings.find(r => !f.seen.has(r) && r.x >= f.x - 5 && !r.dbl);
+    /* næste ring findes ud fra hvor man var før dette skridt, ellers kan en ring blive sprunget over uden at tælle */
+    const nr = S.course.rings.find(r => !f.seen.has(r) && r.x > x0 && !r.dbl);
     if (!nr){ f.boost = 0; if (f === S) boostEnd(); return; }
     f.y += (nr.y - f.y) * Math.min(1, dt * 6); f.vy = 0; f.ang = 0;
     if (x0 < nr.x && f.x >= nr.x){ passRing(f, nr); f.boost--; f.bN = (f.bN || 0) + 1; if (f.boost <= 0){ f.v = V0 * 1.3; if (f === S) boostEnd(); } }

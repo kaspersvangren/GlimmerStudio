@@ -41,6 +41,8 @@ async function run(w, h){
   let res = null; for (let i = 0; i < 400 && !res; i++){ await p.waitForTimeout(250); res = await p.evaluate(() => Kost.state().result || null); }
   ok(res && res.place >= 1, `${tag} kosteflyvning: turen blev ikke færdig`);
   ok(res && res.rings > 5, `${tag} kosteflyvning: autopiloten tog for få ringe (${res && res.rings})`);
+  ok(res && res.boostRings <= res.loops * 3, `${tag} kosteflyvning: boostet tog ${res && res.boostRings} ringe efter ${res && res.loops} loop (max 3 pr. loop)`);
+  ok(res && res.loops >= 1, `${tag} kosteflyvning: autopiloten fik intet loop`);
   await p.waitForTimeout(1500); await noScroll('kost-slutkort');
   ok(!errs.length, `${tag} fejl på siden:\n    ` + errs.join('\n    '));
   await b.close();
