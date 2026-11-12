@@ -61,6 +61,8 @@ function goFull(){
     if (pr && pr.then) pr.then(lockLand, () => {});
   } catch (e) {}
 }
+// på telefon/tablet og i den installerede app: hvert tryk prøver fuld skærm igen (fx hvis man har swipet ud af den)
+document.addEventListener('click', () => { if (matchMedia('(pointer: coarse)').matches || matchMedia('(display-mode: standalone)').matches) goFull(); }, true);
 function lockLand(){ try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => {}); } catch (e) {} }
 async function goTo(fn){
   goFull();
