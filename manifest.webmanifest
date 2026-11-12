@@ -5,10 +5,10 @@
   "lang": "da",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
-  "orientation": "any",
-  "background_color": "#FFF6FB",
-  "theme_color": "#FFD9EA",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1C1634",
+  "theme_color": "#1C1634",
   "icons": [
     {
       "src": "icon-192.png",
@@ -22,5 +22,9 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "display_override": [
+    "fullscreen",
+    "standalone"
   ]
 }

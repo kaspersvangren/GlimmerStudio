@@ -51,7 +51,19 @@ function updateAudioBtns(){
 
 /* ---------- tæppet mellem skærmene ---------- */
 let curtainBusy = false;
+/* fuld skærm og liggende: browseren tillader det kun lige efter et tryk, så det bedes om ved hvert skift af sted */
+function goFull(){
+  try {
+    if (document.fullscreenElement || matchMedia('(display-mode: fullscreen)').matches) return lockLand();
+    const d = document.documentElement, rq = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (!rq) return;
+    const pr = rq.call(d, { navigationUI: 'hide' });
+    if (pr && pr.then) pr.then(lockLand, () => {});
+  } catch (e) {}
+}
+function lockLand(){ try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => {}); } catch (e) {} }
 async function goTo(fn){
+  goFull();
   if (curtainBusy) return; curtainBusy = true;
   const c = $('#curtain');
   if (calm){ fn(); curtainBusy = false; return; }
@@ -125,7 +137,7 @@ function showTitle(){
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
     el('div', { class:'title-stage' }, [ el('div', { class:'ring', html: RING_SVG }), dollImg(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true, alt:'Din figur' }) ]),
-    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goTo(showTown); } } }),
+    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); } } }),
     el('p', { class:'ver' }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);

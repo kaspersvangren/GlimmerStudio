@@ -182,7 +182,20 @@ function renderPanel(resetScroll=false){
   const body = $('#panelBody'); const keep = resetScroll ? 0 : body.scrollTop;
   body.innerHTML = '';
   for (const node of [].concat(TAB_CONTENT[mode === 'dyr' ? petTab : tab]())) if (node) body.append(node);
+  pageSections(body, (mode === 'dyr' ? 'd:' + petTab : tab));
   body.scrollTop = keep;
+}
+/* ingen rullen: har en fane flere afsnit, vises ét ad gangen med små faneblade øverst */
+const SEC_PAGE = {};
+function pageSections(body, key){
+  const secs = [...body.querySelectorAll(':scope > .sec')];
+  if (secs.length < 2){ body.classList.remove('paged'); return; }
+  body.classList.add('paged');
+  const cur = Math.min(SEC_PAGE[key] || 0, secs.length - 1);
+  const chips = el('div', { class:'sec-chips', role:'tablist' }, secs.map((sc, i) => el('button', { class:'sec-chip', type:'button', 'aria-selected': String(i === cur),
+    on:{ click: () => { if (SEC_PAGE[key] === i) return; SEC_PAGE[key] = i; sfx.pick(); renderPanel(true); } } }, sc.querySelector('h3') ? sc.querySelector('h3').textContent : String(i + 1))));
+  secs.forEach((sc, i) => { sc.hidden = i !== cur; });
+  body.prepend(chips);
 }
 function placeBulbs(){
   const m = $('#mirror'); m.querySelectorAll('.bulb').forEach(b=>b.remove());

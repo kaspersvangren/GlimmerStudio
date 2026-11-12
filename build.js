@@ -12,7 +12,7 @@ fs.writeFileSync('dist/index.html',`<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${NAME}</title>
-<meta name="theme-color" content="#FFD9EA">
+<meta name="theme-color" content="#1C1634">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">

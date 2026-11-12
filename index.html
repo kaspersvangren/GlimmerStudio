@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Glimmerskolen</title>
-<meta name="theme-color" content="#FFD9EA">
+<meta name="theme-color" content="#1C1634">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -375,42 +375,40 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @keyframes puff{0%{transform:translate(0,0);opacity:.9}100%{transform:translate(var(--dx),-170px);opacity:0}}
 @keyframes zzz{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(30px,-60px);opacity:0}}
 @keyframes shootin{0%{transform:translate(0,0)}100%{transform:translate(-340px,150px)}}
-/* indretningsbogen */
-.rbook{position:absolute;z-index:7;top:max(70px, 9vh);bottom:3vh;width:min(62vw,820px);animation:bookin .35s ease-out}
+/* indretningsbogen: passer altid på skærmen, tingene svæver over siderne */
+.rbook{position:absolute;z-index:7;top:max(64px, 9vh);bottom:max(10px, 3vh);width:min(64vw, 900px, calc((100vh - 74px) * 2.1));animation:bookin .35s ease-out}
 .rbook.right{right:2vw}.rbook.left{left:2vw}
 .rbook.closing{animation:bookout .26s ease-in forwards}
 @keyframes bookin{from{transform:translateY(30px) scale(.92);opacity:0}}
 @keyframes bookout{to{transform:translateY(30px) scale(.92);opacity:0}}
-.rb-cover{height:100%;box-sizing:border-box;padding:12px;border-radius:22px;background:linear-gradient(135deg,#7B4FC0,#5A2E9A);box-shadow:0 10px 0 #3E1C72, 0 18px 40px rgba(20,10,40,.45), inset 0 0 0 3px #F2C14E;display:grid;grid-template-columns:1fr 1.25fr}
-.rb-page{background:#FFF6E0;overflow:auto;padding:14px 14px 18px;color:var(--ink)}
+.rb-cover{height:100%;box-sizing:border-box;padding:clamp(6px,1.4vh,12px);border-radius:22px;background:linear-gradient(135deg,#7B4FC0,#5A2E9A);box-shadow:0 8px 0 #3E1C72, 0 18px 40px rgba(20,10,40,.45), inset 0 0 0 3px #F2C14E;display:grid;grid-template-columns:1fr 1.2fr}
+.rb-page{background:#FFF6E0;color:var(--ink);display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:clamp(6px,1.6vh,14px) clamp(8px,1.4vw,16px)}
 .rb-page.pl{border-radius:12px 4px 4px 12px;box-shadow:inset -18px 0 22px -14px rgba(90,60,30,.35)}
 .rb-page.pr{border-radius:4px 12px 12px 4px;box-shadow:inset 18px 0 22px -14px rgba(90,60,30,.35)}
-.rb-page h3{margin:0 0 10px;font-family:var(--display);font-size:24px;color:#5A2E9A;text-align:center}
-.rb-sub{margin:12px 0 6px;font-weight:800;color:#5A2E9A}
-.rb-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rb-tab{border:3px solid transparent;border-radius:14px;background:#FFFFFF;padding:5px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:800;font-size:13px;color:var(--ink);position:relative}
-.rb-tab img{width:100%;aspect-ratio:4/3;object-fit:contain;display:block;background:#F4EAFB;border-radius:9px}
-.rb-tab.sel{border-color:#FF3D8F;background:#FFF0F7}
-.rb-tab.fresh::after{content:"NY";position:absolute;top:-8px;right:-8px;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:11px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
-.rb-close{position:absolute;top:-16px;right:-12px;width:52px;height:52px;border-radius:50%;border:4px solid #FFFFFF;background:#FF3D8F;color:#FFFFFF;display:grid;place-items:center;padding:10px;box-shadow:0 4px 0 #8A1550}
+.rb-page h3{margin:0 0 clamp(2px,1vh,8px);font-family:var(--display);font-size:clamp(17px,3.4vh,26px);line-height:1.1;color:#5A2E9A;text-align:center;flex:none}
+.rb-tabs{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(0,1fr);gap:clamp(2px,.8vh,8px) 8px}
+.rb-items{flex:1;min-height:0;display:grid;grid-template-columns:repeat(var(--cols),1fr);grid-auto-rows:minmax(0,1fr);gap:clamp(2px,.8vh,8px) 8px}
+.rb-thing{position:relative;border:none;background:transparent;padding:0;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;align-items:end;cursor:pointer;color:var(--ink)}
+.rb-fl{position:relative;z-index:1;width:100%;height:100%;min-height:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:12%;box-sizing:border-box;animation:rbfloat 3.2s ease-in-out infinite;animation-delay:var(--d)}
+.rb-fl img{max-width:100%;max-height:100%;object-fit:contain;display:block;filter:drop-shadow(0 2px 2px rgba(60,30,40,.25))}
+.rb-fl img.swatch{border-radius:10px;box-shadow:0 0 0 3px #FFFFFF, 0 3px 6px rgba(60,30,40,.3);max-height:70%}
+.rb-fl .lockbub{height:100%;max-height:100%;aspect-ratio:1;display:block}
+.rb-fl .lockbub svg{width:100%;height:100%;display:block}
+.rb-sh{position:absolute;z-index:0;left:22%;right:22%;bottom:calc(1.15em + 6px);height:8px;border-radius:50%;background:radial-gradient(closest-side, rgba(70,40,30,.35), rgba(70,40,30,0));animation:rbshadow 3.2s ease-in-out infinite;animation-delay:var(--d)}
+.rb-thing .nm{font-size:clamp(11px,2.1vh,14px);font-weight:800;line-height:1.1;text-align:center;padding-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rb-thing.sel .rb-sh{background:radial-gradient(closest-side, rgba(255,210,90,.95), rgba(255,180,60,0));height:14px;bottom:calc(1.15em + 3px);left:12%;right:12%}
+.rb-thing.sel .nm{color:#C2237A}
+.rb-thing.locked .nm{color:var(--ink-soft);font-weight:700}
+.rb-thing.fresh::after{content:"NY";position:absolute;z-index:2;top:2px;right:6%;background:#FF3D8F;color:#FFF;font-family:var(--display);font-size:11px;padding:1px 6px;border-radius:10px;border:2px solid #FFF}
+@keyframes rbfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6%)}}
+@keyframes rbshadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.8);opacity:.6}}
+.rb-close{position:absolute;top:-14px;right:-10px;width:clamp(40px,7vh,52px);height:clamp(40px,7vh,52px);border-radius:50%;border:4px solid #FFFFFF;background:#FF3D8F;color:#FFFFFF;display:grid;place-items:center;padding:8px;box-shadow:0 4px 0 #8A1550}
 .rb-close svg{width:100%;height:100%}
-.room-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.room-item{border:3px solid transparent;background:#FFFFFF;border-radius:16px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.room-item img{width:100%;aspect-ratio:1;object-fit:contain;display:block}
-.room-item .nm{font-size:13px;text-align:center;line-height:1.15;font-weight:700}
-.room-item.sel{border-color:#FF3D8F;background:#FFF0F7}
-.room-item.locked .nm{color:var(--ink-soft)}
-.room-item .lockbub{width:76%;aspect-ratio:1;display:block;margin:6%}
-.room-item .lockbub svg{width:100%;height:100%;display:block}
-.room-item.fresh{animation:freshpulse 1.6s ease-in-out infinite}
-.room-colors{display:flex;flex-wrap:wrap;gap:6px}
-.room-colors .dot{width:32px;height:32px;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #D9C9B0}
+.room-colors{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(4px,.9vh,7px);padding-top:clamp(4px,1vh,10px)}
+.room-colors .dot{width:clamp(22px,4.6vh,32px);height:clamp(22px,4.6vh,32px);border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #D9C9B0;padding:0}
 .room-colors .dot.sel{box-shadow:0 0 0 3px #FF3D8F}
 @media (orientation:portrait){ .rbook{left:2vw!important;right:2vw!important;width:auto;top:auto;height:58vh} }
-@media (prefers-reduced-motion: reduce){ .scene .anim,.scene .book,.scene .bookglow,.scene .tw,.scene .swing{transform-box:fill-box;transform-origin:50% 0}
-.scene .swingit{animation:swingit .9s ease-in-out}
-@keyframes swingit{0%,100%{transform:rotate(0)}20%{transform:rotate(7deg)}45%{transform:rotate(-5deg)}70%{transform:rotate(3deg)}}
-.scene .petg{animation:none!important;transition:none!important} }
+@media (prefers-reduced-motion: reduce){ .scene .anim,.scene .book,.scene .bookglow,.scene .tw,.scene .petg,.scene .swingit,.rb-fl,.rb-sh{animation:none!important;transition:none!important} }
 
 /* ---------- Boblebutikken som sted ---------- */
 .say-text{font-family:var(--display);font-weight:600;font-size:25px;line-height:1.25;color:#3A2340;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 8px;box-sizing:border-box}
@@ -424,7 +422,12 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .shop-bub.pop{animation:bpopout .3s ease-out forwards}
 .shop-drops{position:absolute;z-index:6;width:0;height:0}
 .shop-veil{position:absolute;inset:0;z-index:8;background:rgba(30,15,60,.45);display:grid;place-items:center;padding:16px;animation:fadein .25s ease-out}
-.shop-veil .reveal{max-width:420px}
+.shop-veil .reveal{width:auto;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);box-sizing:border-box;flex-direction:row;align-items:center;gap:clamp(12px,3vw,32px);padding:clamp(12px,3vh,26px) clamp(16px,3vw,34px);background:#FFF6E4;border:4px solid #C9952E;box-shadow:0 0 0 3px #8A6420, 0 10px 0 #3E2618, 0 0 50px rgba(255,210,110,.35);color:#3A2340}
+.shop-veil .reveal-pic{width:min(62vh,400px,46vw);aspect-ratio:1;flex:none;background:radial-gradient(circle, #FFFFFF 0%, #F3E6FF 70%);border-radius:22px}
+.shop-veil .reveal-info{display:flex;flex-direction:column;align-items:flex-start;gap:clamp(4px,1.4vh,12px);min-width:0;max-width:300px}
+.shop-veil .reveal-cat{margin:0;color:#6B3FA0}
+.shop-veil .reveal-name{font-size:clamp(22px,5vh,34px);line-height:1.1}
+.reveal-btns{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:clamp(4px,2vh,16px);width:100%}
 @keyframes fadein{from{opacity:0}}
 
 /* byen fylder hele skærmen; navnet og knapperne ligger ovenpå */
@@ -463,6 +466,50 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #game .judge small{color:#E6D6F4}
 #game .runway{box-shadow:0 0 0 6px #C9952E, 0 0 40px rgba(255,200,110,.3)}
 #game .theme-card .judge b{color:#3A2340} #game .theme-card .judge small{color:#7A5A48}
+
+/* lave skærme (telefon på langs): fanerne bliver én række ikoner, så der er plads til valgene */
+@media (max-height:720px){
+  #editor .tabs{grid-template-columns:repeat(11,minmax(0,1fr));padding:4px 6px;gap:2px}
+  #editor .tabs.pet{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #editor .tab{padding:4px 2px;border-radius:10px}
+  #editor .tabs:not(.pet) .tab span{display:none}
+  #editor .tab svg{width:22px;height:22px}
+  #editor .modes{padding:4px 6px 0}
+  #editor .mode{padding:4px;font-size:15px}
+  #editor .topbar .btn{min-height:36px;padding:6px 12px;font-size:14px}
+  #editor #nameInput{font-size:18px;padding:2px 8px}
+  #editor .work{gap:8px}
+  #editor .mirror{border-width:7px}
+}
+/* afsnit som små faneblade i stedet for en lang liste */
+.sec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.sec-chip{border:none;border-radius:999px;padding:6px 12px;font-weight:800;font-size:13px;background:#EFE2CC;color:#7A5A48}
+.sec-chip[aria-selected="true"]{background:#6B3FA0;color:#FFFFFF}
+#panelBody.paged .sec > h3{display:none}
+#panelBody .sec[hidden]{display:none}
+@media (max-height:720px){
+  #panelBody{padding:6px 10px 4px!important}
+  .sec-chips{margin-bottom:6px;gap:4px}
+  .sec-chip{padding:4px 10px;font-size:12px}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px}
+  .tile{padding:3px 3px 5px;font-size:11px;border-radius:12px}
+  .swatches{gap:6px}
+  .sw{width:30px;height:30px}
+  .sec{gap:6px}
+}
+@media (max-height:720px){
+  #panelBody .sec > h3, #panelBody .hint{display:none}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))}
+  .tile{min-width:0;font-size:10px;overflow-wrap:anywhere;hyphens:auto}
+  .tile .lock{top:4px;right:4px;width:22px;height:22px}
+  .tile .lock svg{width:14px;height:14px}
+  .tile[aria-pressed="true"]::after{width:20px;height:20px;top:-6px;right:-6px;background-size:14px}
+}
+@media (max-height:720px){
+  #panelBody{gap:6px!important}
+  #editor .tabs.pet .tab{flex-direction:row;justify-content:center;gap:6px}
+  #editor .tabs.pet .tab svg{width:18px;height:18px}
+}
 
 </style>
 </head>
@@ -1589,7 +1636,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.13.0';
+const VERSION = 'v0.13.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -1957,7 +2004,20 @@ function renderPanel(resetScroll=false){
   const body = $('#panelBody'); const keep = resetScroll ? 0 : body.scrollTop;
   body.innerHTML = '';
   for (const node of [].concat(TAB_CONTENT[mode === 'dyr' ? petTab : tab]())) if (node) body.append(node);
+  pageSections(body, (mode === 'dyr' ? 'd:' + petTab : tab));
   body.scrollTop = keep;
+}
+/* ingen rullen: har en fane flere afsnit, vises ét ad gangen med små faneblade øverst */
+const SEC_PAGE = {};
+function pageSections(body, key){
+  const secs = [...body.querySelectorAll(':scope > .sec')];
+  if (secs.length < 2){ body.classList.remove('paged'); return; }
+  body.classList.add('paged');
+  const cur = Math.min(SEC_PAGE[key] || 0, secs.length - 1);
+  const chips = el('div', { class:'sec-chips', role:'tablist' }, secs.map((sc, i) => el('button', { class:'sec-chip', type:'button', 'aria-selected': String(i === cur),
+    on:{ click: () => { if (SEC_PAGE[key] === i) return; SEC_PAGE[key] = i; sfx.pick(); renderPanel(true); } } }, sc.querySelector('h3') ? sc.querySelector('h3').textContent : String(i + 1))));
+  secs.forEach((sc, i) => { sc.hidden = i !== cur; });
+  body.prepend(chips);
 }
 function placeBulbs(){
   const m = $('#mirror'); m.querySelectorAll('.bulb').forEach(b=>b.remove());
@@ -2236,9 +2296,10 @@ function revealItem(cat, id){
   const card = el('div', { class:'reveal' }, [
     el('span', { class:'new-badge' }, 'NY!'),
     el('div', { class:'reveal-pic' }, img),
-    el('p', { class:'reveal-cat' }, catLabel),
-    el('h3', { class:'reveal-name' }, name),
-    el('div', { class:'row center' }, [ tryBtn, el('button', { class:'btn hot', type:'button', on:{ click: close } }, 'Tilbage til disken') ]),
+    el('div', { class:'reveal-info' }, [
+      el('p', { class:'reveal-cat' }, catLabel),
+      el('h3', { class:'reveal-name' }, name),
+      el('div', { class:'reveal-btns' }, [ tryBtn, el('button', { class:'btn hot', type:'button', on:{ click: close } }, 'Tilbage til disken') ]) ]),
   ]);
   const veil = el('div', { class:'shop-veil' }, [ card ]);
   $('#ballsBody').append(veil);
@@ -2418,7 +2479,7 @@ const HYLDE = {
 };
 
 /* ---------- lampen (hænger fra loftet / svæver) ---------- */
-const glowAt = (x, y, r, c) => { const id = 'gl' + (CLIPN++); return `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity=".55"/><stop offset=".45" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/>`; };
+const glowAt = (x, y, r, c) => { const id = 'gl' + (CLIPN++); return `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity=".55"/><stop offset=".45" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient><circle class="glow" cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/>`; };
 const LAMPE = {
   lys: { label:'Svævende lys', draw: c => [[790,180,70,3.4],[890,130,90,4.1],[990,200,60,3.7]].map(([x,y,h,d]) => `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -9;0 0" dur="${d}s" repeatCount="indefinite"/>` + glowAt(x, y-8, 60, '#FFE27A')
       + `<rect x="${x-14}" y="${y}" width="28" height="${h}" rx="5" fill="#FFF3DC" stroke="#C9B6A6" stroke-width="3"/><path d="M ${x-14} ${y+8} q 7 6 14 0 q 7 -6 14 0 M ${x-8} ${y+6} v 16" stroke="#E6D6C6" stroke-width="3" fill="none"/>`
@@ -2567,7 +2628,7 @@ function roomSvg(room, opts = {}){
   CLIPN = 0;
   const vb = opts.viewBox || '0 0 1600 1000';
   if (opts.only){
-    const wall = opts.only === 'vaeg' ? '' : `<rect x="0" y="0" width="1600" height="1000" fill="${ROOM_DEFAULT.c.vaeg}" opacity=".18"/>`;
+    const wall = '';
     const inner = opts.only === 'vaeg' ? wallBase(room.c.vaeg) + roomItem('vaeg', room) + wallTop() : roomItem(opts.only, room);
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${wall}${inner}</svg>`;
   }
@@ -2785,37 +2846,70 @@ function roomTap(hit, g, p){
 /* ---------- indretningsbogen ---------- */
 function openRoomBook(slot){ roomBook = slot || roomBook || 'vaeg'; const old = $('#roomBody .rbook'); if (old) old.remove(); $('#roomBody').append(roomBookEl()); }
 function closeRoomBook(){ sfx.undo(); roomBook = null; const b = $('#roomBody .rbook'); if (b){ b.classList.add('closing'); setTimeout(() => { b.remove(); drawRoomScene(); }, 260); } }
+/* et tæt udsnit om én ting (uden lysskær), så den fylder sin plads i bogen; regnes ud én gang pr. ting */
+const THUMB_VB = {};
+function thumbVB(slot, room){
+  if (slot === 'vaeg') return '0 0 1600 700';
+  const k = slot + ':' + room[slot];
+  if (THUMB_VB[k]) return THUMB_VB[k];
+  let vb = ROOM_VB[slot];
+  try {
+    const host = document.createElement('div'); host.style.cssText = 'position:absolute;left:-9999px;top:0;width:1600px;height:1000px;visibility:hidden';
+    host.innerHTML = roomSvg(room, { only: slot, viewBox: '0 0 1600 1000' });
+    document.body.append(host);
+    const g = host.querySelector('svg'); g.style.width = '1600px'; g.style.height = '1000px';
+    g.querySelectorAll('.glow, animate, animateTransform, animateMotion').forEach(e => e.remove());
+    const bb = g.getBBox(); host.remove();
+    if (bb.width > 0 && bb.height > 0){
+      let x = bb.x, y = bb.y, w = bb.width, h = bb.height;
+      if (w < h * 0.9){ const nw = h * 0.9; x -= (nw - w) / 2; w = nw; }
+      if (w > h * 1.8){ const nh = w / 1.8; y -= (nh - h) / 2; h = nh; }
+      const pad = Math.max(w, h) * 0.06;
+      vb = `${(x - pad).toFixed(0)} ${(y - pad).toFixed(0)} ${(w + 2*pad).toFixed(0)} ${(h + 2*pad).toFixed(0)}`;
+    }
+  } catch (e) {}
+  return THUMB_VB[k] = vb;
+}
+/* en ting i bogen: svæver lidt over siden med en skygge under sig, ingen kasse */
+function floatThing(src, label, cls, i, swatch){
+  return el('button', { class:'rb-thing ' + cls, type:'button', 'aria-label': label, style:`--d:${(-i * 0.37).toFixed(2)}s` }, [
+    el('span', { class:'rb-fl' }, [ src.startsWith('<') ? el('span', { class:'lockbub', html: src }) : el('img', { alt:'', src, class: swatch ? 'swatch' : '' }) ]),
+    el('span', { class:'rb-sh', 'aria-hidden':'true' }),
+    el('span', { class:'nm' }, label) ]);
+}
+const ROOM_COLORS = ['#7B4FD0','#4A3A9A','#2E4A7A','#43A3D3','#1F6F6A','#5FD0B0','#3E7A4A','#C98A1E','#FFC02E','#E07A45','#7A2E3A','#E0457A','#FF8FC7','#F4F2F8'];
 function roomBookEl(){
   const room = getRoom(), slot = roomBook, s = ROOM_SLOTS.find(x => x.id === slot);
-  const tabs = el('div', { class:'rb-tabs' }, ROOM_SLOTS.map(t => {
+  const tabs = el('div', { class:'rb-tabs' }, ROOM_SLOTS.map((t, i) => {
     const fresh = Object.keys(t.cat).some(id => prog.fresh.includes(roomKey(t.id, id)));
-    return el('button', { class:'rb-tab' + (t.id === slot ? ' sel' : '') + (fresh ? ' fresh' : ''), type:'button', on:{ click: () => { sfx.pick(); openRoomBook(t.id); } } },
-      [ el('img', { alt:'', src: svgUrl(roomSvg(room, { only: t.id, viewBox: ROOM_VB[t.id] })) }), el('span', {}, t.label) ]);
+    const b = floatThing(svgUrl(roomSvg(room, { only: t.id, viewBox: thumbVB(t.id, room) })), t.label, (t.id === slot ? 'sel' : '') + (fresh ? ' fresh' : ''), i, t.id === 'vaeg');
+    b.addEventListener('click', () => { sfx.pick(); openRoomBook(t.id); });
+    return b;
   }));
-  const items = el('div', { class:'room-items' });
-  for (const id of Object.keys(s.cat)){
+  const ids = Object.keys(s.cat);
+  const items = el('div', { class:'rb-items', style:`--cols:${ids.length <= 3 ? ids.length : ids.length === 4 ? 2 : 3}` });
+  ids.forEach((id, i) => {
     const free = roomFree(slot, id), fresh = prog.fresh.includes(roomKey(slot, id));
     const prev = Object.assign({}, room, { [slot]: id });
-    const b = el('button', { class:'room-item' + (room[slot] === id ? ' sel' : '') + (free ? '' : ' locked') + (fresh ? ' fresh' : ''), type:'button', 'aria-label': s.cat[id].label },
-      [ free ? el('img', { alt:'', src: svgUrl(roomSvg(prev, { only: slot, viewBox: ROOM_VB[slot] })) }) : el('span', { class:'lockbub', html: bubbleIcon('rum') }), el('span', { class:'nm' }, free ? s.cat[id].label : 'Findes i en boble') ]);
+    const b = floatThing(free ? svgUrl(roomSvg(prev, { only: slot, viewBox: thumbVB(slot, prev) })) : bubbleIcon('rum'), free ? s.cat[id].label : 'I en boble',
+      (room[slot] === id ? 'sel' : '') + (free ? '' : ' locked') + (fresh ? ' fresh' : ''), i, slot === 'vaeg');
     b.addEventListener('click', () => {
       if (!free){ sfx.nope(); toast('Den kan du finde i Boblebutikken'); return; }
       sfx.magic(); if (fresh){ prog.fresh = prog.fresh.filter(k => k !== roomKey(slot, id)); saveProg(); }
       const r = getRoom(); r[slot] = id; setRoom(r); drawRoomScene(); openRoomBook(slot);
     });
     items.append(b);
-  }
-  const cols = slot === 'vaeg' ? ROOM_WALL_COLORS : COLORS;
+  });
+  const cols = slot === 'vaeg' ? ROOM_WALL_COLORS : ROOM_COLORS;
   const colors = el('div', { class:'room-colors' }, cols.map(col => el('button', { class:'dot' + (room.c[slot] === col ? ' sel' : ''), type:'button', 'aria-label':'Farve', style:`background:${col}`,
     on:{ click: () => { sfx.color(); const r = getRoom(); r.c[slot] = col; setRoom(r); drawRoomScene(); openRoomBook(slot); } } })));
-  const book = el('div', { class:'rbook ' + (BOOK_SIDE[slot] === 'l' ? 'left' : 'right') }, [
+  return el('div', { class:'rbook ' + (BOOK_SIDE[slot] === 'l' ? 'left' : 'right') }, [
     el('div', { class:'rb-cover' }, [
       el('div', { class:'rb-page pl' }, [ el('h3', {}, 'Indretning'), tabs ]),
-      el('div', { class:'rb-page pr' }, [ el('h3', {}, s.label), items, el('p', { class:'rb-sub' }, 'Farve'), colors ]),
+      el('div', { class:'rb-page pr' }, [ el('h3', {}, s.label), items, colors ]),
     ]),
     el('button', { class:'rb-close', type:'button', 'aria-label':'Luk bogen', on:{ click: closeRoomBook }, html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' }),
   ]);
-  return book;
 }
 
 /* ================= Garderoben: et omklædningsrum med klædeskab, spejl og portrætter af figurerne ================= */
@@ -3248,7 +3342,19 @@ function updateAudioBtns(){
 
 /* ---------- tæppet mellem skærmene ---------- */
 let curtainBusy = false;
+/* fuld skærm og liggende: browseren tillader det kun lige efter et tryk, så det bedes om ved hvert skift af sted */
+function goFull(){
+  try {
+    if (document.fullscreenElement || matchMedia('(display-mode: fullscreen)').matches) return lockLand();
+    const d = document.documentElement, rq = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (!rq) return;
+    const pr = rq.call(d, { navigationUI: 'hide' });
+    if (pr && pr.then) pr.then(lockLand, () => {});
+  } catch (e) {}
+}
+function lockLand(){ try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => {}); } catch (e) {} }
 async function goTo(fn){
+  goFull();
   if (curtainBusy) return; curtainBusy = true;
   const c = $('#curtain');
   if (calm){ fn(); curtainBusy = false; return; }
@@ -3322,7 +3428,7 @@ function showTitle(){
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
     el('div', { class:'title-stage' }, [ el('div', { class:'ring', html: RING_SVG }), dollImg(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true, alt:'Din figur' }) ]),
-    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goTo(showTown); } } }),
+    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); } } }),
     el('p', { class:'ver' }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);

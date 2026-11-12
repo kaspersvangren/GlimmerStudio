@@ -246,9 +246,10 @@ function revealItem(cat, id){
   const card = el('div', { class:'reveal' }, [
     el('span', { class:'new-badge' }, 'NY!'),
     el('div', { class:'reveal-pic' }, img),
-    el('p', { class:'reveal-cat' }, catLabel),
-    el('h3', { class:'reveal-name' }, name),
-    el('div', { class:'row center' }, [ tryBtn, el('button', { class:'btn hot', type:'button', on:{ click: close } }, 'Tilbage til disken') ]),
+    el('div', { class:'reveal-info' }, [
+      el('p', { class:'reveal-cat' }, catLabel),
+      el('h3', { class:'reveal-name' }, name),
+      el('div', { class:'reveal-btns' }, [ tryBtn, el('button', { class:'btn hot', type:'button', on:{ click: close } }, 'Tilbage til disken') ]) ]),
   ]);
   const veil = el('div', { class:'shop-veil' }, [ card ]);
   $('#ballsBody').append(veil);

@@ -163,7 +163,7 @@ const HYLDE = {
 };
 
 /* ---------- lampen (hænger fra loftet / svæver) ---------- */
-const glowAt = (x, y, r, c) => { const id = 'gl' + (CLIPN++); return `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity=".55"/><stop offset=".45" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/>`; };
+const glowAt = (x, y, r, c) => { const id = 'gl' + (CLIPN++); return `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity=".55"/><stop offset=".45" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient><circle class="glow" cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/>`; };
 const LAMPE = {
   lys: { label:'Svævende lys', draw: c => [[790,180,70,3.4],[890,130,90,4.1],[990,200,60,3.7]].map(([x,y,h,d]) => `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -9;0 0" dur="${d}s" repeatCount="indefinite"/>` + glowAt(x, y-8, 60, '#FFE27A')
       + `<rect x="${x-14}" y="${y}" width="28" height="${h}" rx="5" fill="#FFF3DC" stroke="#C9B6A6" stroke-width="3"/><path d="M ${x-14} ${y+8} q 7 6 14 0 q 7 -6 14 0 M ${x-8} ${y+6} v 16" stroke="#E6D6C6" stroke-width="3" fill="none"/>`
@@ -312,7 +312,7 @@ function roomSvg(room, opts = {}){
   CLIPN = 0;
   const vb = opts.viewBox || '0 0 1600 1000';
   if (opts.only){
-    const wall = opts.only === 'vaeg' ? '' : `<rect x="0" y="0" width="1600" height="1000" fill="${ROOM_DEFAULT.c.vaeg}" opacity=".18"/>`;
+    const wall = '';
     const inner = opts.only === 'vaeg' ? wallBase(room.c.vaeg) + roomItem('vaeg', room) + wallTop() : roomItem(opts.only, room);
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${wall}${inner}</svg>`;
   }
@@ -530,35 +530,68 @@ function roomTap(hit, g, p){
 /* ---------- indretningsbogen ---------- */
 function openRoomBook(slot){ roomBook = slot || roomBook || 'vaeg'; const old = $('#roomBody .rbook'); if (old) old.remove(); $('#roomBody').append(roomBookEl()); }
 function closeRoomBook(){ sfx.undo(); roomBook = null; const b = $('#roomBody .rbook'); if (b){ b.classList.add('closing'); setTimeout(() => { b.remove(); drawRoomScene(); }, 260); } }
+/* et tæt udsnit om én ting (uden lysskær), så den fylder sin plads i bogen; regnes ud én gang pr. ting */
+const THUMB_VB = {};
+function thumbVB(slot, room){
+  if (slot === 'vaeg') return '0 0 1600 700';
+  const k = slot + ':' + room[slot];
+  if (THUMB_VB[k]) return THUMB_VB[k];
+  let vb = ROOM_VB[slot];
+  try {
+    const host = document.createElement('div'); host.style.cssText = 'position:absolute;left:-9999px;top:0;width:1600px;height:1000px;visibility:hidden';
+    host.innerHTML = roomSvg(room, { only: slot, viewBox: '0 0 1600 1000' });
+    document.body.append(host);
+    const g = host.querySelector('svg'); g.style.width = '1600px'; g.style.height = '1000px';
+    g.querySelectorAll('.glow, animate, animateTransform, animateMotion').forEach(e => e.remove());
+    const bb = g.getBBox(); host.remove();
+    if (bb.width > 0 && bb.height > 0){
+      let x = bb.x, y = bb.y, w = bb.width, h = bb.height;
+      if (w < h * 0.9){ const nw = h * 0.9; x -= (nw - w) / 2; w = nw; }
+      if (w > h * 1.8){ const nh = w / 1.8; y -= (nh - h) / 2; h = nh; }
+      const pad = Math.max(w, h) * 0.06;
+      vb = `${(x - pad).toFixed(0)} ${(y - pad).toFixed(0)} ${(w + 2*pad).toFixed(0)} ${(h + 2*pad).toFixed(0)}`;
+    }
+  } catch (e) {}
+  return THUMB_VB[k] = vb;
+}
+/* en ting i bogen: svæver lidt over siden med en skygge under sig, ingen kasse */
+function floatThing(src, label, cls, i, swatch){
+  return el('button', { class:'rb-thing ' + cls, type:'button', 'aria-label': label, style:`--d:${(-i * 0.37).toFixed(2)}s` }, [
+    el('span', { class:'rb-fl' }, [ src.startsWith('<') ? el('span', { class:'lockbub', html: src }) : el('img', { alt:'', src, class: swatch ? 'swatch' : '' }) ]),
+    el('span', { class:'rb-sh', 'aria-hidden':'true' }),
+    el('span', { class:'nm' }, label) ]);
+}
+const ROOM_COLORS = ['#7B4FD0','#4A3A9A','#2E4A7A','#43A3D3','#1F6F6A','#5FD0B0','#3E7A4A','#C98A1E','#FFC02E','#E07A45','#7A2E3A','#E0457A','#FF8FC7','#F4F2F8'];
 function roomBookEl(){
   const room = getRoom(), slot = roomBook, s = ROOM_SLOTS.find(x => x.id === slot);
-  const tabs = el('div', { class:'rb-tabs' }, ROOM_SLOTS.map(t => {
+  const tabs = el('div', { class:'rb-tabs' }, ROOM_SLOTS.map((t, i) => {
     const fresh = Object.keys(t.cat).some(id => prog.fresh.includes(roomKey(t.id, id)));
-    return el('button', { class:'rb-tab' + (t.id === slot ? ' sel' : '') + (fresh ? ' fresh' : ''), type:'button', on:{ click: () => { sfx.pick(); openRoomBook(t.id); } } },
-      [ el('img', { alt:'', src: svgUrl(roomSvg(room, { only: t.id, viewBox: ROOM_VB[t.id] })) }), el('span', {}, t.label) ]);
+    const b = floatThing(svgUrl(roomSvg(room, { only: t.id, viewBox: thumbVB(t.id, room) })), t.label, (t.id === slot ? 'sel' : '') + (fresh ? ' fresh' : ''), i, t.id === 'vaeg');
+    b.addEventListener('click', () => { sfx.pick(); openRoomBook(t.id); });
+    return b;
   }));
-  const items = el('div', { class:'room-items' });
-  for (const id of Object.keys(s.cat)){
+  const ids = Object.keys(s.cat);
+  const items = el('div', { class:'rb-items', style:`--cols:${ids.length <= 3 ? ids.length : ids.length === 4 ? 2 : 3}` });
+  ids.forEach((id, i) => {
     const free = roomFree(slot, id), fresh = prog.fresh.includes(roomKey(slot, id));
     const prev = Object.assign({}, room, { [slot]: id });
-    const b = el('button', { class:'room-item' + (room[slot] === id ? ' sel' : '') + (free ? '' : ' locked') + (fresh ? ' fresh' : ''), type:'button', 'aria-label': s.cat[id].label },
-      [ free ? el('img', { alt:'', src: svgUrl(roomSvg(prev, { only: slot, viewBox: ROOM_VB[slot] })) }) : el('span', { class:'lockbub', html: bubbleIcon('rum') }), el('span', { class:'nm' }, free ? s.cat[id].label : 'Findes i en boble') ]);
+    const b = floatThing(free ? svgUrl(roomSvg(prev, { only: slot, viewBox: thumbVB(slot, prev) })) : bubbleIcon('rum'), free ? s.cat[id].label : 'I en boble',
+      (room[slot] === id ? 'sel' : '') + (free ? '' : ' locked') + (fresh ? ' fresh' : ''), i, slot === 'vaeg');
     b.addEventListener('click', () => {
       if (!free){ sfx.nope(); toast('Den kan du finde i Boblebutikken'); return; }
       sfx.magic(); if (fresh){ prog.fresh = prog.fresh.filter(k => k !== roomKey(slot, id)); saveProg(); }
       const r = getRoom(); r[slot] = id; setRoom(r); drawRoomScene(); openRoomBook(slot);
     });
     items.append(b);
-  }
-  const cols = slot === 'vaeg' ? ROOM_WALL_COLORS : COLORS;
+  });
+  const cols = slot === 'vaeg' ? ROOM_WALL_COLORS : ROOM_COLORS;
   const colors = el('div', { class:'room-colors' }, cols.map(col => el('button', { class:'dot' + (room.c[slot] === col ? ' sel' : ''), type:'button', 'aria-label':'Farve', style:`background:${col}`,
     on:{ click: () => { sfx.color(); const r = getRoom(); r.c[slot] = col; setRoom(r); drawRoomScene(); openRoomBook(slot); } } })));
-  const book = el('div', { class:'rbook ' + (BOOK_SIDE[slot] === 'l' ? 'left' : 'right') }, [
+  return el('div', { class:'rbook ' + (BOOK_SIDE[slot] === 'l' ? 'left' : 'right') }, [
     el('div', { class:'rb-cover' }, [
       el('div', { class:'rb-page pl' }, [ el('h3', {}, 'Indretning'), tabs ]),
-      el('div', { class:'rb-page pr' }, [ el('h3', {}, s.label), items, el('p', { class:'rb-sub' }, 'Farve'), colors ]),
+      el('div', { class:'rb-page pr' }, [ el('h3', {}, s.label), items, colors ]),
     ]),
     el('button', { class:'rb-close', type:'button', 'aria-label':'Luk bogen', on:{ click: closeRoomBook }, html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' }),
   ]);
-  return book;
 }
