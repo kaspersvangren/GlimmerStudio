@@ -63,9 +63,18 @@ async function run(w, h){
   ok(res && res.boostRings <= res.loops * 3, `${tag} kosteflyvning: boostet tog ${res && res.boostRings} ringe efter ${res && res.loops} loop (max 3 pr. loop)`);
   ok(res && res.loops >= 1, `${tag} kosteflyvning: autopiloten fik intet loop`);
   await p.waitForTimeout(1500); await noScroll('kost-slutkort');
+  /* faldskærm: et helt spring med autopilot, fra kortet til landingen */
+  await p.evaluate(() => { window.FALD_AUTO = true; FAG.find(f => f.id === 'faldskaerm').open(); }); await p.waitForTimeout(400); await noScroll('faldskærm');
+  ok(await p.evaluate(() => !$('#fald').hidden), `${tag} faldskærm: døren i gangen åbnede ikke faget`);
+  let fr = null; for (let i = 0; i < 300 && !(fr && fr.done); i++){ await p.waitForTimeout(200); fr = await p.evaluate(() => Fald.state().result || null); }
+  ok(fr && fr.done, `${tag} faldskærm: springet blev ikke færdigt`);
+  ok(fr && fr.bubbles > 0, `${tag} faldskærm: autopiloten fik ingen stjernebobler`);
+  ok(fr && fr.d < 40, `${tag} faldskærm: autopiloten landede ${fr && fr.d} m fra målet`);
+  await noScroll('fald-slutkort');
+  await p.evaluate(() => { window.FALD_AUTO = false; Fald.stop(); });
   ok(!errs.length, `${tag} fejl på siden:\n    ` + errs.join('\n    '));
   await b.close();
-  console.log(`${tag}: eliksir ok, kost ${res ? `nr. ${res.place}, ${res.rings} ringe` : 'ikke færdig'}`);
+  console.log(`${tag}: eliksir ok, kost ${res ? `nr. ${res.place}, ${res.rings} ringe` : 'ikke færdig'}, faldskærm ${fr && fr.done ? `${fr.d} m fra midten, ${fr.bubbles} bobler` : 'ikke færdig'}`);
 }
 /* startknappen skal virke, selvom den hopper under fingeren (det sker, når telefonens bjælker dukker op) */
 async function playJump(){

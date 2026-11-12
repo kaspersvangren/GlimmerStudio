@@ -657,3 +657,38 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @media (prefers-reduced-motion: reduce){ .kf-mill,.kf-beam,.kf-flap{animation:none!important} }
 
 @supports (height:1lvh){ @media (orientation:landscape){ .playbtn{left:calc(50% + min(30lvh,300px) + 6vw);bottom:22lvh;width:clamp(100px,17lvh,150px)} } }
+
+/* ---------- faldskærm ---------- */
+.fs-alt{position:absolute;z-index:6;left:max(16px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-62%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.fs-alt-bar{position:relative;width:12px;height:clamp(110px,38vh,300px);border-radius:6px;background:linear-gradient(#7FD8FF,#5E8F52);box-shadow:0 0 0 3px rgba(20,16,46,.55)}
+.fs-alt-dot{position:absolute;left:50%;top:100%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#E0457A;border:3px solid #FFFFFF;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.fs-alt-n{font-family:var(--display);font-weight:700;font-size:clamp(12px,2.6vh,17px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50;white-space:nowrap}
+.fs-pads{position:absolute;inset:auto 0 0 0;z-index:6;height:clamp(84px,26vh,170px);pointer-events:none}
+.fs-pad{position:absolute;bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.72;transition:transform .12s,opacity .12s}
+.fs-pad.l{left:max(18px,env(safe-area-inset-left,0px))}
+.fs-pad.r{right:max(18px,env(safe-area-inset-right,0px))}
+.fs-pad.f{left:50%;transform:translateX(-50%)}
+.fs-pad-ic{width:clamp(54px,15vh,96px);height:clamp(54px,15vh,96px);border-radius:50%;background:rgba(42,35,80,.72);border:3px solid rgba(255,255,255,.8);display:grid;place-items:center}
+.fs-pad-ic svg{width:70%;height:70%}
+.fs-pad-t{font-family:var(--display);font-weight:700;font-size:clamp(11px,2.4vh,16px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50}
+.fs-pad.on{opacity:1}
+.fs-pad.l.on,.fs-pad.r.on{transform:translateY(6px) scale(1.06)}
+.fs-pad.f.on{transform:translateX(-50%) scale(1.08)}
+.fs-pad.on .fs-pad-ic{background:#6B3FA0;box-shadow:0 0 18px #FFE27A}
+.fs-both{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + clamp(78px,21vh,128px));margin:0;font-family:var(--display);font-weight:700;font-size:clamp(11px,2.3vh,15px);color:#E8E0FF;opacity:.7;white-space:nowrap;text-shadow:0 2px 0 #2A1F50}
+.fs-both.on{opacity:1;color:#FFE27A}
+.fs-wind{position:absolute;z-index:6;left:50%;transform:translateX(-50%);top:max(14px,env(safe-area-inset-top,0px));display:flex;align-items:center;gap:6px;padding:4px 12px 4px 6px;border-radius:20px;background:rgba(42,35,80,.7);font-family:var(--display);font-weight:700;color:#FFF6D8;font-size:clamp(12px,2.6vh,16px);pointer-events:none}
+.fs-wind svg{width:28px;height:28px}
+.fs-skip{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:max(16px,env(safe-area-inset-bottom,0px));font-family:var(--display);font-weight:700;font-size:clamp(12px,2.6vh,16px);color:#E8E0FF;opacity:.75;pointer-events:none;text-shadow:0 2px 0 #2A1F50}
+.fs-flash{position:absolute;inset:0;z-index:7;background:#FFFFFF;pointer-events:none;animation:fsflash .9s ease-out forwards}
+.fs-flash.puff{background:radial-gradient(circle,#F4F0FF 30%,rgba(232,226,250,.6));animation-duration:.7s}
+@keyframes fsflash{0%{opacity:0}15%{opacity:.95}100%{opacity:0}}
+.fs-flap{opacity:0;transition:opacity .15s}
+.fs-crot.pl .fs-flap.l,.fs-crot.pr .fs-flap.r{opacity:.45}
+.fs-arms{animation:fsflut .18s ease-in-out infinite alternate;transform-box:view-box;transform-origin:0 -40px}
+.fs-hairf{animation:fsflut .12s ease-in-out infinite alternate;transform-box:view-box;transform-origin:0 -70px}
+@keyframes fsflut{from{transform:scale(1,1)}to{transform:scale(1.02,.98)}}
+.fs-target svg{width:100%;height:auto;display:block}
+@media (prefers-reduced-motion: reduce){ .fs-arms,.fs-hairf{animation:none!important} .fs-flash{animation-duration:.01s} }
+.fs-big{font-size:clamp(30px,10vh,86px);padding:0 16px;top:9%}
+#fsScene,#fsScene > svg{touch-action:none}

@@ -31,7 +31,9 @@ const V = { 'acc-bog': 6,
   /* v0.14.0: skolen erstatter Modehuset */
   'sted-by': 2,
   /* v0.15.0: kosteflyvning */
-  'sted-skole': 2, 'sted-kost': 7, 'kost-rytter': 2 };
+  'sted-skole': 2, 'sted-kost': 7, 'kost-rytter': 2,
+  /* v0.17.0: byens billeder vises igen; rytteren uden dyr, nyt hår og kappe fra skuldrene; skiltene i gangen; faldskærm */
+  'sted-by': 3, 'skole-i-byen': 2, 'kost-rytter': 3, 'sted-skole': 3 };
 
 (async () => {
   const b = await chromium.launch();
@@ -74,6 +76,11 @@ const V = { 'acc-bog': 6,
     out.push({ id: 'kost-rytter', cat: 'Skolen', title: 'Figuren på kosten, set fra siden', kind: 'sted', fn: 'rider', vbT: '-280 -340 560 480', vbZ: '-40 -260 240 240' });
     out.push({ id: 'kaptajn-sky', cat: 'Skolen', title: 'Kaptajn Sky (flyvelærer)', kind: 'sted', fn: 'sky', vbT: '150 40 500 1030', vbZ: '200 140 400 400' });
     out.push({ id: 'skole-i-byen', cat: 'Skolen', title: 'Skolens port i byen', kind: 'sted', fn: 'town', vbT: '500 0 600 420', vbZ: '600 20 400 360' });
+    out.push({ id: 'fald-rytter', cat: 'Faldskærm', title: 'Figuren med hjelm og faldskærmspakke', kind: 'sted', fn: 'fald:rytter', vbT: '-280 -340 560 480', vbZ: '-40 -260 240 240' });
+    out.push({ id: 'fald-kort', cat: 'Faldskærm', title: 'Op fra skolen, over byen', kind: 'sted', fn: 'fald:kort', vbT: '0 0 1600 1000', vbZ: '640 280 480 340' });
+    out.push({ id: 'fald-frit', cat: 'Faldskærm', title: 'Frit fald, set ovenfra', kind: 'sted', fn: 'fald:frit', vbT: '0 0 1600 1000', vbZ: '560 300 440 440' });
+    out.push({ id: 'fald-skaerm', cat: 'Faldskærm', title: 'Skærmen over engen og målet', kind: 'sted', fn: 'fald:skaerm', vbT: '0 0 1600 1000', vbZ: '560 320 480 360' });
+    out.push({ id: 'fald-lav', cat: 'Faldskærm', title: 'Lige før landing: målet tæt på', kind: 'sted', fn: 'fald:lav', vbT: '0 0 1600 1000', vbZ: '400 200 800 600' });
     out.push({ id: 'start-scene', cat: 'Startskærm', title: 'Nattehimmel og skolen', kind: 'start', vbT: '0 0 1600 1000', vbZ: '120 120 640 720' });
     return out;
   });
@@ -88,7 +95,7 @@ const V = { 'acc-bog': 6,
         else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
         else if (it.kind === 'sted'){
           if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); }
-          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : it.fn === 'town' ? (CITY_OVR.time = 'aften', townSvg()) : it.fn === 'school' ? schoolScene() : it.fn === 'kost' ? Kost.previewSvg() : it.fn === 'sky' ? Kost.teacherSvg(vb) : it.fn === 'rider' ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${Kost.riderSvg(JSON.parse(JSON.stringify(DEFAULT_STATE)))}</svg>` : it.fn === 'potion' ? (POT.lesson = { n: 0, stars: 0 }, POT.mates = [randomGuest([]), randomGuest(['x'])], POT.p = makeRecipe(), POT.p.steps = [{ kind:'ing', id:'blad', n:2 }, { kind:'ing', id:'stjerne', n:1 }, { kind:'ror', n:3 }], potionScene().replace('<g class="recipe"></g>', '<g class="recipe">' + recipeSvg(POT.p) + '</g>').replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 30px sans-serif;color:#3A2340;text-align:center;padding-top:40px">I dag brygger vi Svæveeliksir!</div>').replace('style="--liq:#3E6A5A"', '')) : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '').replace('id="townSvg" ', '');
+          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : it.fn === 'town' ? (CITY_OVR.time = 'aften', townSvg()) : it.fn === 'school' ? schoolScene() : it.fn.startsWith('fald:') ? Fald.previewSvg(it.fn.slice(5), vb) : it.fn === 'kost' ? Kost.previewSvg() : it.fn === 'sky' ? Kost.teacherSvg(vb) : it.fn === 'rider' ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${Kost.riderSvg(JSON.parse(JSON.stringify(DEFAULT_STATE)))}</svg>` : it.fn === 'potion' ? (POT.lesson = { n: 0, stars: 0 }, POT.mates = [randomGuest([]), randomGuest(['x'])], POT.p = makeRecipe(), POT.p.steps = [{ kind:'ing', id:'blad', n:2 }, { kind:'ing', id:'stjerne', n:1 }, { kind:'ror', n:3 }], potionScene().replace('<g class="recipe"></g>', '<g class="recipe">' + recipeSvg(POT.p) + '</g>').replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 30px sans-serif;color:#3A2340;text-align:center;padding-top:40px">I dag brygger vi Svæveeliksir!</div>').replace('style="--liq:#3E6A5A"', '')) : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '').replace('id="townSvg" ', '');
           if (it.fn === 'shop') svg = svg.replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 25px sans-serif;color:#3A2340;text-align:center;padding-top:30px">Goddag, goddag! Velkommen i Boblebutikken.</div>');
         }
         else if (it.kind === 'start'){ svg = titleScene().replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('xMidYMax slice', 'xMidYMid meet'); }
@@ -97,7 +104,8 @@ const V = { 'acc-bog': 6,
           for (const [k, v] of Object.entries(it.patch)) st[k] = (v && typeof v === 'object' && !Array.isArray(v) && k !== 'acc') ? Object.assign({}, st[k], v) : v;
           svg = renderDoll(st, Object.assign({ viewBox: vb, pet: false, anim: !!it.opts.wave }, it.opts));
         }
-        document.body.innerHTML = `<div id="shot" style="width:${w}px;height:${hh}px;background:${bg}"><img style="width:100%;height:100%;display:block" src="${svgUrl(svg)}"></div>`;
+        /* steder, der ellers sidder direkte i siden (fx byen), mangler xmlns og vises ikke som billede uden */
+        if (!/^<svg[^>]*xmlns=/.test(svg)) svg = svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ');        document.body.innerHTML = `<div id="shot" style="width:${w}px;height:${hh}px;background:${bg}"><img style="width:100%;height:100%;display:block" src="${svgUrl(svg)}"></div>`;
         document.body.style.margin = 0; return hh;
       }, { it, vb, w });
       await p.waitForTimeout(it.opts && it.opts.wave ? 500 : 80);

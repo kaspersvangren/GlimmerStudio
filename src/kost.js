@@ -42,30 +42,44 @@ const Kost = (() => {
      Børsten er bagerst. Fartvinden blæser hår, kappe og hattespids bagud. Hovedet er drejet lidt mod os.
      Tegnes ud fra figurens egne farver og valg (hår, hat, kjole, kappe, støvler), vendt mod højre. */
   const SH = c => fdk(c, .42);
-  function riderArt(st){
+  /* gear: faldskærmsudspring — hjelm i stedet for hat og en faldskærmspakke på ryggen (ingen kappe) */
+  function riderArt(st, opts = {}){
+    const gear = !!opts.gear;
     const sk = st.skin, skS = SH(sk), h = st.hair, hA = h.a, hB = h.ombre ? h.b : h.a, hS = SH(hA), r = st.robe, cp = st.cape, hat = st.hat, bt = st.boots;
     const shortRobe = r.id === 'kort';
     const id = 'r' + Math.random().toString(36).slice(2, 7);
     let o = `<defs><linearGradient id="${id}h" x1="1" y1="0" x2="0" y2="0"><stop offset=".3" stop-color="${hA}"/><stop offset="1" stop-color="${hB}"/></linearGradient></defs>`;
-    /* kappen blafrer bagud */
-    if (cp.id !== 'ingen'){
+    /* kappen hænger fra skuldrene ned over ryggen og blafrer bagud; håret ligger udenpå kappen.
+       Begge tegnes efter overkroppen, så kappen sidder fast ved halsen og ikke ser ud til at stikke ud af ryggen. */
+    let capeS = '';
+    if (cp.id !== 'ingen' && !gear){
       const long = cp.id !== 'kort';
-      o += `<g class="kfr-cape"><path d="M 14 -122 C -30 -118 -${long ? 120 : 80} -100 -${long ? 190 : 120} -${long ? 70 : 92} Q -${long ? 166 : 104} -${long ? 54 : 78} -${long ? 178 : 112} -${long ? 34 : 64} Q -${long ? 130 : 84} -${long ? 44 : 70} -${long ? 112 : 70} -${long ? 22 : 52} Q -${long ? 80 : 50} -${long ? 46 : 64} -20 -40 Z" fill="${cp.a}" stroke="${SH(cp.a)}" stroke-width="3" stroke-linejoin="round"/>`
-        + `<path d="M -${long ? 112 : 70} -${long ? 22 : 52} Q -${long ? 80 : 50} -${long ? 46 : 64} -20 -40 L -14 -50 Q -${long ? 76 : 48} -${long ? 58 : 72} -${long ? 120 : 76} -${long ? 34 : 60} Z" fill="${cp.b}" opacity=".85"/>`
-        + (cp.id === 'stjerner' ? starP(-70, -80, 9, cp.b, .9) + starP(-130, -64, 7, cp.b, .9) : '') + `</g>`;
+      const hem = long ? 'Q -30 -30 -60 -42 Q -76 -32 -98 -46 Q -118 -40 -142 -54 Q -162 -50 -196 -74' : 'Q -24 -44 -50 -58 Q -66 -50 -84 -66 Q -100 -64 -128 -90';
+      const top = long ? 'C -150 -104 -90 -126 -40 -128' : 'C -96 -114 -70 -128 -40 -128';
+      capeS = `<g class="kfr-cape"><path d="M 6 -128 C 20 -124 34 -120 42 -112 C 28 -96 14 -66 6 -34 ${hem} ${top} C -20 -130 -4 -130 6 -128 Z" fill="${cp.a}" stroke="${SH(cp.a)}" stroke-width="3" stroke-linejoin="round"/>`
+        + `<path d="M 6 -34 ${hem}" stroke="${cp.b}" stroke-width="6" fill="none" stroke-linecap="round" opacity=".9"/>`
+        + `<path d="M 20 -112 Q -20 -90 -${long ? 120 : 80} -${long ? 70 : 84} M 12 -76 Q -30 -60 -${long ? 90 : 60} -${long ? 52 : 66}" stroke="${SH(cp.a)}" stroke-width="3" fill="none" opacity=".35" stroke-linecap="round"/>`
+        + (cp.id === 'stjerner' ? starP(-60, -82, 9, cp.b, .9) + starP(-120, -70, 7, cp.b, .9) : '') + `</g>`;
     }
-    /* langt hår og hestehale blæser bagud bag ryggen */
+    /* langt hår blæser bagud i lokker, der vokser ud fra baghovedet (rødderne gemmer sig under håret på hovedet) */
     const back = st.back;
-    if (back === 'langt' || back === 'kroeller') o += `<g class="kfr-hair"><path d="M 20 -218 C -20 -222 -54 -196 -70 -160 C -96 -150 -118 -120 -136 -110 C -116 -104 -108 -96 -122 -80 C -96 -86 -80 -84 -76 -66 C -58 -84 -34 -92 -14 -110 C 0 -130 6 -160 4 -180 Z" fill="url(#${id}h)" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/><path d="M -20 -190 C -50 -170 -80 -140 -110 -116 M -10 -160 C -40 -140 -60 -110 -78 -84" stroke="${lt(hA, .35)}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>${back === 'kroeller' ? [[-70, -150], [-100, -118], [-60, -110], [-30, -130]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="13" fill="none" stroke="${hS}" stroke-width="2.5" opacity=".6"/>`).join('') : ''}</g>`;
-    if (back === 'hestehale') o += `<g class="kfr-hair"><path d="M 0 -214 C -30 -226 -70 -214 -96 -190 C -120 -176 -140 -176 -156 -168 C -136 -160 -124 -150 -132 -136 C -108 -146 -88 -150 -70 -170 C -50 -184 -24 -190 -2 -194 Z" fill="url(#${id}h)" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/><circle cx="-4" cy="-206" r="8" fill="${h.tie}" stroke="${SH(h.tie)}" stroke-width="2"/></g>`;
-    if (back === 'fletninger') o += `<g class="kfr-hair">${[[-150, 0], [-130, 22]].map(([ex, dy]) => { let d = ''; for (let i = 0; i < 6; i++){ const x = -6 + (ex + 6) * i / 6, y = -176 + dy + i * 6; d += `<ellipse cx="${x.toFixed(0)}" cy="${y}" rx="14" ry="9" fill="${i > 3 ? hB : hA}" stroke="${hS}" stroke-width="2.5"/>`; } return d + `<circle cx="${ex + 10}" cy="${-176 + dy + 34}" r="6" fill="${h.tie}"/>`; }).join('')}</g>`;
-    /* dyret sidder bagpå, på børsten */
-    if (st.pet && st.pet.kind !== 'ingen') o += `<image href="${dollUrl(st, { viewBox: VB.pet, petOnly: true })}" x="-232" y="-112" width="104" height="115"/>`;
+    let hairS = '';
+    const lock = (d, hl) => `<path d="${d}" fill="url(#${id}h)" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/><path d="${hl}" stroke="${lt(hA, .35)}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>`;
+    if (back === 'langt' || back === 'kroeller'){
+      hairS = `<g class="kfr-hair">`
+        + lock('M 6 -158 C -16 -140 -38 -116 -58 -98 C -70 -88 -84 -82 -98 -84 C -84 -70 -62 -72 -48 -82 C -28 -98 -10 -120 8 -134 Z', 'M -4 -140 C -20 -122 -36 -106 -56 -92')
+        + lock('M 4 -200 C -26 -212 -66 -198 -98 -180 C -116 -170 -136 -168 -150 -172 C -134 -158 -112 -154 -92 -158 C -60 -164 -30 -168 -2 -166 Z', 'M -10 -196 C -40 -198 -70 -186 -100 -172')
+        + lock('M 2 -186 C -30 -178 -66 -152 -96 -130 C -112 -118 -130 -112 -148 -114 C -130 -98 -106 -96 -86 -106 C -56 -120 -28 -140 -2 -148 Z', 'M -12 -174 C -40 -160 -70 -138 -100 -120')
+        + (back === 'kroeller' ? [[-150, -172], [-148, -114], [-98, -84]].map(([x, y]) => `<path d="M ${x + 6} ${y} q -14 -2 -12 10 q 2 10 12 4" fill="none" stroke="${hS}" stroke-width="3" stroke-linecap="round"/>`).join('') : '')
+        + `</g>`;
+    }
+    if (back === 'hestehale') hairS = `<g class="kfr-hair"><path d="M 0 -214 C -30 -226 -70 -214 -96 -190 C -120 -176 -140 -176 -156 -168 C -136 -160 -124 -150 -132 -136 C -108 -146 -88 -150 -70 -170 C -50 -184 -24 -190 -2 -194 Z" fill="url(#${id}h)" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/><path d="M -20 -204 C -50 -200 -80 -186 -112 -164" stroke="${lt(hA, .35)}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/><circle cx="-4" cy="-206" r="8" fill="${h.tie}" stroke="${SH(h.tie)}" stroke-width="2"/></g>`;
+    if (back === 'fletninger') hairS = `<g class="kfr-hair">${[[-150, 0], [-130, 22]].map(([ex, dy]) => { let d = ''; for (let i = 0; i < 6; i++){ const x = -6 + (ex + 6) * i / 6, y = -176 + dy + i * 6; d += `<ellipse cx="${x.toFixed(0)}" cy="${y}" rx="14" ry="9" fill="${i > 3 ? hB : hA}" stroke="${hS}" stroke-width="2.5"/>`; } return d + `<circle cx="${ex + 10}" cy="${-176 + dy + 34}" r="6" fill="${h.tie}"/>`; }).join('')}</g>`;
     /* det bageste ben: underbenet hænger ned fra knæet på den anden side af kosten */
     const leg = (kx, ky, ax, ay, col, boot, bs, band) => `<path d="M ${kx} ${ky} L ${ax} ${ay}" stroke="${col}" stroke-width="16" stroke-linecap="round"/>${shortRobe ? `<path d="M ${(kx + ax) / 2 - 8} ${(ky + ay) / 2} H ${(kx + ax) / 2 + 8} M ${(kx + ax) / 2 - 8} ${(ky + ay) / 2 + 10} H ${(kx + ax) / 2 + 8}" stroke="${r.b}" stroke-width="5"/>` : ''}`
       + `<path d="M ${ax - 16} ${ay - 6} Q ${ax - 20} ${ay + 18} ${ax - 2} ${ay + 20} H ${ax + 30} Q ${ax + 42} ${ay + 18} ${ax + 34} ${ay + 6} L ${ax + 12} ${ay - 8} Z" fill="${boot}" stroke="${bs}" stroke-width="3" stroke-linejoin="round"/>${band ? `<path d="M ${ax - 14} ${ay - 6} H ${ax + 12}" stroke="${bt.b}" stroke-width="5" stroke-linecap="round"/>` : ''}`;
     o += `<g class="kfr-leg2">${leg(64, 20, 52, 74, shortRobe ? fdk(sk, .1) : SH(r.a), fdk(bt.a, .3), SH(bt.a), false)}</g>`;
-    o += broomSvg();
+    if (!opts.noBroom) o += broomSvg();
     /* det forreste ben: låret ligger langs skaftet under skørtet, underbenet hænger ned */
     o += `<g class="kfr-leg">${leg(86, 20, 76, 78, shortRobe ? sk : lt(r.a, .1), bt.a, SH(bt.a), true)}</g>`;
     /* skørtet: sædet bag kosten, skødet og knæet foran, falder ned over skaftet */
@@ -82,6 +96,12 @@ const Kost = (() => {
     o += `<path d="M -22 -28 C -26 -66 -14 -102 4 -120 L 46 -114 C 54 -90 52 -54 42 -26 Z" fill="${r.a}" stroke="${SH(r.a)}" stroke-width="3" stroke-linejoin="round"/>`;
     o += `<path d="M -22 -40 Q 10 -30 42 -38" stroke="${st.acc && st.acc.baelte ? st.acc.baelte : r.b}" stroke-width="${st.acc && st.acc.baelte ? 9 : 5}" fill="none"/>`;
     if (r.id === 'knapper') o += [-96, -78, -60].map(y => `<circle cx="${42 + (y + 96) * -.08}" cy="${y}" r="3.5" fill="${r.b}"/>`).join('');
+    o += capeS;
+    /* faldskærmspakken sidder på ryggen med seler over skulderen */
+    if (gear) o += `<path d="M 6 -130 L -26 -126 Q -42 -124 -44 -108 L -52 -56 Q -54 -40 -38 -38 L -14 -34 Q -4 -34 -4 -44 L 6 -118 Z" fill="#3A3550" stroke="#1E1A30" stroke-width="3" stroke-linejoin="round"/>`
+      + `<path d="M -26 -126 Q -42 -124 -44 -108 L -46 -96 L 4 -100 L 6 -118 L 6 -130 Z" fill="#E0457A" stroke="#1E1A30" stroke-width="2.5" stroke-linejoin="round"/><path d="M -40 -70 L -2 -66" stroke="#1E1A30" stroke-width="2" opacity=".5"/>`
+      + `<circle cx="-30" cy="-40" r="7" fill="#F2C14E" stroke="#8A6420" stroke-width="2"/>`
+      + `<path d="M 4 -122 C 22 -112 34 -94 38 -72 M -6 -40 C 10 -30 26 -24 44 -24" stroke="#2A2238" stroke-width="7" fill="none" stroke-linecap="round"/><rect x="30" y="-80" width="12" height="9" rx="2" fill="#B8B4C8" stroke="#2A2238" stroke-width="2"/>`;
     /* halsen og kraven */
     o += `<path d="M 16 -136 L 18 -112 L 36 -112 L 36 -138 Z" fill="${sk}" stroke="${skS}" stroke-width="2.5"/>`;
     o += `<path d="M 0 -120 Q 26 -102 50 -116 L 46 -124 Q 26 -112 6 -128 Z" fill="${cp.id !== 'ingen' ? cp.a : lt(r.a, .5)}" stroke="${SH(cp.id !== 'ingen' ? cp.a : r.a)}" stroke-width="2.5"/>`;
@@ -90,12 +110,13 @@ const Kost = (() => {
     o += `<path d="M 22 -112 C 52 -100 84 -66 108 -28 L 120 -10 Q 106 0 92 -6 C 72 -36 46 -64 8 -84 Z" fill="${r.a}" stroke="${SH(r.a)}" stroke-width="3" stroke-linejoin="round"/>`;
     o += `<path d="M 104 -32 L 122 -12 Q 108 0 92 -8 Z" fill="${r.b}" stroke="${SH(r.a)}" stroke-width="2.5" stroke-linejoin="round"/>`;
     o += `<path d="M 112 -14 C 122 -20 136 -16 138 -4 C 140 8 128 12 118 10 C 108 8 104 -6 112 -14 Z" fill="${sk}" stroke="${skS}" stroke-width="2.5"/><path d="M 120 -6 Q 126 0 122 8 M 128 -8 Q 134 -2 130 8" stroke="${skS}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    o += hairS;
     /* hovedet: lidt drejet mod os */
     const cx = 38, cy = -176;
     const hairBack = back === 'kort' || back === 'fletninger' || back === 'knolde' ? `M ${cx + 34} ${cy - 30} C ${cx + 20} ${cy - 56} ${cx - 30} ${cy - 60} ${cx - 46} ${cy - 22} C ${cx - 56} ${cy + 4} ${cx - 50} ${cy + 34} ${cx - 34} ${cy + 46} C ${cx - 20} ${cy + 40} ${cx - 10} ${cy + 20} ${cx - 6} ${cy} Z`
       : `M ${cx + 34} ${cy - 30} C ${cx + 20} ${cy - 58} ${cx - 34} ${cy - 62} ${cx - 50} ${cy - 22} C ${cx - 62} ${cy + 12} ${cx - 54} ${cy + 50} ${cx - 40} ${cy + 66} C ${cx - 24} ${cy + 50} ${cx - 12} ${cy + 24} ${cx - 6} ${cy} Z`;
     o += `<path d="${hairBack}" fill="url(#${id}h)" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/>`;
-    if (back === 'knolde') o += `<circle cx="${cx - 34}" cy="${cy - 46}" r="20" fill="${hA}" stroke="${hS}" stroke-width="3"/><circle cx="${cx - 30}" cy="${cy - 52}" r="6" fill="${lt(hA, .3)}"/>`;
+    if (back === 'knolde' && !gear) o += `<circle cx="${cx - 34}" cy="${cy - 46}" r="20" fill="${hA}" stroke="${hS}" stroke-width="3"/><circle cx="${cx - 30}" cy="${cy - 52}" r="6" fill="${lt(hA, .3)}"/>`;
     o += `<path d="M ${cx - 30} ${cy - 10} C ${cx - 32} ${cy - 44} ${cx - 4} ${cy - 50} ${cx + 18} ${cy - 46} C ${cx + 42} ${cy - 42} ${cx + 52} ${cy - 18} ${cx + 50} ${cy + 4} C ${cx + 50} ${cy + 22} ${cx + 44} ${cy + 36} ${cx + 30} ${cy + 42} C ${cx + 14} ${cy + 48} ${cx - 8} ${cy + 44} ${cx - 20} ${cy + 32} C ${cx - 30} ${cy + 20} ${cx - 30} ${cy + 6} ${cx - 30} ${cy - 10} Z" fill="${sk}" stroke="${skS}" stroke-width="3"/>`;
     o += `<ellipse cx="${cx - 22}" cy="${cy + 2}" rx="7" ry="10" fill="${sk}" stroke="${skS}" stroke-width="2.5"/>`;
     if (st.mk.blush) o += `<ellipse cx="${cx + 2}" cy="${cy + 18}" rx="11" ry="6" fill="${st.mk.blush}" opacity=".45"/><ellipse cx="${cx + 42}" cy="${cy + 18}" rx="7" ry="5" fill="${st.mk.blush}" opacity=".4"/>`;
@@ -114,7 +135,14 @@ const Kost = (() => {
     o += `<path d="${fringe}" fill="${hA}" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/><path d="M ${cx - 6} ${cy - 46} Q ${cx + 14} ${cy - 54} ${cx + 30} ${cy - 46}" stroke="${lt(hA, .45)}" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>`;
     /* hatten: spidsen blæser bagud */
     const ha = hat.a, hb = hat.b, hs = SH(ha), hx = cx + 6, hy = cy - 44 + (hat.id === 'kort' ? 18 : hat.id === 'hue' ? 12 : 0);
-    if (hat.id === 'spids' || hat.id === 'knaek'){
+    if (gear){
+      /* hjelmen: en rund skal over issen og baghovedet i hattens farve, med en stribe, hageremme og briller skubbet op */
+      o += `<path d="M ${cx - 40} ${cy + 14} C ${cx - 50} ${cy - 34} ${cx - 16} ${cy - 66} ${cx + 18} ${cy - 62} C ${cx + 46} ${cy - 58} ${cx + 60} ${cy - 36} ${cx + 58} ${cy - 16} Q ${cx + 30} ${cy - 30} ${cx + 4} ${cy - 22} Q ${cx - 18} ${cy - 14} ${cx - 22} ${cy + 18} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/>`
+        + `<path d="M ${cx - 30} ${cy - 30} C ${cx - 14} ${cy - 56} ${cx + 20} ${cy - 60} ${cx + 44} ${cy - 44}" stroke="${hb}" stroke-width="8" fill="none" stroke-linecap="round"/>`
+        + `<path d="M ${cx - 16} ${cy - 50} Q ${cx} ${cy - 60} ${cx + 16} ${cy - 58}" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round" opacity=".45"/>`
+        + `<path d="M ${cx - 20} ${cy + 14} Q ${cx - 4} ${cy + 44} ${cx + 26} ${cy + 44}" stroke="#2A2238" stroke-width="3.5" fill="none"/>`
+        + `<g transform="rotate(-14 ${cx + 30} ${cy - 40})"><rect x="${cx + 12}" y="${cy - 50}" width="40" height="20" rx="9" fill="#2A2238"/><rect x="${cx + 16}" y="${cy - 46}" width="32" height="12" rx="6" fill="#7FD8FF" opacity=".9"/><path d="M ${cx + 22} ${cy - 42} h 8" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/></g>`;
+    } else if (hat.id === 'spids' || hat.id === 'knaek'){
       const tip = hat.id === 'knaek' ? `C ${hx - 14} ${hy - 50} ${hx - 34} ${hy - 76} ${hx - 60} ${hy - 80} L ${hx - 92} ${hy - 62} L ${hx - 58} ${hy - 96} C ${hx - 30} ${hy - 90} ${hx - 2} ${hy - 62} ${hx + 26} ${hy - 8}` : `C ${hx - 18} ${hy - 50} ${hx - 50} ${hy - 90} ${hx - 104} ${hy - 96} C ${hx - 52} ${hy - 76} ${hx - 4} ${hy - 50} ${hx + 26} ${hy - 8}`;
       o += `<g class="kfr-hat"><path d="M ${hx - 30} ${hy - 4} ${tip} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/><path d="M ${hx - 28} ${hy - 10} Q ${hx} ${hy - 22} ${hx + 26} ${hy - 12} L ${hx + 24} ${hy - 2} Q ${hx} ${hy - 12} ${hx - 28} ${hy} Z" fill="${hb}" stroke="${hs}" stroke-width="2"/></g>`;
       o += `<ellipse cx="${hx}" cy="${hy + 2}" rx="68" ry="15" transform="rotate(-8 ${hx} ${hy + 2})" fill="${ha}" stroke="${hs}" stroke-width="3"/><path d="M ${hx - 56} ${hy + 4} Q ${hx} ${hy + 14} ${hx + 60} ${hy - 6}" stroke="${lt(ha, .3)}" stroke-width="3" fill="none" opacity=".6"/>`;
@@ -126,11 +154,11 @@ const Kost = (() => {
     }
     return o;
   }
-  /* en rytter: figuren sidder overskrævs på kosten, dyret bagpå */
+  /* en rytter: figuren sidder overskrævs på kosten (dyret er ikke med — det sad for langt ude på børsten) */
   function rider(st, opts = {}){
     const g = mk('g', { class:'kf-rider' + (opts.cls ? ' ' + opts.cls : '') });
     const tilt = mk('g', { class:'kf-tilt' });
-    let inner = `<g transform="translate(0 22) scale(.38)">${riderArt(st)}</g>`;
+    let inner = `<g transform="translate(0 22) scale(.38)">${riderArt(st, opts)}</g>`;
     if (opts.trail) inner = `<g class="kf-trail">${[0, 1, 2, 3].map(i => star4(-150 - i * 30, 30 + (i % 2) * 10, 10 - i * 1.5, '#FFF6D0', .9 - i * .2)).join('')}</g>` + inner;
     tilt.innerHTML = inner; g.append(tilt);
     return g;
@@ -550,5 +578,5 @@ const Kost = (() => {
     return scopeIds(div.innerHTML, 'kp');
   }
   const teacherSvg = vb => renderDoll(TEACHER, { viewBox: vb, pet:false }).replace(/<\/svg>$/, GOGGLES + '</svg>');
-  return { show, state: () => S, previewSvg, teacherSvg, riderSvg: st => riderArt(st), test: { step, tryLoop, layers: () => ({ far: layer(FAR, 'a'), mid: layer(MID, 'b'), near: layer(NEAR, 'c'), n: [FAR.length, MID.length, NEAR.length] }) } };
+  return { show, state: () => S, previewSvg, teacherSvg, riderSvg: (st, o) => riderArt(st, o), broomSvg, teacherUrl: () => svgUrl(renderDoll(TEACHER, { viewBox:'200 140 400 400', pet:false }).replace(/<\/svg>$/, GOGGLES + '</svg>')), TEACH, test: { step, tryLoop, layers: () => ({ far: layer(FAR, 'a'), mid: layer(MID, 'b'), near: layer(NEAR, 'c'), n: [FAR.length, MID.length, NEAR.length] }) } };
 })();

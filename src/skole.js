@@ -6,12 +6,12 @@ const FAG = [
   { id:'eliksir', name:'Eliksirer', x:330, col:'#3E7A4A', open: () => showPotions() },
   { id:'kost', name:'Kosteflyvning', x:650, col:'#2E4A7A', open: () => Kost.show() },
   { id:'dyrepas', name:'Dyrepasning', x:970, col:'#7A4E35' },
-  { id:'faldskaerm', name:'Faldskærm', x:1290, col:'#6B3FA0' },
+  { id:'faldskaerm', name:'Faldskærm', x:1290, col:'#6B3FA0', open: () => Fald.show() },
 ];
 /* små tegn over dørene: kedel, kost, pote, faldskærm */
 const FAG_ICON = {
   eliksir: '<path d="M -26 -6 Q -30 22 0 26 Q 30 22 26 -6 Z" fill="#2A2238"/><ellipse cx="0" cy="-6" rx="28" ry="7" fill="#5FE0A0"/><circle cx="-8" cy="-16" r="5" fill="#5FE0A0" opacity=".8"/><circle cx="6" cy="-24" r="3.5" fill="#5FE0A0" opacity=".6"/>',
-  kost: '<path d="M -30 18 L 22 -14" stroke="#B5844A" stroke-width="5" stroke-linecap="round"/><path d="M 14 -10 L 34 -26 L 38 -6 Z" fill="#E9C46A" stroke="#8A6420" stroke-width="2" stroke-linejoin="round"/>',
+  kost: '<path d="M -32 22 L 12 -6" stroke="#B5844A" stroke-width="6" stroke-linecap="round"/><path d="M 8 -10 C 18 -22 30 -30 40 -30 C 36 -22 38 -12 34 0 C 26 2 18 0 12 -2 Z" fill="#E9C46A" stroke="#8A6420" stroke-width="2.5" stroke-linejoin="round"/><path d="M 14 -6 L 34 -24 M 20 -2 L 36 -14" stroke="#B98A2E" stroke-width="2"/><rect x="4" y="-10" width="9" height="9" rx="2" transform="rotate(-33 8 -6)" fill="#8A2A2A"/>',
   dyrepas: '<ellipse cx="0" cy="8" rx="13" ry="11" fill="#E9C46A"/>' + [[-14,-8],[-5,-16],[6,-16],[15,-8]].map(([x,y]) => `<ellipse cx="${x}" cy="${y}" rx="5" ry="6.5" fill="#E9C46A"/>`).join(''),
   faldskaerm: '<path d="M -30 -4 Q 0 -40 30 -4 Q 20 -10 10 -4 Q 0 -10 -10 -4 Q -20 -10 -30 -4 Z" fill="#E0457A" stroke="#8A2050" stroke-width="2"/><path d="M -28 -4 L -3 22 M 28 -4 L 3 22 M 0 -6 V 22" stroke="#E8E4F4" stroke-width="1.5"/><circle cx="0" cy="25" r="5" fill="#E9C46A"/>',
 };
@@ -41,7 +41,7 @@ function fagDoor(f){
     + `<path d="M ${x-w/2+20} ${top+40} Q ${x-w/2+20} ${top+10} ${x-w/2+50} ${top} V ${base} H ${x-w/2+20} Z" fill="#FFFFFF" opacity=".06"/>`);
   o += `<circle cx="${x+70}" cy="${(top+base)/2+20}" r="12" fill="#E9C46A" stroke="#8A6420" stroke-width="3"/><circle cx="${x-70}" cy="${(top+base)/2+20}" r="12" fill="#E9C46A" stroke="#8A6420" stroke-width="3"/>`;
   /* skilt over døren med fagets tegn og navn */
-  o += `<g transform="translate(${x} ${top-92})"><rect x="-108" y="-34" width="216" height="68" rx="14" fill="#3A2A20" stroke="#C9A04A" stroke-width="4"/><g transform="translate(-74 2) scale(.9)">${FAG_ICON[f.id]}</g><text x="18" y="9" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="${f.name.length > 10 ? 21 : 26}" fill="#FFE9A0">${f.name}</text></g>`;
+  o += `<g transform="translate(${x} ${top-92})"><rect x="-108" y="-34" width="216" height="68" rx="14" fill="#3A2A20" stroke="#C9A04A" stroke-width="4"/><g transform="translate(-78 2) scale(.78)">${FAG_ICON[f.id]}</g><text x="24" y="9" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="${f.name.length > 10 ? 20 : 24}" fill="#FFE9A0"${f.name.length > 10 ? ' textLength="138" lengthAdjust="spacingAndGlyphs"' : ''}>${f.name}</text></g>`;
   if (open){
     o += `<path d="M ${x-w/2} ${base} L ${x-w/2-30} ${base+60} H ${x+w/2+30} L ${x+w/2} ${base} Z" fill="#FFD27A" opacity=".18"/>`;
     o += `<rect x="${x-3}" y="${top+80}" width="6" height="${base-top-80}" fill="#FFE27A" opacity=".55" class="doorglow"/>`;
