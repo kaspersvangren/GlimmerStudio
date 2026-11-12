@@ -8,8 +8,10 @@ const Kost = (() => {
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 490;
   const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 380;
   /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
-  const LANES = [{ k: .4, y0: 120, dx: -200, op: .62 }, { k: .52, y0: 150, dx: -100, op: .8 }];
-  const laneY = (L, y) => L.y0 + y * L.k;
+  /* banerne står i lige store trin bagud: samme forskydning fra din bane til den midterste som fra den midterste til den bagerste */
+  const STEP_X = -110, STEP_Y = -85, STEP_K = .27;
+  const LANES = [2, 1].map(n => ({ n, k: 1 - n * STEP_K, dx: n * STEP_X, dy: n * STEP_Y, op: n === 2 ? .62 : .8 }));
+  const laneY = (L, y) => 480 + (y - 480) * L.k + L.dy;
   const RIDER_H = 250;
   const NS = 'http://www.w3.org/2000/svg';
   const mk = (tag, a = {}, html) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); if (html) e.innerHTML = html; return e; };
@@ -126,7 +128,7 @@ const Kost = (() => {
   function rider(st, opts = {}){
     const g = mk('g', { class:'kf-rider' + (opts.cls ? ' ' + opts.cls : '') });
     const tilt = mk('g', { class:'kf-tilt' });
-    let inner = `<g transform="translate(0 28) scale(.48)">${riderArt(st)}</g>`;
+    let inner = `<g transform="translate(0 22) scale(.38)">${riderArt(st)}</g>`;
     if (opts.trail) inner = `<g class="kf-trail">${[0, 1, 2, 3].map(i => star4(-150 - i * 30, 30 + (i % 2) * 10, 10 - i * 1.5, '#FFF6D0', .9 - i * .2)).join('')}</g>` + inner;
     tilt.innerHTML = inner; g.append(tilt);
     return g;
@@ -141,6 +143,12 @@ const Kost = (() => {
   }
   function bubbleEl(b){
     return mk('g', { class:'kf-bub' }, `<g transform="translate(${b.x} ${b.y})"><g class="kf-bob"><circle r="44" fill="#FFFFFF" fill-opacity=".1" stroke="#BFE8FF" stroke-width="4"/><circle r="44" fill="none" stroke="#FF8FC7" stroke-width="2" opacity=".7" stroke-dasharray="30 40"/>${starP(0, 3, 24, '#FFE27A')}<path d="M -26 -14 A 30 30 0 0 1 -6 -32" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" opacity=".8"/></g></g>`);
+  }
+  function laneGate(x, L){
+    const top = laneY(L, 140), bot = laneY(L, 760) + 30, k = L.k;
+    return `<path d="M ${x} ${top} V ${bot}" stroke="#3A2A20" stroke-width="${14 * k}"/><path d="M ${x} ${top} V ${bot}" stroke="#8A5A3C" stroke-width="${7 * k}"/>`
+      + `<g transform="translate(${x} ${top}) scale(${k})"><path d="M 0 0 L 150 16 L 150 96 L 0 80 Z" fill="#FFFFFF" stroke="#2A2340" stroke-width="4"/>`
+      + Array.from({ length: 4 }, (_, i) => Array.from({ length: 2 }, (_, j) => ((i + j) % 2 ? '' : `<path d="M ${i*37.5} ${j*40 + i*4} l 37.5 4 v 40 l -37.5 -4 Z" fill="#2A2340"/>`)).join('')).join('') + `</g>`;
   }
   function gate(x){
     return `<g><path d="M ${x} 70 V 960" stroke="#3A2A20" stroke-width="16"/><path d="M ${x} 70 V 960" stroke="#8A5A3C" stroke-width="8"/>`
@@ -237,6 +245,10 @@ const Kost = (() => {
     S.rivals.forEach(rv => { const tb = scene.querySelector('.kf-trackB.l' + rv.li), tf = scene.querySelector('.kf-trackF.l' + rv.li), col = lt(rv.st.robe.a, .25);
       for (const r of S.course.rings){ const [b, f] = ringEls({ x: r.x + rv.lane.dx, y: r.y, dbl: r.dbl }, rv.lane.k, y => laneY(rv.lane, y), col); tb.append(b); tf.append(f); rv.els.set(r, [b, f]); } });
     world.append(mk('g', {}, gate(S.course.end)));
+    /* målstregen går skråt gennem alle tre baner, så man kan se, hvem der krydser først */
+    const E = S.course.end, lanesG = scene.querySelector('.kf-lanes'), far = LANES[0];
+    lanesG.prepend(mk('g', { class:'kf-finish' }, `<path d="M ${E} 790 L ${E + far.dx} ${laneY(far, 760) + 30}" stroke="#FFFFFF" stroke-width="20" opacity=".85"/><path d="M ${E} 790 L ${E + far.dx} ${laneY(far, 760) + 30}" stroke="#2A2340" stroke-width="20" stroke-dasharray="20 20" opacity=".85"/>`));
+    LANES.forEach((L, i) => scene.querySelector('.kf-trackB.l' + i).append(mk('g', {}, laneGate(E + L.dx, L))));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
     S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
     /* kort tryk = flyv op, hold fingeren nede = loop */
@@ -284,7 +296,7 @@ const Kost = (() => {
     if (f.loop || f.boost > 0) return false;
     const hit = pairAt(f) || null;
     /* rammer man tæt nok på, bliver man trukket ind i den nederste ring, før loopet begynder */
-    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, pre: 0, t: 0, cam: hit.x - PX, hit } : { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: null };
+    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, pre: 0, t: 0, cam: hit.x - PX, hit, px: hit.x - 0.01 } : { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: null, px: f.x - 0.01 };
     return true;
   }
   function tryLoop(){ if (!S || S.run !== 'fly') return; if (startLoop(S)){ S.vy = 0; S.loop.hit ? sfx.magic() : tone(500, 0.3, 'sine', 0.04, 0, 1.8); } }
@@ -320,9 +332,13 @@ const Kost = (() => {
     if (L.pre !== undefined && L.pre < 1){ L.pre = Math.min(1, L.pre + dt / .22); const e = L.pre * (2 - L.pre); f.x = L.sx + (L.x0 - L.sx) * e; f.y = L.sy + (L.y0 - L.sy) * e; f.ang = 0; if (f === S) S.cam = f.x - PX; return; }
     L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, cy = L.y0 - LOOP_R;
     f.x = L.x0 + LOOP_R * Math.cos(a); f.y = cy + LOOP_R * Math.sin(a); f.ang = Math.atan2(-Math.cos(a), Math.sin(a)) * 180 / Math.PI;
-    if (L.hit){ if (t > .05) passRing(f, L.hit); if (t >= .5) passRing(f, L.hit.pair); }
+    /* ringe tæller, hvis loopet faktisk går igennem dem, uanset om man blev trukket ind eller ej */
+    for (const r of S.course.rings){ if (f.seen.has(r) || Math.abs(r.x - L.x0) > LOOP_R + 5) continue;
+      if ((L.px - r.x) * (f.x - r.x) <= 0 && L.px !== f.x && Math.abs(f.y - r.y) < 100){ passRing(f, r); (L.got = L.got || new Set()).add(r); } }
+    L.px = f.x;
     if (t >= 1){ f.loop = null; f.x = L.x0; f.y = L.y0; f.ang = 0; f.vy = 0;
-      if (L.hit){ f.loopN = (f.loopN || 0) + 1; f.boost = BOOST_N; f.v = V0 * 1.5; if (f === S) boostStart(); } }
+      const pair = L.got && [...L.got].find(r => r.dbl === 'lo' && L.got.has(r.pair));
+      if (pair){ f.loopN = (f.loopN || 0) + 1; f.boost = BOOST_N; f.v = V0 * 1.5; if (f === S) boostStart(); } }
   }
   function moveBoost(f, dt){
     const x0 = f.x; f.x += f.v * dt;
