@@ -303,7 +303,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .title-stage .ring{position:absolute;left:-30%;right:-30%;bottom:-3%;z-index:1}
 .title-stage .ring svg{width:100%;display:block;animation:ringglow 3s ease-in-out infinite}
 @keyframes ringglow{0%,100%{opacity:.75}50%{opacity:1}}
-.playbtn{position:absolute;z-index:4;left:calc(50% + min(30vh,300px) + 6vw);bottom:22vh;width:clamp(100px,17vh,150px);aspect-ratio:1;border-radius:50%;border:6px solid #FFFFFF;background:radial-gradient(circle at 35% 30%, #FF8FC7, #FF3D8F 55%, #C21D68);box-shadow:0 8px 0 #8A1550, 0 0 0 10px rgba(255,255,255,.18), 0 0 50px rgba(255,140,220,.8);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
+.playbtn{position:absolute;z-index:4;left:calc(50% + min(30vh,300px) + 6vw);bottom:22vh;width:clamp(100px,17vh,150px);touch-action:none;aspect-ratio:1;border-radius:50%;border:6px solid #FFFFFF;background:radial-gradient(circle at 35% 30%, #FF8FC7, #FF3D8F 55%, #C21D68);box-shadow:0 8px 0 #8A1550, 0 0 0 10px rgba(255,255,255,.18), 0 0 50px rgba(255,140,220,.8);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
 #title .ver{position:absolute;z-index:4;left:max(16px, env(safe-area-inset-left, 0px));bottom:10px;color:rgba(255,255,255,.6);margin:0;font-size:13px}
 .title-bubbles{position:absolute;inset:0;z-index:2;pointer-events:none}
 .title-bubbles span{position:absolute;bottom:-80px;width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.9) 0 8%, rgba(255,255,255,.08) 22%, rgba(255,255,255,.04) 60%, rgba(127,216,255,.35) 82%, rgba(255,143,199,.6) 100%);box-shadow:inset 0 0 0 1.5px rgba(255,226,122,.5);animation:rise 12s linear infinite}
@@ -670,6 +670,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-beam{transform-box:fill-box;transform-origin:0% 50%;animation:kfbeam 4s ease-in-out infinite}
 @keyframes kfbeam{0%,100%{opacity:.04}50%{opacity:.16}}
 @media (prefers-reduced-motion: reduce){ .kf-mill,.kf-beam,.kf-flap{animation:none!important} }
+
+@supports (height:1lvh){ @media (orientation:landscape){ .playbtn{left:calc(50% + min(30lvh,300px) + 6vw);bottom:22lvh;width:clamp(100px,17lvh,150px)} } }
 
 </style>
 </head>
@@ -1799,7 +1801,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.16.0';
+const VERSION = 'v0.16.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -4606,6 +4608,8 @@ function titleScene(){
   return o + '</svg>';
 }
 const RING_SVG = `<svg viewBox="0 0 400 80" aria-hidden="true"><ellipse cx="200" cy="40" rx="190" ry="32" fill="#FFE9A8" opacity=".18"/><ellipse cx="200" cy="40" rx="170" ry="26" fill="none" stroke="#FFE27A" stroke-width="4" opacity=".9"/><ellipse cx="200" cy="40" rx="140" ry="19" fill="none" stroke="#FFE27A" stroke-width="2" stroke-dasharray="3 9" opacity=".8"/>${[[40,40],[360,40],[200,14],[200,66],[90,22],[310,58],[90,58],[310,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#FFF6D0"/>`).join('')}</svg>`;
+let playing = 0;
+function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); }
 function showTitle(){
   showScreen('#title');
   const box = $('#titleBody'); box.innerHTML = '';
@@ -4618,7 +4622,10 @@ function showTitle(){
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
     el('div', { class:'title-stage' }, [ el('div', { class:'ring', html: RING_SVG }), dollImg(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true, alt:'Din figur' }) ]),
-    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); } } }),
+    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{
+      /* knappen griber fingeren, så trykket tæller, selvom skærmen hopper (fx når telefonens bjælker dukker op) */
+      pointerdown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} },
+      pointerup: () => startPlay(), click: () => startPlay() } }),
     el('p', { class:'ver' }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);

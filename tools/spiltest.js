@@ -67,7 +67,21 @@ async function run(w, h){
   await b.close();
   console.log(`${tag}: eliksir ok, kost ${res ? `nr. ${res.place}, ${res.rings} ringe` : 'ikke færdig'}`);
 }
+/* startknappen skal virke, selvom den hopper under fingeren (det sker, når telefonens bjælker dukker op) */
+async function playJump(){
+  const { devices } = require('playwright');
+  const b = await chromium.launch(), ctx = await b.newContext({ ...devices['Pixel 7 landscape'] }), p = await ctx.newPage();
+  await p.route(/fonts\./, r => r.abort()); await p.goto(URL); await p.waitForTimeout(600);
+  const cdp = await ctx.newCDPSession(p), bb = await p.locator('.playbtn').boundingBox(), x = bb.x + bb.width / 2, y = bb.y + bb.height / 2;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  await p.evaluate(() => { $('.playbtn').style.left = '10px'; }); await p.waitForTimeout(80);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(1200);
+  const scr = await p.evaluate(() => SCREENS.find(s => !$(s).hidden));
+  ok(scr === '#town', `startknappen virkede ikke, da den hoppede under fingeren (endte på ${scr})`);
+  await b.close();
+}
 (async () => {
+  await playJump();
   for (const [w, h] of SIZES) await run(w, h);
   if (fails.length){ console.error('FEJL:\n  ' + fails.join('\n  ')); process.exit(1); }
   console.log('Alt spillet igennem uden fejl.');

@@ -128,6 +128,8 @@ function titleScene(){
   return o + '</svg>';
 }
 const RING_SVG = `<svg viewBox="0 0 400 80" aria-hidden="true"><ellipse cx="200" cy="40" rx="190" ry="32" fill="#FFE9A8" opacity=".18"/><ellipse cx="200" cy="40" rx="170" ry="26" fill="none" stroke="#FFE27A" stroke-width="4" opacity=".9"/><ellipse cx="200" cy="40" rx="140" ry="19" fill="none" stroke="#FFE27A" stroke-width="2" stroke-dasharray="3 9" opacity=".8"/>${[[40,40],[360,40],[200,14],[200,66],[90,22],[310,58],[90,58],[310,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#FFF6D0"/>`).join('')}</svg>`;
+let playing = 0;
+function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); }
 function showTitle(){
   showScreen('#title');
   const box = $('#titleBody'); box.innerHTML = '';
@@ -140,7 +142,10 @@ function showTitle(){
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
     el('div', { class:'title-stage' }, [ el('div', { class:'ring', html: RING_SVG }), dollImg(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true, alt:'Din figur' }) ]),
-    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{ click: () => { audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); } } }),
+    el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{
+      /* knappen griber fingeren, så trykket tæller, selvom skærmen hopper (fx når telefonens bjælker dukker op) */
+      pointerdown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} },
+      pointerup: () => startPlay(), click: () => startPlay() } }),
     el('p', { class:'ver' }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);
