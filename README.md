@@ -12,7 +12,8 @@ Spillets navn står ét sted: `GAME_NAME` i `src/core.js` (og `name` i `manifest
 - `src/app.js`: skaberen
 - `src/balls.js`: Boblebutikken — nissen bag disken taler i en taleboble; tryk på en krukke (Tøj og hår, Kæledyr, Værelset), han puster en boble, tryk tre gange, og den springer med en ny ting
 - `src/rum.js`: Mit værelse — et sted man er i: lampen tænder/slukker, gardinerne trækkes for, kedlen puffer, dyret hopper i sin seng; indretningsbogen på natbordet har otte pladser (væg, vindue, seng, hylde, lampe, tæppe, hjørnet, dyrets seng), hver med ting og egen farve. Låse hedder `rum:<plads>.<ting>`
-- `src/fashion.js`: Modehuset med dommerpanel
+- `src/skole.js`: Skolen — gangen med dørene til fagene, og Eliksirtimen: Professor Mosegrøn (elver) viser opskriften på tavlen i billeder; man trykker på krukkerne, ingredienserne flyver i gryden, og man rører rundt ved at tegne cirkler. Tre eliksirer pr. time, 1-3 stjerner hver (færre ved fejl) og 2 i bonus. Opskrifterne bliver længere jo flere man har brygget (`prog.potions`). Kosteflyvning, Dyrepasning og Faldskærm kommer
+- `src/fashion.js`: det gamle Modehus — ikke længere i byen, skal erstattes af fagene
 - `src/town.js`: startskærm (nattehimmel, måne, skolen på bakken, bobler), musik og tæppet mellem skærmene
 - `src/city.js`: byen — huse, årstider, tid på dagen og alt det levende (folk, dyr, biler, bussen, fugle, egern)
 - `src/garderobe.js`: Garderoben — klædeskab, spejl med den nyeste figur og portrætter af alle figurerne
@@ -20,7 +21,7 @@ Spillets navn står ét sted: `GAME_NAME` i `src/core.js` (og `name` i `manifest
 - `src/style.css`, `src/body.html`: udseende og skærmens opbygning
 - `sw.js`, `manifest.webmanifest`, ikoner: app/offline
 
-Steder (værelset, garderoben, butikken) er én stor SVG på 1600×1000, der fylder hele skærmen; loft, væg og gulv fortsætter ud over kanten, og alt man kan trykke på ligger inden for 1600×1000. Knapperne ligger ovenpå i hjørnerne. Byen er altid i skumringen eller om natten, og påklædningen er et prøverum ved et magisk spejl. Alle personer er menneskelignende (mennesker, elvere, dværge, nisser).
+Steder (værelset, garderoben, butikken, skolegangen, eliksirtimen) er én stor SVG på 1600×1000, der fylder hele skærmen; loft, væg og gulv fortsætter ud over kanten, og alt man kan trykke på ligger inden for 1600×1000. Knapperne ligger ovenpå i hjørnerne. Byen er altid i skumringen eller om natten, og påklædningen er et prøverum ved et magisk spejl. Alle personer er menneskelignende (mennesker, elvere, dværge, nisser).
 
 Byg: `node build.js`, kopiér `dist/index.html` til roden, og ret `VERSION` i `sw.js`.
 

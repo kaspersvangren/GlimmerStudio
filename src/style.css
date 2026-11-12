@@ -397,6 +397,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 
 /* ---------- Boblebutikken som sted ---------- */
 .say-text{font-family:var(--display);font-weight:600;font-size:25px;line-height:1.25;color:#3A2340;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 8px;box-sizing:border-box}
+#potScene .say-text{font-size:30px;line-height:1.2}
 .scene .say{transform-box:fill-box;transform-origin:90% 100%}
 .scene .popsay{animation:popsay .35s ease-out}
 @keyframes popsay{0%{transform:scale(.85);opacity:.4}100%{transform:scale(1);opacity:1}}
@@ -495,3 +496,98 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
   #editor .tabs.pet .tab{flex-direction:row;justify-content:center;gap:6px}
   #editor .tabs.pet .tab svg{width:18px;height:18px}
 }
+
+/* ================= boblen midt på skærmen ================= */
+.shop-dim{position:absolute;inset:0;z-index:5;background:radial-gradient(circle at 50% 47%, rgba(40,20,80,.25), rgba(10,6,24,.72) 70%);opacity:0;transition:opacity .9s ease-out}
+.shop-dim.on{opacity:1}
+.shop-bub.hover{animation:bhover 2.6s ease-in-out infinite}
+@keyframes bhover{0%,100%{transform:translateY(0) scale(var(--grow,1))}50%{transform:translateY(-10px) scale(var(--grow,1))}}
+.bub-hint{position:absolute;z-index:7;left:0;right:0;bottom:max(10px,3vh);margin:0;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(18px,4vh,28px);color:#FFF6D8;text-shadow:0 2px 0 rgba(0,0,0,.5),0 0 18px rgba(255,220,140,.6);opacity:0;transition:opacity .4s;pointer-events:none}
+.bub-hint.on{opacity:1}
+
+/* ================= det magiske gevinstkort ================= */
+.shop-veil .reveal.magic{--a:#FF8FC7;--g:#F2C14E;--d1:#2A0F33;--d2:#5A1A50;
+  background:radial-gradient(ellipse at 30% 40%, color-mix(in srgb, var(--a) 22%, transparent), transparent 60%), linear-gradient(150deg, var(--d1), var(--d2));
+  color:#FFF6E8;border:3px solid var(--g);border-radius:26px;overflow:visible;
+  box-shadow:0 0 0 2px var(--d1), 0 0 0 6px color-mix(in srgb, var(--g) 55%, transparent), 0 12px 0 #120818, 0 0 60px color-mix(in srgb, var(--a) 45%, transparent);
+  animation:popin .5s cubic-bezier(.2,1.6,.4,1), mcglow 3.2s ease-in-out .5s infinite}
+.reveal.magic.m-dyr{--a:#5FE0C0;--g:#E8C36A;--d1:#0B2A2E;--d2:#145048}
+.reveal.magic.m-rum{--a:#B79BFF;--g:#F2C14E;--d1:#14123E;--d2:#3A2478}
+@keyframes mcglow{0%,100%{box-shadow:0 0 0 2px var(--d1), 0 0 0 6px color-mix(in srgb, var(--g) 55%, transparent), 0 12px 0 #120818, 0 0 40px color-mix(in srgb, var(--a) 30%, transparent)}50%{box-shadow:0 0 0 2px var(--d1), 0 0 0 6px color-mix(in srgb, var(--g) 75%, transparent), 0 12px 0 #120818, 0 0 80px color-mix(in srgb, var(--a) 60%, transparent)}}
+.mc-pattern{position:absolute;inset:8px;border-radius:20px;pointer-events:none;opacity:.16;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Cg fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M10 30 c0-10 14-10 14 0 c0 6-8 6-8 1'/%3E%3Cpath d='M55 70 c0-10 14-10 14 0 c0 6-8 6-8 1'/%3E%3Ccircle cx='70' cy='18' r='6'/%3E%3Cpath d='M30 62 h8 M34 58 v8'/%3E%3C/g%3E%3Cpath d='M48 32 l2-6 l2 6 l6 2 l-6 2 l-2 6 l-2-6 l-6-2 Z' fill='white'/%3E%3Ccircle cx='14' cy='76' r='2' fill='white'/%3E%3Ccircle cx='82' cy='50' r='1.6' fill='white'/%3E%3C/svg%3E");
+  background-size:90px 90px;animation:mcdrift 40s linear infinite}
+@keyframes mcdrift{to{background-position:90px 90px}}
+.mc-corner{position:absolute;width:clamp(54px,12vh,96px);height:clamp(54px,12vh,96px);color:var(--g);pointer-events:none;filter:drop-shadow(0 0 4px color-mix(in srgb, var(--g) 70%, transparent));animation:mcshine 3.2s ease-in-out infinite}
+.mc-corner svg{width:100%;height:100%;display:block}
+.mc-corner.c0{top:-4px;left:-4px}
+.mc-corner.c1{top:-4px;right:-4px;transform:scaleX(-1)}
+.mc-corner.c2{bottom:-4px;left:-4px;transform:scaleY(-1)}
+.mc-corner.c3{bottom:-4px;right:-4px;transform:scale(-1,-1)}
+@keyframes mcshine{0%,100%{opacity:.8}50%{opacity:1;filter:drop-shadow(0 0 9px var(--g))}}
+.shop-veil .reveal.magic .reveal-pic{position:relative;background:radial-gradient(circle, color-mix(in srgb, var(--a) 38%, #FFFFFF 10%) 0%, color-mix(in srgb, var(--a) 14%, transparent) 55%, transparent 72%);border-radius:50%;overflow:visible}
+.reveal.magic .reveal-pic img{position:relative;z-index:1}
+.mc-rays{position:absolute;inset:-6%;border-radius:50%;background:repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--a) 30%, transparent) 0deg 6deg, transparent 6deg 22deg);-webkit-mask:radial-gradient(circle, #000 30%, transparent 70%);mask:radial-gradient(circle, #000 30%, transparent 70%);animation:mcspin 30s linear infinite;pointer-events:none}
+.mc-ring{position:absolute;inset:3%;border-radius:50%;border:2px dashed color-mix(in srgb, var(--g) 70%, transparent);animation:mcspin 60s linear infinite reverse;pointer-events:none}
+@keyframes mcspin{to{transform:rotate(360deg)}}
+.shop-veil .reveal.magic .reveal-cat{color:var(--a);text-shadow:0 0 10px color-mix(in srgb, var(--a) 60%, transparent)}
+.shop-veil .reveal.magic .reveal-name{color:#FFF6E0;text-shadow:0 2px 0 rgba(0,0,0,.4), 0 0 16px color-mix(in srgb, var(--g) 50%, transparent)}
+.shop-veil .reveal.magic .reveal-info{position:relative;z-index:1}
+.reveal.magic .reveal-btns .btn:not(.hot){background:#FFF6E4;color:#3A2340}
+@media (prefers-reduced-motion: reduce){ .reveal.magic,.mc-pattern,.mc-corner,.mc-rays,.mc-ring,.shop-bub.hover{animation:none!important} }
+.reveal.magic.m-toej .reveal-pic img{border-radius:50%;-webkit-mask:radial-gradient(circle, #000 58%, transparent 71%);mask:radial-gradient(circle, #000 58%, transparent 71%)}
+
+/* ================= skolegangen ================= */
+.scene .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick .9s ease-in-out infinite alternate}
+@keyframes flick{0%{transform:scale(1,1) rotate(-2deg)}50%{transform:scale(.92,1.08) rotate(2deg)}100%{transform:scale(1.04,.94) rotate(-1deg)}}
+.scene .candle{animation:float 4s ease-in-out infinite}
+.scene .doorglow{animation:dglow 2.4s ease-in-out infinite}
+@keyframes dglow{0%,100%{opacity:.25}50%{opacity:.7}}
+
+/* ================= eliksirtimen ================= */
+#potScene svg{touch-action:none}
+#potScene .potglow{fill:var(--liq)}
+#potScene .st{stroke:var(--liq)}
+#potScene .liq{fill:var(--liq);stroke:color-mix(in srgb, var(--liq) 60%, #000);stroke-width:3;transition:fill .6s}
+#potScene .pbub{fill:var(--liq);stroke:#FFFFFF;stroke-opacity:.5;stroke-width:2;transform-box:fill-box;transform-origin:50% 50%;animation:pbub 1.8s ease-in infinite}
+@keyframes pbub{0%{transform:scale(.2);opacity:0}30%{opacity:1}80%{transform:scale(1);opacity:1}100%{transform:scale(1.25);opacity:0}}
+#potScene .ripple.go{animation:ripple .7s ease-out;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes ripple{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(8)}}
+#potScene .fl{transform-box:fill-box;transform-origin:50% 100%;animation:flick .5s ease-in-out infinite alternate}
+#potScene .fireglow{animation:dglow 1.6s ease-in-out infinite}
+#potScene .st{opacity:0;transform-box:fill-box;transform-origin:50% 100%;animation:steam 3.6s ease-out infinite}
+@keyframes steam{0%{opacity:0;transform:translateY(20px) scaleY(.6)}30%{opacity:.35}100%{opacity:0;transform:translateY(-120px) scaleY(1.2)}}
+#potScene .stirhint{transform-box:fill-box;transform-origin:50% 50%;animation:stirspin 2.4s linear infinite;transition:opacity .3s}
+#potScene .stirhint.fade{opacity:.25}
+@keyframes stirspin{0%{opacity:.95}50%{opacity:.5}100%{opacity:.95}}
+#potScene .ladle{transition:transform .08s linear}
+#potScene .drop{transform-box:fill-box;transform-origin:50% 50%;animation:pdrop .7s ease-out forwards}
+@keyframes pdrop{0%{transform:translate(0,0)}60%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+#potScene .smoke{transform-box:fill-box;transform-origin:50% 100%;animation:smoke 1s ease-out forwards}
+@keyframes smoke{0%{transform:scale(.3);opacity:0}25%{transform:scale(1);opacity:1}100%{transform:scale(1.25) translateY(-40px);opacity:0}}
+#potScene .hero{transform-box:fill-box;transform-origin:50% 100%}
+#potScene .hero.shake{animation:pshake .5s ease-in-out}
+@keyframes pshake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+#potScene .hero.hik{animation:phik .35s ease-out}
+@keyframes phik{0%,100%{transform:translateY(0)}40%{transform:translateY(-46px) scale(1.03,.97)}}
+#potScene .hero.fx-svaev{animation:psvaev 3.4s ease-in-out}
+@keyframes psvaev{0%,100%{transform:translateY(0)}20%{transform:translateY(-150px) rotate(-3deg)}50%{transform:translateY(-180px) rotate(3deg)}80%{transform:translateY(-150px) rotate(-2deg)}}
+#potScene .hero.fx-lille{animation:plille 3.4s ease-in-out}
+@keyframes plille{0%,100%{transform:scale(1)}15%,85%{transform:scale(.45)}}
+#potScene .hero.fx-stor{animation:pstor 3.4s ease-in-out}
+@keyframes pstor{0%,100%{transform:scale(1)}15%,85%{transform:scale(1.28)}}
+#potScene .hero.fx-glimmer{animation:pglim 3.4s ease-in-out}
+@keyframes pglim{0%,100%{filter:none}20%,80%{filter:drop-shadow(0 0 18px #FFE27A) drop-shadow(0 0 40px #FFC86A) brightness(1.15)}}
+#potScene svg.brewed .potglow{opacity:.7;animation:dglow 1s ease-in-out infinite}
+#potScene svg.brewed .liq{filter:drop-shadow(0 0 14px var(--liq))}
+#potScene .starfly{transform-box:fill-box;transform-origin:50% 50%;animation:starfly 1.6s ease-out both}
+@keyframes starfly{0%{transform:translate(0,40px) scale(.2);opacity:0}30%{transform:translate(var(--dx),-60px) scale(1.1);opacity:1}70%{transform:translate(var(--dx),-80px) scale(1);opacity:1}100%{transform:translate(calc(var(--dx) * 3 + 900px),-760px) scale(.3);opacity:0}}
+#potScene .mbub{transform-box:fill-box;transform-origin:50% 50%;animation:pbub 2.6s ease-in infinite}
+.lesson-card{flex-direction:column!important;text-align:center}
+.lesson-card .reveal-info{align-items:center!important;max-width:440px!important}
+.lesson-stars{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:360px}
+.lesson-stars svg{width:clamp(22px,5vh,36px);height:clamp(22px,5vh,36px);filter:drop-shadow(0 0 6px rgba(255,220,120,.7))}
+.lesson-stars svg path{fill:#FFE27A}
+.lesson-note{margin:0;color:#E6F6EE;font-weight:700;font-size:clamp(13px,2.6vh,17px)}
+.reveal-btns.row{flex-direction:row;justify-content:center;flex-wrap:wrap}
+@media (prefers-reduced-motion: reduce){ .scene .flame,.scene .candle,.scene .doorglow,#potScene .pbub,#potScene .fl,#potScene .st,#potScene .stirhint,#potScene .mbub{animation:none!important} }

@@ -6,6 +6,7 @@ const MUSIC = { on: store.get(KEY_MUSIC, true), track: null, timer: null, step: 
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 const TRACKS = {
   byen: { bpm: 100, chords: [[60,64,67,72],[57,60,64,69],[53,57,60,65],[55,59,62,67]], melody: [76,null,74,72,74,null,76,79, 72,null,71,69,71,null,72,76, 69,null,67,65,67,69,72,null, 71,null,72,74,71,null,67,null] },
+  kaelder: { bpm: 88, chords: [[57,60,64,69],[53,57,60,65],[50,53,57,62],[52,56,59,64]], melody: [69,null,72,71,69,null,64,null, 65,null,69,67,65,null,60,null, 62,null,65,64,62,null,57,null, 64,null,68,null,71,null,68,null] },
   show: { bpm: 124, chords: [[62,65,69,74],[58,62,65,70],[60,64,67,72],[57,61,64,69]], melody: [74,74,null,77,null,76,74,72, 70,null,74,null,72,70,69,null, 72,72,null,76,null,74,72,71, 69,null,73,null,76,null,73,null] },
 };
 function audioCtx(){ try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch(e){} return AC; }

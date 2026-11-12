@@ -39,7 +39,7 @@ const NISSE = { skin:'#F6D2B8', eyes:{ color:'#6A4A2E', pupil:'rund' }, mk:{ blu
   robe:{ id:'knapper', a:'#4F8A5A', b:'#F2C14E' }, cape:{ id:'ingen', a:'#2E3F8F', b:'#B79BFF' }, hat:{ id:'spids', a:'#D8343A', b:'#F2C14E' },
   boots:{ id:'snoer', a:'#8A4B2E', b:'#F2C14E' }, acc:{}, pet:{ kind:'ingen', a:'#FFC9E2', b:'#FFFFFF', c:'#B79BFF', pattern:'ingen', eyes:'#3D8BFF', acc:{}, name:'' } };
 const JARS = [{ id:'toej', x:200 }, { id:'dyr', x:440 }, { id:'rum', x:680 }];
-const NISSE_CHAT = ['Tryk tre gange på en boble, så springer den. Det er hele hemmeligheden!', 'Jeg har puttet bobler i krukker i over tre hundrede år.', 'Hver boble har noget nyt indeni. Man ved aldrig hvad!', 'Stjerner får du i Modehuset. Kom igen, når du har nogle!', 'Mit skæg? Det er helt ægte. Træk ikke i det!'];
+const NISSE_CHAT = ['Tryk tre gange på en boble, så springer den. Det er hele hemmeligheden!', 'Jeg har puttet bobler i krukker i over tre hundrede år.', 'Hver boble har noget nyt indeni. Man ved aldrig hvad!', 'Stjerner får du i skolen. Gå til timerne, så ses vi!', 'Mit skæg? Det er helt ægte. Træk ikke i det!'];
 const NISSE_WOW = ['Sikke et fund!', 'Uh, den er da fin!', 'Den kan jeg godt lide!', 'Hvor heldigt!'];
 let nisseLine = '', chatN = 0;
 /* nissens skæg, store næse og overskæg, tegnet oven på figuren (figurens koordinater) */
@@ -143,7 +143,7 @@ function shopScene(){
   return scopeIds(o, 'sh');
 }
 function say(text){ nisseLine = text; const t = $('#shopScene .say-text'); if (!t) return; t.textContent = text; const g = t.closest('.say'); if (g){ g.classList.remove('popsay'); void g.getBoundingClientRect(); g.classList.add('popsay'); } }
-function greetLine(){ return prog.stars >= BUB_PRICE ? 'Goddag, goddag! Velkommen i Boblebutikken. Vælg en krukke, så puster jeg en boble til dig.' : `Goddag! En boble koster ${BUB_PRICE} stjerner, og du har ${prog.stars}. Spil i Modehuset, så ses vi!`; }
+function greetLine(){ return prog.stars >= BUB_PRICE ? 'Goddag, goddag! Velkommen i Boblebutikken. Vælg en krukke, så puster jeg en boble til dig.' : `Goddag! En boble koster ${BUB_PRICE} stjerner, og du har ${prog.stars}. Gå til timerne på skolen, så ses vi!`; }
 
 function showBalls(){ showScreen('#balls'); playMusic('byen'); bubPick = null; bubTaps = 0; bubBusy = false; renderShop(greetLine()); }
 function renderShop(line){
@@ -164,30 +164,34 @@ function shopTap(hit, g, p){
     const b = BUBBLES.find(x => x.id === v), left = b.left();
     replay(g, 'jiggle');
     if (!left.length){ sfx.nope(); say(`Krukken med ${b.label.toLowerCase()} er tom. Du har fundet det hele!`); return; }
-    if (prog.stars < BUB_PRICE){ sfx.nope(); say(`Du mangler ${BUB_PRICE - prog.stars} stjerner. Kom tilbage, når du har spillet lidt i Modehuset.`); return; }
+    if (prog.stars < BUB_PRICE){ sfx.nope(); say(`Du mangler ${BUB_PRICE - prog.stars} stjerner. Kom tilbage, når du har været lidt i skole.`); return; }
     sfx.magic(); bubPick = v; blowBubble(g, b);
     return;
   }
   sfx.pick(); sparkle(svg, p.x, p.y, 4);
 }
-/* nissen puster en boble op af krukken; den svæver frem til dig */
+/* nissen puster en boble op af krukken; den svæver ind midt på skærmen og bliver stor, mens butikken dæmpes */
 function blowBubble(jar, b){
   bubBusy = true; bubTaps = 0;
   say(`${b.label}! Det bliver ${BUB_PRICE} stjerner. Nu puster jeg…`);
   const box = $('#ballsBody'), r = jar.getBoundingClientRect(), br = box.getBoundingClientRect();
-  const size = Math.min(br.height * 0.42, 340);
+  const size = Math.min(br.height * 0.66, br.width * 0.44, 520);
+  const dim = el('div', { class:'shop-dim', 'aria-hidden':'true' });
+  const hint = el('p', { class:'bub-hint' }, '');
   const bub = el('button', { class:'bub shop-bub', type:'button', 'aria-label':'Boblen', html: bubbleSvg(b.id), style:`left:${r.left - br.left + r.width/2 - 30}px;top:${r.top - br.top + r.height*0.4 - 30}px;width:60px` });
   const drops = el('div', { class:'bub-drops shop-drops', 'aria-hidden':'true' });
-  box.append(bub, drops);
-  requestAnimationFrame(() => requestAnimationFrame(() => { bub.style.left = (br.width * 0.4 - size/2) + 'px'; bub.style.top = (br.height * 0.6 - size/2) + 'px'; bub.style.width = size + 'px'; }));
-  setTimeout(() => { bubBusy = false; say('Tryk tre gange på boblen!'); }, 1100);
-  bub.addEventListener('click', () => tapShopBubble(bub, drops, b));
+  box.append(dim, bub, drops, hint);
+  requestAnimationFrame(() => requestAnimationFrame(() => { dim.classList.add('on'); bub.style.left = (br.width/2 - size/2) + 'px'; bub.style.top = (br.height*0.47 - size/2) + 'px'; bub.style.width = size + 'px'; }));
+  setTimeout(() => { bubBusy = false; bub.classList.add('hover'); hint.textContent = 'Tryk tre gange på boblen!'; hint.classList.add('on'); say('Tryk tre gange på boblen!'); }, 1100);
+  bub.addEventListener('click', () => tapShopBubble(bub, drops, b, hint, dim));
 }
-async function tapShopBubble(bub, drops, b){
+async function tapShopBubble(bub, drops, b, hint, dim){
   if (bubBusy) return;
   bubTaps++;
   bub.style.setProperty('--grow', 1 + bubTaps * 0.08);
   bub.classList.remove('wobble'); void bub.offsetWidth; bub.classList.add('wobble'); sfx.wobble();
+  bub.classList.remove('hover');
+  if (hint) hint.textContent = bubTaps === 1 ? 'To gange til…' : bubTaps === 2 ? 'Én gang til!' : '';
   if (bubTaps === 2) say('Én gang til!');
   if (bubTaps < 3) return;
   bubBusy = true; bubTaps = 0;
@@ -202,7 +206,7 @@ async function tapShopBubble(bub, drops, b){
   popDrops(drops, b.cols);
   bub.classList.add('pop'); sfx.crack();
   await wait(460);
-  bub.remove(); setTimeout(() => drops.remove(), 700);
+  bub.remove(); setTimeout(() => { drops.remove(); if (hint) hint.remove(); if (dim) dim.remove(); }, 700);
   revealItem(cat, id);
 }
 function popDrops(host, cols){
@@ -217,11 +221,13 @@ function showcaseState(cat){
   if ((cat === 'petpat' || cat === 'petacc') && base.pet.kind === 'ingen') base.pet.kind = 'kat';
   return base;
 }
-function showcaseState(cat){
-  const base = figures.length ? fixState(clone(figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].st)) : clone(DEFAULT_STATE);
-  if ((cat === 'petpat' || cat === 'petacc') && base.pet.kind === 'ingen') base.pet.kind = 'kat';
-  return base;
-}
+/* hjørnekrummelur til det magiske kort: en bue langs kanten, en spiral, to blade og en lille stjerne */
+const MC_CORNER = '<svg viewBox="0 0 120 120" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+  + '<path d="M 8 112 V 46 Q 8 8 46 8 H 112" stroke-width="4"/><path d="M 18 112 V 52 Q 18 18 52 18 H 112" stroke-width="1.6" opacity=".7"/>'
+  + '<path d="M 30 70 C 30 42 44 30 66 32 C 84 34 86 56 70 58 C 58 60 56 46 66 46" stroke-width="3.2"/>'
+  + '<path d="M 70 30 C 76 18 90 14 102 16 C 96 26 84 32 70 30 Z M 30 70 C 18 76 14 90 16 102 C 26 96 32 84 30 70 Z" fill="currentColor" fill-opacity=".35" stroke-width="2.2"/>'
+  + '<path d="M 44 92 q 6 -2 8 -8 M 92 44 q -2 6 -8 8" stroke-width="2.2"/></g>'
+  + '<path d="M 34 34 l 3 -9 l 3 9 l 9 3 l -9 3 l -3 9 l -3 -9 l -9 -3 Z" fill="currentColor"/><circle cx="58" cy="100" r="3" fill="currentColor"/><circle cx="100" cy="58" r="3" fill="currentColor"/></svg>';
 function revealItem(cat, id){
   let img, catLabel, name, tryBtn;
   if (cat === 'rum'){
@@ -238,14 +244,17 @@ function revealItem(cat, id){
     if (cat === 'hat' || cat === 'front') st.acc = {};
     const vb = typeof info.vb === 'function' ? info.vb(id) : info.vb;
     const hl = info.multi ? cat + ':' + id : cat;
-    img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true, hl } : { viewBox: vb, pet: false, bg: true, hl });
+    img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true, hl } : { viewBox: vb, pet: false, hl });
     catLabel = info.label; name = info.name(id);
     tryBtn = figures.length ? el('button', { class:'btn', type:'button', on:{ click: () => tryOn(cat) } }, 'Prøv den på') : null;
   }
   const close = () => { sfx.pick(); veil.remove(); bubPick = null; renderShop(pick(NISSE_WOW) + (prog.stars >= BUB_PRICE ? ' Skal det være en til?' : ' Kom snart igen!')); };
-  const card = el('div', { class:'reveal' }, [
+  const kind = cat === 'rum' ? 'rum' : PET_CATS.includes(cat) ? 'dyr' : 'toej';
+  const card = el('div', { class:'reveal magic m-' + kind }, [
+    el('div', { class:'mc-pattern', 'aria-hidden':'true' }),
+    ...[0, 1, 2, 3].map(i => el('span', { class:'mc-corner c' + i, 'aria-hidden':'true', html: MC_CORNER })),
     el('span', { class:'new-badge' }, 'NY!'),
-    el('div', { class:'reveal-pic' }, img),
+    el('div', { class:'reveal-pic' }, [ el('span', { class:'mc-rays', 'aria-hidden':'true' }), el('span', { class:'mc-ring', 'aria-hidden':'true' }), img ]),
     el('div', { class:'reveal-info' }, [
       el('p', { class:'reveal-cat' }, catLabel),
       el('h3', { class:'reveal-name' }, name),

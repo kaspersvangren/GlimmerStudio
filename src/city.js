@@ -118,26 +118,33 @@ function bFoto(){
   s += win(x+20, top+80, 48, 46, { cur:'#FFFFFF' }) + door(x+170, base, 40, 64, '#2F6FE0') + soon(x+w/2, top+108);
   return placeG('foto', 'Fotostudiet', true, s + sign(x + w/2, top - 96, 'Fotostudiet'));
 }
-function bMode(){
-  const x = 630, base = 370, w = 340, h = 180, top = base - h, c = '#8A5BE8', cx = x + w/2;
-  let s = flatRoof(x, top, w, 74, c);
-  s += `<g transform="translate(${x+60},${top-36})">${[0,1,2].map(i=>`<circle cx="${i*16}" cy="0" r="9" fill="${CM.winter ? '#3E8E5A' : ['#5DB866','#7FD06F','#4AA35A'][i]}"/>`).join('')}${CM.winter ? '' : '<circle cx="6" cy="-4" r="3" fill="#FF5FA8"/><circle cx="24" cy="-2" r="3" fill="#FFE27A"/>'}</g>`;
-  s += `<g transform="translate(${x+w-50},${top-34})"><rect x="-2" y="-46" width="4" height="50" fill="#4B3F6B"/><path d="M 2 -46 L 30 -38 L 2 -30 Z" fill="#FF3D8F"><animate attributeName="d" values="M 2 -46 L 30 -38 L 2 -30 Z;M 2 -46 Q 16 -36 30 -40 Q 16 -32 2 -30 Z;M 2 -46 L 30 -38 L 2 -30 Z" dur="1.6s" repeatCount="indefinite"/></path></g>`;
-  s += `<rect x="${x+130}" y="${top-60}" width="80" height="44" rx="6" fill="#E9F2FF" opacity=".75" stroke="#FFF" stroke-width="2"/>`;
-  s += `<rect x="${x}" y="${top}" width="${w}" height="${h}" rx="6" fill="${c}" stroke="${lineC(c)}" stroke-width="3"/>`;
-  s += `<path d="M ${x+20} ${top} Q ${cx} ${top-70} ${x+w-20} ${top} Z" fill="#B79BFF" stroke="${lineC(c)}" stroke-width="3"/>`;
-  s += Array.from({length:11},(_,i)=>{ const t=i/10, xx=x+20+(w-40)*t, yy=top-70*2*t*(1-t); return `<circle cx="${xx.toFixed(1)}" cy="${yy.toFixed(1)}" r="4.5" fill="#FFF3B0" stroke="#E8B33A" stroke-width="1"><animate attributeName="opacity" values="1;.35;1" dur="1.2s" begin="${(i%3)*0.4}s" repeatCount="indefinite"/></circle>`; }).join('');
-  s += `<g transform="translate(${cx},${top-62})"><polygon points="${star5pts(0,0,18,8)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2.5"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="9s" repeatCount="indefinite"/></polygon></g>`;
-  s += `<rect x="${cx-80}" y="${top+12}" width="160" height="38" rx="9" fill="#FF3D8F" stroke="#B32268" stroke-width="2.5"/><text x="${cx}" y="${top+40}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="25" fill="#FFF" letter-spacing="3">MODE</text>`;
-  [0,1,2,3].forEach(i => { s += win(x+28+i*80, top+62, 42, 30, { r:14, cross:false, cur:'#FF8FC7', frame:'#FFE3F1' }); });
-  const disp = (dx, ids) => { let d = `<rect x="${dx-5}" y="${base-82}" width="92" height="80" rx="6" fill="#FFE3F1" stroke="${lineC(c)}" stroke-width="2.5"/><rect x="${dx}" y="${base-77}" width="82" height="72" rx="4" fill="#FFF6FB"/>`;
-    ids.forEach((id, i) => d += `<image id="${id}" x="${dx-2+i*40}" y="${base-78}" width="46" height="72" preserveAspectRatio="xMidYMax meet"/>`);
-    LITS.push([dx, base-77, 82, 72]); return d + `<path d="M ${dx+4} ${base-30} L ${dx+28} ${base-74}" stroke="#FFF" stroke-width="3" opacity=".6"/>`; };
-  s += disp(x+22, ['man0','man1']) + disp(x+w-108, ['man2','man3']);
-  s += awning(cx-40, cx+40, base-96, 18, '#FF3D8F') + `<rect x="${cx-30}" y="${base-74}" width="60" height="74" fill="#4A2F73" stroke="#33204F" stroke-width="2"/><path d="M ${cx} ${base-74} V ${base}" stroke="#33204F" stroke-width="2"/><circle cx="${cx-6}" cy="${base-36}" r="2.5" fill="#FFD54A"/><circle cx="${cx+6}" cy="${base-36}" r="2.5" fill="#FFD54A"/>`;
-  s += `<path d="M ${cx-28} ${base} L ${cx-34} ${base+70} H ${cx+34} L ${cx+28} ${base} Z" fill="#E0233F"/>`;
-  s += [cx-52, cx+52].map(xx=>`<rect x="${xx-2}" y="${base+10}" width="4" height="34" fill="#FFD54A"/><circle cx="${xx}" cy="${base+9}" r="5" fill="#FFD54A" stroke="#C99A12"/>`).join('') + `<path d="M ${cx-52} ${base+16} Q ${cx-40} ${base+30} ${cx-30} ${base+18} M ${cx+52} ${base+16} Q ${cx+40} ${base+30} ${cx+30} ${base+18}" stroke="#E0233F" stroke-width="3" fill="none"/>`;
-  return placeG('mode', 'Modehuset', false, s + sign(cx, top - 102, 'Modehuset', '#B32268'));
+/* skolens port: en stenbygning med to tårne og en stor buet dør; selve slottet ligger oppe på bakken bagved */
+function bSkole(){
+  const x = 640, base = 370, w = 320, h = 170, top = base - h, cx = x + w/2, S = '#8C86B0', SL = lineC(S), R = '#5A2A78';
+  let s = '';
+  /* tårnene */
+  for (const tx of [x - 14, x + w - 62]){
+    s += `<rect x="${tx}" y="${top - 70}" width="76" height="${h + 70}" fill="${S}" stroke="${SL}" stroke-width="3"/><rect x="${tx}" y="${top - 70}" width="76" height="${h + 70}" fill="url(#brick)"/>`;
+    s += `<path d="M ${tx - 10} ${top - 68} L ${tx + 38} ${top - 160} L ${tx + 86} ${top - 68} Z" fill="${R}" stroke="${lineC(R)}" stroke-width="3" stroke-linejoin="round"/><path d="M ${tx + 38} ${top - 160} V ${top - 186}" stroke="#4B3F6B" stroke-width="3"/><path d="M ${tx + 38} ${top - 186} l 22 6 l -22 6 Z" fill="#E9C46A"/>`;
+    s += win(tx + 24, top - 40, 28, 40, { r:14, cross:false, cur:'#FFE9A0', frame:'#4A4266' }) + win(tx + 24, top + 40, 28, 40, { r:14, cross:false, cur:'#FFE9A0', frame:'#4A4266' });
+  }
+  /* midterbygningen med tinder */
+  s += `<rect x="${x + 60}" y="${top}" width="${w - 120}" height="${h}" fill="${S}" stroke="${SL}" stroke-width="3"/><rect x="${x + 60}" y="${top}" width="${w - 120}" height="${h}" fill="url(#brick)"/>`;
+  s += Array.from({ length: 6 }, (_, i) => `<rect x="${x + 62 + i * 34}" y="${top - 18}" width="22" height="20" fill="${S}" stroke="${SL}" stroke-width="3"/>`).join('');
+  /* rundt vindue med månen og en stjerne */
+  s += `<circle cx="${cx}" cy="${top + 38}" r="26" fill="#2A2350" stroke="#E9C46A" stroke-width="4"/><path d="M ${cx + 2} ${top + 22} a 16 16 0 1 0 12 26 a 13 13 0 1 1 -12 -26 Z" fill="#FFE9A0"/>` + `<polygon points="${star5pts(cx - 10, top + 30, 6, 2.6)}" fill="#FFE9A0"/>`;
+  LITS.push([cx - 20, top + 18, 40, 40]);
+  /* den store dør */
+  s += `<path d="M ${cx - 46} ${base} V ${base - 70} Q ${cx - 46} ${base - 116} ${cx} ${base - 118} Q ${cx + 46} ${base - 116} ${cx + 46} ${base - 70} V ${base} Z" fill="#6A4430" stroke="#3A2414" stroke-width="3"/>`;
+  s += `<path d="M ${cx} ${base - 118} V ${base} M ${cx - 46} ${base - 60} H ${cx + 46} M ${cx - 46} ${base - 26} H ${cx + 46}" stroke="#3A2414" stroke-width="3"/><circle cx="${cx - 9}" cy="${base - 44}" r="3.5" fill="#E9C46A"/><circle cx="${cx + 9}" cy="${base - 44}" r="3.5" fill="#E9C46A"/>`;
+  s += `<path d="M ${cx - 56} ${base} V ${base - 70} Q ${cx - 56} ${base - 126} ${cx} ${base - 128} Q ${cx + 56} ${base - 126} ${cx + 56} ${base - 70} V ${base}" fill="none" stroke="${SL}" stroke-width="6"/>`;
+  /* lygter og trappe */
+  s += [cx - 74, cx + 74].map(lx => `<rect x="${lx - 3}" y="${base - 74}" width="6" height="20" fill="#3A2A20"/><path d="M ${lx - 10} ${base - 76} H ${lx + 10} L ${lx + 8} ${base - 54} H ${lx - 8} Z" fill="#FFE27A" stroke="#3A2A20" stroke-width="2"/>`).join('');
+  LITS.push([cx - 84, base - 76, 20, 22], [cx + 64, base - 76, 20, 22]);
+  s += `<path d="M ${cx - 60} ${base} H ${cx + 60} L ${cx + 70} ${base + 12} H ${cx - 70} Z" fill="#B8B2D0" stroke="${SL}" stroke-width="2"/><path d="M ${cx - 70} ${base + 12} H ${cx + 70} L ${cx + 80} ${base + 24} H ${cx - 80} Z" fill="#A49EC0" stroke="${SL}" stroke-width="2"/>`;
+  /* bannere på væggen */
+  s += [x + 92, x + w - 92].map(bx => `<path d="M ${bx - 16} ${top + 10} H ${bx + 16} V ${top + 76} L ${bx} ${top + 64} L ${bx - 16} ${top + 76} Z" fill="#6A1F3A" stroke="#3A1020" stroke-width="2"/><polygon points="${star5pts(bx, top + 36, 9, 4)}" fill="#E9C46A"/>`).join('');
+  return placeG('skole', 'Skolen', false, s + sign(cx, top - 112, 'Skolen', '#5A2A78'));
 }
 function bKugler(){
   const x = 1130, base = 380, w = 240, h = 140, top = base - h, c = '#62E0CB';
@@ -265,7 +272,7 @@ function townSvg(){
   s += `<g transform="translate(395,500)"><g><animateTransform attributeName="transform" type="rotate" values="-2;2;-2" dur="4s" repeatCount="indefinite"/><path d="M -34 0 Q 0 16 34 0 L 28 -8 H -28 Z" fill="#E0613A" stroke="#9C3A1E" stroke-width="2"/><path d="M -24 -8 H 24" stroke="#FFF" stroke-width="2"/><path d="M -6 -8 L -20 -22" stroke="#B9763F" stroke-width="3"/></g></g>`;
   if (!CM.winter) s += [[90,470],[100,480],[112,468],[420,560],[430,552]].map(([x,y])=>`<path d="M ${x} ${y} q 2 -22 -2 -34" stroke="#4AA35A" stroke-width="3" fill="none"/><rect x="${x-3}" y="${y-36}" width="6" height="12" rx="3" fill="#8A5A35"/>`).join('');
   /* bagerste række og dyreparken */
-  s += bFoto() + bMode() + bKugler() + bZoo();
+  s += bFoto() + bSkole() + bKugler() + bZoo();
   /* torvet */
   s += `<ellipse cx="800" cy="600" rx="270" ry="120" fill="#DCCFE9"/><ellipse cx="800" cy="598" rx="262" ry="114" fill="url(#cob)"/>`;
   s += [[560,600],[1040,600]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="34" ry="16" fill="#8A5A35"/>` + (CM.winter ? `<ellipse cx="${x}" cy="${y-4}" rx="30" ry="10" fill="#FFF"/>` : flowers(x-30, y-14, 9, 60))).join('');
@@ -386,7 +393,7 @@ const depthS = y => 0.6 + (y - 380) / 575 * 0.5;
 const HUB = [720, 722];
 const ROUTES = {
   hub:    [HUB],
-  mode:   [HUB, [650,650], [680,520], [760,470], [800,402]],
+  skole:  [HUB, [650,650], [680,520], [760,470], [800,402]],
   foto:   [HUB, [640,650], [590,540], [500,450], [430,402]],
   kugler: [HUB, [900,724], [970,650], [1060,540], [1200,450], [1318,402]],
   dyr:    [HUB, [900,724], [1010,660], [1130,604], [1172,600]],
@@ -399,7 +406,7 @@ const ROUTES = {
 };
 const PLACES = [
   { id:'hus', name:'Mit hus', open: () => showRoom() },
-  { id:'mode', name:'Modehuset', open: () => startFashion() },
+  { id:'skole', name:'Skolen', open: () => showSchool() },
   { id:'kugler', name:'Boblebutikken', open: () => showBalls() },
   { id:'cafe', name:'Caféen', soon:true },
   { id:'dyr', name:'Dyreparken', soon:true },
@@ -460,7 +467,7 @@ const above = c => () => [c.x, c.y - c.h * depthS(c.y) * 0.98];
 
 /* ---------- folk i byen ---------- */
 const GREET = ['Hej!', 'Hej med dig!', 'Hejsa!', 'Flot tøj!', 'Godt hår!', 'Hej hej!'];
-const SPOTS = ['mode','foto','kugler','dyr','hus','cafe','bus','soe','baenkV','baenkH'];
+const SPOTS = ['skole','foto','kugler','dyr','hus','cafe','bus','soe','baenkV','baenkH'];
 async function spawnPed(){
   const gen = LIFE.gen;
   const heroFig = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0];
@@ -649,7 +656,6 @@ function showTown(){
   if (!LIFE.on){ LIFE.on = true; LIFE.last = performance.now(); requestAnimationFrame(lifeTick); }
   // udstillingsdukker, isælgeren og børnene laves som billeder bagefter, så byen vises med det samme
   const fill = async (id, st, vb, w, h) => { const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
-  ['man0','man1','man2','man3'].forEach(id => fill(id, randomState({ boy: Math.random() < 0.25 }), '150 60 500 1010', 92, 144));
   fill('vendor', randomState({}), VB_DOLL, 144, 200);
   fill('swingKid', randomState({}), VB_DOLL, 108, 152);
   if ($('#kiteKid')) fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
