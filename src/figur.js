@@ -1,5 +1,5 @@
 'use strict';
-/* ================= Glimmer Studio — figuren i eventyrstil (SVG i lag) =================
+/* ================= Magiske Mig — figuren i eventyrstil (SVG i lag) =================
    Figuren tegnes i sine egne mål (P: 600 bred, fødder ved y 860) og flyttes ind i 800×1100-rammen.
    Lys fra venstre. Skygger er kølige lilla flader klippet til hver del. */
 const mixC = (a, b, t) => { const A = hex2rgb(a), B = hex2rgb(b); return rgb2hex(A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, A[2]+(B[2]-A[2])*t); };

@@ -1,5 +1,5 @@
 'use strict';
-/* ================= Glimmer Studio — tegning af dukken (SVG i lag) ================= */
+/* ================= Magiske Mig — tegning af dukken (SVG i lag) ================= */
 const W = 800, H = 1100;
 
 /* ---------- farver ---------- */

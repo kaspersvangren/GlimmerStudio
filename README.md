@@ -1,4 +1,4 @@
-# Glimmerskolen
+# Magiske Mig
 
 En magisk skole til Agnes: klæd figuren på, find ting i boblerne og indret dit værelse. Kører på GitHub Pages og kan installeres som app.
 Spillets navn står ét sted: `GAME_NAME` i `src/core.js` (og `name` i `manifest.webmanifest`).

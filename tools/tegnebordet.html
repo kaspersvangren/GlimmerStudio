@@ -83,7 +83,7 @@ textarea{width:100%;min-height:96px;border:1.5px solid var(--line);border-radius
 
 <div class="wrap" id="main">
   <header class="top">
-    <div><h1>Tegnebordet</h1><div class="sub" id="sub">Glimmer Studio</div></div>
+    <div><h1>Tegnebordet</h1><div class="sub" id="sub">Magiske Mig</div></div>
     <div class="filters" id="filters" role="toolbar" aria-label="Vis"></div>
   </header>
   <p class="hint">Tryk på en tegning for at se den, som den ser ud på tabletten, og helt tæt på. Tryk på billedet for at sætte en ring om fejlen. Skriv kort hvad der er galt, og læg gerne et referencebillede ind. Claude læser det hele herfra og retter i én omgang.</p>
@@ -232,7 +232,7 @@ async function save(){
 /* ---------- start ---------- */
 (async () => {
   try { const r = await fetch('items.json', { cache:'no-store' }); const j = await r.json(); ITEMS = j.items; META = j;
-    $('#sub').textContent = `Glimmer Studio ${j.version} · ${ITEMS.length} tegninger`; }
+    $('#sub').textContent = `Magiske Mig ${j.version} · ${ITEMS.length} tegninger`; }
   catch(e){ $('#list').innerHTML = '<p class="empty">Tegningerne kunne ikke hentes.</p>'; return; }
   renderList();
   try { db = await window.claude?.use?.('db'); } catch(e){ db = null; }

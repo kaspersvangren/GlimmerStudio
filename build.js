@@ -1,5 +1,5 @@
 const fs=require('fs');
-const NAME=(fs.readFileSync('src/core.js','utf8').match(/const GAME_NAME = '([^']+)'/)||[])[1]||'Glimmerskolen';
+const NAME=(fs.readFileSync('src/core.js','utf8').match(/const GAME_NAME = '([^']+)'/)||[])[1]||'Magiske Mig';
 const css=fs.readFileSync('src/style.css','utf8'), body=fs.readFileSync('src/body.html','utf8');
 const draw=fs.readFileSync('src/draw.js','utf8')+'\n'+fs.readFileSync('src/figur.js','utf8').replace(/^'use strict';/,''), app=['core','progress','guests','app','balls','rum','garderobe','fashion','skole','kost','town','city','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
 const fonts='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">';
