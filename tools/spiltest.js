@@ -36,6 +36,25 @@ async function run(w, h){
   await p.waitForTimeout(600);
   ok(await p.evaluate(() => POT.lesson.n === 3 && !!document.querySelector('#potionBody .shop-veil')), `${tag} eliksirtimen: timen blev ikke færdig`);
   await noScroll('eliksir-slutkort');
+  /* kosteflyvning: loop ved dobbeltringe — de situationer en spiller faktisk kommer i */
+  const loopCase = (dx, dy) => p.evaluate(([dx, dy]) => {
+    window.KOST_AUTO = false; Kost.show(); document.querySelectorAll('#broomBody .kf-veil').forEach(v => v.remove());
+    const S = Kost.state(), lo = S.course.rings.find(r => r.dbl === 'lo');
+    S.run = 'fly'; S.x = lo.x + dx; S.y = lo.y + dy; S.vy = 0;
+    Kost.test.tryLoop();
+    for (let i = 0; i < 200 && (S.loop || S.boost > 0 || i < 10); i++){ if (!S.loop) S.vy = 0; Kost.test.step(1 / 60); }
+    return { boost: (S.loopN || 0) > 0, hi: S.seen.has(lo.pair), lo: S.seen.has(lo) };
+  }, [dx, dy]);
+  for (const [name, dx, dy, want] of [['lige i ringen', 0, 0, true], ['lidt før ringen', -120, 40, true], ['lige efter at have fløjet gennem den nederste', 150, -30, true], ['lidt for lavt', -60, 140, true], ['langt fra ringene', -700, 0, false], ['alt for højt', 0, -260, false]]){
+    const r = await loopCase(dx, dy); ok(r.boost === want, `${tag} loop ${name}: boost=${r.boost}, ville have ${want} (nederste ${r.lo}, øverste ${r.hi})`); }
+  /* og hvis man selv flyver gennem den nederste ring og først derefter holder fingeren nede */
+  { const r = await p.evaluate(() => { window.KOST_AUTO = false; Kost.show(); document.querySelectorAll('#broomBody .kf-veil').forEach(v => v.remove());
+      const S = Kost.state(), lo = S.course.rings.find(r => r.dbl === 'lo'); S.run = 'fly'; S.x = lo.x - 200; S.y = lo.y; S.vy = 0;
+      let t = 0; while (S.x < lo.x + 1 && t < 3){ S.vy = 0; Kost.test.step(1 / 60); t += 1 / 60; }
+      for (let i = 0; i < 15; i++){ S.vy = 0; Kost.test.step(1 / 60); }  /* holdetiden går */
+      Kost.test.tryLoop(); for (let i = 0; i < 200 && (S.loop || i < 10); i++) Kost.test.step(1 / 60);
+      return { boost: (S.loopN || 0) > 0, lo: S.seen.has(lo), hi: S.seen.has(lo.pair) }; });
+    ok(r.boost, `${tag} loop efter at have fløjet gennem den nederste ring: intet boost (nederste ${r.lo}, øverste ${r.hi})`); }
   /* kosteflyvning: en hel tur med autopilot */
   await p.evaluate(() => { window.KOST_AUTO = true; Kost.show(); }); await p.waitForTimeout(500); await noScroll('kosteflyvning');
   let res = null; for (let i = 0; i < 400 && !res; i++){ await p.waitForTimeout(250); res = await p.evaluate(() => Kost.state().result || null); }

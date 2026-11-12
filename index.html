@@ -1782,7 +1782,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.15.7';
+const VERSION = 'v0.15.8';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3912,7 +3912,7 @@ function lessonDone(){
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 490;
-  const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 380;
+  const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 260;
   /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
   /* banerne står i lige store trin bagud: samme forskydning fra din bane til den midterste som fra den midterste til den bagerste */
   const STEP_X = -110, STEP_Y = -85, STEP_K = .27;
@@ -4201,7 +4201,8 @@ const Kost = (() => {
      Man kan altid loope. Starter loopet lige i den nederste af to ringe over hinanden, går det op gennem
      den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste tre ringe (fem ringe i alt).
      Det er tilgivende: er man nogenlunde ud for den nederste ring, bliver man trukket ind i den. */
-  const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r) && r.x - f.x < 180 && r.x - f.x > -70 && Math.abs(r.y - f.y) < 170);
+  /* det par, man er ud for: også hvis man lige er fløjet gennem den nederste ring, før loopet nåede at starte */
+  const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r.pair) && r.x - f.x < 180 && r.x - f.x > -230 && Math.abs(r.y - f.y) < 170);
   const nearDouble = () => S.course.rings.some(r => r.dbl === 'lo' && !S.seen.has(r) && r.x - S.x < 650 && r.x - S.x > -60);
   function startLoop(f){
     if (f.loop || f.boost > 0) return false;
@@ -4248,7 +4249,8 @@ const Kost = (() => {
       if ((L.px - r.x) * (f.x - r.x) <= 0 && L.px !== f.x && Math.abs(f.y - r.y) < 100){ passRing(f, r); (L.got = L.got || new Set()).add(r); } }
     L.px = f.x;
     if (t >= 1){ f.loop = null; f.x = L.x0; f.y = L.y0; f.ang = 0; f.vy = 0;
-      const pair = L.got && [...L.got].find(r => r.dbl === 'lo' && L.got.has(r.pair));
+      /* boost: loopet gik gennem den øverste ring, og den nederste er taget (i loopet eller lige før) */
+      const pair = L.got && [...L.got].find(r => r.dbl === 'hi' && f.seen.has(r.pair));
       if (pair){ f.loopN = (f.loopN || 0) + 1; f.boost = BOOST_N; f.v = V0 * 1.5; if (f === S) boostStart(); } }
   }
   function moveBoost(f, dt){
@@ -4262,10 +4264,10 @@ const Kost = (() => {
   function crossRings(f, x0){
     for (const r of S.course.rings){
       if (f.seen.has(r) || !(x0 < r.x && f.x >= r.x)) continue;
-      if (r.dbl && f.seen.has(r.pair)){ f.seen.add(r); continue; }
       const d = Math.abs(f.y - r.y);
-      if (d < 100){ passRing(f, r); if (r.dbl) f.seen.add(r.pair); }
-      else if (!r.dbl || Math.abs(f.y - r.pair.y) >= 100) missRing(f, r, d);
+      if (d < 100) passRing(f, r);
+      else if (!r.dbl) missRing(f, r, d);
+      /* en dobbeltring, man ikke ramte, lades urørt, så et loop lige efter stadig kan tage den */
     }
   }
   function step(dt){
@@ -4383,7 +4385,7 @@ const Kost = (() => {
     return scopeIds(div.innerHTML, 'kp');
   }
   const teacherSvg = vb => renderDoll(TEACHER, { viewBox: vb, pet:false }).replace(/<\/svg>$/, GOGGLES + '</svg>');
-  return { show, state: () => S, previewSvg, teacherSvg, riderSvg: st => riderArt(st) };
+  return { show, state: () => S, previewSvg, teacherSvg, riderSvg: st => riderArt(st), test: { step, tryLoop } };
 })();
 
 /* ================= Titelskærm, byen, tæppet og musikken ================= */
