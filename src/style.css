@@ -630,3 +630,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-loop{opacity:.92}
 .kf-loop.busy{opacity:.4}
 .kf-loop:active{transform:scale(.94)}
+/* hold-tryk: en ring der fyldes op, mens man holder fingeren nede */
+.kf-hold{position:absolute;z-index:6;right:max(18px,env(safe-area-inset-right,0px));bottom:max(18px,env(safe-area-inset-bottom,0px));width:clamp(56px,12vh,84px);height:clamp(56px,12vh,84px);border-radius:50%;pointer-events:none;opacity:0;background:conic-gradient(#C79BFF var(--p,0%), rgba(255,255,255,.15) 0);-webkit-mask:radial-gradient(circle, transparent 55%, #000 57%);mask:radial-gradient(circle, transparent 55%, #000 57%)}
+.kf-hold.on{opacity:1;animation:kfhold .38s linear forwards}
+@property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
+@keyframes kfhold{from{--p:0%}to{--p:100%}}

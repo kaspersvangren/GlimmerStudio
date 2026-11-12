@@ -6,8 +6,10 @@
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 430;
-  const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2;
-  const TY = y => 150 + y * .5, TK = .5;   /* klassekammeraternes bane i baggrunden: halv størrelse */
+  const BOOST_N = 5, LOOP_R = 150, LOOP_T = 1.2, HOLD_MS = 380;
+  /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
+  const LANES = [{ k: .42, y0: 175, op: .62 }, { k: .55, y0: 120, op: .8 }];
+  const laneY = (L, y) => L.y0 + y * L.k;
   const RIDER_H = 250;
   const NS = 'http://www.w3.org/2000/svg';
   const mk = (tag, a = {}, html) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); if (html) e.innerHTML = html; return e; };
@@ -129,8 +131,8 @@ const Kost = (() => {
     tilt.innerHTML = inner; g.append(tilt);
     return g;
   }
-  function ringEls(r, k = 1, Y = y => y){
-    const col = r.dbl ? '#C79BFF' : '#F2C14E', dk = r.dbl ? '#6B3FA0' : '#A87A1A', rx = 40 * k, ry = 118 * k, y = Y(r.y);
+  function ringEls(r, k = 1, Y = y => y, tint){
+    const col = tint ? (r.dbl ? lt(tint, .35) : tint) : r.dbl ? '#C79BFF' : '#F2C14E', dk = tint ? fdk(tint, .35) : r.dbl ? '#6B3FA0' : '#A87A1A', rx = 40 * k, ry = 118 * k, y = Y(r.y);
     const arc = (side) => `M ${r.x} ${y - ry} A ${rx} ${ry} 0 0 ${side} ${r.x} ${y + ry}`;
     const back = mk('g', { class:'kf-ring' }, `<ellipse cx="${r.x}" cy="${y}" rx="${rx + 30 * k}" ry="${ry + 30 * k}" fill="${col}" opacity=".12"/><path d="${arc(0)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(0)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/>`);
     const front = mk('g', { class:'kf-ring' }, `<path d="${arc(1)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(1)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/><path d="M ${r.x + 18 * k} ${y - 80 * k} Q ${r.x + 34 * k} ${y - 20 * k} ${r.x + 26 * k} ${y + 40 * k}" fill="none" stroke="#FFFFFF" stroke-width="${4 * k}" stroke-linecap="round" opacity=".7"/>`
@@ -184,7 +186,7 @@ const Kost = (() => {
     o += `<g class="kf-far">${farTile()}<g transform="translate(3200 0)">${farTile()}</g></g>`;
     o += `<g class="kf-mid">${midTile()}<g transform="translate(3200 0)">${midTile()}</g></g>`;
     o += `<g class="kf-cloud">${cloudTile()}<g transform="translate(3200 0)">${cloudTile()}</g></g>`;
-    o += `<g class="kf-track"><g class="kf-trackB"></g><g class="kf-rivals"></g><g class="kf-trackF"></g></g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
+    o += `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
     o += `<g class="kf-near">${nearTile()}<g transform="translate(3200 0)">${nearTile()}</g></g>`;
     o += `<g class="kf-fx"></g>`;
     o += placeMood([], { vign: .6, dx: 200, dw: 1200 });
@@ -208,9 +210,9 @@ const Kost = (() => {
      Hvert løb trækkes nye tal, så det aldrig går helt ens. */
   function makeRivals(mates){
     const good = Math.random() < .5 ? 0 : 1;
-    return mates.map((m, i) => { const g = i === good, j = () => Math.random() * .1;
-      return { st: m.st, x: -120 - i * 90, y: 420 + i * 120, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0,
-        hit: g ? .82 + j() : .5 + j(), tryLoop: g ? .75 + j() : .4 + j(), aim: g ? .85 + j() : .5 + j(), wob: Math.random() * 6 }; });
+    return mates.map((m, i) => { const g = i === good, j = () => Math.random() * .08;
+      return { st: m.st, lane: LANES[i], li: i, x: i ? 40 : -40, y: 420 + i * 120, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0, els: new Map(),
+        off: g ? 120 : -160, hit: g ? .74 + j() : .5 + j(), tryLoop: g ? .6 + j() : .35 + j(), aim: g ? .72 + j() : .45 + j(), wob: Math.random() * 6 }; });
   }
 
   /* ---------- skærmen ---------- */
@@ -224,22 +226,27 @@ const Kost = (() => {
     S.ringsAll = S.course.rings.length;
     const box = $('#broomBody'); box.innerHTML = '';
     const scene = el('div', { class:'scene-wrap', id:'kfScene', html: scopeIds(sceneSvg(), 'kf') });
-    const loopBtn = el('button', { class:'kf-loop', type:'button', 'aria-label':'Loop', html:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M 10 34 C 2 24 8 8 24 8 C 40 8 46 24 38 34 C 32 42 20 42 16 34 C 12 26 20 18 28 22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M 26 16 L 30 23 L 22 26" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LOOP</span>' });
     const track = el('div', { class:'kf-track', 'aria-hidden':'true' }, [ el('div', { class:'kf-line' }), el('span', { class:'kf-flag' }, '🏁'),
       el('span', { class:'kf-dot r0', style:`background:${S.mates[0].st.robe.a}` }), el('span', { class:'kf-dot r1', style:`background:${S.mates[1].st.robe.a}` }), el('span', { class:'kf-dot me', style:`background:${hero.robe.a}` }) ]);
     const count = el('span', { class:'starpill kf-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
-    box.append(scene, track, loopBtn, ...placeUi([ backBtn('Gangen', () => { stop(); showSchool(); }) ], [ count, starPill() ]));
+    box.append(scene, track, ...placeUi([ backBtn('Gangen', () => { stop(); showSchool(); }) ], [ count, starPill() ]));
     /* banen bygges én gang som elementer i verden */
     const world = scene.querySelector('.kf-world'), front = scene.querySelector('.kf-front');
     for (const r of S.course.rings){ const [b, f] = ringEls(r); r.back = b; r.front = f; world.append(b); front.append(f); }
     for (const b of S.course.bubbles){ b.el = bubbleEl(b); world.append(b.el); }
-    const tb = scene.querySelector('.kf-trackB'), tf = scene.querySelector('.kf-trackF');
-    for (const r of S.course.rings){ const [b, f] = ringEls(r, TK, TY); tb.append(b); tf.append(f); }
+    S.rivals.forEach(rv => { const tb = scene.querySelector('.kf-trackB.l' + rv.li), tf = scene.querySelector('.kf-trackF.l' + rv.li), col = lt(rv.st.robe.a, .25);
+      for (const r of S.course.rings){ const [b, f] = ringEls(r, rv.lane.k, y => laneY(rv.lane, y), col); tb.append(b); tf.append(f); rv.els.set(r, [b, f]); } });
     world.append(mk('g', {}, gate(S.course.end)));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
-    S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals').append(rv.el); });
-    scene.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; flap(); });
-    loopBtn.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); tryLoop(); });
+    S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
+    /* kort tryk = flyv op, hold fingeren nede = loop */
+    let holdT = 0;
+    const release = () => { clearTimeout(holdT); holdT = 0; const h = $('#broomBody .kf-hold'); if (h) h.classList.remove('on'); };
+    scene.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; flap(); release();
+      const h = $('#broomBody .kf-hold'); if (h && S.run === 'fly'){ h.classList.remove('on'); void h.offsetWidth; h.classList.add('on'); }
+      holdT = setTimeout(() => { holdT = 0; tryLoop(); release(); }, HOLD_MS); });
+    for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) scene.addEventListener(ev, release);
+    box.append(el('div', { class:'kf-hold', 'aria-hidden':'true' }));
     if (!keyOn){ keyOn = true; document.addEventListener('keydown', e => { if (!S || $('#broom').hidden) return; if (e.key === ' ' || e.key === 'ArrowUp'){ e.preventDefault(); flap(); } if (e.key === 'l' || e.key === 'L') tryLoop(); }); }
     draw();
     intro();
@@ -252,7 +259,7 @@ const Kost = (() => {
       el('div', { class:'reveal-info' }, [
         el('p', { class:'reveal-cat' }, TEACH),
         el('h3', { class:'reveal-name' }, 'Klar til at flyve?'),
-        el('p', { class:'kf-how' }, 'Tryk på skærmen for at flyve op. Flyv gennem ringene, så går det hurtigere. Du kan altid lave et LOOP. Starter du det lige i den nederste af to ringe, flyver du gennem begge og får et boost!'),
+        el('p', { class:'kf-how' }, 'Tryk kort for at flyve op. Hold fingeren nede for at lave et loop. Laver du loopet lige i den nederste af to ringe, flyver du gennem begge og får et boost!'),
         el('div', { class:'reveal-btns row' }, [ el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); veil.remove(); countdown(); } } }, 'Klar!') ]) ]) ]);
     const veil = el('div', { class:'shop-veil kf-veil' }, [ card ]);
     $('#broomBody').append(veil);
@@ -281,7 +288,7 @@ const Kost = (() => {
   function passRing(f, r){
     if (f.seen.has(r)) return; f.seen.add(r); f.passN = (f.passN || 0) + 1;
     if (f.boost <= 0) f.v = Math.min(V0 * 1.38, f.v + 55);
-    if (f !== S) return;
+    if (f !== S){ const e = f.els && f.els.get(r); if (e) e.forEach(x => x.classList.add('ok')); return; }
     S.rings++; r.back.classList.add('ok'); r.front.classList.add('ok');
     tone(880 + (S.rings % 5) * 60, 0.12, 'triangle', 0.05); tone(1320, 0.1, 'triangle', 0.035, 0.06);
     spark(r.x, r.y, r.dbl ? '#C79BFF' : '#FFE27A', 7);
@@ -317,7 +324,7 @@ const Kost = (() => {
     const nr = S.course.rings.find(r => !f.seen.has(r) && r.x >= f.x - 5 && !r.dbl);
     if (!nr){ f.boost = 0; if (f === S) boostEnd(); return; }
     f.y += (nr.y - f.y) * Math.min(1, dt * 6); f.vy = 0; f.ang = 0;
-    if (x0 < nr.x && f.x >= nr.x){ passRing(f, nr); f.boost--; if (f.boost <= 0){ f.v = V0 * 1.3; if (f === S) boostEnd(); } }
+    if (x0 < nr.x && f.x >= nr.x){ passRing(f, nr); f.boost--; f.bN = (f.bN || 0) + 1; if (f.boost <= 0){ f.v = V0 * 1.3; if (f === S) boostEnd(); } }
   }
   function crossRings(f, x0){
     for (const r of S.course.rings){
@@ -354,7 +361,8 @@ const Kost = (() => {
     if (rv.loop){ moveLoop(rv, dt); return; }
     if (rv.boost > 0){ moveBoost(rv, dt); if (!rv.finT && rv.x >= S.course.end) rv.finT = S.t; return; }
     const x0 = rv.x;
-    rv.x += rv.v * dt; rv.v += (V0 - rv.v) * Math.min(1, dt * .35);
+    const band = 1 + clamp((S.x + rv.off - rv.x) / 2500, -.22, .22);   /* gummibånd: de bliver i nærheden, men dygtighed tæller stadig */
+    rv.x += rv.v * band * dt; rv.v += (V0 - rv.v) * Math.min(1, dt * .35);
     const r = S.course.rings.find(q => !rv.seen.has(q) && q.x > rv.x - 5 && (!q.dbl || q.dbl === 'lo'));
     if (r && (!rv.plan || rv.plan.r !== r)){
       const off = () => (Math.random() < .5 ? -1 : 1) * (130 + Math.random() * 70);
@@ -386,18 +394,18 @@ const Kost = (() => {
     sc.querySelector('.kf-world').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-front').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-fx').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-track').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
+    sc.querySelector('.kf-lanes').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
     S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
     /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */
     S.rivals.forEach((rv, i) => {
-      rv.el.setAttribute('transform', `translate(${rv.x.toFixed(1)} ${TY(rv.y).toFixed(1)}) scale(${TK})`);
+      rv.el.setAttribute('transform', `translate(${rv.x.toFixed(1)} ${laneY(rv.lane, rv.y).toFixed(1)}) scale(${rv.lane.k})`);
       rv.el.firstChild.setAttribute('transform', `rotate(${(rv.ang || 0).toFixed(1)})`);
       rv.el.classList.toggle('boost', rv.boost > 0);
       const dot = $('#broomBody .kf-dot.r' + i); if (dot) dot.style.left = (clamp(rv.x / S.course.end, 0, 1) * 100).toFixed(1) + '%';
     });
     const me = $('#broomBody .kf-dot.me'); if (me) me.style.left = (clamp(S.x / S.course.end, 0, 1) * 100).toFixed(1) + '%';
-    const lb = $('#broomBody .kf-loop'); if (lb){ lb.classList.toggle('on', S.run === 'fly' && !S.loop && S.boost <= 0 && nearDouble()); lb.classList.toggle('busy', !!(S.loop || S.boost > 0)); }
+    
   }
 
   /* ---------- i mål ---------- */
@@ -426,7 +434,7 @@ const Kost = (() => {
           el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); goTo(show); } } }, 'Flyv igen') ]) ]) ]);
     const veil = el('div', { class:'shop-veil' }, [ card ]);
     $('#broomBody').append(veil); confetti(veil, place === 1 ? 70 : 30);
-    S.result = { place, stars, time: T, rings: S.rings, bubbles: S.bubbles, loops: S.loopN || 0, rivals: S.rivals.map((rv, i) => ({ t: +rTimes[i].toFixed(1), rings: rv.passN || 0, loops: rv.loopN || 0, hit: +rv.hit.toFixed(2) })) };
+    S.result = { place, stars, time: T, rings: S.rings, bubbles: S.bubbles, loops: S.loopN || 0, boostRings: S.bN || 0, rivals: S.rivals.map((rv, i) => ({ t: +rTimes[i].toFixed(1), rings: rv.passN || 0, loops: rv.loopN || 0, hit: +rv.hit.toFixed(2) })) };
   }
   /* til Tegnebordet: et stillbillede af banen og læreren */
   function previewSvg(){
@@ -435,8 +443,9 @@ const Kost = (() => {
     for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }]){ const [b, f] = ringEls(r); world.append(b); front.append(f); }
     world.append(bubbleEl({ x: 1000, y: 300 }));
     const me = rider(hero); me.setAttribute('transform', 'translate(430 560)'); q('.kf-me').append(me);
-    for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }]){ const [b, f] = ringEls(r, TK, TY); q('.kf-trackB').append(b); q('.kf-trackF').append(f); }
-    const m = randomGuest([]), rv = rider(m.st, { cls:'kf-rival' }); rv.setAttribute('transform', `translate(760 ${TY(470)}) scale(${TK})`); q('.kf-rivals').append(rv);
+    LANES.forEach((L, i) => { const m = randomGuest([]), col = lt(m.st.robe.a, .25);
+      for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }, { x: 1700, y: 400 }]){ const [b, f] = ringEls(r, L.k, y => laneY(L, y), col); q('.kf-trackB.l' + i).append(b); q('.kf-trackF.l' + i).append(f); }
+      const rv = rider(m.st, { cls:'kf-rival' }); rv.setAttribute('transform', `translate(${i ? 1240 : 760} ${laneY(L, i ? 660 : 470)}) scale(${L.k})`); q('.kf-rivals.l' + i).append(rv); });
     for (const [c, k] of [['.kf-far', .12], ['.kf-mid', .35], ['.kf-cloud', .6], ['.kf-near', 1.25]]) q(c).setAttribute('transform', 'translate(-800 0)');
     return scopeIds(div.innerHTML, 'kp');
   }
