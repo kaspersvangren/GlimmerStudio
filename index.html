@@ -642,6 +642,9 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-medal{width:min(36vh,200px,26vw);flex:none;position:relative;z-index:1;filter:drop-shadow(0 0 16px rgba(255,220,120,.5))}
 .kf-medal svg{width:100%;height:auto;display:block}
 @media (prefers-reduced-motion: reduce){ .kf-bob,.kf-loop.on,.kf-big.pop{animation:none!important} }
+.kf-loop{opacity:.92}
+.kf-loop.busy{opacity:.4}
+.kf-loop:active{transform:scale(.94)}
 
 </style>
 </head>
@@ -1771,7 +1774,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Glimmerskolen';
-const VERSION = 'v0.15.1';
+const VERSION = 'v0.15.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3901,7 +3904,8 @@ function lessonDone(){
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 430;
-  const BOOST_N = 5;
+  const BOOST_N = 3, LOOP_R = 150, LOOP_T = 1.2;
+  const TY = y => 150 + y * .5, TK = .5;   /* klassekammeraternes bane i baggrunden: halv størrelse */
   const RIDER_H = 250;
   const NS = 'http://www.w3.org/2000/svg';
   const mk = (tag, a = {}, html) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(a)) e.setAttribute(k, v); if (html) e.innerHTML = html; return e; };
@@ -4018,17 +4022,17 @@ const Kost = (() => {
   function rider(st, opts = {}){
     const g = mk('g', { class:'kf-rider' + (opts.cls ? ' ' + opts.cls : '') });
     const tilt = mk('g', { class:'kf-tilt' });
-    let inner = `<g transform="translate(0 46) scale(.78)">${riderArt(st)}</g>`;
-    if (opts.trail) inner = `<g class="kf-trail">${[0, 1, 2, 3].map(i => star4(-210 - i * 34, 6 + (i % 2) * 10, 10 - i * 1.5, '#FFF6D0', .9 - i * .2)).join('')}</g>` + inner;
+    let inner = `<g transform="translate(0 34) scale(.58)">${riderArt(st)}</g>`;
+    if (opts.trail) inner = `<g class="kf-trail">${[0, 1, 2, 3].map(i => star4(-150 - i * 30, 30 + (i % 2) * 10, 10 - i * 1.5, '#FFF6D0', .9 - i * .2)).join('')}</g>` + inner;
     tilt.innerHTML = inner; g.append(tilt);
     return g;
   }
-  function ringEls(r){
-    const col = r.dbl ? '#C79BFF' : '#F2C14E', dk = r.dbl ? '#6B3FA0' : '#A87A1A', rx = 40, ry = 118;
-    const arc = (side) => `M ${r.x} ${r.y - ry} A ${rx} ${ry} 0 0 ${side} ${r.x} ${r.y + ry}`;
-    const back = mk('g', { class:'kf-ring' }, `<ellipse cx="${r.x}" cy="${r.y}" rx="${rx + 30}" ry="${ry + 30}" fill="${col}" opacity=".12"/><path d="${arc(0)}" fill="none" stroke="${dk}" stroke-width="20" stroke-linecap="round"/><path d="${arc(0)}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round"/>`);
-    const front = mk('g', { class:'kf-ring' }, `<path d="${arc(1)}" fill="none" stroke="${dk}" stroke-width="20" stroke-linecap="round"/><path d="${arc(1)}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round"/><path d="M ${r.x + 18} ${r.y - 80} Q ${r.x + 34} ${r.y - 20} ${r.x + 26} ${r.y + 40}" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity=".7"/>`
-      + (r.dbl === 'hi' ? `<g transform="translate(${r.x} ${r.y + 150})"><rect x="-52" y="-20" width="104" height="40" rx="20" fill="#6B3FA0" stroke="#FFFFFF" stroke-width="3"/><text x="0" y="9" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="24" fill="#FFFFFF">LOOP</text></g>` : ''));
+  function ringEls(r, k = 1, Y = y => y){
+    const col = r.dbl ? '#C79BFF' : '#F2C14E', dk = r.dbl ? '#6B3FA0' : '#A87A1A', rx = 40 * k, ry = 118 * k, y = Y(r.y);
+    const arc = (side) => `M ${r.x} ${y - ry} A ${rx} ${ry} 0 0 ${side} ${r.x} ${y + ry}`;
+    const back = mk('g', { class:'kf-ring' }, `<ellipse cx="${r.x}" cy="${y}" rx="${rx + 30 * k}" ry="${ry + 30 * k}" fill="${col}" opacity=".12"/><path d="${arc(0)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(0)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/>`);
+    const front = mk('g', { class:'kf-ring' }, `<path d="${arc(1)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(1)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/><path d="M ${r.x + 18 * k} ${y - 80 * k} Q ${r.x + 34 * k} ${y - 20 * k} ${r.x + 26 * k} ${y + 40 * k}" fill="none" stroke="#FFFFFF" stroke-width="${4 * k}" stroke-linecap="round" opacity=".7"/>`
+      + (r.dbl === 'hi' && k === 1 ? `<g transform="translate(${r.x} ${y + 150})"><rect x="-52" y="-20" width="104" height="40" rx="20" fill="#6B3FA0" stroke="#FFFFFF" stroke-width="3"/><text x="0" y="9" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="24" fill="#FFFFFF">LOOP</text></g>` : ''));
     return [back, front];
   }
   function bubbleEl(b){
@@ -4078,7 +4082,7 @@ const Kost = (() => {
     o += `<g class="kf-far">${farTile()}<g transform="translate(3200 0)">${farTile()}</g></g>`;
     o += `<g class="kf-mid">${midTile()}<g transform="translate(3200 0)">${midTile()}</g></g>`;
     o += `<g class="kf-cloud">${cloudTile()}<g transform="translate(3200 0)">${cloudTile()}</g></g>`;
-    o += `<g class="kf-rivals"></g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
+    o += `<g class="kf-track"><g class="kf-trackB"></g><g class="kf-rivals"></g><g class="kf-trackF"></g></g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
     o += `<g class="kf-near">${nearTile()}<g transform="translate(3200 0)">${nearTile()}</g></g>`;
     o += `<g class="kf-fx"></g>`;
     o += placeMood([], { vign: .6, dx: 200, dw: 1200 });
@@ -4098,23 +4102,27 @@ const Kost = (() => {
       bubbles.push({ x: (a.x + b.x) / 2, y: clamp((a.y + b.y) / 2 + (Math.random() < .5 ? -170 : 170), 200, 820) }); }
     return { rings, bubbles, end: x + 300 };
   }
-  function rivalPlan(){
-    /* to klassekammerater: en lidt langsom og en hurtig; farten svinger lidt undervejs */
-    return [{ v: V0 * (1.07 + Math.random() * .04), ph: Math.random() * 6, lane: 300 }, { v: V0 * (1.28 + Math.random() * .04), ph: Math.random() * 6, lane: 470 }];
+  /* to klassekammerater med hver sin dygtighed: den ene rammer det meste og looper tit, den anden misser mere.
+     Hvert løb trækkes nye tal, så det aldrig går helt ens. */
+  function makeRivals(mates){
+    const good = Math.random() < .5 ? 0 : 1;
+    return mates.map((m, i) => { const g = i === good, j = () => Math.random() * .1;
+      return { st: m.st, x: -120 - i * 90, y: 420 + i * 120, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0,
+        hit: g ? .82 + j() : .5 + j(), tryLoop: g ? .75 + j() : .4 + j(), aim: g ? .85 + j() : .5 + j(), wob: Math.random() * 6 }; });
   }
-  const rivalDist = (rv, t) => rv.v * t + 60 * Math.sin(t * .8 + rv.ph) - 60 * Math.sin(rv.ph);
 
   /* ---------- skærmen ---------- */
   function show(){
     showScreen('#broom'); playMusic('show');
     const hero = heroState(), taken = [];
     const mates = [0, 1].map(i => { const own = i === 0 && Math.random() < 0.3 ? ownGuest(figures.length ? figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].id : null) : null; const g = own || randomGuest(taken); taken.push(g.name); return g; });
-    S = { hero, mates, course: makeCourse(), rivals: rivalPlan(), x: 0, y: 520, vy: 0, v: V0, t: 0, run: 'wait', cam: 0,
+    S = { hero, mates, course: makeCourse(), x: 0, y: 520, vy: 0, v: V0, ang: 0, t: 0, run: 'wait', cam: 0, seen: new Set(), me: true,
       rings: 0, ringsAll: 0, bubbles: 0, loop: null, boost: 0, flash: 0, bonk: 0, finT: 0, auto: !!(window.KOST_AUTO) };
+    S.rivals = makeRivals(mates);
     S.ringsAll = S.course.rings.length;
     const box = $('#broomBody'); box.innerHTML = '';
     const scene = el('div', { class:'scene-wrap', id:'kfScene', html: scopeIds(sceneSvg(), 'kf') });
-    const loopBtn = el('button', { class:'kf-loop', type:'button', disabled: true, 'aria-label':'Loop', html:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M 10 34 C 2 24 8 8 24 8 C 40 8 46 24 38 34 C 32 42 20 42 16 34 C 12 26 20 18 28 22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M 26 16 L 30 23 L 22 26" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LOOP</span>' });
+    const loopBtn = el('button', { class:'kf-loop', type:'button', 'aria-label':'Loop', html:'<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M 10 34 C 2 24 8 8 24 8 C 40 8 46 24 38 34 C 32 42 20 42 16 34 C 12 26 20 18 28 22" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M 26 16 L 30 23 L 22 26" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>LOOP</span>' });
     const track = el('div', { class:'kf-track', 'aria-hidden':'true' }, [ el('div', { class:'kf-line' }), el('span', { class:'kf-flag' }, '🏁'),
       el('span', { class:'kf-dot r0', style:`background:${S.mates[0].st.robe.a}` }), el('span', { class:'kf-dot r1', style:`background:${S.mates[1].st.robe.a}` }), el('span', { class:'kf-dot me', style:`background:${hero.robe.a}` }) ]);
     const count = el('span', { class:'starpill kf-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
@@ -4123,11 +4131,13 @@ const Kost = (() => {
     const world = scene.querySelector('.kf-world'), front = scene.querySelector('.kf-front');
     for (const r of S.course.rings){ const [b, f] = ringEls(r); r.back = b; r.front = f; world.append(b); front.append(f); }
     for (const b of S.course.bubbles){ b.el = bubbleEl(b); world.append(b.el); }
+    const tb = scene.querySelector('.kf-trackB'), tf = scene.querySelector('.kf-trackF');
+    for (const r of S.course.rings){ const [b, f] = ringEls(r, TK, TY); tb.append(b); tf.append(f); }
     world.append(mk('g', {}, gate(S.course.end)));
-    S.me = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.me);
-    S.rv = S.mates.map((m, i) => { const g = rider(m.st, { cls:'kf-rival' }); scene.querySelector('.kf-rivals').append(g); return g; });
+    S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
+    S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals').append(rv.el); });
     scene.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; flap(); });
-    loopBtn.addEventListener('click', e => { e.stopPropagation(); tryLoop(); });
+    loopBtn.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); tryLoop(); });
     if (!keyOn){ keyOn = true; document.addEventListener('keydown', e => { if (!S || $('#broom').hidden) return; if (e.key === ' ' || e.key === 'ArrowUp'){ e.preventDefault(); flap(); } if (e.key === 'l' || e.key === 'L') tryLoop(); }); }
     draw();
     intro();
@@ -4140,7 +4150,7 @@ const Kost = (() => {
       el('div', { class:'reveal-info' }, [
         el('p', { class:'reveal-cat' }, TEACH),
         el('h3', { class:'reveal-name' }, 'Klar til at flyve?'),
-        el('p', { class:'kf-how' }, 'Tryk på skærmen for at flyve op. Flyv gennem ringene, så går det hurtigere. Ved to ringe over hinanden: tryk på LOOP!'),
+        el('p', { class:'kf-how' }, 'Tryk på skærmen for at flyve op. Flyv gennem ringene, så går det hurtigere. Du kan altid lave et LOOP. Starter du det lige i den nederste af to ringe, flyver du gennem begge og får et boost!'),
         el('div', { class:'reveal-btns row' }, [ el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); veil.remove(); countdown(); } } }, 'Klar!') ]) ]) ]);
     const veil = el('div', { class:'shop-veil kf-veil' }, [ card ]);
     $('#broomBody').append(veil);
@@ -4153,22 +4163,30 @@ const Kost = (() => {
     big.remove(); S.run = 'fly'; S.t = 0; S.last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
   }
   function stop(){ cancelAnimationFrame(raf); raf = 0; if (S) S.run = 'stop'; }
-  function flap(){ if (!S || S.run !== 'fly' || S.loop) return; if (S.boost > 0) return; S.vy = FLAP; tone(520, 0.06, 'sine', 0.035, 0, 1.6); }
+  function flap(){ if (!S || S.run !== 'fly' || S.loop || S.boost > 0) return; S.vy = FLAP; tone(520, 0.06, 'sine', 0.035, 0, 1.6); }
 
-  /* ---------- loop og boost ---------- */
-  function nextDouble(){ return S.course.rings.find(r => r.dbl === 'lo' && !r.done && r.x > S.x - 40); }
-  function loopReady(){ if (!S || S.run !== 'fly' || S.loop || S.boost > 0) return null; const r = nextDouble(); return r && r.x - S.x < 760 && r.x - S.x > -40 ? r : null; }
-  function tryLoop(){
-    const r = loopReady(); if (!r){ return; }
-    S.loop = { lo: r, hi: r.pair, ph: 'ind', t: 0, cam: S.cam };
-    sfx.magic();
+  /* ---------- loop og boost ----------
+     Man kan altid loope. Starter loopet lige i den nederste af to ringe over hinanden, går det op gennem
+     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste tre ringe. */
+  const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r) && Math.abs(r.x - f.x) < 75 && Math.abs(r.y - f.y) < 100);
+  const nearDouble = () => S.course.rings.some(r => r.dbl === 'lo' && !S.seen.has(r) && r.x - S.x < 650 && r.x - S.x > -60);
+  function startLoop(f){
+    if (f.loop || f.boost > 0) return false;
+    f.loop = { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: pairAt(f) || null };
+    return true;
   }
-  function passRing(r, boosted){
-    if (r.done) return; r.done = true; S.rings++;
-    r.back.classList.add('ok'); r.front.classList.add('ok');
-    if (!boosted) S.v = Math.min(V0 * 1.38, S.v + 55);
+  function tryLoop(){ if (!S || S.run !== 'fly') return; if (startLoop(S)){ S.vy = 0; S.loop.hit ? sfx.magic() : tone(500, 0.3, 'sine', 0.04, 0, 1.8); } }
+  function passRing(f, r){
+    if (f.seen.has(r)) return; f.seen.add(r); f.passN = (f.passN || 0) + 1;
+    if (f.boost <= 0) f.v = Math.min(V0 * 1.38, f.v + 55);
+    if (f !== S) return;
+    S.rings++; r.back.classList.add('ok'); r.front.classList.add('ok');
     tone(880 + (S.rings % 5) * 60, 0.12, 'triangle', 0.05); tone(1320, 0.1, 'triangle', 0.035, 0.06);
     spark(r.x, r.y, r.dbl ? '#C79BFF' : '#FFE27A', 7);
+  }
+  function missRing(f, r, d){
+    f.seen.add(r);
+    if (d < 140){ f.v = Math.max(V0 * .8, f.v - 60); if (f === S){ S.vy = S.y < r.y ? -260 : 260; tone(200, 0.1, 'square', 0.03, 0, 0.8); } }
   }
   function spark(x, y, col, n){
     if (calm) return; const fx = $('#kfScene .kf-fx'); if (!fx) return;
@@ -4184,54 +4202,75 @@ const Kost = (() => {
     step(dt); draw();
     raf = requestAnimationFrame(frame);
   }
+  /* fælles for figuren og klassekammeraterne: loop, boost og ringene man flyver igennem */
+  function moveLoop(f, dt){
+    const L = f.loop; L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, cy = L.y0 - LOOP_R;
+    f.x = L.x0 + LOOP_R * Math.cos(a); f.y = cy + LOOP_R * Math.sin(a); f.ang = Math.atan2(-Math.cos(a), Math.sin(a)) * 180 / Math.PI;
+    if (L.hit){ if (t > .05) passRing(f, L.hit); if (t >= .5) passRing(f, L.hit.pair); }
+    if (t >= 1){ f.loop = null; f.x = L.x0; f.y = L.y0; f.ang = 0; f.vy = 0;
+      if (L.hit){ f.loopN = (f.loopN || 0) + 1; f.boost = BOOST_N; f.v = V0 * 1.5; if (f === S) boostStart(); } }
+  }
+  function moveBoost(f, dt){
+    const x0 = f.x; f.x += f.v * dt;
+    const nr = S.course.rings.find(r => !f.seen.has(r) && r.x >= f.x - 5 && !r.dbl);
+    if (!nr){ f.boost = 0; if (f === S) boostEnd(); return; }
+    f.y += (nr.y - f.y) * Math.min(1, dt * 6); f.vy = 0; f.ang = 0;
+    if (x0 < nr.x && f.x >= nr.x){ passRing(f, nr); f.boost--; if (f.boost <= 0){ f.v = V0 * 1.3; if (f === S) boostEnd(); } }
+  }
+  function crossRings(f, x0){
+    for (const r of S.course.rings){
+      if (f.seen.has(r) || !(x0 < r.x && f.x >= r.x)) continue;
+      if (r.dbl && f.seen.has(r.pair)){ f.seen.add(r); continue; }
+      const d = Math.abs(f.y - r.y);
+      if (d < 100){ passRing(f, r); if (r.dbl) f.seen.add(r.pair); }
+      else if (!r.dbl || Math.abs(f.y - r.pair.y) >= 100) missRing(f, r, d);
+    }
+  }
   function step(dt){
     if (S.run === 'fly' || S.run === 'done') S.t += dt;
+    for (const rv of S.rivals) if (S.run === 'fly' || S.run === 'done') rivalStep(rv, dt);
+    if (S.loop){ moveLoop(S, dt); if (S.loop) S.cam = S.loop.cam; else S.cam = S.x - PX; return; }
     const x0 = S.x;
-    if (S.loop){
-      const L = S.loop, cy = (L.lo.y + L.hi.y) / 2, rad = (L.lo.y - L.hi.y) / 2;
-      if (L.ph === 'ind'){ /* styr selv ned til den nederste ring */
-        S.x += S.v * 1.15 * dt; const k = clamp(1 - (L.lo.x - S.x) / 700, 0, 1); S.y += (L.lo.y - S.y) * Math.min(1, dt * (3 + 6 * k)); S.vy = 0;
-        if (S.x >= L.lo.x){ S.x = L.lo.x; S.y = L.lo.y; L.ph = 'rundt'; L.t = 0; L.cam = S.x - PX; passRing(L.lo, true); }
-      } else {
-        L.t += dt / 1.5; const t = Math.min(1, L.t), f = Math.PI / 2 - 2 * Math.PI * t;
-        S.x = L.lo.x + rad * Math.cos(f); S.y = cy + rad * Math.sin(f); S.ang = Math.atan2(-Math.cos(f), Math.sin(f)) * 180 / Math.PI;
-        if (t >= .5 && !L.hi.done) passRing(L.hi, true);
-        if (t >= 1){ S.loop = null; S.x = L.lo.x; S.y = L.lo.y; S.ang = 0; S.boost = BOOST_N; S.v = V0 * 1.55; boostStart(); }
-        S.cam = L.cam; return;
-      }
-    } else if (S.boost > 0){
-      S.x += S.v * dt;
-      const nr = S.course.rings.find(r => !r.done && r.x >= S.x - 5 && !r.dbl);
-      if (nr){ S.y += (nr.y - S.y) * Math.min(1, dt * 6); if (x0 < nr.x && S.x >= nr.x){ passRing(nr, true); S.boost--; if (S.boost <= 0) boostEnd(); } } else { S.boost = 0; boostEnd(); }
-      S.vy = 0;
-      /* boostet tager også de bobler, der ligger tæt på */
-    } else {
+    if (S.boost > 0) moveBoost(S, dt);
+    else {
       S.x += S.v * dt;
       S.vy = Math.min(VMAXF, S.vy + GRAV * dt); S.y += S.vy * dt;
       if (S.y > BOT){ S.y = BOT; S.vy = -480; S.v = Math.max(V0 * .8, S.v - 40); tone(160, 0.12, 'sine', 0.06, 0, 0.7); }
       if (S.y < TOP){ S.y = TOP; S.vy = Math.max(0, S.vy); }
       S.v += (V0 - S.v) * Math.min(1, dt * .35);
-      /* ringe vi passerer */
-      for (const r of S.course.rings){
-        if (r.done || r.missed || !(x0 < r.x && S.x >= r.x)) continue;
-        const d = Math.abs(S.y - r.y);
-        if (d < 100) passRing(r);
-        else { r.missed = true; if (d < 140){ S.vy = S.y < r.y ? -260 : 260; S.v = Math.max(V0 * .8, S.v - 60); tone(200, 0.1, 'square', 0.03, 0, 0.8); S.bonk = .4; } }
-      }
+      crossRings(S, x0);
       if (S.auto) autopilot();
+      S.ang = clamp(S.vy / 30, -16, 22);
     }
     /* bobler */
-    for (const b of S.course.bubbles){ if (b.got) continue; const dx = b.x - S.x, dy = b.y - (S.y - 40); if (dx * dx + dy * dy < (S.boost > 0 ? 130 * 130 : 80 * 80)){ b.got = true; S.bubbles++; b.el.classList.add('pop'); sfx.coin(); spark(b.x, b.y, '#FFE27A', 6); const n = $('#broomBody .kf-count .n'); if (n) n.textContent = S.bubbles; } }
-    S.ang = S.loop ? S.ang : clamp(S.vy / 30, -16, 22) * (S.boost > 0 ? 0 : 1);
+    for (const b of S.course.bubbles){ if (b.got) continue; const dx = b.x - S.x, dy = b.y - S.y; if (dx * dx + dy * dy < (S.boost > 0 ? 130 * 130 : 85 * 85)){ b.got = true; S.bubbles++; b.el.classList.add('pop'); sfx.coin(); spark(b.x, b.y, '#FFE27A', 6); const n = $('#broomBody .kf-count .n'); if (n) n.textContent = S.bubbles; } }
     S.cam = S.x - PX;
-    if (S.bonk > 0) S.bonk -= dt;
     if (S.run === 'fly' && S.x >= S.course.end){ S.run = 'done'; S.finT = S.t; finish(); }
   }
-  function boostStart(){ S.me.classList.add('boost'); tone(660, 0.4, 'sawtooth', 0.03, 0, 2); const b = $('#broomBody .kf-big') || el('div', { class:'kf-big boostmsg' }, 'BOOST!'); $('#broomBody').append(b); setTimeout(() => b.remove(), 1000); }
-  function boostEnd(){ S.me.classList.remove('boost'); S.v = V0 * 1.3; }
+  /* klassekammeraterne: de bestemmer sig for hver ring, om de rammer, og ved dobbeltringe om de prøver et loop */
+  function rivalStep(rv, dt){
+    if (rv.loop){ moveLoop(rv, dt); return; }
+    if (rv.boost > 0){ moveBoost(rv, dt); if (!rv.finT && rv.x >= S.course.end) rv.finT = S.t; return; }
+    const x0 = rv.x;
+    rv.x += rv.v * dt; rv.v += (V0 - rv.v) * Math.min(1, dt * .35);
+    const r = S.course.rings.find(q => !rv.seen.has(q) && q.x > rv.x - 5 && (!q.dbl || q.dbl === 'lo'));
+    if (r && (!rv.plan || rv.plan.r !== r)){
+      const off = () => (Math.random() < .5 ? -1 : 1) * (130 + Math.random() * 70);
+      if (r.dbl){ const lp = Math.random() < rv.tryLoop, aimOk = Math.random() < rv.aim;
+        rv.plan = lp ? { r, loop: true, y: r.y + (aimOk ? (Math.random() * 40 - 20) : off() * .8) } : { r, y: Math.random() < rv.hit ? (Math.random() < .5 ? r.y : r.pair.y) + (Math.random() * 40 - 20) : (r.y + r.pair.y) / 2 + (Math.random() * 30 - 15) };
+      } else rv.plan = { r, y: Math.random() < rv.hit ? r.y + (Math.random() * 50 - 25) : r.y + off() };
+    }
+    const ty = rv.plan ? rv.plan.y : 480, k = Math.min(1, dt * 2.6);
+    const ny = rv.y + (ty - rv.y) * k + Math.sin(S.t * 2 + rv.wob) * 0.6; rv.ang = clamp((ny - rv.y) / dt / 30, -16, 22); rv.y = clamp(ny, TOP, BOT);
+    if (rv.plan && rv.plan.loop && rv.x >= rv.plan.r.x - 20){ rv.plan.loop = false; startLoop(rv); return; }
+    crossRings(rv, x0);
+    if (!rv.finT && rv.x >= S.course.end) rv.finT = S.t;
+  }
+  function boostStart(){ S.el.classList.add('boost'); tone(660, 0.4, 'sawtooth', 0.03, 0, 2); const b = el('div', { class:'kf-big boostmsg' }, 'BOOST!'); $('#broomBody').append(b); setTimeout(() => b.remove(), 1000); }
+  function boostEnd(){ S.el.classList.remove('boost'); }
   function autopilot(){
-    const r = S.course.rings.find(q => !q.done && !q.missed && q.x > S.x);
-    const lr = loopReady(); if (lr && Math.random() < 0.05) tryLoop();
+    const r = S.course.rings.find(q => !S.seen.has(q) && q.x > S.x - 10 && q.dbl !== 'hi');
+    if (r && r.dbl === 'lo' && Math.abs(r.x - S.x) < 50 && Math.abs(r.y - S.y) < 80 && Math.random() < .7){ tryLoop(); return; }
     const ty = r ? r.y + 10 : 520;
     if (S.y > ty + 20 && S.vy > -120) S.vy = FLAP;
   }
@@ -4245,21 +4284,23 @@ const Kost = (() => {
     sc.querySelector('.kf-world').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-front').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-fx').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    S.me.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
-    S.me.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
-    /* klassekammeraterne i baggrunden, mindre og lidt blegere */
+    sc.querySelector('.kf-track').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
+    S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
+    S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
+    /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */
     S.rivals.forEach((rv, i) => {
-      const d = S.run === 'fly' || S.run === 'done' ? rivalDist(rv, S.t) : 0, sx = PX + (d - S.x) * .9, sy = rv.lane + Math.sin(S.t * 1.3 + rv.ph) * 60;
-      S.rv[i].setAttribute('transform', `translate(${sx.toFixed(1)} ${sy.toFixed(1)}) scale(.6)`);
-      const dot = $('#broomBody .kf-dot.r' + i); if (dot) dot.style.left = (clamp(d / S.course.end, 0, 1) * 100).toFixed(1) + '%';
+      rv.el.setAttribute('transform', `translate(${rv.x.toFixed(1)} ${TY(rv.y).toFixed(1)}) scale(${TK})`);
+      rv.el.firstChild.setAttribute('transform', `rotate(${(rv.ang || 0).toFixed(1)})`);
+      rv.el.classList.toggle('boost', rv.boost > 0);
+      const dot = $('#broomBody .kf-dot.r' + i); if (dot) dot.style.left = (clamp(rv.x / S.course.end, 0, 1) * 100).toFixed(1) + '%';
     });
     const me = $('#broomBody .kf-dot.me'); if (me) me.style.left = (clamp(S.x / S.course.end, 0, 1) * 100).toFixed(1) + '%';
-    const lb = $('#broomBody .kf-loop'); if (lb){ const on = !!loopReady(); if (lb.disabled === on) lb.disabled = !on; lb.classList.toggle('on', on); }
+    const lb = $('#broomBody .kf-loop'); if (lb){ lb.classList.toggle('on', S.run === 'fly' && !S.loop && S.boost <= 0 && nearDouble()); lb.classList.toggle('busy', !!(S.loop || S.boost > 0)); }
   }
 
   /* ---------- i mål ---------- */
   async function finish(){
-    const T = S.finT, rTimes = S.rivals.map(rv => { let t = 0; while (rivalDist(rv, t) < S.course.end && t < 600) t += 0.05; return t; });
+    const T = S.finT, rTimes = S.rivals.map(rv => rv.finT || T + Math.max(0.1, (S.course.end - rv.x) / V0));
     const place = 1 + rTimes.filter(t => t < T).length, medal = ['guld', 'sølv', 'bronze'][place - 1];
     const stars = (4 - place) + Math.floor(S.bubbles / 2);
     prog.flights = (prog.flights || 0) + 1; saveProg(); addStars(stars);
@@ -4283,7 +4324,7 @@ const Kost = (() => {
           el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); goTo(show); } } }, 'Flyv igen') ]) ]) ]);
     const veil = el('div', { class:'shop-veil' }, [ card ]);
     $('#broomBody').append(veil); confetti(veil, place === 1 ? 70 : 30);
-    S.result = { place, stars, time: T, rings: S.rings, bubbles: S.bubbles };
+    S.result = { place, stars, time: T, rings: S.rings, bubbles: S.bubbles, loops: S.loopN || 0, rivals: S.rivals.map((rv, i) => ({ t: +rTimes[i].toFixed(1), rings: rv.passN || 0, loops: rv.loopN || 0, hit: +rv.hit.toFixed(2) })) };
   }
   /* til Tegnebordet: et stillbillede af banen og læreren */
   function previewSvg(){
@@ -4291,8 +4332,9 @@ const Kost = (() => {
     const q = c => div.querySelector(c), world = q('.kf-world'), front = q('.kf-front');
     for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }]){ const [b, f] = ringEls(r); world.append(b); front.append(f); }
     world.append(bubbleEl({ x: 1000, y: 300 }));
-    const me = rider(hero); me.setAttribute('transform', 'translate(430 500)'); q('.kf-me').append(me);
-    const m = randomGuest([]), rv = rider(m.st, { cls:'kf-rival' }); rv.setAttribute('transform', 'translate(1000 520) scale(.6)'); q('.kf-rivals').append(rv);
+    const me = rider(hero); me.setAttribute('transform', 'translate(430 560)'); q('.kf-me').append(me);
+    for (const r of [{ x: 760, y: 470 }, { x: 1240, y: 660, dbl:'lo' }, { x: 1240, y: 360, dbl:'hi' }]){ const [b, f] = ringEls(r, TK, TY); q('.kf-trackB').append(b); q('.kf-trackF').append(f); }
+    const m = randomGuest([]), rv = rider(m.st, { cls:'kf-rival' }); rv.setAttribute('transform', `translate(760 ${TY(470)}) scale(${TK})`); q('.kf-rivals').append(rv);
     for (const [c, k] of [['.kf-far', .12], ['.kf-mid', .35], ['.kf-cloud', .6], ['.kf-near', 1.25]]) q(c).setAttribute('transform', 'translate(-800 0)');
     return scopeIds(div.innerHTML, 'kp');
   }

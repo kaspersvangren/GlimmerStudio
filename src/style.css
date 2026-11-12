@@ -627,3 +627,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-medal{width:min(36vh,200px,26vw);flex:none;position:relative;z-index:1;filter:drop-shadow(0 0 16px rgba(255,220,120,.5))}
 .kf-medal svg{width:100%;height:auto;display:block}
 @media (prefers-reduced-motion: reduce){ .kf-bob,.kf-loop.on,.kf-big.pop{animation:none!important} }
+.kf-loop{opacity:.92}
+.kf-loop.busy{opacity:.4}
+.kf-loop:active{transform:scale(.94)}
