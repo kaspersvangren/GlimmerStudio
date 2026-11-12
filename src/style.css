@@ -635,3 +635,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-hold.on{opacity:1;animation:kfhold .38s linear forwards}
 @property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
 @keyframes kfhold{from{--p:0%}to{--p:100%}}
+.kf-bobfin{animation:kfbob 3.2s ease-in-out infinite}
+@keyframes kfbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@media (prefers-reduced-motion: reduce){ .kf-bobfin{animation:none!important} }
