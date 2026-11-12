@@ -29,7 +29,9 @@ const V = { 'acc-bog': 6,
   'boble-rum': 3, 'boble-toej': 4, 'nisse': 5, 'rum-dyreseng-slot': 4, 'rum-lampe-maanelampe': 3, 'rum-ting-globus': 7, 'sted-vaerelse': 5, 'start-scene': 3, 'sted-butik': 3,
   'kappe-haette': 3, 'pose-ro': 4,
   /* v0.14.0: skolen erstatter Modehuset */
-  'sted-by': 2 };
+  'sted-by': 2,
+  /* v0.15.0: kosteflyvning */
+  'sted-skole': 2 };
 
 (async () => {
   const b = await chromium.launch();
@@ -68,6 +70,8 @@ const V = { 'acc-bog': 6,
     out.push({ id: 'sted-eliksir', cat: 'Skolen', title: 'Eliksirtimen', kind: 'sted', fn: 'potion', vbT: '0 0 1600 1000', vbZ: '440 180 760 800' });
     out.push({ id: 'professor', cat: 'Skolen', title: 'Professor Mosegrøn (elver, eliksirlærer)', kind: 'sted', fn: 'potion', vbT: '1060 0 540 1000', vbZ: '1250 340 300 300' });
     out.push({ id: 'ingredienser', cat: 'Skolen', title: 'Ingredienserne på hylden', kind: 'sted', fn: 'potion', vbT: '0 120 480 760', vbZ: '30 180 440 400' });
+    out.push({ id: 'sted-kost', cat: 'Skolen', title: 'Kosteflyvning: banen', kind: 'sted', fn: 'kost', vbT: '0 0 1600 1000', vbZ: '180 280 640 440' });
+    out.push({ id: 'kaptajn-sky', cat: 'Skolen', title: 'Kaptajn Sky (flyvelærer)', kind: 'sted', fn: 'sky', vbT: '150 40 500 1030', vbZ: '200 140 400 400' });
     out.push({ id: 'skole-i-byen', cat: 'Skolen', title: 'Skolens port i byen', kind: 'sted', fn: 'town', vbT: '500 0 600 420', vbZ: '600 20 400 360' });
     out.push({ id: 'start-scene', cat: 'Startskærm', title: 'Nattehimmel og skolen', kind: 'start', vbT: '0 0 1600 1000', vbZ: '120 120 640 720' });
     return out;
@@ -83,7 +87,7 @@ const V = { 'acc-bog': 6,
         else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
         else if (it.kind === 'sted'){
           if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); }
-          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : it.fn === 'town' ? (CITY_OVR.time = 'aften', townSvg()) : it.fn === 'school' ? schoolScene() : it.fn === 'potion' ? (POT.lesson = { n: 0, stars: 0 }, POT.mates = [randomGuest([]), randomGuest(['x'])], POT.p = makeRecipe(), POT.p.steps = [{ kind:'ing', id:'blad', n:2 }, { kind:'ing', id:'stjerne', n:1 }, { kind:'ror', n:3 }], potionScene().replace('<g class="recipe"></g>', '<g class="recipe">' + recipeSvg(POT.p) + '</g>').replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 30px sans-serif;color:#3A2340;text-align:center;padding-top:40px">I dag brygger vi Svæveeliksir!</div>').replace('style="--liq:#3E6A5A"', '')) : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '').replace('id="townSvg" ', '');
+          svg = (it.fn === 'room' ? roomScene(getRoom()) : it.fn === 'ward' ? wardScene() : it.fn === 'town' ? (CITY_OVR.time = 'aften', townSvg()) : it.fn === 'school' ? schoolScene() : it.fn === 'kost' ? Kost.previewSvg() : it.fn === 'sky' ? Kost.teacherSvg(vb) : it.fn === 'potion' ? (POT.lesson = { n: 0, stars: 0 }, POT.mates = [randomGuest([]), randomGuest(['x'])], POT.p = makeRecipe(), POT.p.steps = [{ kind:'ing', id:'blad', n:2 }, { kind:'ing', id:'stjerne', n:1 }, { kind:'ror', n:3 }], potionScene().replace('<g class="recipe"></g>', '<g class="recipe">' + recipeSvg(POT.p) + '</g>').replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 30px sans-serif;color:#3A2340;text-align:center;padding-top:40px">I dag brygger vi Svæveeliksir!</div>').replace('style="--liq:#3E6A5A"', '')) : shopScene()).replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('class="scene" ', '').replace('id="townSvg" ', '');
           if (it.fn === 'shop') svg = svg.replace('<div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div>', '<div xmlns="http://www.w3.org/1999/xhtml" style="font:600 25px sans-serif;color:#3A2340;text-align:center;padding-top:30px">Goddag, goddag! Velkommen i Boblebutikken.</div>');
         }
         else if (it.kind === 'start'){ svg = titleScene().replace('viewBox="0 0 1600 1000"', `viewBox="${vb}"`).replace('xMidYMax slice', 'xMidYMid meet'); }

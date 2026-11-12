@@ -4,7 +4,7 @@ const FONT_S = "Fredoka, Nunito, sans-serif";
 /* ---------- gangen ---------- */
 const FAG = [
   { id:'eliksir', name:'Eliksirer', x:330, col:'#3E7A4A', open: () => showPotions() },
-  { id:'kost', name:'Kosteflyvning', x:650, col:'#2E4A7A' },
+  { id:'kost', name:'Kosteflyvning', x:650, col:'#2E4A7A', open: () => Kost.show() },
   { id:'dyrepas', name:'Dyrepasning', x:970, col:'#7A4E35' },
   { id:'faldskaerm', name:'Faldskærm', x:1290, col:'#6B3FA0' },
 ];
