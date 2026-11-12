@@ -11,7 +11,7 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
 const V = { 'acc-bog': 6,
   /* kortskitse v2: rettet efter noterne */
-  'kort-ny': 2, 'kort-dragen': 2, 'kort-kollegiet': 2, 'kort-torvet': 2, 'kort-dyrepark': 2, 'kort-forrest': 2,
+  'kort-ny': 3, 'kort-dragen': 3, 'kort-kollegiet': 3, 'kort-torvet': 3, 'kort-dyrepark': 3, 'kort-forrest': 3,
   /* v0.9.2: rettet efter første gennemgang */
   'acc-briller': 2, 'hat-hue': 2, 'hat-knaek': 2, 'hat-kort': 2, 'hat-spids': 2, 'maerke-fregner': 2, 'maerke-glimmer': 2, 'maerke-hjerte': 2, 'maerke-stjerne': 2,
   'sko-hoeje': 2, 'sko-snoer': 2,
@@ -81,7 +81,7 @@ const V = { 'acc-bog': 6,
     out.push({ id: 'kaptajn-sky', cat: 'Skolen', title: 'Kaptajn Sky (flyvelærer)', kind: 'sted', fn: 'sky', vbT: '150 40 500 1030', vbZ: '200 140 400 400' });
     out.push({ id: 'skole-i-byen', cat: 'Skolen', title: 'Skolens port i byen', kind: 'sted', fn: 'town', vbT: '500 0 600 420', vbZ: '600 20 400 360' });
     out.push({ id: 'kort-ny', cat: 'Det nye kort', title: 'Hele kortet (skitse)', kind: 'sted', fn: 'kort', vbT: '0 0 1600 1000', vbZ: '440 0 720 450' });
-    out.push({ id: 'kort-dragen', cat: 'Det nye kort', title: 'Dragen ved hulen og stien derop', kind: 'sted', fn: 'kort', vbT: '-40 120 680 425', vbZ: '-20 160 400 250' });
+    out.push({ id: 'kort-dragen', cat: 'Det nye kort', title: 'Dragen i hulen og stien derop', kind: 'sted', fn: 'kort', vbT: '-40 120 680 425', vbZ: '-20 160 400 250' });
     out.push({ id: 'kort-kollegiet', cat: 'Det nye kort', title: 'Kollegiet og tøjsnoren', kind: 'sted', fn: 'kort', vbT: '20 250 600 375', vbZ: '160 380 400 250' });
     out.push({ id: 'kort-torvet', cat: 'Det nye kort', title: 'Torvet med Øksebrønden og skiltet', kind: 'sted', fn: 'kort', vbT: '480 420 600 375', vbZ: '600 480 400 250' });
     out.push({ id: 'kort-dyrepark', cat: 'Det nye kort', title: 'Dyreparken og Boblebutikken', kind: 'sted', fn: 'kort', vbT: '1040 260 600 375', vbZ: '1080 300 400 250' });
