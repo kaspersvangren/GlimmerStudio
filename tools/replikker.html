@@ -95,7 +95,7 @@ const WHO = [
     ['flere','Efter de næste økser ({n} bliver til antallet)'], ['udsolgt','Når den sidste økse er givet'], ['tom','Når man trykker, og den er udsolgt'] ] } ] },
 ];
 const PARTS = WHO.flatMap(w => w.parts);
-const DATA = {}, DIRTY = new Set(), TIMERS = {};
+const DATA = {}, DIRTY = new Set(), TIMERS = {}, REV = {};
 let db = null, lastDeleted = null;
 const $ = s => document.querySelector(s);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
@@ -127,15 +127,25 @@ function render(){
 function renderPart(key){ const p = PARTS.find(x => x.key === key), el = document.getElementById('p-' + key); if (!el) return; el.outerHTML = partHtml(p); document.querySelectorAll(`#p-${key} textarea`).forEach(grow); }
 function grow(t){ t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 
-/* gemning: lidt efter man er holdt op med at skrive */
+/* gemning: lidt efter man er holdt op med at skrive.
+   Det, der står på siden, bestemmer altid: hver ændring får et tidsstempel, gemmes også i browseren som reserve,
+   og data fra databasen bruges kun, hvis de er nyere end det, siden allerede har. */
+const BK = k => 'replikker:' + k;
+const backup = k => { try { localStorage.setItem(BK(k), JSON.stringify(DATA[k])); } catch(e){} };
+const readBackup = k => { try { return JSON.parse(localStorage.getItem(BK(k)) || 'null'); } catch(e){ return null; } };
+const clock = () => new Date().toLocaleTimeString('da-DK', { hour:'2-digit', minute:'2-digit' });
 function setStatus(txt, cls){ const s = $('#status'); s.textContent = txt; s.className = 'status' + (cls ? ' ' + cls : ''); }
-function queue(key){ DIRTY.add(key); setStatus('Gemmer…', 'saving'); clearTimeout(TIMERS[key]); TIMERS[key] = setTimeout(() => save(key), 700); }
+function queue(key){ DATA[key].ts = Date.now(); REV[key] = (REV[key] || 0) + 1; backup(key); DIRTY.add(key); setStatus('Gemmer…', 'saving'); clearTimeout(TIMERS[key]); TIMERS[key] = setTimeout(() => save(key), 700); }
 async function save(key){
   if (!db){ setStatus('Kan ikke gemme her', 'err'); return; }
-  const d = DATA[key];
-  try { await db.collection('tekster').doc(key).set({ ...d, ts: Date.now() }); DIRTY.delete(key); if (!DIRTY.size) setStatus('Gemt'); }
-  catch(e){ setStatus('Kunne ikke gemme – prøv igen', 'err'); }
+  const r = REV[key], body = JSON.parse(JSON.stringify(DATA[key]));
+  try {
+    await db.collection('tekster').doc(key).set(body);
+    if (REV[key] === r){ DIRTY.delete(key); try { localStorage.removeItem(BK(key)); } catch(e){} }
+    if (!DIRTY.size) setStatus('Gemt kl. ' + clock());
+  } catch(e){ setStatus('Ikke gemt – prøver igen', 'err'); clearTimeout(TIMERS[key]); TIMERS[key] = setTimeout(() => save(key), 4000); }
 }
+window.addEventListener('beforeunload', e => { if (DIRTY.size){ DIRTY.forEach(k => save(k)); e.preventDefault(); e.returnValue = ''; } });
 
 document.addEventListener('input', e => {
   const t = e.target.closest('textarea[data-k]'); if (!t) return;
@@ -166,9 +176,20 @@ document.addEventListener('click', e => {
   const t = setTimeout(() => { const n = $('#notice'); n.hidden = false; n.textContent = 'Replikkerne er ikke hentet endnu. Vent et øjeblik, eller genindlæs siden.'; }, 10000);
   db.collection('tekster').onSnapshot(snap => {
     clearTimeout(t); $('#notice').hidden = true;
-    snap.docs.forEach(doc => { if (!doc.exists || DIRTY.has(doc.id)) return; const nd = doc.data(); if (JSON.stringify(nd) === JSON.stringify(DATA[doc.id])) return;
-      const first = !DATA[doc.id]; DATA[doc.id] = nd; if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest('#p-' + doc.id) || first) renderPart(doc.id); });
-    PARTS.forEach(p => { if (!DATA[p.key]){ DATA[p.key] = p.kind === 'jokes' ? { jokes: [] } : p.kind === 'fields' ? { fields: {} } : { lines: [] }; renderPart(p.key); } });
+    snap.docs.forEach(doc => {
+      if (!doc.exists || DIRTY.has(doc.id)) return;
+      const nd = doc.data(), cur = DATA[doc.id];
+      if (cur && (nd.ts || 0) <= (cur.ts || 0)) return;            /* ældre eller vores egen gemning: siden har allerede det nyeste */
+      DATA[doc.id] = nd;
+      const focus = document.activeElement && document.activeElement.closest && document.activeElement.closest('#p-' + doc.id);
+      if (!focus || !cur) renderPart(doc.id);
+    });
+    PARTS.forEach(p => {
+      if (!DATA[p.key]){ DATA[p.key] = p.kind === 'jokes' ? { jokes: [] } : p.kind === 'fields' ? { fields: {} } : { lines: [] }; renderPart(p.key); }
+      /* ændringer, der ikke nåede at blive gemt sidst, bruges og gemmes nu */
+      const b = readBackup(p.key);
+      if (b && (b.ts || 0) > (DATA[p.key].ts || 0) && !DIRTY.has(p.key)){ DATA[p.key] = b; renderPart(p.key); DIRTY.add(p.key); REV[p.key] = (REV[p.key] || 0) + 1; save(p.key); }
+    });
     if (!DIRTY.size) setStatus('Alt er gemt');
   }, e => { clearTimeout(t); const n = $('#notice'); n.hidden = false; n.textContent = 'Replikkerne kunne ikke hentes (' + (e.code || 'fejl') + ').'; setStatus('Ikke forbundet', 'err'); });
 })();
