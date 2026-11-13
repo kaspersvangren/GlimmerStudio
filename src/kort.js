@@ -262,17 +262,18 @@ const Kort = (() => {
     /* kaninhuset med net foran og to kaniner, der er sluppet ud */
     s += `<g transform="translate(1160 448)"><ellipse cx="0" cy="2" rx="30" ry="5" fill="#1A1238" opacity=".2"/><path d="M -24 0 V -10 H 24 V 0 M -22 -10 V -32 H 22 V -10" fill="#B5743A" stroke="#4A2E1E" stroke-width="2"/><path d="M -28 -30 L 0 -46 L 28 -30 Z" fill="#7A3A2A" stroke="#4A2E1E" stroke-width="2" stroke-linejoin="round"/><rect x="-16" y="-28" width="20" height="16" fill="#3A2E3A"/><path d="M -16 -24 h 20 M -16 -18 h 20 M -11 -28 v 16 M -6 -28 v 16 M -1 -28 v 16" stroke="#C8C4D8" stroke-width="1"/><circle cx="12" cy="-20" r="5" fill="#2A1E2A" stroke="#4A2E1E" stroke-width="1.5"/></g>`;
     s += [[1142, 482, '#E8E4F4', 1], [1180, 488, '#C9A27A', -1]].map(([x, y, c, f]) => `<g transform="translate(${x} ${y}) scale(${f} 1)"><ellipse cx="0" cy="0" rx="10" ry="7" fill="${c}" stroke="#8A80A8" stroke-width="1.2"/><circle cx="-9" cy="2" r="3" fill="#FFFFFF"/><circle cx="7" cy="-5" r="5" fill="${c}" stroke="#8A80A8" stroke-width="1.2"/><ellipse cx="6" cy="-14" rx="2" ry="6" fill="${c}" stroke="#8A80A8" stroke-width="1"/><ellipse cx="10" cy="-13" rx="2" ry="6" fill="${c}" stroke="#8A80A8" stroke-width="1"/><circle cx="9" cy="-6" r="1" fill="#1A1238"/><circle cx="12" cy="-4" r="1" fill="#FF8FC7"/></g>`).join('');
+    /* vandtruget står bag enhjørningen, ved staldvæggen */
+    s += `<g transform="translate(1290 448)"><ellipse cx="0" cy="2" rx="30" ry="5" fill="#1A1238" opacity=".2"/><path d="M -22 0 l 4 -12 M 22 0 l -4 -12" stroke="#4A2E1E" stroke-width="3"/><path d="M -28 -26 L 28 -26 L 22 -10 L -22 -10 Z" fill="#9C6A48" stroke="#4A2E1E" stroke-width="2" stroke-linejoin="round"/><path d="M -26 -26 h 52" stroke="#7FC8F0" stroke-width="4"/><path d="M -24 -18 h 48" stroke="#7A5038" stroke-width="1.2"/></g>`;
     s += uni(1226, 470, .92);
     /* et rigtigt vandtrug af træ på ben */
-    s += `<g transform="translate(1290 448)"><ellipse cx="0" cy="2" rx="30" ry="5" fill="#1A1238" opacity=".2"/><path d="M -22 0 l 4 -12 M 22 0 l -4 -12" stroke="#4A2E1E" stroke-width="3"/><path d="M -28 -26 L 28 -26 L 22 -10 L -22 -10 Z" fill="#9C6A48" stroke="#4A2E1E" stroke-width="2" stroke-linejoin="round"/><path d="M -26 -26 h 52" stroke="#7FC8F0" stroke-width="4"/><path d="M -24 -18 h 48" stroke="#7A5038" stroke-width="1.2"/></g>`;
     /* drageungen i ægget, og et lille skilt, der beder folk lade være med at fodre den */
     s += `<g transform="translate(1324 480)"><ellipse cx="0" cy="2" rx="20" ry="5" fill="#C9A85A"/><path d="M -12 0 C -14 -24 14 -24 12 0 Z" fill="#E8DEF8" stroke="#8A80A8" stroke-width="1.5"/><path d="M -12 -8 l 5 -4 l 4 4 l 5 -5 l 4 4 l 4 -3" stroke="#8A80A8" stroke-width="1.5" fill="none"/><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0;0 0" keyTimes="0;.2;.4;1" dur="4s" repeatCount="indefinite"/>'}<circle cx="0" cy="-16" r="7" fill="#7AC86A" stroke="#3A6A2A" stroke-width="1.5"/><circle cx="-2" cy="-17" r="1.5" fill="#1A1238"/><circle cx="3" cy="-17" r="1.5" fill="#1A1238"/></g></g>`;
     /* høstakken med en bjørneunge, der sover op ad den */
     s += `<g transform="translate(1556 418)"><path d="M -26 10 C -30 -20 -12 -34 0 -34 C 12 -34 30 -20 26 10 Z" fill="#E8C86A" stroke="#A8884A" stroke-width="2"/>${[-14, -4, 6, 16].map(dx => `<path d="M ${dx} -24 q 2 14 -2 30" stroke="#C8A84A" stroke-width="1.5" fill="none"/>`).join('')}</g>`;
     s += `<g transform="translate(1578 448)"><ellipse cx="0" cy="2" rx="22" ry="4" fill="#1A1238" opacity=".2"/><ellipse cx="2" cy="-8" rx="18" ry="11" fill="#8A5A3C" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-14" cy="-10" r="9" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-19" cy="-18" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><circle cx="-9" cy="-19" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><ellipse cx="-18" cy="-7" rx="4" ry="3" fill="#D8B890"/><path d="M -17 -12 q 2 1.5 4 0 M -11 -12 q 2 1.5 4 0" stroke="#1A1238" stroke-width="1.2" fill="none"/><text x="-4" y="-26" font-family="${FONT_C}" font-weight="700" font-size="10" fill="#E8E2FA">z</text></g>`;
     /* hegnet har en låge til stien og et hul, hvor bækken løber ud */
-    s += fence(1140, 494, 1480, 488, 13) + fence(1546, 484, 1600, 478, 2);
-    s += lantern(1218, 446) + lantern(1322, 444) + lantern(1426, 442);
+    s += fence(1140, 494, 1454, 489, 12) + fence(1562, 483, 1600, 478, 1);
+    s += lantern(1218, 446) + lantern(1323, 444) + lantern(1428, 442);
     /* skiltet er sømmet fast på hegnet ved siden af ægget */
     s += `<g transform="translate(1370 472) rotate(-3)"><rect x="-32" y="-13" width="64" height="26" rx="3" fill="#E8D8B0" stroke="#5A3A28" stroke-width="1.5"/><circle cx="-27" cy="-8" r="1.3" fill="#5A3A28"/><circle cx="27" cy="-8" r="1.3" fill="#5A3A28"/><text x="0" y="-2" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8.5" fill="#7A2A2A">FODR IKKE</text><text x="0" y="8" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8.5" fill="#7A2A2A">DRAGEUNGEN</text></g>`;
     s += `<g transform="translate(1470 346)">${placeSign('Dyreparken', '#4E7A3A')}</g>`;
@@ -291,7 +292,7 @@ const Kort = (() => {
      Hvor en sti krydser bækken, er der en bro. */
   const PATHS = [
     'M 800 640 L 800 524',                                                  // torvet → skolens port
-    'M 640 650 C 540 672 430 724 330 776',                                  // torvet → kollegiets dør
+    'M 604 700 C 566 744 520 774 466 786 C 418 794 370 792 330 780',                                  // torvet → kollegiets dør
     'M 960 606 C 1010 580 1060 548 1100 510',                               // torvet → dyreparkens låge
     'M 1010 652 C 1080 676 1160 706 1232 730',                              // torvet → Boblebutikkens dør
     'M 960 700 C 1020 760 1060 844 1108 874',                               // torvet → trolde-broen
@@ -321,13 +322,6 @@ const Kort = (() => {
   function bridge(){
     const x = 1172, y = 878;
     let s = `<path d="M ${x - 40} ${y + 26} Q ${x} ${y - 2} ${x + 40} ${y + 26} Z" fill="#1A1238" opacity=".55"/>`;
-    s += `<g transform="translate(${x - 110} ${y + 44})"><ellipse cx="0" cy="4" rx="54" ry="8" fill="#1A1238" opacity=".25"/>`
-      + `<path d="M 22 -6 C 34 -10 44 -8 50 -2 M 18 0 C 30 -2 40 0 46 4" stroke="#5E6E44" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M 46 -8 q 8 -6 12 0 q 2 6 -4 8 M 42 0 q 8 -4 12 2 q 0 6 -6 6" fill="#7E8E5A" stroke="#3A4A2A" stroke-width="1.5"/>`
-      + `<ellipse cx="4" cy="-12" rx="28" ry="18" fill="#7E8E5A" stroke="#3A4A2A" stroke-width="2"/><path d="M -20 -4 C -10 2 14 2 26 -4 L 24 4 C 10 8 -10 8 -22 4 Z" fill="#8A5A3C" stroke="#4A2E1E" stroke-width="1.5"/><ellipse cx="6" cy="-18" rx="8" ry="5" fill="#9AAA72" opacity=".7"/>`
-      + `<path d="M -10 -22 C 0 -30 14 -28 18 -20" stroke="#6E7E4E" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="19" cy="-19" r="5" fill="#7E8E5A" stroke="#3A4A2A" stroke-width="1.5"/>`
-      + `<circle cx="-34" cy="-12" r="16" fill="#8A9A66" stroke="#3A4A2A" stroke-width="2"/><path d="M -48 -20 L -60 -30 L -46 -10 Z M -24 -24 L -16 -34 L -22 -18 Z" fill="#8A9A66" stroke="#3A4A2A" stroke-width="1.5" stroke-linejoin="round"/>`
-      + `<path d="M -40 -28 q -2 -10 4 -12 q 0 6 4 8 q 2 -8 8 -8 q -4 6 -2 12" fill="#4A5A3A"/><ellipse cx="-30" cy="-26" rx="7" ry="10" fill="#9AAA72" stroke="#3A4A2A" stroke-width="1.5" transform="rotate(20 -30 -26)"/>`
-      + `<path d="M -42 -14 q 3 2 6 0 M -28 -12 q 3 2 6 0" stroke="#1A1238" stroke-width="1.5" fill="none" stroke-linecap="round"/><ellipse cx="-34" cy="-2" rx="5" ry="3" fill="#2A1E2A"/><path d="M -36 -4 v 3" stroke="#F2EEDC" stroke-width="2"/></g>`;
     /* stenbroen med brystværn og en sten-ende på hver bred; trolden sover på brinken lige under broens ende */
     s += `<g transform="translate(${x} ${y + 22}) scale(.86) translate(${-x} ${-y - 22})">`;
     s += `<path d="M ${x - 78} ${y + 22} L ${x - 60} ${y + 6} Q ${x} ${y - 46} ${x + 60} ${y + 6} L ${x + 78} ${y + 22} L ${x + 50} ${y + 22} Q ${x} ${y - 20} ${x - 50} ${y + 22} Z" fill="#8A82AE" stroke="${E}" stroke-width="2.5" stroke-linejoin="round"/>`;
@@ -335,7 +329,25 @@ const Kort = (() => {
     s += `<path d="M ${x - 80} ${y + 10} L ${x - 60} ${y - 4} Q ${x} ${y - 56} ${x + 60} ${y - 4} L ${x + 80} ${y + 10}" stroke="#6A628E" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
     s += [-80, 80].map(dx => `<rect x="${x + dx - 9}" y="${y - 2}" width="18" height="26" rx="3" fill="#7A72A0" stroke="${E}" stroke-width="2"/><circle cx="${x + dx}" cy="${y - 4}" r="6" fill="#8A82AE" stroke="${E}" stroke-width="1.5"/>`).join('');
     s += `</g>`;
-    s += `<text x="${x - 164}" y="${y + 14}" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#E8E2FA" opacity=".85">z<tspan dy="-6" font-size="12">z</tspan>${calm ? '' : `<animate attributeName="opacity" values=".2;.9;.2" dur="3s" repeatCount="indefinite"/>`}</text>`;
+    /* trolden sidder forfra og sover, lænet op ad broens venstre sten-ende: rund krop, hænderne på maven, store fødder,
+       ører til siden, en kæmpe kartoffelnæse midt i ansigtet, lukkede øjne og en lille svamp i håret */
+    { const T = '#7E8E5A', TL = '#3A4A2A', TH = '#8A9A66';
+      s += `<g transform="translate(${x - 94} ${y + 40})"><ellipse cx="0" cy="2" rx="38" ry="7" fill="#1A1238" opacity=".28"/>`
+        + `<ellipse cx="-16" cy="-4" rx="13" ry="7" fill="${T}" stroke="${TL}" stroke-width="1.8"/><ellipse cx="16" cy="-4" rx="13" ry="7" fill="${T}" stroke="${TL}" stroke-width="1.8"/>`
+        + [-24, -18, -12, 12, 18, 24].map(tx => `<circle cx="${tx}" cy="-9" r="3" fill="${TH}" stroke="${TL}" stroke-width="1.2"/>`).join('')
+        + `<path d="M -30 -8 C -36 -38 -22 -56 0 -56 C 22 -56 36 -38 30 -8 Z" fill="${T}" stroke="${TL}" stroke-width="2"/>`
+        + `<path d="M -29 -16 C -14 -10 14 -10 29 -16 L 30 -8 C 14 -2 -14 -2 -30 -8 Z" fill="#8A5A3C" stroke="#4A2E1E" stroke-width="1.5"/><path d="M -10 -14 l 4 6 M 6 -14 l 4 6" stroke="#4A2E1E" stroke-width="1.2"/>`
+        + `<ellipse cx="0" cy="-30" rx="16" ry="12" fill="#9AAA72" opacity=".75"/>`
+        + `<path d="M -28 -38 C -24 -26 -18 -24 -10 -26 M 28 -38 C 24 -26 18 -24 10 -26" stroke="${T}" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M -28 -38 C -24 -26 -18 -24 -10 -26 M 28 -38 C 24 -26 18 -24 10 -26" stroke="${TL}" stroke-width="1.5" fill="none"/>`
+        + `<circle cx="-9" cy="-26" r="6" fill="${TH}" stroke="${TL}" stroke-width="1.5"/><circle cx="9" cy="-26" r="6" fill="${TH}" stroke="${TL}" stroke-width="1.5"/>`
+        + `<path d="M -16 -66 L -32 -74 L -18 -58 Z M 16 -66 L 32 -74 L 18 -58 Z" fill="${TH}" stroke="${TL}" stroke-width="1.5" stroke-linejoin="round"/>`
+        + `<circle cx="0" cy="-66" r="18" fill="${TH}" stroke="${TL}" stroke-width="2"/>`
+        + `<path d="M -6 -83 q -2 -8 3 -10 q 0 5 3 6 q 2 -7 7 -6 q -4 4 -3 10" fill="#4A5A3A"/><path d="M 8 -82 q 2 -8 9 -6 q -1 6 -9 6 Z" fill="#E0457A" stroke="#7A2A3A" stroke-width="1"/><path d="M 12 -82 v 4" stroke="#F2EEDC" stroke-width="2"/>`
+        + `<path d="M -11 -70 q 4 3 8 0 M 3 -70 q 4 3 8 0" stroke="#1A1238" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
+        + `<ellipse cx="0" cy="-60" rx="7.5" ry="9" fill="#A8B87E" stroke="${TL}" stroke-width="1.8"/><circle cx="-3" cy="-56" r="1" fill="${TL}"/><circle cx="3" cy="-56" r="1" fill="${TL}"/>`
+        + `<path d="M -6 -50 q 6 4 12 0" stroke="#2A1E2A" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M 3 -49 v 3" stroke="#F2EEDC" stroke-width="2"/>`
+        + `<circle cx="-12" cy="-58" r="3" fill="#FF8FC7" opacity=".35"/><circle cx="12" cy="-58" r="3" fill="#FF8FC7" opacity=".35"/></g>`; }
+    s += `<text x="${x - 66}" y="${y - 54}" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#E8E2FA" opacity=".85">z<tspan dy="-6" font-size="12">z</tspan>${calm ? '' : `<animate attributeName="opacity" values=".2;.9;.2" dur="3s" repeatCount="indefinite"/>`}</text>`;
     return s;
   }
 
@@ -399,12 +411,15 @@ const Kort = (() => {
     const W3 = [[x + 50, base - 316, 1], [x + 110, base - 318, 0], [x + 170, base - 318, 1], [x + 34, base - 214, 1], [x + 164, base - 214, 0]];
     s += W3.map(([wx, wy, on]) => glowWin(wx, wy, 34, 40, { glow: on ? '#FFD36E' : '#3A2E5A' })).join('');
     s += `<path d="M ${x + 34} ${base - 214} h 10 q -5 20 -2 40 h -8 Z M ${x + 68} ${base - 214} h -10 q 5 20 2 40 h 8 Z" fill="#FF8FC7" stroke="#C0508A" stroke-width="1.5"/>`;
-    /* altandøren: en høj dør med glas foroven og træpanel forneden, der står på altanens gulv */
-    s += `<rect x="${x + 80}" y="${base - 240}" width="50" height="74" rx="3" fill="#3A2E5A" stroke="${E}" stroke-width="2"/><rect x="${x + 85}" y="${base - 235}" width="40" height="44" rx="2" fill="#FFD36E"/><path d="M ${x + 105} ${base - 235} V ${base - 191} M ${x + 85} ${base - 213} H ${x + 125}" stroke="#3A2E5A" stroke-width="3"/><rect x="${x + 85}" y="${base - 187}" width="40" height="19" rx="2" fill="#5A4A7A" stroke="#2A1E52" stroke-width="1"/><rect x="${x + 90}" y="${base - 183}" width="30" height="11" rx="1" fill="none" stroke="#2A1E52" stroke-width="1"/><circle cx="${x + 120}" cy="${base - 196}" r="2.5" fill="#F2C14E"/>`; lit(x + 85, base - 235, 40, 44);
-    /* altan med blomsterkrukker og en kat */
-    s += `<rect x="${x + 40}" y="${base - 166}" width="110" height="8" fill="#6E4A3A" stroke="${E}" stroke-width="2"/>` + Array.from({ length: 8 }, (_, i) => `<path d="M ${x + 46 + i * 14} ${base - 158} V ${base - 140}" stroke="#6E4A3A" stroke-width="3"/>`).join('') + `<path d="M ${x + 40} ${base - 140} H ${x + 150}" stroke="#6E4A3A" stroke-width="4"/>`;
-    s += [[x + 52, '#E0457A'], [x + 68, '#9BE36A']].map(([px, fc]) => `<path d="M ${px - 8} ${base - 166} h 16 l -2 -12 h -12 Z" fill="#B5652A" stroke="${E}" stroke-width="1.5"/><circle cx="${px - 4}" cy="${base - 184}" r="6" fill="${fc}"/><circle cx="${px + 5}" cy="${base - 182}" r="5" fill="${fc}"/>`).join('');
-    s += `<g transform="translate(${x + 142} ${base - 168})"><path d="M -12 0 Q -12 -14 0 -14 Q 10 -14 12 -4 Q 18 -2 16 4 Q 6 6 -12 0 Z" fill="#2A2238"/><path d="M -10 -10 l 0 -9 l 6 6 M 2 -13 l 3 -8 l 3 8" fill="#2A2238"/><circle cx="-4" cy="-8" r="1.6" fill="#9BE36A"/><circle cx="3" cy="-8" r="1.6" fill="#9BE36A"/><path d="M 12 -2 q 14 4 12 -14" stroke="#2A2238" stroke-width="4" fill="none" stroke-linecap="round"/></g>`;
+    /* altandøren: glas foroven og træpanel forneden; den går helt ned til altanens gulv */
+    s += `<rect x="${x + 80}" y="${base - 234}" width="50" height="94" rx="3" fill="#3A2E5A" stroke="${E}" stroke-width="2"/><rect x="${x + 85}" y="${base - 229}" width="40" height="50" rx="2" fill="#FFD36E"/><path d="M ${x + 105} ${base - 229} V ${base - 179} M ${x + 85} ${base - 204} H ${x + 125}" stroke="#3A2E5A" stroke-width="3"/><rect x="${x + 85}" y="${base - 175}" width="40" height="33" rx="2" fill="#5A4A7A" stroke="#2A1E52" stroke-width="1"/><rect x="${x + 90}" y="${base - 170}" width="30" height="23" rx="1" fill="none" stroke="#2A1E52" stroke-width="1"/><circle cx="${x + 121}" cy="${base - 184}" r="2.5" fill="#F2C14E"/>`; lit(x + 85, base - 229, 40, 50);
+    /* altanen: gulvet er en stenplade forneden med to konsoller under; tremmerne står på gulvet og bærer håndlisten foroven */
+    const fl = base - 140, rl = base - 166;
+    s += `<path d="M ${x + 48} ${fl + 8} l 10 14 v -14 Z M ${x + 142} ${fl + 8} l -10 14 v -14 Z" fill="#6E4A3A" stroke="${E}" stroke-width="1.5" stroke-linejoin="round"/><rect x="${x + 40}" y="${fl}" width="110" height="9" fill="#6E4A3A" stroke="${E}" stroke-width="2"/>`;
+    s += Array.from({ length: 8 }, (_, i) => `<path d="M ${x + 46 + i * 14} ${fl} V ${rl + 3}" stroke="#6E4A3A" stroke-width="3"/>`).join('') + `<rect x="${x + 38}" y="${rl - 3}" width="114" height="6" rx="2" fill="#7A5444" stroke="${E}" stroke-width="1.5"/>`;
+    /* en blomsterkasse hænger på håndlisten, og katten sidder oven på den */
+    s += `<rect x="${x + 44}" y="${rl + 2}" width="40" height="11" rx="2" fill="#B5652A" stroke="${E}" stroke-width="1.5"/>` + [[x + 52, '#E0457A'], [x + 64, '#9BE36A'], [x + 76, '#FFD36E']].map(([px, fc]) => `<circle cx="${px}" cy="${rl - 2}" r="5.5" fill="${fc}"/><circle cx="${px + 4}" cy="${rl - 7}" r="3.5" fill="${fc}"/>`).join('');
+    s += `<g transform="translate(${x + 140} ${rl - 3})"><path d="M -12 0 Q -12 -14 0 -14 Q 10 -14 12 -4 Q 18 -2 16 4 Q 6 6 -12 0 Z" fill="#2A2238"/><path d="M -10 -10 l 0 -9 l 6 6 M 2 -13 l 3 -8 l 3 8" fill="#2A2238"/><circle cx="-4" cy="-8" r="1.6" fill="#9BE36A"/><circle cx="3" cy="-8" r="1.6" fill="#9BE36A"/><path d="M 12 -2 q 14 4 12 -14" stroke="#2A2238" stroke-width="4" fill="none" stroke-linecap="round"/></g>`;
     /* stueetagen: vinduer, døren med trappe og en kosteholder */
     s += glowWin(x + 22, base - 104, 50, 50) + glowWin(x + 186, base - 104, 40, 50);
     s += `<path d="M ${x + 100} ${base} V ${base - 76} a 30 30 0 0 1 60 0 V ${base} Z" fill="#3E5A8A" stroke="${E}" stroke-width="2.5"/><path d="M ${x + 130} ${base - 104} V ${base}" stroke="${E}" stroke-width="2"/><circle cx="${x + 122}" cy="${base - 40}" r="3.5" fill="#F2C14E"/><circle cx="${x + 138}" cy="${base - 40}" r="3.5" fill="#F2C14E"/>`;
@@ -465,23 +480,46 @@ const Kort = (() => {
     s += `<rect x="${x + 86}" y="${top + 18}" width="${w - 172 + 40}" height="26" rx="6" fill="#3A1A2A" stroke="#F2C14E" stroke-width="2"/><text x="${x + w / 2 + 6}" y="${top + 37}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFE9A0" letter-spacing="1">KONCERTSAL</text>`;
     return placeG('koncert', 'Koncertsalen', true, s + soon(x + w / 2, top + 100) + hit(x - 10, top - 120, w + 20, h + 130));
   }
+  /* ---------- Den Flyvende Støvle: caféen er en kæmpe snørestøvle, der svæver lidt over græsset ----------
+     Tåen peger mod koncertsalen, hælen har to små vinger, der basker. Ude af skaftet stikker et skævt kakkelovnsrør,
+     der damper. Døren sidder i skaftet, og en rebstige hænger ned til jorden. Skiltet er sømmet på foden. */
   function cafe(){
-    const x = 500, base = 970, w = 270, h = 140, top = base - h, c = '#E8C89A', cL = '#8A5A2A';
-    let s = `<ellipse cx="${x + w / 2}" cy="${base + 4}" rx="160" ry="14" fill="#1A1238" opacity=".22"/>`;
-    s += gableRoof(x, top, w, 96, '#8A4A2A');
-    /* skorstenen er en tekande, der damper */
-    s += `<g transform="translate(${x + w - 70} ${top - 70})"><ellipse cx="0" cy="0" rx="24" ry="18" fill="#E8E2FA" stroke="${E}" stroke-width="2.5"/><path d="M 22 -4 q 16 -4 18 -18" stroke="#E8E2FA" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M -22 -6 q -12 4 -10 18 q 6 -6 10 -8" fill="none" stroke="#E8E2FA" stroke-width="5"/><ellipse cx="0" cy="-17" rx="10" ry="4" fill="#C79BFF" stroke="${E}" stroke-width="2"/><circle cx="0" cy="-22" r="3" fill="#C79BFF"/>${[-10, 0, 10].map(dx => `<circle cx="${dx}" cy="4" r="2.5" fill="#FF8FC7"/>`).join('')}</g>`;
-    if (!calm) s += [0, 1, 2].map(i => `<path d="M ${x + w - 30} ${top - 92} q -6 -10 0 -18 q 6 -8 0 -16" stroke="#F2EEFF" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"><animate attributeName="opacity" values="0;.7;0" dur="3s" begin="${i}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;6 -40" dur="3s" begin="${i}s" repeatCount="indefinite"/></path>`).join('');
-    s += `<rect x="${x}" y="${top}" width="${w}" height="${h}" fill="${c}" stroke="${cL}" stroke-width="3"/><rect x="${x}" y="${top}" width="${w}" height="${h}" fill="url(#kBrick)"/>`;
-    s += glowWin(x + 22, top + 14, 46, 36) + glowWin(x + w - 68, top + 14, 46, 36);
-    s += awning(x + 10, x + w - 10, top + 62, 22, '#B5432A');
-    s += glowWin(x + 20, base - 64, 130, 56, { cross: false, glow: '#FFF3D0', shape: [[x + 46, '#FF5FA8'], [x + 84, '#FFE27A'], [x + 122, '#C79BFF']].map(([xx, cc]) => `<path d="M ${xx - 12} ${base - 14} h 24 l -3 -12 h -18 Z" fill="#B5652A"/><path d="M ${xx - 12} ${base - 26} q 12 -16 24 0 Z" fill="${cc}"/><circle cx="${xx}" cy="${base - 34}" r="3.5" fill="#E0233F"/>`).join('') });
-    s += door(x + w - 56, base, 44, 74, '#6E3E2A', { frame: '#E8D8C8' });
+    const X = 620, Y = 936, L = '#A0522D', LD = '#5A2A14', LL = '#C07040';
+    let s = `<ellipse cx="612" cy="978" rx="150" ry="12" fill="#1A1238" opacity=".22">${calm ? '' : '<animate attributeName="rx" values="150;138;150" dur="4s" repeatCount="indefinite"/>'}</ellipse>`;
     /* bord og stole udenfor, med kopper og en kage */
-    s += `<g transform="translate(${x - 40} ${base + 6})"><ellipse cx="0" cy="2" rx="26" ry="6" fill="#1A1238" opacity=".2"/><path d="M 0 0 V -28" stroke="#2E2448" stroke-width="4"/><ellipse cx="0" cy="-30" rx="26" ry="8" fill="#F2EEDC" stroke="${cL}" stroke-width="2"/><path d="M -12 -36 h 10 v 6 h -10 Z" fill="#FFFFFF" stroke="#8A80A8" stroke-width="1"/><path d="M 4 -34 q 6 -10 12 0 Z" fill="#FF8FC7"/><path d="M -8 -40 q 2 -6 0 -10" stroke="#F2EEFF" stroke-width="2" fill="none"/></g>`;
-    s += `<rect x="${x + 86}" y="${top + 16}" width="98" height="30" rx="8" fill="#6A3A1A" stroke="#3A2010" stroke-width="2"/><text x="${x + w / 2}" y="${top + 38}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="19" fill="#FFE9A0" letter-spacing="1">CAFÉEN</text>`;
-    return placeG('cafe', 'Caféen', true, s + soon(x + w / 2, top + 98) + hit(x - 10, top - 140, w + 90, h + 150));
+    s += `<g transform="translate(404 984)"><ellipse cx="0" cy="2" rx="26" ry="6" fill="#1A1238" opacity=".2"/><path d="M 0 0 V -28" stroke="#2E2448" stroke-width="4"/><ellipse cx="0" cy="-30" rx="26" ry="8" fill="#F2EEDC" stroke="#8A5A2A" stroke-width="2"/><path d="M -12 -36 h 10 v 6 h -10 Z" fill="#FFFFFF" stroke="#8A5A2A" stroke-width="1.2"/><path d="M 4 -34 l 10 0 l -2 -8 l -6 0 Z" fill="#FF8FC7" stroke="#8A5A2A" stroke-width="1.2"/><circle cx="9" cy="-44" r="2.5" fill="#E0457A"/><path d="M -36 0 v -18 h 12 v 18 M 24 0 v -18 h 12 v 18" stroke="#6E3E2A" stroke-width="3" fill="none"/></g>`;
+    let b = '';
+    /* rebstigen hænger fra døren ned til jorden */
+    b += `<path d="M 68 -2 C 66 14 68 30 66 42 M 100 -2 C 102 14 100 30 102 42" stroke="#C8A86A" stroke-width="2.5" fill="none"/>` + [8, 20, 32].map(ry => `<path d="M 67 ${ry} H 101" stroke="#8A6A3A" stroke-width="4" stroke-linecap="round"/>`).join('');
+    /* vingerne på hælen */
+    const wing = (k, d) => `<g>${calm ? '' : `<animateTransform attributeName="transform" type="rotate" values="0 118 -34;${-14 * k} 118 -34;0 118 -34" dur="${d}s" repeatCount="indefinite"/>`}<path d="M 118 -40 C 140 -66 172 -70 184 -54 C 172 -52 166 -46 174 -38 C 158 -38 152 -30 160 -22 C 142 -24 128 -26 118 -26 Z" fill="#F7F4FF" stroke="#8A80B8" stroke-width="1.8" stroke-linejoin="round"/><path d="M 128 -40 C 144 -52 160 -56 172 -52 M 128 -32 C 142 -38 152 -40 162 -38" stroke="#C8C0E8" stroke-width="1.5" fill="none"/></g>`;
+    b += wing(1, 1.6);
+    /* kakkelovnsrøret stikker skævt op af støvleskaftet og damper */
+    b += `<path d="M 62 -196 L 70 -240 L 90 -238 L 84 -194 Z" fill="#4A4068" stroke="${E}" stroke-width="2" stroke-linejoin="round"/><path d="M 64 -244 h 32 l -2 8 h -28 Z" fill="#5A5078" stroke="${E}" stroke-width="2"/>`;
+    if (!calm) b += [0, 1, 2].map(i => `<path d="M 80 -248 q -6 -10 0 -18 q 6 -8 0 -16" stroke="#F2EEFF" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"><animate attributeName="opacity" values="0;.7;0" dur="3s" begin="${i}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;-4 -22" dur="3s" begin="${i}s" repeatCount="indefinite"/></path>`).join('');
+    /* selve støvlen: skaft, vrist og tå i ét stykke læder, med sål og hæl */
+    b += `<path d="M 122 -12 L 122 -190 L 20 -190 C 18 -150 14 -122 -10 -104 C -50 -88 -120 -86 -150 -66 C -174 -50 -174 -22 -150 -12 Z" fill="${L}" stroke="${LD}" stroke-width="3" stroke-linejoin="round"/>`;
+    b += `<path d="M 110 -180 V -24 M -140 -58 C -110 -76 -60 -82 -22 -96" stroke="${LL}" stroke-width="2" stroke-dasharray="5 4" fill="none" opacity=".8"/>`;
+    b += `<path d="M -150 -12 C -176 -12 -178 4 -156 4 L 74 4 L 74 -12 Z" fill="#3A2420" stroke="${LD}" stroke-width="2"/><rect x="74" y="-12" width="50" height="22" rx="3" fill="#3A2420" stroke="${LD}" stroke-width="2"/><path d="M -150 -6 H 70" stroke="#6E4A3A" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    /* den ombukkede krave foroven, lilla med stjerner */
+    b += `<path d="M 14 -204 Q 70 -212 128 -204 L 126 -180 Q 70 -186 16 -180 Z" fill="#6E3A9A" stroke="#3A1E5A" stroke-width="2.5" stroke-linejoin="round"/>` + [[36, -193], [70, -196], [104, -193]].map(([sx, sy]) => `<path d="M ${sx} ${sy - 5} l 1.6 3.4 l 3.6 .4 l -2.7 2.4 l .8 3.6 l -3.3 -1.8 l -3.3 1.8 l .8 -3.6 l -2.7 -2.4 l 3.6 -.4 Z" fill="#FFD36E"/>`).join('');
+    /* snørebåndet: øjer i guld, krydsede snører og en sløjfe foroven */
+    const ey = [[6, -112, 20, -116], [14, -132, 30, -132], [22, -152, 38, -151], [28, -172, 44, -170]];
+    b += ey.slice(0, -1).map(([ax, ay, bx, by], i) => { const [cx, cy, dx, dy] = ey[i + 1]; return `<path d="M ${ax} ${ay} L ${dx} ${dy} M ${bx} ${by} L ${cx} ${cy}" stroke="#F2EEDC" stroke-width="2.5" stroke-linecap="round"/>`; }).join('');
+    b += ey.map(([ax, ay, bx, by]) => `<circle cx="${ax}" cy="${ay}" r="3" fill="#F2C14E" stroke="${LD}" stroke-width="1"/><circle cx="${bx}" cy="${by}" r="3" fill="#F2C14E" stroke="${LD}" stroke-width="1"/>`).join('');
+    b += `<g transform="translate(12 -2)"><path d="M 24 -176 C 10 -192 0 -184 8 -176 C 0 -170 10 -164 24 -176 C 36 -190 46 -182 40 -176 C 46 -168 36 -164 24 -176 M 22 -176 q -4 12 -10 18 M 26 -176 q 4 12 2 20" stroke="#F2EEDC" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`;
+    /* et buet vindue og døren i skaftet */
+    { const n = LITS.length; b += glowWin(56, -172, 52, 38, { arch: true }); LITS.length = n; }
+    b += `<path d="M 62 -12 V -74 a 22 22 0 0 1 44 0 V -12 Z" fill="#6E3E2A" stroke="${LD}" stroke-width="2.5"/><path d="M 84 -94 V -12" stroke="${LD}" stroke-width="1.5"/><circle cx="76" cy="-44" r="3" fill="#F2C14E"/><circle cx="84" cy="-80" r="7" fill="#FFD36E" stroke="${LD}" stroke-width="1.5"/>`;
+    /* skiltet er sømmet fast på foden */
+    b += `<g transform="rotate(-4 -80 -50)"><rect x="-140" y="-70" width="124" height="40" rx="5" fill="#3A2010" stroke="#1E1008" stroke-width="2"/><rect x="-136" y="-66" width="116" height="32" rx="3" fill="none" stroke="#C8A86A" stroke-width="1"/><circle cx="-134" cy="-64" r="1.8" fill="#C8A86A"/><circle cx="-22" cy="-64" r="1.8" fill="#C8A86A"/>`
+      + `<text x="-78" y="-54" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="12" fill="#FFE9A0" letter-spacing=".5">DEN FLYVENDE</text><text x="-78" y="-39" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="13" fill="#FFE9A0" letter-spacing="1">STØVLE</text></g>`;
+    b += wing(-1, 1.6).replace(/fill="#F7F4FF"/, 'fill="#E8E2FA"');
+    s += `<g transform="translate(${X} ${Y})"><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -7;0 0" dur="4s" repeatCount="indefinite"/>'}${b}</g></g>`;
+    LITS.push([X + 56, Y - 172, 52, 38]);
+    return placeG('cafe', 'Den Flyvende Støvle', true, s + soon(X + 84, Y - 110) + hit(440, 680, 380, 300));
   }
+
   function arcade(){
     const x = 1282, base = 980, w = 300, h = 160, top = base - h, c = '#3E2E6A', cL = '#1A1238';
     let s = `<ellipse cx="${x + w / 2}" cy="${base + 4}" rx="180" ry="14" fill="#1A1238" opacity=".22"/>`;
@@ -505,7 +543,7 @@ const Kort = (() => {
   /* ---------- småting overalt og liv i luften ---------- */
   function details(){
     let s = '';
-    s += magicTree(54, 610, .8) + magicTree(470, 880, .9) + magicTree(1580, 760, .95) + magicTree(40, 760, .7, false);
+    s += magicTree(54, 610, .8) + magicTree(1580, 760, .95) + magicTree(40, 760, .7, false);
     s += shrooms(560, 720, 3, .9) + shrooms(1050, 702, 2, .8, '#C79BFF') + shrooms(380, 780, 3, .8, '#FF8FC7') + shrooms(1150, 620, 3, .8) + shrooms(860, 900, 2, .9, '#9BE36A');
     s += pumpkin(1100, 976, 1) + pumpkin(870, 932, .8) + pumpkin(1120, 712, .8);
     /* en snegl med et lysende hus */

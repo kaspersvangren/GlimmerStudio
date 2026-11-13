@@ -11,7 +11,7 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
 const V = { 'acc-bog': 6,
   /* kortskitse v2: rettet efter noterne */
-  'kort-ny': 3, 'kort-dragen': 3, 'kort-kollegiet': 3, 'kort-torvet': 3, 'kort-dyrepark': 3, 'kort-forrest': 3,
+  'kort-ny': 4, 'kort-dragen': 3, 'kort-kollegiet': 4, 'kort-torvet': 3, 'kort-dyrepark': 4, 'kort-forrest': 4,
   /* v0.9.2: rettet efter første gennemgang */
   'acc-briller': 2, 'hat-hue': 2, 'hat-knaek': 2, 'hat-kort': 2, 'hat-spids': 2, 'maerke-fregner': 2, 'maerke-glimmer': 2, 'maerke-hjerte': 2, 'maerke-stjerne': 2,
   'sko-hoeje': 2, 'sko-snoer': 2,
@@ -85,7 +85,8 @@ const V = { 'acc-bog': 6,
     out.push({ id: 'kort-kollegiet', cat: 'Det nye kort', title: 'Kollegiet og tøjsnoren', kind: 'sted', fn: 'kort', vbT: '20 250 600 375', vbZ: '160 380 400 250' });
     out.push({ id: 'kort-torvet', cat: 'Det nye kort', title: 'Torvet med Øksebrønden og skiltet', kind: 'sted', fn: 'kort', vbT: '480 420 600 375', vbZ: '600 480 400 250' });
     out.push({ id: 'kort-dyrepark', cat: 'Det nye kort', title: 'Dyreparken og Boblebutikken', kind: 'sted', fn: 'kort', vbT: '1040 260 600 375', vbZ: '1080 300 400 250' });
-    out.push({ id: 'kort-forrest', cat: 'Det nye kort', title: 'Koncertsalen, caféen, klokketårnet, broen med trolden og arkaden', kind: 'sted', fn: 'kort', vbT: '0 680 1600 320', vbZ: '960 760 400 250' });
+    out.push({ id: 'kort-stovle', cat: 'Det nye kort', title: 'Caféen: Den Flyvende Støvle', kind: 'sted', fn: 'kort', vbT: '340 620 600 375', vbZ: '440 680 400 250' });
+    out.push({ id: 'kort-forrest', cat: 'Det nye kort', title: 'Koncertsalen, Den Flyvende Støvle, klokketårnet, broen med trolden og arkaden', kind: 'sted', fn: 'kort', vbT: '0 680 1600 320', vbZ: '960 760 400 250' });
     out.push({ id: 'fald-rytter', cat: 'Faldskærm', title: 'Figuren med hjelm og faldskærmspakke', kind: 'sted', fn: 'fald:rytter', vbT: '-280 -340 560 480', vbZ: '-40 -260 240 240' });
     out.push({ id: 'fald-kort', cat: 'Faldskærm', title: 'Op fra skolen, over byen', kind: 'sted', fn: 'fald:kort', vbT: '0 0 1600 1000', vbZ: '640 280 480 340' });
     out.push({ id: 'fald-frit', cat: 'Faldskærm', title: 'Frit fald, set ovenfra', kind: 'sted', fn: 'fald:frit', vbT: '0 0 1600 1000', vbZ: '560 300 440 440' });
