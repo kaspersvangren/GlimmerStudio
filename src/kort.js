@@ -78,7 +78,12 @@ const Kort = (() => {
     /* en lille svævende ø med et træ og et vandfald, der drysser ned i ingenting */
     s += `<g transform="translate(1180 96)"><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="7s" repeatCount="indefinite"/>'}`
       + `<path d="M -60 0 Q -40 44 -6 60 Q 4 66 10 56 Q 40 40 58 0 Z" fill="#5A4A6E" stroke="${E}" stroke-width="2"/><path d="M -60 0 Q 0 -10 58 0 Q 0 10 -60 0 Z" fill="#5E8A5A" stroke="${E}" stroke-width="2"/>`
-      + `<path d="M 26 4 V 70" stroke="#9FD8FF" stroke-width="5" opacity=".7" stroke-dasharray="6 5">${calm ? '' : '<animate attributeName="stroke-dashoffset" values="11;0" dur=".5s" repeatCount="indefinite"/>'}</path>`
+      /* vandfaldet løber ud over kanten, bliver bredere og tyndere og opløses til sidst i små dråber og dis */
+      + `<defs><linearGradient id="kWf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="150"><stop offset="0" stop-color="#C8ECFF" stop-opacity=".9"/><stop offset=".45" stop-color="#9FD8FF" stop-opacity=".55"/><stop offset="1" stop-color="#9FD8FF" stop-opacity="0"/></linearGradient></defs>`
+      + `<path d="M 20 -1 Q 27 -4 33 -1 Q 35 40 44 150 L 8 150 Q 18 40 20 -1 Z" fill="url(#kWf)"/>`
+      + [[22, 0], [27, .25], [32, .5]].map(([x, d]) => `<path d="M ${x} 2 Q ${x + (x - 27) * .2} 70 ${x + (x - 27) * .6} 140" stroke="url(#kWf)" stroke-width="2.2" fill="none" stroke-dasharray="7 6">${calm ? '' : `<animate attributeName="stroke-dashoffset" values="13;0" dur=".55s" begin="${d}s" repeatCount="indefinite"/>`}</path>`).join('')
+      + `<path d="M 19 0 Q 27 -5 34 0" stroke="#DDF4FF" stroke-width="3" fill="none" stroke-linecap="round"/>`
+      + (calm ? '' : [[18, 0], [30, 1.1], [38, 2.2], [24, 3.1]].map(([x, b]) => `<circle cx="${x}" cy="100" r="2.2" fill="#C8ECFF" opacity="0"><animate attributeName="cy" values="96;150" dur="2.4s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.7;0" dur="2.4s" begin="${b}s" repeatCount="indefinite"/></circle>`).join(''))
       + `<path d="M -22 -2 V -26" stroke="#5A3A28" stroke-width="4"/><circle cx="-22" cy="-34" r="14" fill="#4E8A5A" stroke="${E}" stroke-width="2"/><circle cx="-28" cy="-38" r="3" fill="#FF8FC7"/>`
       + `<path d="M 0 -2 V -16 L 8 -22 L 16 -16 V -2 Z" fill="#E8D8F0" stroke="${E}" stroke-width="1.5"/><path d="M -2 -15 L 8 -24 L 18 -15" fill="#B5432A" stroke="${E}" stroke-width="1.5"/><rect x="6" y="-12" width="5" height="6" fill="#FFD36E"/></g></g>`;
     /* skyer, der driver langsomt */
