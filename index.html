@@ -1865,7 +1865,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.18.1';
+const VERSION = 'v0.18.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -5405,17 +5405,22 @@ const Kort = (() => {
     SEED = 3; s += Array.from({ length: CM.night ? 90 : 50 }, () => `<circle cx="${(-200 + rnd() * 2000).toFixed(0)}" cy="${(rnd() * 190).toFixed(0)}" r="${(.8 + rnd() * 1.8).toFixed(1)}" fill="#FFFFFF" opacity="${(.3 + rnd() * .6).toFixed(2)}">${rnd() < .4 && !calm ? `<animate attributeName="opacity" values="1;.2;1" dur="${(2 + rnd() * 3).toFixed(1)}s" repeatCount="indefinite"/>` : ''}</circle>`).join('');
     /* månen ude til højre, med kratere og et lille skær */
     s += `<g transform="translate(1440 78)"><circle r="96" fill="#FFF6D8" opacity=".08"/><circle r="64" fill="#FFF6D8" opacity=".14"/><circle r="44" fill="#FFF3C8"/><circle cx="-12" cy="-10" r="8" fill="#EADBA8"/><circle cx="14" cy="8" r="6" fill="#EADBA8"/><circle cx="-4" cy="18" r="4" fill="#EADBA8"/><circle cx="18" cy="-16" r="3.5" fill="#EADBA8"/></g>`;
-    /* en lille svævende ø med et træ og et vandfald, der drysser ned i ingenting */
-    s += `<g transform="translate(1180 96)"><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="7s" repeatCount="indefinite"/>'}`
-      + `<path d="M -60 0 Q -40 44 -6 60 Q 4 66 10 56 Q 40 40 58 0 Z" fill="#5A4A6E" stroke="${E}" stroke-width="2"/><path d="M -60 0 Q 0 -10 58 0 Q 0 10 -60 0 Z" fill="#5E8A5A" stroke="${E}" stroke-width="2"/>`
-      + `<path d="M 26 4 V 70" stroke="#9FD8FF" stroke-width="5" opacity=".7" stroke-dasharray="6 5">${calm ? '' : '<animate attributeName="stroke-dashoffset" values="11;0" dur=".5s" repeatCount="indefinite"/>'}</path>`
-      + `<path d="M -22 -2 V -26" stroke="#5A3A28" stroke-width="4"/><circle cx="-22" cy="-34" r="14" fill="#4E8A5A" stroke="${E}" stroke-width="2"/><circle cx="-28" cy="-38" r="3" fill="#FF8FC7"/>`
-      + `<path d="M 0 -2 V -16 L 8 -22 L 16 -16 V -2 Z" fill="#E8D8F0" stroke="${E}" stroke-width="1.5"/><path d="M -2 -15 L 8 -24 L 18 -15" fill="#B5432A" stroke="${E}" stroke-width="1.5"/><rect x="6" y="-12" width="5" height="6" fill="#FFD36E"/></g></g>`;
     /* skyer, der driver langsomt */
     s += [[160, 60, 1, 0], [640, 40, 1.3, 1], [980, 150, .9, 2]].map(([x, y, k, i]) => `<g opacity="${CM.night ? .35 : .55}"><animateTransform attributeName="transform" type="translate" values="0 0;${50 + i * 14} 0;0 0" dur="${50 + i * 9}s" repeatCount="indefinite"/><g transform="translate(${x} ${y}) scale(${k})"><ellipse rx="60" ry="16" fill="#8A7AB8"/><ellipse cx="-24" cy="-10" rx="30" ry="16" fill="#9A8AC8"/><ellipse cx="18" cy="-14" rx="34" ry="18" fill="#9A8AC8"/></g></g>`).join('');
     /* fjerne bjerge */
     s += `<path d="M -900 230 L -300 150 L -120 196 L 60 120 L 220 180 L 420 132 L 600 190 L 820 150 L 1000 196 L 1180 140 L 1360 186 L 1560 130 L 1800 180 L 2500 160 L 2500 260 L -900 260 Z" fill="#3A2E6A" opacity=".85"/>`;
     s += `<path d="M -900 240 L -200 200 L 100 228 L 380 196 L 700 230 L 1000 210 L 1300 232 L 1600 204 L 2500 220 L 2500 270 L -900 270 Z" fill="#43367A"/>`;
+    /* en lille svævende ø med et træ, et hus og et vandfald; tegnet foran bjergene, så vandfaldet kan opløses blødt hen over dem */
+    s += `<g transform="translate(1180 96)"><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="7s" repeatCount="indefinite"/>'}`
+      + `<path d="M -60 0 Q -40 44 -6 60 Q 4 66 10 56 Q 40 40 58 0 Z" fill="#5A4A6E" stroke="${E}" stroke-width="2"/><path d="M -60 0 Q 0 -10 58 0 Q 0 10 -60 0 Z" fill="#5E8A5A" stroke="${E}" stroke-width="2"/>`
+      /* vandfaldet løber ud over kanten, bliver bredere og tyndere og opløses til sidst i små dråber og dis */
+      + `<defs><linearGradient id="kWf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="150"><stop offset="0" stop-color="#C8ECFF" stop-opacity=".9"/><stop offset=".3" stop-color="#9FD8FF" stop-opacity=".62"/><stop offset=".55" stop-color="#9FD8FF" stop-opacity=".34"/><stop offset=".8" stop-color="#9FD8FF" stop-opacity=".12"/><stop offset="1" stop-color="#9FD8FF" stop-opacity="0"/></linearGradient></defs>`
+      + `<path d="M 20 -1 Q 27 -4 33 -1 Q 35 40 44 150 L 8 150 Q 18 40 20 -1 Z" fill="url(#kWf)"/>`
+      + [[22, 0], [27, .25], [32, .5]].map(([x, d]) => `<path d="M ${x} 2 Q ${x + (x - 27) * .2} 70 ${x + (x - 27) * .6} 140" stroke="url(#kWf)" stroke-width="2.2" fill="none" stroke-dasharray="7 6">${calm ? '' : `<animate attributeName="stroke-dashoffset" values="13;0" dur=".55s" begin="${d}s" repeatCount="indefinite"/>`}</path>`).join('')
+      + `<path d="M 19 0 Q 27 -5 34 0" stroke="#DDF4FF" stroke-width="3" fill="none" stroke-linecap="round"/>`
+      + (calm ? '' : [[18, 0], [30, 1.1], [38, 2.2], [24, 3.1]].map(([x, b]) => `<circle cx="${x}" cy="100" r="2.2" fill="#C8ECFF" opacity="0"><animate attributeName="cy" values="96;150" dur="2.4s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.7;0" dur="2.4s" begin="${b}s" repeatCount="indefinite"/></circle>`).join(''))
+      + `<path d="M -22 -2 V -26" stroke="#5A3A28" stroke-width="4"/><circle cx="-22" cy="-34" r="14" fill="#4E8A5A" stroke="${E}" stroke-width="2"/><circle cx="-28" cy="-38" r="3" fill="#FF8FC7"/>`
+      + `<path d="M 0 -2 V -16 L 8 -22 L 16 -16 V -2 Z" fill="#E8D8F0" stroke="${E}" stroke-width="1.5"/><path d="M -2 -15 L 8 -24 L 18 -15" fill="#B5432A" stroke="${E}" stroke-width="1.5"/><rect x="6" y="-12" width="5" height="6" fill="#FFD36E"/></g></g>`;
     return s;
   }
 
@@ -5925,48 +5930,39 @@ const Kort = (() => {
    Kasper skriver dem i værktøjet "Replikker"; Claude henter dem derfra og lægger dem her.
    Lister: én tilfældig linje pr. tryk. Vittigheder: [spørgsmål, svar]. {n} i brøndens tekster bliver til et tal. */
 const TXT = {
-  "drage-vaagner": ["Hmm? Hvem vækker mig?", "Snork… hva’? Nå, det er dig!", "Gaab… vil du høre en vits?", "Zzz… hva’? Ja ja, jeg er vågen!"],
+  "drage-vaagner": ["Huh? Hvem vækker mig?!", "ZzZz… hva’? Nå, det er dig!", "ZzZz… huh?! Dig der! Vil du høre en vits?!", "ZzZz… hva’? Ja ja, jeg er vågen, din lille skid!", "ZzZzmmm ja, kys mig, din dejlige frø zZz... Huh?"],
   "drage-vitser": [
-    ["Hvad spiser drager til morgenmad?", "Ristet brød. De rister det selv!"],
-    ["Hvorfor tager drager aldrig elevatoren?", "De tager brandtrappen!"],
     ["Hvad sagde dragen, da den så en ridder?", "Åh nej, ikke mere dåsemad!"],
-    ["Hvad kalder man en drage uden ild?", "En drage med snue!"],
-    ["Hvad er en drages yndlingsleg?", "Brændbold!"],
-    ["Ved du, hvorfor jeg er så tyk?", "Jeg er fyldt med varm luft!"],
-    ["Hvorfor sover jeg hele tiden?", "Jeg er en drøm af en drage!"],
-    ["Hvorfor giver brønden økser?", "Den kan ikke stave til ønsker!"],
-    ["Hvorfor er trolden så sur?", "Den stod op på den gale side af broen!"],
-    ["Hvad sagde heksen efter kosteturen?", "Det var helt kosteligt!"],
-    ["Hvorfor gik kosten tidligt i seng?", "Den var helt fejet omkuld!"],
     ["Hvad sagde nul til otte?", "Flot bælte!"],
     ["Hvorfor kan skeletter ikke lyve?", "Man kan se lige igennem dem!"],
-    ["Hvorfor går myrer ikke i kirke?", "Fordi de er insekter!"],
-    ["Hvad sagde havet til stranden?", "Ingenting. Det vinkede bare!"],
-    ["Hvorfor har elefanter ikke computere?", "De er bange for musen!"],
     ["Hvad kalder man en hund, der kan trylle?", "En labra-kadabra-dor!"],
-    ["Hvad får man af en ko på trampolin?", "Milkshake!"],
-    ["Hvad kalder man en ugle, der tryller?", "Hu-dini!"],
     ["Hvad er gult og flyver?", "En bananflue!"],
     ["Hvad er det mest musikalske i kroppen?", "Trommehinden!"],
     ["Hvad siger en snemand til en anden?", "Lugter her ikke af gulerødder?"],
+    ["En blind mand gik ind i et hus.", "Og en bil og en stol og et træ."],
+    ["Jeg begår aldrig fejl", "Jeg troede engang jeg begik en, men det var forkert"],
+    ["Jeg glemmer tit ting...", "...men i det mindste glemmer jeg ikke tit ting."],
+    ["Hvad har 5 tæer, men er ikke din fod?", "Min fod."],
+    ["Hvorfor falder dykkere baglæns ned i vandet?", "Fordi hvis de faldt forlæns, ville de falde ned i båden!"],
+    ["Jeg har ikke sovet i et år", "Det ville være alt for lang tid!"],
   ],
-  "drage-griner": ["Hø hø hø!", "Hahaha! Den er god, hva’?", "Hihi… nu sover jeg igen.", "Hø hø… zzz"],
-  trold: ["Snork… hvem tramper på min bro?", "Zzz… gå stille over broen…", "Mmm… trolde-grød…"],
-  krage: ["Krah! Dragen bor den vej!", "Krah krah!", "Krah! Har du set noget, der glimter?"],
-  and: ["Rap rap!"],
-  bjoern: ["Brum… zzz"],
-  enhjoerning: ["Iiihh!"],
-  drageunge: ["Pip-rawr!"],
-  kat: ["Mjav!"],
-  snegl: ["Jeg skynder mig!"],
+  "drage-griner": ["HAHAHAHAHA, jeg er sjov!", "HAHAHA! Den er god, hva’?", "Pisse sjov vits, skrid så.", "Grin, eller jeg rister dig!", "*fnis*", "Jeg er den sjoveste drage du kender. Faktum!"],
+  trold: ["ZzZz… hvem tramper på min bro?", "Zzz… gå nu stille over broen!", "Mmm… trolde-grød…", "ZzZz... jeg hader Bukke Bruser... så meget... ZzZz", "ZzZz... Du larmer! Heldigt for dig at i dag er kødfri!"],
+  krage: ["Krah! Dragen bor den vej!", "Krah krah!", "Krah! Har du set noget, der glimter?", "Mjav... øh, jeg mener, krah!", "Jeg kunne godt spise en stor, fed burger!"],
+  and: ["Rap rap!", "Rap!", "Rap! Rap! Rap!", "Kykkeli...kyyy?", "Jeg hader gæs, rap!"],
+  bjoern: ["Brum… zzz", "ZzZz... mmm, honning... ZzZz"],
+  enhjoerning: ["Iiihh!", "Vrinsk. Vrinsk.", "Hold op med at glo på mit horn, jeg bliver genert!"],
+  drageunge: ["Pip-rawr!", "Raaaa!", "Jeg er super farlig!"],
+  kat: ["Mjav!", "Åben døren, så jeg kan kigge ind, men ikke gå igennem.", "Jeg hader mandage!", "Spiser du noget? Jeg elsker noget!", "Min madskål er halvtom. Ring 112!", "Jeg har ikke en ejer, jeg har personale.", "Kom her, så jeg kan ignorere dig."],
+  snegl: ["Jeg skynder mig!", "Fuld fart fremad!", "De kalder mig Turbo.", "Vroooooom!"],
   broend: {
     spoerg: "Ønske? Tryk igen for at smide en stjerne i!",
     ingen: "Smid en stjerne i for at ønske!",
     opfyldt: "Tillykke! Din økse er gået i opfyldelse!",
-    foerste: "Den ligger på dit værelse.",
-    flere: "Nu har du {n} økser!",
+    foerste: "Den er leveret til dit værelse.",
+    flere: "En til? Er {n} økser nok?",
     udsolgt: "Nu er brønden UDSOLGT!",
-    tom: "UDSOLGT! Ikke flere økser.",
+    tom: "UDSOLGT! Ikke flere økser!",
   },
 };
 
@@ -6712,7 +6708,7 @@ function tapThing(t){
   if (kind === 'kitekid'){ sfx.hello(); return say('Se min drage!', 446, 740, 2000); }
   if (kind === 'bird') return flyBird(t);
   /* det nye kort: dragen, Øksebrønden og dyrene */
-  const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, ms);
+  const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, Math.max(ms, 1300 + [...txt].length * 75));
   if (kind === 'drage'){
     if (dragonBusy || walking) return;
     if (heroAt === 'drage' || calm) return dragonTalk(t);
@@ -6746,7 +6742,10 @@ function dragonTalk(t){
   const [q, a] = TXT['drage-vitser'][dragonDeck.pop()], pos = () => [232, 128], gen = LIFE.gen;
   const wake = on => { t.querySelectorAll('.k-wake').forEach(e => { e.style.display = on ? '' : 'none'; }); t.querySelectorAll('.k-sleep').forEach(e => { e.style.display = on ? 'none' : ''; }); };
   wake(true); sfx.roar();
-  const steps = [[pick(TXT['drage-vaagner']), 1900, false], [q, 3600, false], [a, 3400, true], [pick(TXT['drage-griner']), 1900, false]];
+  /* hver boble står længe nok til at kunne læses: længere replikker står længere */
+  const dur = (t, min) => Math.max(min, 1300 + [...t].length * 75);
+  const w = pick(TXT['drage-vaagner']), l = pick(TXT['drage-griner']);
+  const steps = [[w, dur(w, 1900), false], [q, dur(q, 3200), false], [a, dur(a, 3000), true], [l, dur(l, 1900), false]];
   let at = 0;
   steps.forEach(([txt, ms, sp], i) => { setTimeout(() => { if (gen !== LIFE.gen) return; if (i === 2) sfx.twinkle(); bubble(txt, pos, ms - 100, sp); }, at); at += ms; });
   setTimeout(() => { wake(false); dragonBusy = false; }, at);

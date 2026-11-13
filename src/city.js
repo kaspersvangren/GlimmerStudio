@@ -584,7 +584,7 @@ function tapThing(t){
   if (kind === 'kitekid'){ sfx.hello(); return say('Se min drage!', 446, 740, 2000); }
   if (kind === 'bird') return flyBird(t);
   /* det nye kort: dragen, Øksebrønden og dyrene */
-  const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, ms);
+  const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, Math.max(ms, 1300 + [...txt].length * 75));
   if (kind === 'drage'){
     if (dragonBusy || walking) return;
     if (heroAt === 'drage' || calm) return dragonTalk(t);
@@ -618,7 +618,10 @@ function dragonTalk(t){
   const [q, a] = TXT['drage-vitser'][dragonDeck.pop()], pos = () => [232, 128], gen = LIFE.gen;
   const wake = on => { t.querySelectorAll('.k-wake').forEach(e => { e.style.display = on ? '' : 'none'; }); t.querySelectorAll('.k-sleep').forEach(e => { e.style.display = on ? 'none' : ''; }); };
   wake(true); sfx.roar();
-  const steps = [[pick(TXT['drage-vaagner']), 1900, false], [q, 3600, false], [a, 3400, true], [pick(TXT['drage-griner']), 1900, false]];
+  /* hver boble står længe nok til at kunne læses: længere replikker står længere */
+  const dur = (t, min) => Math.max(min, 1300 + [...t].length * 75);
+  const w = pick(TXT['drage-vaagner']), l = pick(TXT['drage-griner']);
+  const steps = [[w, dur(w, 1900), false], [q, dur(q, 3200), false], [a, dur(a, 3000), true], [l, dur(l, 1900), false]];
   let at = 0;
   steps.forEach(([txt, ms, sp], i) => { setTimeout(() => { if (gen !== LIFE.gen) return; if (i === 2) sfx.twinkle(); bubble(txt, pos, ms - 100, sp); }, at); at += ms; });
   setTimeout(() => { wake(false); dragonBusy = false; }, at);
