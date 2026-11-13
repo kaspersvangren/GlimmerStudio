@@ -75,22 +75,22 @@ const Kort = (() => {
     SEED = 3; s += Array.from({ length: CM.night ? 90 : 50 }, () => `<circle cx="${(-200 + rnd() * 2000).toFixed(0)}" cy="${(rnd() * 190).toFixed(0)}" r="${(.8 + rnd() * 1.8).toFixed(1)}" fill="#FFFFFF" opacity="${(.3 + rnd() * .6).toFixed(2)}">${rnd() < .4 && !calm ? `<animate attributeName="opacity" values="1;.2;1" dur="${(2 + rnd() * 3).toFixed(1)}s" repeatCount="indefinite"/>` : ''}</circle>`).join('');
     /* månen ude til højre, med kratere og et lille skær */
     s += `<g transform="translate(1440 78)"><circle r="96" fill="#FFF6D8" opacity=".08"/><circle r="64" fill="#FFF6D8" opacity=".14"/><circle r="44" fill="#FFF3C8"/><circle cx="-12" cy="-10" r="8" fill="#EADBA8"/><circle cx="14" cy="8" r="6" fill="#EADBA8"/><circle cx="-4" cy="18" r="4" fill="#EADBA8"/><circle cx="18" cy="-16" r="3.5" fill="#EADBA8"/></g>`;
-    /* en lille svævende ø med et træ og et vandfald, der drysser ned i ingenting */
+    /* skyer, der driver langsomt */
+    s += [[160, 60, 1, 0], [640, 40, 1.3, 1], [980, 150, .9, 2]].map(([x, y, k, i]) => `<g opacity="${CM.night ? .35 : .55}"><animateTransform attributeName="transform" type="translate" values="0 0;${50 + i * 14} 0;0 0" dur="${50 + i * 9}s" repeatCount="indefinite"/><g transform="translate(${x} ${y}) scale(${k})"><ellipse rx="60" ry="16" fill="#8A7AB8"/><ellipse cx="-24" cy="-10" rx="30" ry="16" fill="#9A8AC8"/><ellipse cx="18" cy="-14" rx="34" ry="18" fill="#9A8AC8"/></g></g>`).join('');
+    /* fjerne bjerge */
+    s += `<path d="M -900 230 L -300 150 L -120 196 L 60 120 L 220 180 L 420 132 L 600 190 L 820 150 L 1000 196 L 1180 140 L 1360 186 L 1560 130 L 1800 180 L 2500 160 L 2500 260 L -900 260 Z" fill="#3A2E6A" opacity=".85"/>`;
+    s += `<path d="M -900 240 L -200 200 L 100 228 L 380 196 L 700 230 L 1000 210 L 1300 232 L 1600 204 L 2500 220 L 2500 270 L -900 270 Z" fill="#43367A"/>`;
+    /* en lille svævende ø med et træ, et hus og et vandfald; tegnet foran bjergene, så vandfaldet kan opløses blødt hen over dem */
     s += `<g transform="translate(1180 96)"><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="7s" repeatCount="indefinite"/>'}`
       + `<path d="M -60 0 Q -40 44 -6 60 Q 4 66 10 56 Q 40 40 58 0 Z" fill="#5A4A6E" stroke="${E}" stroke-width="2"/><path d="M -60 0 Q 0 -10 58 0 Q 0 10 -60 0 Z" fill="#5E8A5A" stroke="${E}" stroke-width="2"/>`
       /* vandfaldet løber ud over kanten, bliver bredere og tyndere og opløses til sidst i små dråber og dis */
-      + `<defs><linearGradient id="kWf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="150"><stop offset="0" stop-color="#C8ECFF" stop-opacity=".9"/><stop offset=".45" stop-color="#9FD8FF" stop-opacity=".55"/><stop offset="1" stop-color="#9FD8FF" stop-opacity="0"/></linearGradient></defs>`
+      + `<defs><linearGradient id="kWf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="150"><stop offset="0" stop-color="#C8ECFF" stop-opacity=".9"/><stop offset=".3" stop-color="#9FD8FF" stop-opacity=".62"/><stop offset=".55" stop-color="#9FD8FF" stop-opacity=".34"/><stop offset=".8" stop-color="#9FD8FF" stop-opacity=".12"/><stop offset="1" stop-color="#9FD8FF" stop-opacity="0"/></linearGradient></defs>`
       + `<path d="M 20 -1 Q 27 -4 33 -1 Q 35 40 44 150 L 8 150 Q 18 40 20 -1 Z" fill="url(#kWf)"/>`
       + [[22, 0], [27, .25], [32, .5]].map(([x, d]) => `<path d="M ${x} 2 Q ${x + (x - 27) * .2} 70 ${x + (x - 27) * .6} 140" stroke="url(#kWf)" stroke-width="2.2" fill="none" stroke-dasharray="7 6">${calm ? '' : `<animate attributeName="stroke-dashoffset" values="13;0" dur=".55s" begin="${d}s" repeatCount="indefinite"/>`}</path>`).join('')
       + `<path d="M 19 0 Q 27 -5 34 0" stroke="#DDF4FF" stroke-width="3" fill="none" stroke-linecap="round"/>`
       + (calm ? '' : [[18, 0], [30, 1.1], [38, 2.2], [24, 3.1]].map(([x, b]) => `<circle cx="${x}" cy="100" r="2.2" fill="#C8ECFF" opacity="0"><animate attributeName="cy" values="96;150" dur="2.4s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.7;0" dur="2.4s" begin="${b}s" repeatCount="indefinite"/></circle>`).join(''))
       + `<path d="M -22 -2 V -26" stroke="#5A3A28" stroke-width="4"/><circle cx="-22" cy="-34" r="14" fill="#4E8A5A" stroke="${E}" stroke-width="2"/><circle cx="-28" cy="-38" r="3" fill="#FF8FC7"/>`
       + `<path d="M 0 -2 V -16 L 8 -22 L 16 -16 V -2 Z" fill="#E8D8F0" stroke="${E}" stroke-width="1.5"/><path d="M -2 -15 L 8 -24 L 18 -15" fill="#B5432A" stroke="${E}" stroke-width="1.5"/><rect x="6" y="-12" width="5" height="6" fill="#FFD36E"/></g></g>`;
-    /* skyer, der driver langsomt */
-    s += [[160, 60, 1, 0], [640, 40, 1.3, 1], [980, 150, .9, 2]].map(([x, y, k, i]) => `<g opacity="${CM.night ? .35 : .55}"><animateTransform attributeName="transform" type="translate" values="0 0;${50 + i * 14} 0;0 0" dur="${50 + i * 9}s" repeatCount="indefinite"/><g transform="translate(${x} ${y}) scale(${k})"><ellipse rx="60" ry="16" fill="#8A7AB8"/><ellipse cx="-24" cy="-10" rx="30" ry="16" fill="#9A8AC8"/><ellipse cx="18" cy="-14" rx="34" ry="18" fill="#9A8AC8"/></g></g>`).join('');
-    /* fjerne bjerge */
-    s += `<path d="M -900 230 L -300 150 L -120 196 L 60 120 L 220 180 L 420 132 L 600 190 L 820 150 L 1000 196 L 1180 140 L 1360 186 L 1560 130 L 1800 180 L 2500 160 L 2500 260 L -900 260 Z" fill="#3A2E6A" opacity=".85"/>`;
-    s += `<path d="M -900 240 L -200 200 L 100 228 L 380 196 L 700 230 L 1000 210 L 1300 232 L 1600 204 L 2500 220 L 2500 270 L -900 270 Z" fill="#43367A"/>`;
     return s;
   }
 
