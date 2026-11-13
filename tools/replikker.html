@@ -1,0 +1,175 @@
+<title>Replikker til Magiske Mig</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700&display=swap">
+<style>
+/* Layout: én kolonne som et manuskript; hver figur er en scene, og hver replik er en taleboble som i spillet.
+   Bevidst ét udtryk (byen om aftenen), så farverne er de samme uanset lyst eller mørkt tema. */
+:root{
+  --night:#1E1638; --dusk:#2A1F4E; --plum:#3A2C68; --line:#4C3D80;
+  --paper:#FFFDF7; --ink:#33204F; --moon:#F2EEDC; --mist:#B9AEDB;
+  --gold:#FFC02E; --warn:#FFB347; --bad:#FF8A9A; --ok:#8BE0A0;
+  --display:'Fredoka','Baloo 2','Trebuchet MS',sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+html{background:var(--night)}
+body{background:var(--night);color:var(--moon);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+.wrap{max-width:760px;margin:0 auto}
+header{padding-block:28px 8px;display:grid;gap:6px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5vw,40px);margin:0;letter-spacing:.2px;text-wrap:balance}
+.lead{margin:0;color:var(--mist);max-width:62ch}
+.lead b{color:var(--moon)}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--night);padding-block:10px;margin-top:10px;border-bottom:1px solid var(--line)}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chips a{flex:0 0 auto;font-family:var(--display);font-weight:600;font-size:15px;color:var(--moon);text-decoration:none;background:var(--plum);border:1px solid var(--line);padding:6px 14px;border-radius:999px}
+.chips a:hover,.chips a:focus-visible{background:var(--line);outline:none}
+.status{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;font-family:var(--display);font-weight:600;font-size:14px;background:var(--dusk);border:1px solid var(--line);color:var(--mist);padding:6px 14px;border-radius:999px}
+.status.saving{color:var(--gold)} .status.err{color:var(--bad);border-color:var(--bad)}
+.notice{margin-top:14px;background:var(--plum);border:1px solid var(--gold);color:var(--moon);padding:10px 14px;border-radius:12px}
+section.who{padding-block:26px 6px;scroll-margin-top:70px;display:grid;gap:14px}
+section.who h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0}
+.part{display:grid;gap:10px;background:var(--dusk);border:1px solid var(--line);border-radius:18px;padding:16px}
+.part h3{font-family:var(--display);font-weight:600;font-size:18px;margin:0;color:var(--moon)}
+.hint{margin:0;color:var(--mist);font-size:14.5px}
+.lines{display:grid;gap:12px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.pair{display:grid;gap:8px;padding:10px;border-radius:14px;background:var(--plum)}
+.pair .row:first-child .lab,.pair .row:last-child .lab{color:var(--mist)}
+.field .lab{display:block;font-size:13.5px;color:var(--mist);margin:0 0 4px 4px}
+.bubble{position:relative;background:var(--paper);border:2px solid rgba(51,32,79,.25);border-radius:22px;padding:8px 16px}
+.bubble.gold{border-color:var(--gold);border-width:3px}
+.bubble::after{content:"";position:absolute;left:28px;bottom:-9px;width:14px;height:14px;background:var(--paper);border-right:2px solid rgba(51,32,79,.25);border-bottom:2px solid rgba(51,32,79,.25);transform:rotate(45deg)}
+.bubble.gold::after{border-color:var(--gold);border-width:0 3px 3px 0}
+.bubble textarea{display:block;width:100%;border:0;background:transparent;resize:none;overflow:hidden;font-family:var(--display);font-weight:600;font-size:19px;line-height:1.3;color:var(--ink);padding:0;min-height:1.3em}
+.bubble textarea:focus{outline:none}
+.bubble:focus-within{box-shadow:0 0 0 3px var(--gold)}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mist);padding:6px 4px 0 6px;min-height:18px}
+.meta .n{font-variant-numeric:tabular-nums}
+.meta.warn .n,.meta.warn .w{color:var(--warn)} .meta.bad .n,.meta.bad .w{color:var(--bad)}
+.lab{font-size:12.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--mist);margin:0 0 4px 4px}
+button{font:inherit;cursor:pointer}
+.del{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--dusk);color:var(--mist);font-size:18px;line-height:1;display:grid;place-items:center;margin-top:6px}
+.del:hover,.del:focus-visible{color:var(--bad);border-color:var(--bad);outline:none}
+.add{justify-self:start;font-family:var(--display);font-weight:600;font-size:15px;color:var(--gold);background:transparent;border:2px dashed var(--line);padding:8px 16px;border-radius:999px}
+.add:hover,.add:focus-visible{border-color:var(--gold);outline:none}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--moon);color:var(--ink);font-weight:700;padding:8px 10px 8px 16px;border-radius:999px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.toast[hidden]{display:none}
+.toast button{background:var(--ink);color:var(--moon);border:0;border-radius:999px;padding:4px 12px;font-weight:700}
+@media (prefers-reduced-motion:no-preference){ .bubble{transition:box-shadow .15s} }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Replikker</h1>
+    <p class="lead">Her står alt det, figurerne på kortet i <b>Magiske Mig</b> siger. Ret i boblerne, slet og tilføj. Det gemmes af sig selv. Sig til Claude, når du er færdig, så kommer replikkerne med i næste version af spillet.</p>
+  </header>
+  <nav aria-label="Figurer"><div class="chips" id="chips"></div></nav>
+  <p class="notice" id="notice" hidden></p>
+  <main id="main"></main>
+</div>
+<div class="status" id="status" aria-live="polite">Henter…</div>
+<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="undo">Fortryd</button></div>
+
+<script>
+/* Hvad figurerne siger. Indholdet ligger i databasen (samlingen "tekster", ét dokument pr. nøgle);
+   her står kun, hvordan siden skal vise det. */
+const WHO = [
+  { id:'dragen', name:'Dragen', parts:[
+    { key:'drage-vaagner', title:'Når den vågner', hint:'Det første, dragen siger, når Agnes vækker den. Den vælger én tilfældig.', kind:'lines' },
+    { key:'drage-vitser', title:'Vittigheder', hint:'Dragen siger spørgsmålet, holder en lille pause og siger så svaret. Den gentager ikke en vits, før den har fortalt dem alle.', kind:'jokes' },
+    { key:'drage-griner', title:'Når den griner', hint:'Det sidste, den siger, før den falder i søvn igen.', kind:'lines' } ] },
+  { id:'trolden', name:'Trolden', parts:[ { key:'trold', title:'Under broen', hint:'Én tilfældig, hver gang man trykker på den.', kind:'lines' } ] },
+  { id:'kragen', name:'Kragen', parts:[ { key:'krage', title:'På vejviseren', hint:'Én tilfældig, hver gang man trykker på den.', kind:'lines' } ] },
+  { id:'dyrene', name:'Dyrene', parts:[
+    { key:'and', title:'Ænderne i dammen', hint:'Én tilfældig pr. tryk.', kind:'lines' },
+    { key:'bjoern', title:'Bjørneungen ved høstakken', hint:'Én tilfældig pr. tryk.', kind:'lines' },
+    { key:'enhjoerning', title:'Enhjørningen', hint:'Én tilfældig pr. tryk.', kind:'lines' },
+    { key:'drageunge', title:'Drageungen i ægget', hint:'Én tilfældig pr. tryk.', kind:'lines' },
+    { key:'kat', title:'Katten på altanen', hint:'Én tilfældig pr. tryk.', kind:'lines' },
+    { key:'snegl', title:'Sneglen ved stien', hint:'Én tilfældig pr. tryk.', kind:'lines' } ] },
+  { id:'broenden', name:'Øksebrønden', parts:[ { key:'broend', title:'Det, brønden siger', hint:'Brønden har en fast besked til hver situation.', kind:'fields', fields:[
+    ['spoerg','Første tryk, hvor den spørger'], ['ingen','Når man ingen stjerner har'], ['opfyldt','Når øksen kommer op af brønden'], ['foerste','Lige efter den første økse'],
+    ['flere','Efter de næste økser ({n} bliver til antallet)'], ['udsolgt','Når den sidste økse er givet'], ['tom','Når man trykker, og den er udsolgt'] ] } ] },
+];
+const PARTS = WHO.flatMap(w => w.parts);
+const DATA = {}, DIRTY = new Set(), TIMERS = {};
+let db = null, lastDeleted = null;
+const $ = s => document.querySelector(s);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* hvor lang en replik kan være, før boblen i spillet bliver for bred */
+function lenInfo(t){ const n = [...t].length; return n > 58 ? ['bad', `${n} tegn`, 'For lang til én boble – del den op'] : n > 42 ? ['warn', `${n} tegn`, 'Lang – boblen bliver bred'] : ['', `${n} tegn`, '']; }
+const bubble = (val, attrs, gold) => { const [c, n, w] = lenInfo(val);
+  return `<div><div class="bubble${gold ? ' gold' : ''}"><textarea rows="1" ${attrs} spellcheck="true">${esc(val)}</textarea></div><div class="meta ${c}"><span class="w">${w}</span><span class="n">${n}</span></div></div>`; };
+
+function partHtml(p){
+  const d = DATA[p.key]; let o = `<div class="part" id="p-${p.key}"><h3>${p.title}</h3><p class="hint">${p.hint}</p>`;
+  if (!d){ return o + `<p class="hint">Henter…</p></div>`; }
+  if (p.kind === 'lines'){
+    o += `<div class="lines">` + (d.lines || []).map((t, i) => `<div class="row">${bubble(t, `data-k="${p.key}" data-i="${i}" aria-label="Replik ${i + 1}"`)}<button class="del" type="button" data-del="${p.key}" data-i="${i}" aria-label="Slet replik ${i + 1}">×</button></div>`).join('') + `</div>`;
+    o += `<button class="add" type="button" data-add="${p.key}">+ Ny replik</button>`;
+  } else if (p.kind === 'jokes'){
+    o += `<div class="lines">` + (d.jokes || []).map(([q, a], i) => `<div class="pair"><div class="row"><div><p class="lab">Spørgsmål</p>${bubble(q, `data-k="${p.key}" data-i="${i}" data-j="0" aria-label="Vittighed ${i + 1}, spørgsmål"`)}</div><button class="del" type="button" data-del="${p.key}" data-i="${i}" aria-label="Slet vittighed ${i + 1}">×</button></div><div class="row"><div><p class="lab">Svar</p>${bubble(a, `data-k="${p.key}" data-i="${i}" data-j="1" aria-label="Vittighed ${i + 1}, svar"`, true)}</div><span></span></div></div>`).join('') + `</div>`;
+    o += `<button class="add" type="button" data-add="${p.key}">+ Ny vittighed</button>`;
+  } else {
+    o += `<div class="lines">` + p.fields.map(([f, label]) => `<div class="field"><span class="lab" style="text-transform:none;letter-spacing:0">${label}</span>${bubble((d.fields || {})[f] || '', `data-k="${p.key}" data-f="${f}" aria-label="${esc(label)}"`, f === 'opfyldt' || f === 'udsolgt')}</div>`).join('') + `</div>`;
+  }
+  return o + `</div>`;
+}
+function render(){
+  $('#chips').innerHTML = WHO.map(w => `<a href="#${w.id}">${w.name}</a>`).join('');
+  $('#main').innerHTML = WHO.map(w => `<section class="who" id="${w.id}"><h2>${w.name}</h2>${w.parts.map(partHtml).join('')}</section>`).join('');
+  document.querySelectorAll('#main textarea').forEach(grow);
+}
+function renderPart(key){ const p = PARTS.find(x => x.key === key), el = document.getElementById('p-' + key); if (!el) return; el.outerHTML = partHtml(p); document.querySelectorAll(`#p-${key} textarea`).forEach(grow); }
+function grow(t){ t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+
+/* gemning: lidt efter man er holdt op med at skrive */
+function setStatus(txt, cls){ const s = $('#status'); s.textContent = txt; s.className = 'status' + (cls ? ' ' + cls : ''); }
+function queue(key){ DIRTY.add(key); setStatus('Gemmer…', 'saving'); clearTimeout(TIMERS[key]); TIMERS[key] = setTimeout(() => save(key), 700); }
+async function save(key){
+  if (!db){ setStatus('Kan ikke gemme her', 'err'); return; }
+  const d = DATA[key];
+  try { await db.collection('tekster').doc(key).set({ ...d, ts: Date.now() }); DIRTY.delete(key); if (!DIRTY.size) setStatus('Gemt'); }
+  catch(e){ setStatus('Kunne ikke gemme – prøv igen', 'err'); }
+}
+
+document.addEventListener('input', e => {
+  const t = e.target.closest('textarea[data-k]'); if (!t) return;
+  grow(t); const k = t.dataset.k, d = DATA[k], v = t.value.replace(/\n/g, ' ');
+  if (t.dataset.f) { d.fields = d.fields || {}; d.fields[t.dataset.f] = v; }
+  else if (t.dataset.j != null) d.jokes[+t.dataset.i][+t.dataset.j] = v;
+  else d.lines[+t.dataset.i] = v;
+  const [c, n, w] = lenInfo(v), m = t.closest('.bubble').nextElementSibling; m.className = 'meta ' + c; m.querySelector('.n').textContent = n; m.querySelector('.w').textContent = w;
+  queue(k);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('textarea[data-k]')) e.preventDefault(); });
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-add]'), x = e.target.closest('[data-del]');
+  if (a){ const k = a.dataset.add, d = DATA[k], p = PARTS.find(q => q.key === k);
+    if (p.kind === 'jokes') (d.jokes = d.jokes || []).push(['', '']); else (d.lines = d.lines || []).push('');
+    renderPart(k); queue(k); const ts = document.querySelectorAll(`#p-${k} textarea`); const last = p.kind === 'jokes' ? ts[ts.length - 2] : ts[ts.length - 1]; if (last) last.focus(); return; }
+  if (x){ const k = x.dataset.del, i = +x.dataset.i, d = DATA[k], list = d.jokes || d.lines;
+    lastDeleted = { k, i, item: list.splice(i, 1)[0] }; renderPart(k); queue(k);
+    $('#toastText').textContent = PARTS.find(q => q.key === k).kind === 'jokes' ? 'Vittigheden er slettet' : 'Replikken er slettet';
+    $('#toast').hidden = false; clearTimeout(TIMERS.toast); TIMERS.toast = setTimeout(() => { $('#toast').hidden = true; }, 6000); return; }
+  if (e.target.id === 'undo' && lastDeleted){ const { k, i, item } = lastDeleted, d = DATA[k]; (d.jokes || d.lines).splice(i, 0, item); lastDeleted = null; $('#toast').hidden = true; renderPart(k); queue(k); }
+});
+
+(async () => {
+  render();
+  try { db = await window.claude?.use?.('db'); } catch(e){ db = null; }
+  if (!db){ const n = $('#notice'); n.hidden = false; n.textContent = 'Replikkerne kan ikke hentes eller gemmes her. Åbn siden i Claude, mens du er logget ind.'; setStatus('Ikke forbundet', 'err'); return; }
+  const t = setTimeout(() => { const n = $('#notice'); n.hidden = false; n.textContent = 'Replikkerne er ikke hentet endnu. Vent et øjeblik, eller genindlæs siden.'; }, 10000);
+  db.collection('tekster').onSnapshot(snap => {
+    clearTimeout(t); $('#notice').hidden = true;
+    snap.docs.forEach(doc => { if (!doc.exists || DIRTY.has(doc.id)) return; const nd = doc.data(); if (JSON.stringify(nd) === JSON.stringify(DATA[doc.id])) return;
+      const first = !DATA[doc.id]; DATA[doc.id] = nd; if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest('#p-' + doc.id) || first) renderPart(doc.id); });
+    PARTS.forEach(p => { if (!DATA[p.key]){ DATA[p.key] = p.kind === 'jokes' ? { jokes: [] } : p.kind === 'fields' ? { fields: {} } : { lines: [] }; renderPart(p.key); } });
+    if (!DIRTY.size) setStatus('Alt er gemt');
+  }, e => { clearTimeout(t); const n = $('#notice'); n.hidden = false; n.textContent = 'Replikkerne kunne ikke hentes (' + (e.code || 'fejl') + ').'; setStatus('Ikke forbundet', 'err'); });
+})();
+</script>

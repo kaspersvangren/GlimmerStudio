@@ -1,10 +1,10 @@
 const fs=require('fs');
 const NAME=(fs.readFileSync('src/core.js','utf8').match(/const GAME_NAME = '([^']+)'/)||[])[1]||'Magiske Mig';
 const css=fs.readFileSync('src/style.css','utf8'), body=fs.readFileSync('src/body.html','utf8');
-const draw=fs.readFileSync('src/draw.js','utf8')+'\n'+fs.readFileSync('src/figur.js','utf8').replace(/^'use strict';/,''), app=['core','progress','guests','app','balls','rum','garderobe','fashion','skole','kost','fald','kort','town','city','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
+const draw=fs.readFileSync('src/draw.js','utf8')+'\n'+fs.readFileSync('src/figur.js','utf8').replace(/^'use strict';/,''), app=['core','progress','guests','app','balls','rum','garderobe','fashion','skole','kost','fald','kort','tekster','town','city','main'].map(f=>fs.readFileSync('src/'+f+'.js','utf8')).join('\n');
 const fonts='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">';
 /* sikkerhedsnet: alle filer deler ét navnerum, så to filer må aldrig bruge samme navn øverst i filen */
-{ const files=['draw','figur','core','progress','guests','app','balls','rum','garderobe','fashion','skole','kost','fald','kort','town','city','main'], seen={}, dup=[];
+{ const files=['draw','figur','core','progress','guests','app','balls','rum','garderobe','fashion','skole','kost','fald','kort','tekster','town','city','main'], seen={}, dup=[];
   for (const f of files){ if (!fs.existsSync('src/'+f+'.js')) continue; const src=fs.readFileSync('src/'+f+'.js','utf8');
     for (const m of src.matchAll(/^(?:async\s+)?(?:function\s*\*?\s*([A-Za-z_$][\w$]*)|(?:const|let|var|class)\s+([^=;(]+?)\s*(?:=|;|\{))/gm)){
       const names = m[1] ? [m[1]] : m[2].split(',').map(x => x.trim()).filter(x => /^[A-Za-z_$][\w$]*$/.test(x));
