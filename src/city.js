@@ -389,28 +389,32 @@ const PET_FACE = { enhjoerning: -1 };          // enhjørningen er tegnet med ho
 const VB_DOLL = '40 40 720 1010', VB_PET = '460 700 400 380';
 const DOLL_H = 150, PET_H = 70;               // højde ved dybde-skala 1
 const depthS = y => 0.6 + (y - 380) / 575 * 0.5;
-/* ruter fra torvet (HUB) ud til hvert sted; figurer går altid via torvet */
-const HUB = [720, 722];
+/* ruter fra torvet (HUB) ud til hvert sted på kortet; figurer går altid via torvet foran brønden */
+const HUB = [800, 724];
+const R_HUS = [HUB, [700,722], [612,706], [560,748], [500,778], [440,792], [380,792], [334,786]];
+const R_BRO = [HUB, [900,716], [962,708], [1020,766], [1064,846], [1108,874], [1172,852]];
 const ROUTES = {
   hub:    [HUB],
-  skole:  [HUB, [650,650], [680,520], [760,470], [800,402]],
-  foto:   [HUB, [640,650], [590,540], [500,450], [430,402]],
-  kugler: [HUB, [900,724], [970,650], [1060,540], [1200,450], [1318,402]],
-  dyr:    [HUB, [900,724], [1010,660], [1130,604], [1172,600]],
-  hus:    [HUB, [620,760], [520,820], [462,890], [450,958], [330,964]],
-  cafe:   [HUB, [880,760], [1060,830], [1136,900], [1150,958], [1290,962], [1332,964]],
-  bus:    [HUB, [800,780], [800,940], [846,962]],
-  soe:    [HUB, [600,690], [480,620], [430,600]],
-  baenkV: [HUB, [660,600], [640,576]],
-  baenkH: [HUB, [900,724], [960,640], [960,576]],
+  skole:  [HUB, [890,712], [900,640], [866,592], [812,562], [800,528]],
+  hus:    R_HUS,
+  kugler: [HUB, [900,716], [980,682], [1040,664], [1120,692], [1200,722], [1232,732]],
+  dyr:    [HUB, [900,712], [960,640], [1010,590], [1060,550], [1100,514]],
+  cafe:   [HUB, [806,746], [806,800], [790,880], [750,950], [706,984]],
+  koncert:[HUB, [806,746], [802,860], [764,958], [660,994], [400,996], [190,994]],
+  arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994]]),
+  bro:    R_BRO,
+  drage:  R_HUS.slice(0, -1).concat([[300,798], [200,796], [160,740], [146,640], [150,520], [164,420], [186,338]]),
+  baenkV: [HUB, [700,620], [690,574]],
+  baenkH: [HUB, [900,640], [910,574]],
 };
 const PLACES = [
-  { id:'hus', name:'Mit hus', open: () => showRoom() },
+  { id:'hus', name:'Kollegiet', open: () => showRoom() },
   { id:'skole', name:'Skolen', open: () => showSchool() },
   { id:'kugler', name:'Boblebutikken', open: () => showBalls() },
-  { id:'cafe', name:'Caféen', soon:true },
+  { id:'cafe', name:'Den Flyvende Støvle', soon:true },
   { id:'dyr', name:'Dyreparken', soon:true },
-  { id:'foto', name:'Fotostudiet', soon:true },
+  { id:'koncert', name:'Koncertsalen', soon:true },
+  { id:'arkade', name:'Arkaden', soon:true },
 ];
 let heroAt = 'hus', walking = false, SPR = null;
 const LIFE = { on: false, last: 0, chars: [], bubbles: [], peds: [], nextPed: 0, id: 0, gen: 0 };
@@ -467,7 +471,7 @@ const above = c => () => [c.x, c.y - c.h * depthS(c.y) * 0.98];
 
 /* ---------- folk i byen ---------- */
 const GREET = ['Hej!', 'Hej med dig!', 'Hejsa!', 'Flot tøj!', 'Godt hår!', 'Hej hej!'];
-const SPOTS = ['skole','foto','kugler','dyr','hus','cafe','bus','soe','baenkV','baenkH'];
+const SPOTS = ['skole','kugler','dyr','hus','cafe','koncert','arkade','bro','baenkV','baenkH'];
 async function spawnPed(){
   const gen = LIFE.gen;
   const heroFig = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0];
@@ -484,7 +488,7 @@ async function spawnPed(){
     raster(renderDoll(p.st, { viewBox: VB_DOLL, pet: false }), DOLL_H * k * 0.713 * 2.4, DOLL_H * k * 2.4),
     petSt ? raster(renderDoll(petSt, { petOnly: true, petMode: 'walk', viewBox: VB_PET }), PET_H * 0.9 * 1.053 * 2.4, PET_H * 0.9 * 2.4) : null ]);
   if (!LIFE.on || gen !== LIFE.gen){ return; }
-  const from = pick(['bus','hus','cafe','foto','kugler','dyr']), start = endOf(from);
+  const from = pick(['koncert','hus','cafe','arkade','kugler','dyr']), start = endOf(from);
   p.c = makeChar('doll', doll, { tap:'ped', id: p.id, x: start[0], y: start[1], k, bob: true });
   if (pet) p.dog = makeChar('pet', pet, { tap:'dog', id: p.id, x: start[0], y: start[1] + 4, k: 0.9, bob: true, face: PET_FACE[p.petKind] || 1 });
   if (p.dog) p.dog.isDog = true;
@@ -576,8 +580,105 @@ function tapThing(t){
   if (kind === 'swing'){ sfx.hello(); return say('Wiii!', 620, 740); }
   if (kind === 'kitekid'){ sfx.hello(); return say('Se min drage!', 446, 740, 2000); }
   if (kind === 'bird') return flyBird(t);
+  /* det nye kort: dragen, Øksebrønden og dyrene */
+  const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, ms);
+  if (kind === 'drage') return dragonTalk(t);
+  if (kind === 'broend') return wellWish(t);
+  if (kind === 'trold'){ sfx.roar(); jump('.tapjump'); return sayT(pick(['Snork… hvem tramper på min bro?', 'Zzz… gå stille over broen…', 'Mmm… trolde-grød…']), 2200); }
+  if (kind === 'krage'){ sfx.chirp(); jump('.tapjump'); return sayT(pick(['Krah! Dragen bor den vej!', 'Krah krah!', 'Krah! Har du set noget, der glimter?']), 2000); }
+  if (kind === 'and'){ sfx.quack(); jump('.tapjump'); return sayT('Rap rap!'); }
+  if (kind === 'bjoern'){ sfx.roar(); jump('.tapjump'); return sayT('Brum… zzz'); }
+  if (kind === 'enhjoerning'){ sfx.twinkle(); jump('.tapjump'); return sayT('Iiihh!'); }
+  if (kind === 'drageunge'){ sfx.pop(); jump('.tapjump'); return sayT('Pip-rawr!'); }
+  if (kind === 'kat'){ sfx.meow(); jump('.tapjump'); return sayT('Mjav!'); }
+  if (kind === 'snegl'){ sfx.squeak(); jump('.tapjump'); return sayT('Jeg skynder mig!'); }
   if (kind === 'star') return foundStar(t);
 }
+function tapTop(t){
+  const svg = $('#townSvg'), r = t.getBoundingClientRect(), m = svg && svg.getScreenCTM();
+  if (!m) return [800, 400];
+  const pt = svg.createSVGPoint(); pt.x = r.left + r.width / 2; pt.y = r.top; const q = pt.matrixTransform(m.inverse());
+  return [q.x, q.y - 6];
+}
+
+/* ---------- dragen: vågner, fortæller en plat vittighed og falder i søvn igen ---------- */
+const DRAGON_WAKE = ['Hmm? Hvem vækker mig?', 'Snork… hva’? Nå, det er dig!', 'Gaab… vil du høre en vits?', 'Zzz… hva’? Ja ja, jeg er vågen!'];
+const DRAGON_LAUGH = ['Hø hø hø!', 'Hahaha! Den er god, hva’?', 'Hihi… nu sover jeg igen.', 'Hø hø… zzz'];
+const DRAGON_JOKES = [
+  ['Hvad spiser drager til morgenmad?', 'Ristet brød. De rister det selv!'],
+  ['Hvorfor tager drager aldrig elevatoren?', 'De tager brandtrappen!'],
+  ['Hvad sagde dragen, da den så en ridder?', 'Åh nej, ikke mere dåsemad!'],
+  ['Hvad kalder man en drage uden ild?', 'En drage med snue!'],
+  ['Hvad er en drages yndlingsleg?', 'Brændbold!'],
+  ['Ved du, hvorfor jeg er så tyk?', 'Jeg er fyldt med varm luft!'],
+  ['Hvorfor sover jeg hele tiden?', 'Jeg er en drøm af en drage!'],
+  ['Hvorfor giver brønden økser?', 'Den kan ikke stave til ønsker!'],
+  ['Hvorfor er trolden så sur?', 'Den stod op på den gale side af broen!'],
+  ['Hvad sagde heksen efter kosteturen?', 'Det var helt kosteligt!'],
+  ['Hvorfor gik kosten tidligt i seng?', 'Den var helt fejet omkuld!'],
+  ['Hvad sagde nul til otte?', 'Flot bælte!'],
+  ['Hvorfor kan skeletter ikke lyve?', 'Man kan se lige igennem dem!'],
+  ['Hvorfor går myrer ikke i kirke?', 'Fordi de er insekter!'],
+  ['Hvad sagde havet til stranden?', 'Ingenting. Det vinkede bare!'],
+  ['Hvorfor har elefanter ikke computere?', 'De er bange for musen!'],
+  ['Hvad kalder man en hund, der kan trylle?', 'En labra-kadabra-dor!'],
+  ['Hvad får man af en ko på trampolin?', 'Milkshake!'],
+  ['Hvad kalder man en ugle, der tryller?', 'Hu-dini!'],
+  ['Hvad er gult og flyver?', 'En bananflue!'],
+  ['Hvad er det mest musikalske i kroppen?', 'Trommehinden!'],
+  ['Hvad siger en snemand til en anden?', 'Lugter her ikke af gulerødder?'],
+];
+let dragonBusy = false, dragonDeck = [];
+function dragonTalk(t){
+  if (dragonBusy) return; dragonBusy = true;
+  if (!dragonDeck.length) dragonDeck = DRAGON_JOKES.map((_, i) => i).sort(() => Math.random() - .5);
+  const [q, a] = DRAGON_JOKES[dragonDeck.pop()], pos = () => [330, 150], gen = LIFE.gen;
+  const wake = on => { t.querySelectorAll('.k-wake').forEach(e => { e.style.display = on ? '' : 'none'; }); t.querySelectorAll('.k-sleep').forEach(e => { e.style.display = on ? 'none' : ''; }); };
+  wake(true); sfx.roar();
+  const steps = [[pick(DRAGON_WAKE), 1900, false], [q, 3600, false], [a, 3400, true], [pick(DRAGON_LAUGH), 1900, false]];
+  let at = 0;
+  steps.forEach(([txt, ms, sp], i) => { setTimeout(() => { if (gen !== LIFE.gen) return; if (i === 2) sfx.twinkle(); bubble(txt, pos, ms - 100, sp); }, at); at += ms; });
+  setTimeout(() => { wake(false); dragonBusy = false; }, at);
+}
+
+/* ---------- Øksebrønden: en stjerne i brønden giver en økse, der dukker op på værelset ---------- */
+const KEY_AXE = 'glimmerstudiet.oekser', AXE_MAX = 12;
+const axeCount = () => Math.max(0, Math.min(AXE_MAX, +store.get(KEY_AXE, 0) || 0));
+let wellAsk = 0, wellBusy = false;
+function wellWish(t){
+  if (wellBusy) return;
+  const n = axeCount(), now = performance.now(), pos = () => [800, 500];
+  if (n >= AXE_MAX){ sfx.nope(); return bubble('UDSOLGT! Ikke flere økser.', pos, 2200); }
+  if (prog.stars < 1){ sfx.nope(); return bubble('Smid en stjerne i for at ønske!', pos, 2400); }
+  if (now > wellAsk){ wellAsk = now + 4000; sfx.pick(); return bubble('Ønske? Tryk igen for at smide en stjerne i!', pos, 3200); }
+  wellAsk = 0; wellBusy = true;
+  addStars(-1); sfx.coin();
+  const fx = $('#fx'), st = sv('g', { 'pointer-events':'none' }, `<polygon points="${star5pts(0,0,13,5.5)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2"/>`);
+  fx.append(st); const t0 = performance.now();
+  const fall = now2 => { const k = Math.min(1, (now2 - t0) / 700), y = 470 + k * 150, sc = 1 - k * .6;
+    st.setAttribute('transform', `translate(800,${y.toFixed(1)}) scale(${sc.toFixed(2)}) rotate(${(k * 300).toFixed(0)})`);
+    if (k < 1) requestAnimationFrame(fall); else { st.remove(); sfx.splash(); setTimeout(axeUp, 400); } };
+  requestAnimationFrame(fall);
+  const axeUp = () => {
+    const ax = sv('g', { 'pointer-events':'none' }, axeSvg(1.4)); fx.append(ax); const t1 = performance.now(); sfx.twinkle();
+    const rise = now3 => { const k = Math.min(1, (now3 - t1) / 1100), e = 1 - Math.pow(1 - k, 3);
+      ax.setAttribute('transform', `translate(800,${(616 - e * 190).toFixed(1)}) rotate(${(e * 360).toFixed(0)})`); ax.setAttribute('opacity', k < .85 ? 1 : (1 - (k - .85) / .15).toFixed(2));
+      if (k < 1) requestAnimationFrame(rise); else ax.remove(); };
+    requestAnimationFrame(rise);
+    const m = n + 1; store.set(KEY_AXE, m);
+    bubble('Tillykke! Din økse er gået i opfyldelse!', pos, 3000, true);
+    setTimeout(() => {
+      if (m === 1) bubble('Den ligger på dit værelse.', pos, 2600);
+      else if (m >= AXE_MAX){ bubble('Nu er brønden UDSOLGT!', pos, 2800, true); t.insertAdjacentHTML('beforeend', wellSoldSign()); }
+      else bubble(`Nu har du ${m} økser!`, pos, 2400);
+      wellBusy = false;
+    }, 3100);
+  };
+}
+const wellSoldSign = () => `<g transform="translate(0 -18) rotate(-6)"><rect x="-44" y="-12" width="88" height="24" rx="4" fill="#E0457A" stroke="#7A1A3A" stroke-width="2"/><text x="0" y="6" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFFFFF" letter-spacing="1">UDSOLGT</text></g>`;
+/* en økse: skaft af træ og et blankt hoved; tegnet med skaftets midte i 0,0 */
+const axeSvg = (k = 1) => `<g transform="scale(${k})"><path d="M 0 30 V -30" stroke="#8A5A3C" stroke-width="5" stroke-linecap="round"/><path d="M 0 30 V -30" stroke="#B5743A" stroke-width="2" stroke-linecap="round" opacity=".6"/><path d="M 1 -30 C 12 -34 20 -28 22 -18 C 22 -10 18 -6 14 -6 C 10 -12 6 -16 1 -16 Z" fill="#C8C4D8" stroke="#3A3450" stroke-width="2" stroke-linejoin="round"/><path d="M 16 -26 C 20 -20 20 -14 17 -9" stroke="#FFFFFF" stroke-width="2" fill="none" opacity=".8"/><rect x="-3" y="-34" width="6" height="22" rx="2" fill="#6A6480" stroke="#3A3450" stroke-width="1.5"/></g>`;
+
 function flyBird(t){
   if (t.classList.contains('away')) return;
   sfx.chirp(); t.classList.add('away');
@@ -594,7 +695,7 @@ function releaseBalloon(){
   setTimeout(() => { b.style.display = ''; }, 20000);
 }
 /* den gemte stjerne: et nyt skjulested hver dag, og den giver en stjerne når man finder den */
-const STAR_SPOTS = [[992,904],[146,452],[1560,646],[612,232],[1452,940],[360,712],[1004,436]];
+const STAR_SPOTS = [[92,560],[1012,560],[1530,600],[620,470],[1060,962],[470,700],[1500,770]];
 const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
 function placeHiddenStar(){
   if (store.get(KEY_STAR, '') === todayKey()) return;
@@ -630,7 +731,7 @@ function showTown(){
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
   const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'map', id:'street', html: townSvg() }),
+  box.append(el('div', { class:'map', id:'street', html: Kort.svg({ game: true }) }),
     el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
   $('#street').style.background = SKY[CM.time][0];
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
@@ -645,7 +746,7 @@ function showTown(){
   sortChars();
   // en af hendes andre dukker kigger ud ad vinduet i Mit hus
   const sorted = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0));
-  if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
+  if (!$('#homeDoll')){} else if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
   else $('#homeDoll').remove();
   placeHiddenStar();
   $('#townLogo').addEventListener('click', logoTap);
@@ -655,8 +756,8 @@ function showTown(){
   updateAudioBtns();
   if (!LIFE.on){ LIFE.on = true; LIFE.last = performance.now(); requestAnimationFrame(lifeTick); }
   // udstillingsdukker, isælgeren og børnene laves som billeder bagefter, så byen vises med det samme
-  const fill = async (id, st, vb, w, h) => { const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
+  const fill = async (id, st, vb, w, h) => { if (!$('#' + id)) return; const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
   fill('vendor', randomState({}), VB_DOLL, 144, 200);
   fill('swingKid', randomState({}), VB_DOLL, 108, 152);
-  if ($('#kiteKid')) fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
+  fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
 }

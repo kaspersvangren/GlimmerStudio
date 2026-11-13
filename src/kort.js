@@ -110,7 +110,7 @@ const Kort = (() => {
        to horn og røde kinder. Han sidder sammensunket og sover: øjnene er lukket, hovedet hænger på skrå,
        nathuen er gledet ned over det ene horn, brillerne er skubbet op i panden, og en snotboble vokser og skrumper. */
     const G = '#6EAA4E', GD = '#35602A', GL = '#8ECC66', B = '#F4DFA2', BD = '#B89A5A', R = '#E2603A', RD = '#8A2A1A', W = '#EE9A84';
-    s += `<g class="k-dragon" transform="translate(186 288) scale(.82)">`;
+    s += `<g class="k-dragon" data-tap="drage" transform="translate(186 288) scale(.82)"><rect x="-130" y="-260" width="260" height="300" fill="#FFF" fill-opacity="0"/>`;
     /* halen krøller sig rundt foran på klippen, med røde pigge og en pilespids */
     const TAIL = 'M 54 -30 C 104 -22 116 14 70 26 C 24 36 -30 34 -84 22';
     s += `<path d="${TAIL}" stroke="${GD}" stroke-width="32" fill="none" stroke-linecap="round"/><path d="${TAIL}" stroke="${G}" stroke-width="26" fill="none" stroke-linecap="round"/>`;
@@ -139,17 +139,17 @@ const Kort = (() => {
     s += `<path d="M -46 0 C -52 -38 -26 -60 0 -60 C 28 -60 52 -38 46 0 C 42 24 20 34 0 34 C -22 34 -42 24 -46 0 Z" fill="${G}" stroke="${GD}" stroke-width="2.5"/>`;
     s += `<ellipse cx="0" cy="14" rx="28" ry="15" fill="${GL}"/><circle cx="-7" cy="10" r="2.2" fill="${GD}"/><circle cx="7" cy="10" r="2.2" fill="${GD}"/>`;
     s += `<ellipse cx="-31" cy="6" rx="9" ry="6" fill="#F07A7A" opacity=".55"/><ellipse cx="31" cy="6" rx="9" ry="6" fill="#F07A7A" opacity=".55"/>`;
-    s += `<path d="M -28 -10 q 9 8 18 0 M 10 -10 q 9 8 18 0" stroke="${GD}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M -27 -8 l -4 3 M 27 -8 l 4 3" stroke="${GD}" stroke-width="2" stroke-linecap="round"/>`;
+    s += `<g class="k-sleep">` + `<path d="M -28 -10 q 9 8 18 0 M 10 -10 q 9 8 18 0" stroke="${GD}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M -27 -8 l -4 3 M 27 -8 l 4 3" stroke="${GD}" stroke-width="2" stroke-linecap="round"/>` + `</g>` + `<g class="k-wake" style="display:none"><ellipse cx="-19" cy="-8" rx="9" ry="7" fill="#FFFFFF" stroke="${GD}" stroke-width="2"/><ellipse cx="19" cy="-8" rx="9" ry="7" fill="#FFFFFF" stroke="${GD}" stroke-width="2"/><circle cx="-17" cy="-6" r="4" fill="#2A1E3A"/><circle cx="21" cy="-6" r="4" fill="#2A1E3A"/><path d="M -29 -12 Q -19 -18 -9 -12 M 9 -12 Q 19 -18 29 -12" stroke="${G}" stroke-width="6" fill="none"/><path d="M -29 -11 Q -19 -16 -9 -11 M 9 -11 Q 19 -16 29 -11" stroke="${GD}" stroke-width="2" fill="none"/></g>`;
     s += `<path d="M -10 22 q 10 6 20 0" stroke="${GD}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
     /* snotboblen */
-    s += `<circle cx="10" cy="12" r="4" fill="#C8F0FF" fill-opacity=".45" stroke="#FFFFFF" stroke-width="1.5">${calm ? '' : '<animate attributeName="r" values="3;12;3" dur="3.2s" repeatCount="indefinite"/><animate attributeName="cx" values="9;16;9" dur="3.2s" repeatCount="indefinite"/>'}</circle>`;
+    s += `<g class="k-sleep">` + `<circle cx="10" cy="12" r="4" fill="#C8F0FF" fill-opacity=".45" stroke="#FFFFFF" stroke-width="1.5">${calm ? '' : '<animate attributeName="r" values="3;12;3" dur="3.2s" repeatCount="indefinite"/><animate attributeName="cx" values="9;16;9" dur="3.2s" repeatCount="indefinite"/>'}</circle>` + `</g>`;
     /* hornene, nathuen (gledet ned over det højre horn) og brillerne i panden */
     s += [-1, 1].map(f => `<path d="M ${f * 14} -54 C ${f * 18} -76 ${f * 12} -92 ${f * 2} -100 C ${f * 22} -96 ${f * 32} -78 ${f * 26} -52 Z" fill="#EAD6A8" stroke="#9A8460" stroke-width="2"/><path d="M ${f * 16} -62 q ${f * 6} 2 ${f * 9} 0 M ${f * 14} -74 q ${f * 5} 2 ${f * 8} 0" stroke="#B8A27A" stroke-width="1.5" fill="none"/>`).join('');
     s += [-6, 0, 6].map((x, i) => `<path d="M ${x - 4} ${-58 + Math.abs(x) / 2} l 4 -10 l 4 10 Z" fill="${R}" stroke="${RD}" stroke-width="1"/>`).join('');
     s += `<path d="M 4 -54 C 14 -84 48 -86 60 -60 C 72 -38 74 -10 64 16 C 60 -10 52 -34 40 -46 Z" fill="#6B3FA0" stroke="${E}" stroke-width="2"/><path d="M 2 -52 Q 30 -66 50 -52" stroke="#E8E2FA" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="64" cy="20" r="7" fill="#E8E2FA" stroke="#B8B0D8" stroke-width="1"/>`;
     s += `<circle cx="-14" cy="-36" r="9" fill="#BFE8FF" fill-opacity=".4" stroke="#C9A04A" stroke-width="2.5"/><circle cx="8" cy="-38" r="9" fill="#BFE8FF" fill-opacity=".4" stroke="#C9A04A" stroke-width="2.5"/><path d="M -5 -37 h 4" stroke="#C9A04A" stroke-width="2.5"/>`;
     s += `</g>`;
-    s += `<text x="40" y="-230" font-family="${FONT_C}" font-weight="700" font-size="24" fill="#E8E2FA" opacity=".9">Z<tspan dx="3" dy="-12" font-size="19">z</tspan><tspan dx="3" dy="-10" font-size="14">z</tspan>${calm ? '' : '<animate attributeName="opacity" values=".3;.95;.3" dur="3.2s" repeatCount="indefinite"/>'}</text>`;
+    s += `<g class="k-sleep">` + `<text x="40" y="-230" font-family="${FONT_C}" font-weight="700" font-size="24" fill="#E8E2FA" opacity=".9">Z<tspan dx="3" dy="-12" font-size="19">z</tspan><tspan dx="3" dy="-10" font-size="14">z</tspan>${calm ? '' : '<animate attributeName="opacity" values=".3;.95;.3" dur="3.2s" repeatCount="indefinite"/>'}</text>` + `</g>`;
     s += `</g>`;
     /* bunke guldmønter og en gammel kiste ved hulen */
     s += `<g transform="translate(396 308)">${[[0, 0], [8, -4], [16, 0], [4, -8], [12, -10], [-6, -4]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="3" fill="#F2C14E" stroke="#8A6420" stroke-width="1"/>`).join('')}<rect x="20" y="-16" width="26" height="18" rx="3" fill="#8A5A3C" stroke="#3A2420" stroke-width="2"/><path d="M 20 -10 H 46" stroke="#C9A04A" stroke-width="2.5"/></g>`;
@@ -221,7 +221,7 @@ const Kort = (() => {
     s += [0, 1, 2].map(i => `<rect x="${gx - 72 - i * 10}" y="${gb + i * 8}" width="${144 + i * 20}" height="9" rx="2" fill="#8A82AE" stroke="${E}" stroke-width="2"/>`).join('');
     /* en ugle på muren */
     s += `<g transform="translate(${gx + 104} ${gt - 16})"><ellipse rx="10" ry="13" fill="#8A6A4A" stroke="#3A2420" stroke-width="1.5"/><circle cx="-4" cy="-4" r="4" fill="#FFE9A0"/><circle cx="4" cy="-4" r="4" fill="#FFE9A0"/><circle cx="-4" cy="-4" r="2" fill="#1A1238"/><circle cx="4" cy="-4" r="2" fill="#1A1238"/><path d="M -1 0 l 1 3 l 1 -3 Z" fill="#F2C14E"/><path d="M -8 -12 l 2 -5 l 3 4 M 8 -12 l -2 -5 l -3 4" fill="#8A6A4A" stroke="#3A2420" stroke-width="1"/></g>`;
-    return placeG('skole', 'Skolen', false, s + hit(gx - gw / 2 - 30, 100, gw + 60, gb - 90));
+    return placeG('skole', 'Skolen', false, hit(gx - gw / 2 - 30, 100, gw + 60, gb - 90) + s);
   }
 
   /* ---------- dyreparken ved siden af skolen ---------- */
@@ -264,20 +264,20 @@ const Kort = (() => {
     s += [[1142, 482, '#E8E4F4', 1], [1180, 488, '#C9A27A', -1]].map(([x, y, c, f]) => `<g transform="translate(${x} ${y}) scale(${f} 1)"><ellipse cx="0" cy="0" rx="10" ry="7" fill="${c}" stroke="#8A80A8" stroke-width="1.2"/><circle cx="-9" cy="2" r="3" fill="#FFFFFF"/><circle cx="7" cy="-5" r="5" fill="${c}" stroke="#8A80A8" stroke-width="1.2"/><ellipse cx="6" cy="-14" rx="2" ry="6" fill="${c}" stroke="#8A80A8" stroke-width="1"/><ellipse cx="10" cy="-13" rx="2" ry="6" fill="${c}" stroke="#8A80A8" stroke-width="1"/><circle cx="9" cy="-6" r="1" fill="#1A1238"/><circle cx="12" cy="-4" r="1" fill="#FF8FC7"/></g>`).join('');
     /* vandtruget står bag enhjørningen, ved staldvæggen */
     s += `<g transform="translate(1290 448)"><ellipse cx="0" cy="2" rx="30" ry="5" fill="#1A1238" opacity=".2"/><path d="M -22 0 l 4 -12 M 22 0 l -4 -12" stroke="#4A2E1E" stroke-width="3"/><path d="M -28 -26 L 28 -26 L 22 -10 L -22 -10 Z" fill="#9C6A48" stroke="#4A2E1E" stroke-width="2" stroke-linejoin="round"/><path d="M -26 -26 h 52" stroke="#7FC8F0" stroke-width="4"/><path d="M -24 -18 h 48" stroke="#7A5038" stroke-width="1.2"/></g>`;
-    s += uni(1226, 470, .92);
+    s += `<g data-tap="enhjoerning"><g class="tapjump">${uni(1226, 470, .92)}</g></g>`;
     /* et rigtigt vandtrug af træ på ben */
     /* drageungen i ægget, og et lille skilt, der beder folk lade være med at fodre den */
-    s += `<g transform="translate(1324 480)"><ellipse cx="0" cy="2" rx="20" ry="5" fill="#C9A85A"/><path d="M -12 0 C -14 -24 14 -24 12 0 Z" fill="#E8DEF8" stroke="#8A80A8" stroke-width="1.5"/><path d="M -12 -8 l 5 -4 l 4 4 l 5 -5 l 4 4 l 4 -3" stroke="#8A80A8" stroke-width="1.5" fill="none"/><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0;0 0" keyTimes="0;.2;.4;1" dur="4s" repeatCount="indefinite"/>'}<circle cx="0" cy="-16" r="7" fill="#7AC86A" stroke="#3A6A2A" stroke-width="1.5"/><circle cx="-2" cy="-17" r="1.5" fill="#1A1238"/><circle cx="3" cy="-17" r="1.5" fill="#1A1238"/></g></g>`;
+    s += `<g data-tap="drageunge" transform="translate(1324 480)"><g class="tapjump"><ellipse cx="0" cy="2" rx="20" ry="5" fill="#C9A85A"/><path d="M -12 0 C -14 -24 14 -24 12 0 Z" fill="#E8DEF8" stroke="#8A80A8" stroke-width="1.5"/><path d="M -12 -8 l 5 -4 l 4 4 l 5 -5 l 4 4 l 4 -3" stroke="#8A80A8" stroke-width="1.5" fill="none"/><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0;0 0" keyTimes="0;.2;.4;1" dur="4s" repeatCount="indefinite"/>'}<circle cx="0" cy="-16" r="7" fill="#7AC86A" stroke="#3A6A2A" stroke-width="1.5"/><circle cx="-2" cy="-17" r="1.5" fill="#1A1238"/><circle cx="3" cy="-17" r="1.5" fill="#1A1238"/></g></g></g>`;
     /* høstakken med en bjørneunge, der sover op ad den */
     s += `<g transform="translate(1556 418)"><path d="M -26 10 C -30 -20 -12 -34 0 -34 C 12 -34 30 -20 26 10 Z" fill="#E8C86A" stroke="#A8884A" stroke-width="2"/>${[-14, -4, 6, 16].map(dx => `<path d="M ${dx} -24 q 2 14 -2 30" stroke="#C8A84A" stroke-width="1.5" fill="none"/>`).join('')}</g>`;
-    s += `<g transform="translate(1578 448)"><ellipse cx="0" cy="2" rx="22" ry="4" fill="#1A1238" opacity=".2"/><ellipse cx="2" cy="-8" rx="18" ry="11" fill="#8A5A3C" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-14" cy="-10" r="9" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-19" cy="-18" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><circle cx="-9" cy="-19" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><ellipse cx="-18" cy="-7" rx="4" ry="3" fill="#D8B890"/><path d="M -17 -12 q 2 1.5 4 0 M -11 -12 q 2 1.5 4 0" stroke="#1A1238" stroke-width="1.2" fill="none"/><text x="-4" y="-26" font-family="${FONT_C}" font-weight="700" font-size="10" fill="#E8E2FA">z</text></g>`;
+    s += `<g data-tap="bjoern" transform="translate(1578 448)"><g class="tapjump"><ellipse cx="0" cy="2" rx="22" ry="4" fill="#1A1238" opacity=".2"/><ellipse cx="2" cy="-8" rx="18" ry="11" fill="#8A5A3C" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-14" cy="-10" r="9" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-19" cy="-18" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><circle cx="-9" cy="-19" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><ellipse cx="-18" cy="-7" rx="4" ry="3" fill="#D8B890"/><path d="M -17 -12 q 2 1.5 4 0 M -11 -12 q 2 1.5 4 0" stroke="#1A1238" stroke-width="1.2" fill="none"/><text x="-4" y="-26" font-family="${FONT_C}" font-weight="700" font-size="10" fill="#E8E2FA">z</text></g></g>`;
     /* hegnet har en låge til stien og et hul, hvor bækken løber ud */
     s += fence(1140, 494, 1404, 490, 10) + fence(1562, 483, 1600, 478, 1);
     s += lantern(1219, 446) + lantern(1325, 444) + lantern(1404, 442);
     /* skiltet er sømmet fast på hegnet ved siden af ægget */
     s += `<g transform="translate(1370 472) rotate(-3)"><rect x="-32" y="-13" width="64" height="26" rx="3" fill="#E8D8B0" stroke="#5A3A28" stroke-width="1.5"/><circle cx="-27" cy="-8" r="1.3" fill="#5A3A28"/><circle cx="27" cy="-8" r="1.3" fill="#5A3A28"/><text x="0" y="-2" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8.5" fill="#7A2A2A">FODR IKKE</text><text x="0" y="8" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8.5" fill="#7A2A2A">DRAGEUNGEN</text></g>`;
     s += `<g transform="translate(1470 346)">${placeSign('Dyreparken', '#4E7A3A')}</g>`;
-    return placeG('dyr', 'Dyreparken', true, s + soon(1372, 394) + hit(1060, 320, 540, 190));
+    return placeG('dyr', 'Dyreparken', true, hit(1060, 320, 540, 190) + s + soon(1372, 394));
   }
   /* et træskilt på pæl */
   const placeSign = (t, col = '#3A2420') => { const w = t.length * 12 + 36; return `<path d="M -3 0 V 50 M 3 0 V 50" stroke="#5A3A28" stroke-width="5"/><rect x="${-w / 2}" y="-20" width="${w}" height="34" rx="8" fill="#E8D8B0" stroke="#5A3A28" stroke-width="3"/><text x="0" y="5" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="18" fill="${col}">${t}</text>`; };
@@ -312,7 +312,7 @@ const Kort = (() => {
     let s = `<path d="${BROOK}" stroke="${bo}" stroke-width="58" fill="none" stroke-linecap="round"/><ellipse cx="1470" cy="440" rx="60" ry="22" fill="${bo}"/>`;
     s += `<path d="${BROOK}" stroke="${wa}" stroke-width="42" fill="none" stroke-linecap="round"/><ellipse cx="1470" cy="440" rx="52" ry="15" fill="${wa}"/><ellipse cx="1462" cy="436" rx="36" ry="8" fill="#7FC8F0" opacity=".45"/>`;
     s += `<path d="${BROOK}" stroke="#8EC4EE" stroke-width="3" fill="none" stroke-dasharray="18 26" opacity=".7">${calm || w ? '' : '<animate attributeName="stroke-dashoffset" values="44;0" dur="1.6s" repeatCount="indefinite"/>'}</path>`;
-    s += [[1446, 438, 1, '#FFFFFF'], [1484, 444, -1, '#F2E2A0']].map(([x, y, f, c]) => `<g transform="translate(${x} ${y}) scale(${f} 1)"><g>${calm ? '' : `<animateTransform attributeName="transform" type="translate" values="0 0;4 0;0 0" dur="5s" repeatCount="indefinite"/>`}<path d="M -9 0 C -10 -8 4 -8 7 -3 L 10 -12 C 10 -16 16 -16 16 -11 L 21 -10 L 16 -8 C 14 -2 12 2 6 2 Z" fill="${c}" stroke="#8A80A8" stroke-width="1"/><circle cx="13" cy="-12" r="1" fill="#1A1238"/></g></g>`).join('');
+    s += [[1446, 438, 1, '#FFFFFF'], [1484, 444, -1, '#F2E2A0']].map(([x, y, f, c]) => `<g data-tap="and" transform="translate(${x} ${y}) scale(${f} 1)"><g class="tapjump"><g>${calm ? '' : `<animateTransform attributeName="transform" type="translate" values="0 0;4 0;0 0" dur="5s" repeatCount="indefinite"/>`}<path d="M -9 0 C -10 -8 4 -8 7 -3 L 10 -12 C 10 -16 16 -16 16 -11 L 21 -10 L 16 -8 C 14 -2 12 2 6 2 Z" fill="${c}" stroke="#8A80A8" stroke-width="1"/><circle cx="13" cy="-12" r="1" fill="#1A1238"/></g></g></g>`).join('');
     s += [[1528, 560], [1500, 676], [1350, 800], [1186, 960]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="10" ry="6" fill="#7A7090" stroke="${E}" stroke-width="1.5"/>`).join('');
     s += [[1460, 740], [1300, 820]].map(([x, y]) => `<path d="M ${x} ${y} q -4 -16 2 -26 M ${x + 6} ${y} q 2 -14 8 -20" stroke="#4E7A3A" stroke-width="2.5" fill="none"/><ellipse cx="${x + 2}" cy="${y - 24}" rx="3" ry="7" fill="#7A4A2A"/>`).join('');
     return s;
@@ -332,7 +332,7 @@ const Kort = (() => {
     /* trolden sidder forfra og sover, lænet op ad broens venstre sten-ende: rund krop, hænderne på maven, store fødder,
        ører til siden, en kæmpe kartoffelnæse midt i ansigtet, lukkede øjne og en lille svamp i håret */
     { const T = '#7E8E5A', TL = '#3A4A2A', TH = '#8A9A66';
-      s += `<g transform="translate(${x - 94} ${y + 40})"><ellipse cx="0" cy="2" rx="38" ry="7" fill="#1A1238" opacity=".28"/>`
+      s += `<g data-tap="trold" transform="translate(${x - 94} ${y + 40})"><g class="tapjump"><ellipse cx="0" cy="2" rx="38" ry="7" fill="#1A1238" opacity=".28"/>`
         + `<ellipse cx="-16" cy="-4" rx="13" ry="7" fill="${T}" stroke="${TL}" stroke-width="1.8"/><ellipse cx="16" cy="-4" rx="13" ry="7" fill="${T}" stroke="${TL}" stroke-width="1.8"/>`
         + [-24, -18, -12, 12, 18, 24].map(tx => `<circle cx="${tx}" cy="-9" r="3" fill="${TH}" stroke="${TL}" stroke-width="1.2"/>`).join('')
         + `<path d="M -30 -8 C -36 -38 -22 -56 0 -56 C 22 -56 36 -38 30 -8 Z" fill="${T}" stroke="${TL}" stroke-width="2"/>`
@@ -346,7 +346,7 @@ const Kort = (() => {
         + `<path d="M -11 -70 q 4 3 8 0 M 3 -70 q 4 3 8 0" stroke="#1A1238" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
         + `<ellipse cx="0" cy="-60" rx="7.5" ry="9" fill="#A8B87E" stroke="${TL}" stroke-width="1.8"/><circle cx="-3" cy="-56" r="1" fill="${TL}"/><circle cx="3" cy="-56" r="1" fill="${TL}"/>`
         + `<path d="M -6 -50 q 6 4 12 0" stroke="#2A1E2A" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M 3 -49 v 3" stroke="#F2EEDC" stroke-width="2"/>`
-        + `<circle cx="-12" cy="-58" r="3" fill="#FF8FC7" opacity=".35"/><circle cx="12" cy="-58" r="3" fill="#FF8FC7" opacity=".35"/></g>`; }
+        + `<circle cx="-12" cy="-58" r="3" fill="#FF8FC7" opacity=".35"/><circle cx="12" cy="-58" r="3" fill="#FF8FC7" opacity=".35"/></g></g>`; }
     s += `<text x="${x - 66}" y="${y - 54}" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#E8E2FA" opacity=".85">z<tspan dy="-6" font-size="12">z</tspan>${calm ? '' : `<animate attributeName="opacity" values=".2;.9;.2" dur="3s" repeatCount="indefinite"/>`}</text>`;
     return s;
   }
@@ -358,13 +358,17 @@ const Kort = (() => {
     s += `<g transform="rotate(-12 690 558)">${bench2(690, 558)}</g><g transform="rotate(12 910 558)">${bench2(910, 558)}</g>`;
     /* brønden: stenkant, tag på to stolper, en spand, og lilla vand der bobler. Skiltet på taget siger "Øksebrønd" —
        folk tror, det er en stavefejl, men den giver økser. (Selve øksen kommer, når brønden bliver til noget i spillet.) */
-    s += `<g transform="translate(800 650)"><ellipse cx="0" cy="8" rx="76" ry="22" fill="#1A1238" opacity=".25"/>`;
+    const soldOut = typeof axeCount === 'function' && axeCount() >= AXE_MAX;
+    s += `<g data-tap="broend" class="k-well" transform="translate(800 650)"><ellipse cx="0" cy="8" rx="76" ry="22" fill="#1A1238" opacity=".25"/>`;
     s += `<path d="M -62 -4 V -34 Q 0 -54 62 -34 V -4 Q 0 18 -62 -4 Z" fill="#8A82AE" stroke="${E}" stroke-width="2.5"/>` + [-48, -24, 0, 24, 48].map(dx => `<path d="M ${dx - 10} ${-22 + Math.abs(dx) / 8} h 20" stroke="${E}" stroke-width="1.5" opacity=".5"/>`).join('');
     s += `<ellipse cx="0" cy="-34" rx="62" ry="18" fill="#6A628E" stroke="${E}" stroke-width="2.5"/><ellipse cx="0" cy="-33" rx="50" ry="12" fill="url(#kWell)"/>`;
     if (!calm) s += [[-20, 0], [8, .7], [26, 1.4], [-6, 2.1]].map(([dx, b]) => `<circle cx="${dx}" cy="-34" r="6" fill="#E8C8FF" fill-opacity=".3" stroke="#F2E6FF" stroke-width="1.5" opacity="0"><animate attributeName="cy" values="-34;-150" dur="3s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="3s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="r" values="3;9" dur="3s" begin="${b}s" repeatCount="indefinite"/></circle>`).join('');
     s += `<path d="M -54 -36 V -110 M 54 -36 V -110" stroke="#6E4A3A" stroke-width="7"/><path d="M -72 -100 L 0 -138 L 72 -100 Z" fill="#7A3A6A" stroke="${E}" stroke-width="2.5" stroke-linejoin="round"/><path d="M -60 -104 L 0 -130 L 60 -104" stroke="#9A5A8A" stroke-width="3" fill="none"/>`;
     s += `<path d="M -50 -84 H 50" stroke="#5A3A28" stroke-width="5"/><path d="M 12 -84 V -66" stroke="#B8A47E" stroke-width="1.5"/><path d="M 4 -66 h 16 l -2 14 h -12 Z" fill="#8A5A3C" stroke="#3A2420" stroke-width="1.5"/><path d="M 50 -84 l 10 -6 l 4 8" stroke="#3A2420" stroke-width="2.5" fill="none"/>`;
     s += `<g transform="translate(0 -104)"><rect x="-50" y="-11" width="100" height="22" rx="5" fill="#E8D8B0" stroke="#5A3A28" stroke-width="2"/><text x="0" y="6" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#3A2420">Øksebrønd</text></g>`;
+    /* når brønden har givet alle sine økser, hænger et skilt på kanten */
+    if (soldOut) s += `<g transform="translate(0 -18) rotate(-6)"><rect x="-44" y="-12" width="88" height="24" rx="4" fill="#E0457A" stroke="#7A1A3A" stroke-width="2"/><text x="0" y="6" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFFFFF" letter-spacing="1">UDSOLGT</text></g>`;
+    s += `<rect x="-76" y="-140" width="152" height="160" fill="#FFF" fill-opacity="0"/>`;
     /* en lille økse hænger fra taget som pynt */
     s += `<g transform="translate(-38 -98) rotate(14)"><path d="M 0 0 V 18" stroke="#B8A47E" stroke-width="1.2"/><path d="M 0 18 V 34" stroke="#8A5A3C" stroke-width="3" stroke-linecap="round"/><path d="M 0 20 C 8 18 12 22 12 28 C 6 28 2 26 0 24 Z" fill="#B8B4C8" stroke="${E}" stroke-width="1"/></g>`;
     s += `</g>`;
@@ -378,7 +382,7 @@ const Kort = (() => {
   function signs(){
     let s = '';
     s += signPost(604, 668, [['Kollegiet', -1, -3, '#E8D8B0'], ['Skolen', 1, -5, '#C79BFF'], ['Til dragen', -1, 3, '#9BE36A'], ['Dyreparken', 1, 2, '#F2C14E'], ['Bobler', 1, -2, '#7FD8FF'], ['Arkaden', 1, 4, '#FF8FC7']]);
-    s += `<g transform="translate(608 512)"><ellipse cx="0" cy="0" rx="9" ry="6" fill="#2A2238"/><circle cx="8" cy="-6" r="5" fill="#2A2238"/><path d="M 12 -6 l 6 1 l -6 2 Z" fill="#F2C14E"/><circle cx="9" cy="-7" r="1.2" fill="#FFE27A"/><path d="M -8 0 l -8 3 l 7 2 Z" fill="#2A2238"/><path d="M -2 5 v 6 M 3 5 v 6" stroke="#F2C14E" stroke-width="1.5"/></g>`;
+    s += `<g data-tap="krage" transform="translate(608 512)"><g class="tapjump"><ellipse cx="0" cy="0" rx="9" ry="6" fill="#2A2238"/><circle cx="8" cy="-6" r="5" fill="#2A2238"/><path d="M 12 -6 l 6 1 l -6 2 Z" fill="#F2C14E"/><circle cx="9" cy="-7" r="1.2" fill="#FFE27A"/><path d="M -8 0 l -8 3 l 7 2 Z" fill="#2A2238"/><path d="M -2 5 v 6 M 3 5 v 6" stroke="#F2C14E" stroke-width="1.5"/></g></g>`;
     return s;
   }
   /* det skæve klokketårn står på græsset ved stien ned til trolde-broen */
@@ -419,7 +423,7 @@ const Kort = (() => {
     s += Array.from({ length: 8 }, (_, i) => `<path d="M ${x + 46 + i * 14} ${fl} V ${rl + 3}" stroke="#6E4A3A" stroke-width="3"/>`).join('') + `<rect x="${x + 38}" y="${rl - 3}" width="114" height="6" rx="2" fill="#7A5444" stroke="${E}" stroke-width="1.5"/>`;
     /* en blomsterkasse hænger på håndlisten, og katten sidder oven på den */
     s += `<rect x="${x + 44}" y="${rl + 2}" width="40" height="11" rx="2" fill="#B5652A" stroke="${E}" stroke-width="1.5"/>` + [[x + 52, '#E0457A'], [x + 64, '#9BE36A'], [x + 76, '#FFD36E']].map(([px, fc]) => `<circle cx="${px}" cy="${rl - 2}" r="5.5" fill="${fc}"/><circle cx="${px + 4}" cy="${rl - 7}" r="3.5" fill="${fc}"/>`).join('');
-    s += `<g transform="translate(${x + 140} ${rl - 3})"><path d="M -12 0 Q -12 -14 0 -14 Q 10 -14 12 -4 Q 18 -2 16 4 Q 6 6 -12 0 Z" fill="#2A2238"/><path d="M -10 -10 l 0 -9 l 6 6 M 2 -13 l 3 -8 l 3 8" fill="#2A2238"/><circle cx="-4" cy="-8" r="1.6" fill="#9BE36A"/><circle cx="3" cy="-8" r="1.6" fill="#9BE36A"/><path d="M 12 -2 q 14 4 12 -14" stroke="#2A2238" stroke-width="4" fill="none" stroke-linecap="round"/></g>`;
+    s += `<g data-tap="kat" transform="translate(${x + 140} ${rl - 3})"><g class="tapjump"><path d="M -12 0 Q -12 -14 0 -14 Q 10 -14 12 -4 Q 18 -2 16 4 Q 6 6 -12 0 Z" fill="#2A2238"/><path d="M -10 -10 l 0 -9 l 6 6 M 2 -13 l 3 -8 l 3 8" fill="#2A2238"/><circle cx="-4" cy="-8" r="1.6" fill="#9BE36A"/><circle cx="3" cy="-8" r="1.6" fill="#9BE36A"/><path d="M 12 -2 q 14 4 12 -14" stroke="#2A2238" stroke-width="4" fill="none" stroke-linecap="round"/></g></g>`;
     /* stueetagen: vinduer, døren med trappe og en kosteholder */
     s += glowWin(x + 22, base - 104, 50, 50) + glowWin(x + 186, base - 104, 40, 50);
     s += `<path d="M ${x + 100} ${base} V ${base - 76} a 30 30 0 0 1 60 0 V ${base} Z" fill="#3E5A8A" stroke="${E}" stroke-width="2.5"/><path d="M ${x + 130} ${base - 104} V ${base}" stroke="${E}" stroke-width="2"/><circle cx="${x + 122}" cy="${base - 40}" r="3.5" fill="#F2C14E"/><circle cx="${x + 138}" cy="${base - 40}" r="3.5" fill="#F2C14E"/>`;
@@ -435,7 +439,7 @@ const Kort = (() => {
       + `<path d="M ${lx0 + 76} ${ly0 + 18} L ${lx0 + 86} ${ly0 + 56} L ${lx0 + 96} ${ly0 + 18} Z" fill="#3E7A4A" stroke="${E}" stroke-width="1.5"/><path d="M ${lx0 + 80} ${ly0 + 30} h 12 M ${lx0 + 82} ${ly0 + 40} h 8" stroke="#F2C14E" stroke-width="2"/></g>`;
     s += `<rect x="${x + 82}" y="${base - 132}" width="96" height="22" rx="6" fill="#3E5A8A" stroke="${E}" stroke-width="2"/><text x="${x + 130}" y="${base - 116}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="14" fill="#FFE9A0" letter-spacing="1">KOLLEGIET</text>`;
     s += pumpkin(x + 20, base + 6, .9) + pumpkin(x + 50, base + 10, .7);
-    return placeG('hus', 'Kollegiet', false, s + hit(x - 10, base - 480, 330, 490));
+    return placeG('hus', 'Kollegiet', false, hit(x - 10, base - 480, 330, 490) + s);
   }
 
   /* ---------- Boblebutikken ---------- */
@@ -456,7 +460,7 @@ const Kort = (() => {
     s += awning(x + 12, x + w - 12, top + 40, 20, '#E0457A');
     s += glowWin(x + 108, base - 80, 120, 66, { cross: false, glow: '#FFF3D0', shape: [0, 1, 2, 3, 4, 5, 6, 7].map(i => { const bx = x + 124 + (i % 4) * 28, by = base - 54 + Math.floor(i / 4) * 24, cc = ['#FF5FA8', '#7B5CFF', '#FFE27A', '#43D3BE'][i % 4]; return `<circle cx="${bx}" cy="${by}" r="10" fill="${cc}"/><path d="M ${bx - 6} ${by - 3} q 5 -4 10 -2" stroke="#FFF" stroke-width="2" fill="none"/>`; }).join('') });
     s += `<path d="M ${x + 16} ${base} V ${base - 52} a 26 26 0 0 1 52 0 V ${base} Z" fill="#E9FFFB" stroke="${cL}" stroke-width="2.5"/><circle cx="${x + 42}" cy="${base - 56}" r="14" fill="#FFD36E" stroke="${cL}" stroke-width="2"/><circle cx="${x + 58}" cy="${base - 26}" r="3" fill="#F2C14E"/>`; lit(x + 28, base - 70, 28, 28);
-    return placeG('kugler', 'Boblebutikken', false, s + hit(x - 10, top - 120, w + 20, h + 124));
+    return placeG('kugler', 'Boblebutikken', false, hit(x - 10, top - 64, w + 20, h + 68) + s);
   }
 
   /* ---------- forreste række: koncertsalen, caféen og arkaden ---------- */
@@ -478,7 +482,7 @@ const Kort = (() => {
     s += `<g transform="translate(${x + 64} ${top + 50}) rotate(-6)"><rect x="-22" y="-28" width="44" height="58" fill="#F2E6C8" stroke="${cL}" stroke-width="1.5"/><text x="0" y="-12" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8" fill="#6A1A2A">I AFTEN</text><text x="0" y="0" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="7" fill="#3A2420">De Falske</text><text x="0" y="10" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="7" fill="#3A2420">Toner</text><circle cx="0" cy="20" r="5" fill="#6B3FA0"/></g>`;
     s += `<g transform="translate(${x + 236} ${top + 46}) rotate(5)"><rect x="-20" y="-26" width="40" height="52" fill="#C9E8F2" stroke="${cL}" stroke-width="1.5"/><path d="M -10 -10 V 6 l 12 -4 V -14 Z" fill="#3A2E5A"/><ellipse cx="-12" cy="6" rx="4" ry="3" fill="#3A2E5A"/><ellipse cx="0" cy="2" rx="4" ry="3" fill="#3A2E5A"/></g>`;
     s += `<rect x="${x + 86}" y="${top + 18}" width="${w - 172 + 40}" height="26" rx="6" fill="#3A1A2A" stroke="#F2C14E" stroke-width="2"/><text x="${x + w / 2 + 6}" y="${top + 37}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFE9A0" letter-spacing="1">KONCERTSAL</text>`;
-    return placeG('koncert', 'Koncertsalen', true, s + soon(x + w / 2, top + 100) + hit(x - 10, top - 120, w + 20, h + 130));
+    return placeG('koncert', 'Koncertsalen', true, hit(x - 10, top - 120, w + 20, h + 130) + s + soon(x + w / 2, top + 100));
   }
   /* ---------- Den Flyvende Støvle: caféen er en kæmpe snørestøvle, der svæver lidt over græsset ----------
      Tåen peger mod koncertsalen, hælen har to små vinger, der basker. Ude af skaftet stikker et skævt kakkelovnsrør,
@@ -517,7 +521,7 @@ const Kort = (() => {
     b += wing(-1, 1.6).replace(/fill="#F7F4FF"/, 'fill="#E8E2FA"');
     s += `<g transform="translate(${X} ${Y})"><g>${calm ? '' : '<animateTransform attributeName="transform" type="translate" values="0 0;0 -7;0 0" dur="4s" repeatCount="indefinite"/>'}${b}</g></g>`;
     LITS.push([X + 56, Y - 172, 52, 38]);
-    return placeG('cafe', 'Den Flyvende Støvle', true, s + soon(X + 84, Y - 110) + hit(440, 680, 380, 300));
+    return placeG('cafe', 'Den Flyvende Støvle', true, hit(440, 680, 380, 300) + s + soon(X + 84, Y - 110));
   }
 
   function arcade(){
@@ -537,7 +541,7 @@ const Kort = (() => {
     lit(x + 36, top + 66, 68, 68); lit(x + w - 104, top + 66, 68, 68);
     s += `<path d="M ${x + w / 2 - 34} ${base} V ${base - 64} a 34 34 0 0 1 68 0 V ${base} Z" fill="#FFD36E" stroke="#F2C14E" stroke-width="3"/><path d="M ${x + w / 2 - 34} ${base} L ${x + w / 2 - 44} ${base + 22} H ${x + w / 2 + 44} L ${x + w / 2 + 34} ${base} Z" fill="#FFD36E" opacity=".3"/>`; lit(x + w / 2 - 34, base - 98, 68, 98);
     s += `<g transform="translate(${x + w / 2} ${base - 56})"><rect x="-14" y="-18" width="28" height="36" rx="4" fill="#E0457A"/><rect x="-10" y="-14" width="20" height="14" fill="#7FD8FF"/><circle cx="-4" cy="8" r="3" fill="#F2C14E"/><circle cx="5" cy="8" r="3" fill="#43D3BE"/></g>`;
-    return placeG('arkade', 'Arkaden', true, s + soon(x + w / 2, base - 44) + hit(x - 10, top - 170, w + 20, h + 180));
+    return placeG('arkade', 'Arkaden', true, hit(x - 10, top - 170, w + 20, h + 180) + s + soon(x + w / 2, base - 44));
   }
 
   /* ---------- småting overalt og liv i luften ---------- */
@@ -547,7 +551,7 @@ const Kort = (() => {
     s += shrooms(560, 720, 3, .9) + shrooms(1050, 702, 2, .8, '#C79BFF') + shrooms(380, 780, 3, .8, '#FF8FC7') + shrooms(1150, 620, 3, .8) + shrooms(860, 900, 2, .9, '#9BE36A');
     s += pumpkin(1100, 976, 1) + pumpkin(870, 932, .8) + pumpkin(1120, 712, .8);
     /* en snegl med et lysende hus */
-    s += `<g transform="translate(910 846)"><path d="M -12 0 h 22 q 4 0 4 -6 l -2 -6" stroke="#C9A98A" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="0" cy="-8" r="8" fill="#C79BFF" stroke="#6B3FA0" stroke-width="1.5"/><path d="M 0 -8 m -4 0 a 4 4 0 1 1 4 4" stroke="#6B3FA0" stroke-width="1.2" fill="none"/></g>`;
+    s += `<g data-tap="snegl" transform="translate(910 846)"><g class="tapjump"><path d="M -12 0 h 22 q 4 0 4 -6 l -2 -6" stroke="#C9A98A" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="0" cy="-8" r="8" fill="#C79BFF" stroke="#6B3FA0" stroke-width="1.5"/><path d="M 0 -8 m -4 0 a 4 4 0 1 1 4 4" stroke="#6B3FA0" stroke-width="1.2" fill="none"/></g></g>`;
     /* en postugle med et brev, og en kost med indkøbsposer, der flyver over himlen */
     if (!calm){
       s += `<g><animateMotion dur="26s" repeatCount="indefinite" path="M -100 120 C 300 60 700 160 1100 80 S 1600 120 1800 60"/><g transform="scale(.9)"><path d="M -14 0 q 14 -16 28 0" fill="#8A6A4A"><animateTransform attributeName="transform" type="scale" values="1 1;1 -.6;1 1" dur=".5s" repeatCount="indefinite"/></path><ellipse cx="0" cy="2" rx="8" ry="7" fill="#8A6A4A"/><circle cx="6" cy="-2" r="5" fill="#8A6A4A"/><circle cx="8" cy="-3" r="1.5" fill="#FFE9A0"/><rect x="-4" y="8" width="12" height="8" fill="#F2EEDC" stroke="#8A80A8" stroke-width="1"/></g></g>`;
@@ -557,11 +561,12 @@ const Kort = (() => {
   }
 
   /* ---------- hele kortet ---------- */
-  function svg(){
+  /* o.game: kortet bruges som byen i spillet — så får det byens id og lagene til figurer, taler og vejr */
+  function svg(o = {}){
     CM = cityMood(); LITS = []; LAMPS = []; SEED = 17;
     const [sa, sb] = SKY[CM.time];
     const grass = CM.winter ? ['#DDE6F4', '#C8D4E8', '#F2F6FF'] : CM.season === 'efteraar' ? ['#6E8A4A', '#5E7A3E', '#8AA05A'] : ['#5E8A50', '#4E7A44', '#7AA060'];
-    let s = `<svg id="kortSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Byen"><defs>`
+    let s = `<svg id="${o.game ? 'townSvg' : 'kortSvg'}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Byen"><defs>`
       + `<linearGradient id="kSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sa}"/><stop offset="1" stop-color="${sb}"/></linearGradient>`
       + `<linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E4F4FF"/><stop offset="1" stop-color="#A9D4F5"/></linearGradient>`
       + `<radialGradient id="lampG"><stop offset="0" stop-color="#FFF4B8" stop-opacity=".95"/><stop offset=".4" stop-color="#FFE48A" stop-opacity=".4"/><stop offset="1" stop-color="#FFE48A" stop-opacity="0"/></radialGradient>`
@@ -574,11 +579,13 @@ const Kort = (() => {
       + `<pattern id="kBrick" width="40" height="20" patternUnits="userSpaceOnUse"><path d="M 0 1 H 40 M 0 11 H 40 M 10 1 V 11 M 30 11 V 21" stroke="#000" stroke-opacity=".1" stroke-width="2" fill="none"/></pattern>`
       + `<pattern id="kPlank" width="30" height="16" patternUnits="userSpaceOnUse"><path d="M 0 15 H 30" stroke="#000" stroke-opacity=".09" stroke-width="2"/></pattern></defs>`;
     s += sky() + ground() + dragonHill() + school() + zoo() + paths() + brook() + dragonPath() + plaza() + clockTower() + dorm() + signs() + bubbleShop() + details() + concert() + cafe() + bridge() + arcade();
+    if (o.game) s += `<g id="hiddenStars"></g>`;
     /* skumringens skygge, lys fra vinduer og lygter, ildfluer og mørke kanter */
     const sh = SHADE[CM.time];
     if (sh) s += `<rect x="-900" y="-700" width="3400" height="2400" fill="${sh[0]}" opacity="${sh[1] * .8}" style="mix-blend-mode:multiply" pointer-events="none"/>`;
     if (CM.dark) s += `<g opacity="${CM.night ? 1 : .7}" pointer-events="none">` + LITS.map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#FFD36E" opacity=".5" filter="url(#glowF)"/>`).join('') + LAMPS.map(([x, y]) => `<circle cx="${x + 4}" cy="${y - 6}" r="70" fill="url(#lampG)"/>`).join('') + `</g>`;
     s += townFireflies() + placeMood([], { vign: CM.night ? .65 : .5, dx: 100, dw: 1400 });
+    if (o.game) s += `<g id="chars"></g><g id="bubbles" pointer-events="none"></g><g id="fx" pointer-events="none">${weather()}</g>`;
     return s + `</svg>`;
   }
   return { svg };

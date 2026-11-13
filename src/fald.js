@@ -210,7 +210,7 @@ const Fald = (() => {
   function introSvg(){
     const cm = cityMood(), top = (SKY[cm.time] || SKY.aften)[0];
     /* byens egen skygge og vignet stopper ved himlens kant og ville give en streg, så de tages ud; hele billedet får sin egen vignet */
-    const town = townSvg().replace(/^<svg[^>]*>/, '<g>').replace(/<\/svg>\s*$/, '</g>').replace(/<rect[^>]*mix-blend-mode:multiply[^>]*\/>/, '').replace(/<rect x="-1700" y="-700" width="5000" height="2400" fill="url\(#pm\d+v\)"\/>/, '');
+    const town = Kort.svg().replace(/^<svg[^>]*>/, '<g>').replace(/<\/svg>\s*$/, '</g>').replace(/<rect[^>]*mix-blend-mode:multiply[^>]*\/>/, '').replace(/<rect x="-1700" y="-700" width="5000" height="2400" fill="url\(#pm\d+v\)"\/>/, '');
     let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="fs-svg"><defs><linearGradient id="isky" gradientUnits="userSpaceOnUse" x1="0" y1="-700" x2="0" y2="-5200"><stop offset="0" stop-color="${top}"/><stop offset=".55" stop-color="#1E1A50"/><stop offset="1" stop-color="#0A0C26"/></linearGradient></defs>`;
     o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#0A0C26"/><g class="fs-icam">`;
     o += `<rect x="-3000" y="-5200" width="7600" height="5300" fill="url(#isky)"/>`;

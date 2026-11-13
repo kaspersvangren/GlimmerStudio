@@ -417,7 +417,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @keyframes fadein{from{opacity:0}}
 
 /* byen fylder hele skærmen; navnet og knapperne ligger ovenpå */
-.town-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,36px);color:#FFF3D6;text-shadow:0 2px 0 #3A2340, 0 0 18px rgba(255,214,120,.55);cursor:default;user-select:none;-webkit-user-select:none}
+.town-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(17px,2.3vw,28px);color:#FFF3D6;text-shadow:0 2px 0 #3A2340, 0 0 18px rgba(255,214,120,.55);cursor:default;user-select:none;-webkit-user-select:none}
 #town .map{position:absolute;inset:0}
 
 /* ---------- påklædningen: et prøverum ved det magiske spejl ---------- */
@@ -559,6 +559,17 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @keyframes steam{0%{opacity:0;transform:translateY(20px) scaleY(.6)}30%{opacity:.35}100%{opacity:0;transform:translateY(-120px) scaleY(1.2)}}
 #potScene .stirhint{transform-box:fill-box;transform-origin:50% 50%;animation:stirspin 2.4s linear infinite;transition:opacity .3s}
 #potScene .stirhint.fade{opacity:.25}
+#potScene .stirhint.ccw{animation-direction:reverse}
+#potScene .fire{transform:scaleY(var(--fire,1));transform-box:fill-box;transform-origin:50% 100%;transition:transform .25s}
+#potScene .bellows{cursor:pointer}
+#potScene .bellows .anim{transform-box:fill-box;transform-origin:100% 50%}
+#potScene .bellows .anim.squeeze{animation:sqz .3s ease-out}
+@keyframes sqz{40%{transform:scale(.94,.6)}}
+#potScene .bglow{opacity:0}
+#potScene svg.heating .bglow{animation:bglow 1.2s ease-in-out infinite}
+@keyframes bglow{50%{opacity:.55}}
+#potScene .hglass.out{opacity:.45}
+#potScene .cover{cursor:pointer}
 @keyframes stirspin{0%{opacity:.95}50%{opacity:.5}100%{opacity:.95}}
 #potScene .ladle{transition:transform .08s linear}
 #potScene .drop{transform-box:fill-box;transform-origin:50% 50%;animation:pdrop .7s ease-out forwards}

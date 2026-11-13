@@ -425,6 +425,13 @@ function cobweb(x, y, f){
     + [-1, 1].map(g => [0,1,2].map(k => `<path d="M ${sx + g*8} ${sy - 4 + k*5} q ${g*10} -6 ${g*16} ${2 + k*4}" stroke="#2A2238" stroke-width="2.5" fill="none" stroke-linecap="round"/>`).join('')).join('')
     + `<circle cx="${sx-4}" cy="${sy-2}" r="3" fill="#FFFFFF"/><circle cx="${sx+4}" cy="${sy-2}" r="3" fill="#FFFFFF"/><circle cx="${sx-4}" cy="${sy-1.5}" r="1.4" fill="#2A2238"/><circle cx="${sx+4}" cy="${sy-1.5}" r="1.4" fill="#2A2238"/></g>`;
 }
+/* økserne: de første står lænet op ad væggen bag kedlen, resten ligger i en voksende bunke oven på dem */
+const AXE_SPOTS = [[1420,770,-5],[1460,772,6],[1380,772,-8],[1500,770,9],[1340,774,-4],[1540,774,-10],[1400,744,78],[1474,742,-74],[1440,726,22],[1512,722,-32],[1372,720,64],[1468,702,42]];
+function axePile(n){
+  let o = `<g data-hit="oekser"><ellipse cx="1440" cy="780" rx="${50 + n * 7}" ry="14" fill="#1A1238" opacity=".2"/>`;
+  AXE_SPOTS.slice(0, n).forEach(([x, y, r]) => { o += `<g transform="translate(${x} ${y - 52}) rotate(${r}) scale(1.9)">${axeSvg(1)}</g>`; });
+  return o + `<rect x="1310" y="600" width="260" height="190" fill="#FFF" fill-opacity="0"/></g>`;
+}
 function roomScene(room){
   CLIPN = 0;
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
@@ -438,6 +445,8 @@ function roomScene(room){
   o += `<g data-hit="vindue">${roomItem('vindue', room)}${win.curtain && roomCurtain ? `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + closedCurtains(room.c.vindue, win.curtain === 2) : ''}</g>`;
   o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
   o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
+  /* økserne fra Øksebrønden hober sig op i hjørnet bag kedlen */
+  if (axeCount()) o += axePile(axeCount());
   o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
   o += `<g data-hit="bog"><g transform="translate(960 716) scale(1.15) translate(-556 -872)">${desk(fresh)}</g>${deskChair()}</g>`;
   o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
@@ -501,6 +510,7 @@ function roomTap(hit, g, p){
   const svg = $('#roomScene svg'), room = getRoom();
   switch (hit){
     case 'bog': sfx.open(); openRoomBook(); return;
+    case 'oekser': { const n = axeCount(); sfx.pick(); replay(g, 'jiggle'); toast(n >= AXE_MAX ? `${n} økser! Øksebrønden er udsolgt.` : n === 1 ? 'En økse fra Øksebrønden!' : `${n} økser fra Øksebrønden!`); return; }
     case 'lampe': sfx.pick(); roomLight = !roomLight; drawRoomScene(); return;
     case 'vindue': {
       const win = VINDUE[room.vindue] || {};

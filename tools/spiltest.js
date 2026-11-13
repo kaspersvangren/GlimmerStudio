@@ -22,20 +22,25 @@ async function run(w, h){
   await p.click('#shopScene [data-hit="krukke:dyr"]', { force: true }); await p.waitForTimeout(1500);
   for (let i = 0; i < 3; i++){ await p.click('.shop-bub', { force: true }); await p.waitForTimeout(450); }
   await p.waitForTimeout(800); ok(await p.evaluate(() => !!document.querySelector('.shop-veil .reveal.magic')), `${tag} butikken: intet gevinstkort`); await noScroll('gevinstkort');
-  /* eliksirtimen: en hel time */
-  await p.evaluate(() => showPotions()); await p.waitForTimeout(800); await noScroll('eliksirtimen');
+  /* eliksirtimen: en hel time på begyndertrinnet og en på det sværeste (retning, tid, varme og dækket tavle) */
   const toScreen = (x, y) => p.evaluate(([x, y]) => { const svg = $('#potScene svg'), pt = svg.createSVGPoint(); pt.x = x; pt.y = y; const q = pt.matrixTransform(svg.getScreenCTM()); return [q.x, q.y]; }, [x, y]);
-  for (let g = 0; g < 80; g++){
-    const st = await p.evaluate(() => ({ busy: POT.busy, step: POT.p.steps[POT.p.i], done: !!document.querySelector('#potionBody .shop-veil') }));
-    if (st.done) break;
-    if (st.busy || !st.step){ await p.waitForTimeout(300); continue; }
-    if (st.step.kind === 'ing'){ await p.click(`#potScene [data-hit="jar:${st.step.id}"]`, { force: true }); await p.waitForTimeout(750); }
-    else { const pts = []; for (let k = 0; k <= 24 * (st.step.n + 0.3); k++){ const a = k / 24 * Math.PI * 2; pts.push(await toScreen(800 + Math.cos(a) * 150, 656 + Math.sin(a) * 30)); }
-      await p.mouse.move(...pts[0]); await p.mouse.down(); for (const q of pts){ await p.mouse.move(...q); await p.waitForTimeout(8); } await p.mouse.up(); await p.waitForTimeout(300); }
+  for (const lvPotions of [0, 12]){
+    await p.evaluate(n => { prog.potions = n; showPotions(); }, lvPotions); await p.waitForTimeout(800); await noScroll('eliksirtimen');
+    let sawHeat = false, sawDir = false;
+    for (let g = 0; g < 160; g++){
+      const st = await p.evaluate(() => ({ busy: POT.busy, step: POT.p.steps[POT.p.i], heat: POT.heat, done: !!document.querySelector('#potionBody .shop-veil') }));
+      if (st.done) break;
+      if (st.busy || !st.step){ await p.waitForTimeout(300); continue; }
+      if (st.step.kind === 'ing'){ await p.click(`#potScene [data-hit="jar:${st.step.id}"]`, { force: true }); await p.waitForTimeout(750); }
+      else if (st.step.kind === 'varme'){ sawHeat = true; if (st.heat < 62) await p.click('#potScene [data-hit="blaes"]', { force: true }); await p.waitForTimeout(260); }
+      else { const d = st.step.dir || 1; if (st.step.dir) sawDir = true; const pts = []; for (let k = 0; k <= 24 * (st.step.n + 0.3); k++){ const a = d * k / 24 * Math.PI * 2; pts.push(await toScreen(800 + Math.cos(a) * 150, 656 + Math.sin(a) * 30)); }
+        await p.mouse.move(...pts[0]); await p.mouse.down(); for (const q of pts){ await p.mouse.move(...q); await p.waitForTimeout(8); } await p.mouse.up(); await p.waitForTimeout(300); }
+    }
+    await p.waitForTimeout(600);
+    ok(await p.evaluate(() => POT.lesson.n === 3 && !!document.querySelector('#potionBody .shop-veil')), `${tag} eliksirtimen (${lvPotions}): timen blev ikke færdig`);
+    if (lvPotions) ok(sawDir, `${tag} eliksirtimen: ingen røreretning på det svære trin`);
+    await noScroll('eliksir-slutkort');
   }
-  await p.waitForTimeout(600);
-  ok(await p.evaluate(() => POT.lesson.n === 3 && !!document.querySelector('#potionBody .shop-veil')), `${tag} eliksirtimen: timen blev ikke færdig`);
-  await noScroll('eliksir-slutkort');
   /* kosteflyvning: loop ved dobbeltringe — de situationer en spiller faktisk kommer i */
   const loopCase = (dx, dy) => p.evaluate(([dx, dy]) => {
     window.KOST_AUTO = false; Kost.show(); document.querySelectorAll('#broomBody .kf-veil').forEach(v => v.remove());
