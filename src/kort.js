@@ -272,8 +272,8 @@ const Kort = (() => {
     s += `<g transform="translate(1556 418)"><path d="M -26 10 C -30 -20 -12 -34 0 -34 C 12 -34 30 -20 26 10 Z" fill="#E8C86A" stroke="#A8884A" stroke-width="2"/>${[-14, -4, 6, 16].map(dx => `<path d="M ${dx} -24 q 2 14 -2 30" stroke="#C8A84A" stroke-width="1.5" fill="none"/>`).join('')}</g>`;
     s += `<g transform="translate(1578 448)"><ellipse cx="0" cy="2" rx="22" ry="4" fill="#1A1238" opacity=".2"/><ellipse cx="2" cy="-8" rx="18" ry="11" fill="#8A5A3C" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-14" cy="-10" r="9" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.5"/><circle cx="-19" cy="-18" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><circle cx="-9" cy="-19" r="3.5" fill="#9C6A48" stroke="#4A2E1E" stroke-width="1.2"/><ellipse cx="-18" cy="-7" rx="4" ry="3" fill="#D8B890"/><path d="M -17 -12 q 2 1.5 4 0 M -11 -12 q 2 1.5 4 0" stroke="#1A1238" stroke-width="1.2" fill="none"/><text x="-4" y="-26" font-family="${FONT_C}" font-weight="700" font-size="10" fill="#E8E2FA">z</text></g>`;
     /* hegnet har en låge til stien og et hul, hvor bækken løber ud */
-    s += fence(1140, 494, 1454, 489, 12) + fence(1562, 483, 1600, 478, 1);
-    s += lantern(1218, 446) + lantern(1323, 444) + lantern(1428, 442);
+    s += fence(1140, 494, 1404, 490, 10) + fence(1562, 483, 1600, 478, 1);
+    s += lantern(1219, 446) + lantern(1325, 444) + lantern(1404, 442);
     /* skiltet er sømmet fast på hegnet ved siden af ægget */
     s += `<g transform="translate(1370 472) rotate(-3)"><rect x="-32" y="-13" width="64" height="26" rx="3" fill="#E8D8B0" stroke="#5A3A28" stroke-width="1.5"/><circle cx="-27" cy="-8" r="1.3" fill="#5A3A28"/><circle cx="27" cy="-8" r="1.3" fill="#5A3A28"/><text x="0" y="-2" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8.5" fill="#7A2A2A">FODR IKKE</text><text x="0" y="8" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8.5" fill="#7A2A2A">DRAGEUNGEN</text></g>`;
     s += `<g transform="translate(1470 346)">${placeSign('Dyreparken', '#4E7A3A')}</g>`;

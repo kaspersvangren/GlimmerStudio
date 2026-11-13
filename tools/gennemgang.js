@@ -11,7 +11,7 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
 const V = { 'acc-bog': 6,
   /* kortskitse v2: rettet efter noterne */
-  'kort-ny': 4, 'kort-dragen': 3, 'kort-kollegiet': 4, 'kort-torvet': 3, 'kort-dyrepark': 4, 'kort-forrest': 4,
+  'kort-ny': 4, 'kort-dragen': 3, 'kort-kollegiet': 4, 'kort-torvet': 3, 'kort-dyrepark': 5, 'kort-forrest': 4,
   /* v0.9.2: rettet efter første gennemgang */
   'acc-briller': 2, 'hat-hue': 2, 'hat-knaek': 2, 'hat-kort': 2, 'hat-spids': 2, 'maerke-fregner': 2, 'maerke-glimmer': 2, 'maerke-hjerte': 2, 'maerke-stjerne': 2,
   'sko-hoeje': 2, 'sko-snoer': 2,
