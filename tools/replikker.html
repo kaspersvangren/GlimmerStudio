@@ -74,6 +74,7 @@ button{font:inherit;cursor:pointer}
 <div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="undo">Fortryd</button></div>
 
 <script>
+'use strict';
 /* Hvad figurerne siger. Indholdet ligger i databasen (samlingen "tekster", ét dokument pr. nøgle);
    her står kun, hvordan siden skal vise det. */
 const WHO = [
@@ -145,6 +146,8 @@ async function save(key){
     if (!DIRTY.size) setStatus('Gemt kl. ' + clock());
   } catch(e){ setStatus('Ikke gemt – prøver igen', 'err'); clearTimeout(TIMERS[key]); TIMERS[key] = setTimeout(() => save(key), 4000); }
 }
+/* går noget galt i koden, skal det ses, ikke ligne at alt er gemt */
+window.addEventListener('error', () => setStatus('Fejl – ikke gemt. Genindlæs siden', 'err'));
 window.addEventListener('beforeunload', e => { if (DIRTY.size){ DIRTY.forEach(k => save(k)); e.preventDefault(); e.returnValue = ''; } });
 
 document.addEventListener('input', e => {
@@ -178,7 +181,8 @@ document.addEventListener('click', e => {
     clearTimeout(t); $('#notice').hidden = true;
     snap.docs.forEach(doc => {
       if (!doc.exists || DIRTY.has(doc.id)) return;
-      const nd = doc.data(), cur = DATA[doc.id];
+      /* databasen leverer låste (frosne) objekter, så siden arbejder altid på sin egen kopi */
+      const nd = JSON.parse(JSON.stringify(doc.data() || {})), cur = DATA[doc.id];
       if (cur && (nd.ts || 0) <= (cur.ts || 0)) return;            /* ældre eller vores egen gemning: siden har allerede det nyeste */
       DATA[doc.id] = nd;
       const focus = document.activeElement && document.activeElement.closest && document.activeElement.closest('#p-' + doc.id);
