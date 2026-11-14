@@ -433,7 +433,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 
 /* byen fylder hele skærmen; navnet og knapperne ligger ovenpå */
 .town-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(17px,2.3vw,28px);color:#FFF3D6;text-shadow:0 2px 0 #3A2340, 0 0 18px rgba(255,214,120,.55);cursor:default;user-select:none;-webkit-user-select:none}
-#town .map{position:absolute;inset:0}
+#town .map{position:absolute;inset:0;touch-action:none}
 
 /* ---------- påklædningen: et prøverum ved det magiske spejl ---------- */
 #editor{background:radial-gradient(ellipse at 30% 40%, #4A3A7A 0%, transparent 60%), radial-gradient(circle, rgba(255,240,200,.18) 1px, transparent 1.5px) 0 0/46px 46px, linear-gradient(#2E2452, #1C1634)}
@@ -1865,7 +1865,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.18.2';
+const VERSION = 'v0.18.3';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -6590,7 +6590,7 @@ function bubble(text, pos, ms = 2300, special = false){
   $('#bubbles').append(g);
   const b = { g, pos, until: performance.now() + ms };
   const bb = g.querySelector('.bb');
-  b.place = () => { let [x, y] = b.pos(); const bx = Math.max(w/2 + 6, Math.min(CW - w/2 - 6, x)); x = Math.max(16, Math.min(CW - 16, x)); y = Math.max(56, y);
+  b.place = () => { let [x, y] = b.pos(); const [vx0, vx1, vy0] = camView(); const bx = Math.max(vx0 + w/2 + 6, Math.min(vx1 - w/2 - 6, x)); x = Math.max(vx0 + 16, Math.min(vx1 - 16, x)); y = Math.max(vy0 + 56, y);
     g.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)})`); bb.setAttribute('transform', `translate(${Math.max(-w/2 + 24, Math.min(w/2 - 24, bx - x)).toFixed(1)},0)`); };
   b.place(); LIFE.bubbles.push(b); return b;
 }
@@ -6827,11 +6827,65 @@ function lifeTick(now){
   for (const c of LIFE.chars) if (c !== LIFE.pet && !c.isDog) tickChar(c, dt, now);
   heroPetFollow(); if (LIFE.pet) placeChar(LIFE.pet);
   for (const p of LIFE.peds) if (p.dog){ tickDog(p); const d = p.dog; if (d.bob){ const t = (now + d.t0) / 1000; d.cb.setAttribute('transform', d.bobStop ? '' : `translate(0,${(-Math.abs(Math.sin(t * 9)) * 3).toFixed(1)})`); } placeChar(d); }
+  camFollow(now, dt);
   sortChars();
   for (const b of LIFE.bubbles.slice()){ if (now > b.until){ b.g.remove(); LIFE.bubbles.splice(LIFE.bubbles.indexOf(b), 1); } else b.place(); }
   const want = CM.night ? 1 : 3;
   if (!calm && LIFE.peds.length < want && now > LIFE.nextPed){ LIFE.nextPed = now + 4000 + Math.random() * 6000; spawnPed(); }
   requestAnimationFrame(lifeTick);
+}
+
+/* ================= Kameraet =================
+   På små skærme (telefoner) er kortet zoomet ind, så tingene er til at se og ramme. Man trækker kortet med fingeren,
+   og når Agnes går, glider kortet med hende. På store skærme ses hele kortet som før. */
+const CAM = { on: false, cx: 800, cy: 560, vw: CW, vh: CH, drag: null, moved: false, userAt: 0 };
+const CAM_PX = 0.62, CAM_X = [-160, 1760], CAM_Y = [-120, CH];   /* lidt himmel over kortet, så bobler ikke havner under logoet */
+function camFit(){
+  const st = $('#street'), svg = $('#townSvg'); if (!st || !svg) return;
+  const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
+  const vh = Math.min(CH, H / CAM_PX);
+  CAM.on = !window.NO_CAM && vh < CH * .95;
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); return; }
+  CAM.vh = vh; CAM.vw = Math.min(CAM_X[1] - CAM_X[0], vh * W / H);
+  camApply();
+}
+function camApply(){
+  const hw = CAM.vw / 2, hh = CAM.vh / 2, svg = $('#townSvg'); if (!svg) return;
+  CAM.cx = Math.max(CAM_X[0] + hw, Math.min(CAM_X[1] - hw, CAM.cx));
+  CAM.cy = Math.max(CAM_Y[0] + hh, Math.min(CAM_Y[1] - hh, CAM.cy));
+  svg.setAttribute('viewBox', `${(CAM.cx - hw).toFixed(1)} ${(CAM.cy - hh).toFixed(1)} ${CAM.vw.toFixed(1)} ${CAM.vh.toFixed(1)}`);
+}
+const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
+function camFollow(now, dt){
+  if (!CAM.on || CAM.drag || !walking || now - CAM.userAt < 1800 || !LIFE.hero) return;
+  const k = Math.min(1, dt * 0.004), tx = LIFE.hero.x, ty = LIFE.hero.y - (LIFE.hero.y < 600 ? 150 : 80);
+  CAM.cx += (tx - CAM.cx) * k; CAM.cy += (ty - CAM.cy) * k; camApply();
+}
+function camWire(st){
+  st.addEventListener('pointerdown', e => { if (!CAM.on) return; CAM.drag = { x: e.clientX, y: e.clientY, cx: CAM.cx, cy: CAM.cy, id: e.pointerId }; CAM.moved = false; });
+  st.addEventListener('pointermove', e => { const d = CAM.drag; if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!CAM.moved && Math.hypot(dx, dy) < 9) return;
+    CAM.moved = true; const k = CAM.vh / st.clientHeight;
+    CAM.cx = d.cx - dx * k; CAM.cy = d.cy - dy * k; CAM.userAt = performance.now(); camApply(); });
+  const end = e => { if (CAM.drag && e.pointerId === CAM.drag.id) CAM.drag = null; };
+  st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
+  /* et træk er ikke et tryk: klikket bagefter går ikke videre til huse og dyr */
+  st.addEventListener('click', e => { if (CAM.moved){ e.stopPropagation(); e.preventDefault(); CAM.moved = false; } }, true);
+}
+window.addEventListener('resize', () => { if ($('#town') && !$('#town').hidden) camFit(); });
+
+/* små dyr og ting får et usynligt, større trykfelt, så de er til at ramme med en finger */
+function growTaps(svg){
+  svg.querySelectorAll('[data-tap]').forEach(t => {
+    if (t.dataset.tap === 'star' || t.querySelector(':scope > .tapzone')) return;
+    let bb; try { bb = t.getBBox(); } catch(e){ return; }
+    const sm = svg.getScreenCTM(), tm = t.getScreenCTM(), m = sm && tm ? sm.inverse().multiply(tm) : null;
+    const sc = m ? Math.hypot(m.a, m.b) : 1, min = 70 / (sc || 1);   /* mindst 70 kortenheder bredt og højt */
+    const w = Math.max(bb.width, min), h = Math.max(bb.height, min);
+    const r = sv('rect', { class: 'tapzone', x: (bb.x + bb.width / 2 - w / 2).toFixed(1), y: (bb.y + bb.height / 2 - h / 2).toFixed(1), width: w.toFixed(1), height: h.toFixed(1), fill: '#FFF', 'fill-opacity': 0 });
+    t.insertBefore(r, t.firstChild);
+  });
 }
 
 /* ================= Skærmen ================= */
@@ -6850,6 +6904,7 @@ function showTown(){
           sit: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, viewBox: VB_PET, anim: !calm })) : '',
           pwalk: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, petMode: 'walk', viewBox: VB_PET, anim: !calm })) : '' };
   const [hx, hy] = endOf(heroAt);
+  CAM.cx = hx; CAM.cy = hy - 80; CAM.drag = null; CAM.moved = false; CAM.userAt = 0;
   LIFE.hero = makeChar('doll', SPR.idle, { x: hx, y: hy });
   LIFE.pet = hasPet ? makeChar('pet', SPR.sit, { x: hx + 50, y: hy + 6, face: PET_FACE[hero.pet.kind] || 1 }) : null;
   if (LIFE.pet) LIFE.pet.dir = 1;
@@ -6861,6 +6916,7 @@ function showTown(){
   placeHiddenStar();
   $('#townLogo').addEventListener('click', logoTap);
   const svg = $('#townSvg');
+  camWire($('#street')); camFit(); growTaps(svg);
   svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
   svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
   updateAudioBtns();
