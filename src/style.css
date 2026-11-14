@@ -734,3 +734,27 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #akScene .ak-coin{animation:akcoin 2s ease-in-out infinite}
 @keyframes akcoin{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){#akScene .ak-blink,#akScene .ak-twinkle,#akScene .ak-coin{animation:none}}
+#akScene .ak-bulb{animation:akbulb 1s steps(2,start) infinite}
+@keyframes akbulb{50%{fill:#FFB347}}
+#akScene .ak-led{filter:drop-shadow(0 0 4px #FF3A3A)}
+/* et spil i arkaden: scenen fylder skærmen, og point står øverst til højre */
+#arkade .ak-stage{position:absolute;inset:0;overflow:hidden;background:#140C2A;touch-action:none;user-select:none;-webkit-user-select:none}
+#arkade .ak-stage svg,#arkade .ak-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ak-pill{display:inline-flex;align-items:center;gap:8px;background:#140C2A;color:#FFF6D0;border:2px solid #FFE27A;border-radius:999px;padding:5px 14px;font-family:var(--display);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.ak-pill .lab{font-size:13px;color:#FFE27A;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.ak-pill[hidden]{display:none}
+.ak-end{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(10,6,20,.6);padding:16px}
+.ak-card{background:#FFF8EC;color:#33204F;border-radius:26px;padding:22px 28px;text-align:center;max-width:420px;width:100%;box-shadow:0 10px 0 rgba(40,20,70,.35);animation:akpop .35s ease-out}
+.ak-card h2{margin:0 0 4px;font-family:var(--display);font-size:30px}
+.ak-card .big{font-family:var(--display);font-weight:700;font-size:44px;margin:0;color:#7A2A8A}
+.ak-card p{margin:6px 0}
+.ak-card .row{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+@keyframes akpop{from{transform:scale(.8);opacity:0}}
+@media (max-height:420px){.ak-card{padding:12px 20px}.ak-card h2{font-size:22px}.ak-card .big{font-size:32px}}
+
+.ak-card .ak-art{display:grid;place-items:center;margin:4px 0}
+.ak-card .ak-art svg{width:120px;height:120px}
+.ak-card .big:empty{display:none}
+@media (max-height:420px){.ak-card .ak-art svg{width:80px;height:80px}}
+.gr-btn .gr-cap{transition:transform .08s}
+.gr-btn.down .gr-cap{transform:translateY(9px)}

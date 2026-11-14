@@ -432,6 +432,15 @@ function axePile(n){
   AXE_SPOTS.slice(0, n).forEach(([x, y, r]) => { o += `<g transform="translate(${x} ${y - 52}) rotate(${r}) scale(1.9)">${axeSvg(1)}</g>`; });
   return o + `<rect x="1310" y="600" width="260" height="190" fill="#FFF" fill-opacity="0"/></g>`;
 }
+const BED_PLUSH = [[300, 642], [356, 646], [412, 642], [468, 646], [276, 690], [334, 694], [392, 690], [450, 694], [508, 690], [250, 646], [500, 640], [222, 692]];
+function plushOnBed(list){
+  const show = list.slice(-BED_PLUSH.length).reverse();
+  let o = `<g data-hit="bamser">`;
+  /* de bageste tegnes først */
+  const items = show.map((k, i) => ({ k, p: BED_PLUSH[i] })).sort((a, b) => a.p[1] - b.p[1]);
+  items.forEach(({ k, p }, i) => { o += `<g transform="translate(${p[0]} ${p[1] - 26}) rotate(${(i * 23) % 24 - 12})">${Arkade.plush(k, 0.9)}</g>`; });
+  return o + `</g>`;
+}
 function roomScene(room){
   CLIPN = 0;
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
@@ -448,6 +457,8 @@ function roomScene(room){
   /* økserne fra Øksebrønden hober sig op i hjørnet bag kedlen */
   if (axeCount()) o += axePile(axeCount());
   o += `<g data-hit="seng"><g class="anim">${roomItem('seng', room)}</g></g>`;
+  /* bamserne fra gribemaskinen sidder på sengen, to rækker, de nyeste forrest */
+  if (typeof Arkade !== 'undefined' && Arkade.myPlush().length) o += plushOnBed(Arkade.myPlush());
   o += `<g data-hit="bog"><g transform="translate(960 716) scale(1.15) translate(-556 -872)">${desk(fresh)}</g>${deskChair()}</g>`;
   o += `<g data-hit="ting"><g class="anim">${roomItem('ting', room)}</g></g>`;
   o += `<g data-hit="dyreseng"><g transform="translate(${BED_DX} 0)">${roomItem('dyreseng', room)}</g></g>`;
@@ -510,6 +521,7 @@ function roomTap(hit, g, p){
   const svg = $('#roomScene svg'), room = getRoom();
   switch (hit){
     case 'bog': sfx.open(); openRoomBook(); return;
+    case 'bamser': { const n = Arkade.myPlush().length; sfx.squeak(); replay(g, 'jiggle'); toast(n === 1 ? 'Din bamse fra gribemaskinen!' : `${n} bamser fra gribemaskinen!`); return; }
     case 'oekser': { const n = axeCount(); sfx.pick(); replay(g, 'jiggle'); toast(n >= AXE_MAX ? `${n} økser! Øksebrønden er udsolgt.` : n === 1 ? 'En økse fra Øksebrønden!' : `${n} økser fra Øksebrønden!`); return; }
     case 'lampe': sfx.pick(); roomLight = !roomLight; drawRoomScene(); return;
     case 'vindue': {

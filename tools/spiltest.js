@@ -77,6 +77,19 @@ async function run(w, h){
   ok(fr && fr.d < 40, `${tag} faldskærm: autopiloten landede ${fr && fr.d} m fra målet`);
   await noScroll('fald-slutkort');
   await p.evaluate(() => { window.FALD_AUTO = false; Fald.stop(); });
+  /* arkaden: hallen, og hvert spil startes, spilles lidt og afsluttes, så slutkortet kommer */
+  await p.evaluate(() => { visit('arkade'); }); await p.waitForTimeout(300);
+  await p.evaluate(() => Arkade.show()); await p.waitForTimeout(400); await noScroll('arkaden');
+  const arc = {};
+  for (const id of ['gnom', 'skjold', 'invader', 'gribe']){
+    await p.evaluate(id => { if (id === 'gribe') addStars(2); Arkade.openGame(id); }, id); await p.waitForTimeout(1500); await noScroll('arkade-' + id);
+    if (id === 'gribe'){ await p.keyboard.press('Space'); await p.waitForTimeout(9000); }
+    else await p.evaluate(id => Arkade.GAMES[id].test(), id);
+    await p.waitForTimeout(1500);
+    arc[id] = await p.evaluate(() => !!document.querySelector('#arkade .ak-end'));
+    ok(arc[id], `${tag} arkaden: ${id} viste ikke slutkortet`);
+  }
+  await p.evaluate(() => Arkade.show());
   ok(!errs.length, `${tag} fejl på siden:\n    ` + errs.join('\n    '));
   await b.close();
   console.log(`${tag}: eliksir ok, kost ${res ? `nr. ${res.place}, ${res.rings} ringe` : 'ikke færdig'}, faldskærm ${fr && fr.done ? `${fr.d} m fra midten, ${fr.bubbles} bobler` : 'ikke færdig'}`);
