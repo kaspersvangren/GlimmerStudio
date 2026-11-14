@@ -720,3 +720,17 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .fag-door.open .leaf{transform:scaleX(.06)}
 .fag-door.open .doorglow{visibility:hidden}
 @media (prefers-reduced-motion: reduce){ .fag-door .leaf{transition:none} }
+
+/* ---------- Arkaden ---------- */
+#akScene .ak-cab{cursor:pointer}
+#akScene .ak-cab .anim{transform-box:fill-box;transform-origin:50% 100%}
+#akScene .ak-cab:focus{outline:none}
+#akScene .ak-cab:focus-visible .anim{filter:drop-shadow(0 0 10px #FFE27A)}
+#akScene .ak-neon{filter:drop-shadow(0 0 4px var(--glow)) drop-shadow(0 0 12px var(--glow))}
+#akScene .ak-blink{animation:akblink 1.6s steps(2,start) infinite}
+@keyframes akblink{50%{opacity:0}}
+#akScene .ak-twinkle{animation:aktw 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes aktw{50%{opacity:.4}}
+#akScene .ak-coin{animation:akcoin 2s ease-in-out infinite}
+@keyframes akcoin{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){#akScene .ak-blink,#akScene .ak-twinkle,#akScene .ak-coin{animation:none}}

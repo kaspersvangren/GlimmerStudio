@@ -414,7 +414,7 @@ const PLACES = [
   { id:'cafe', name:'Den Flyvende Støvle', soon:true },
   { id:'dyr', name:'Dyreparken', soon:true },
   { id:'koncert', name:'Koncertsalen', soon:true },
-  { id:'arkade', name:'Arkaden', soon:true },
+  { id:'arkade', name:'Arkaden', open: () => Arkade.show() },
 ];
 let heroAt = 'hus', walking = false, SPR = null;
 const LIFE = { on: false, last: 0, chars: [], bubbles: [], peds: [], nextPed: 0, id: 0, gen: 0 };
