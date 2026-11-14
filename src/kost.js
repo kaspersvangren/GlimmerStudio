@@ -171,8 +171,8 @@ const Kost = (() => {
   function ringEls(r, k = 1, Y = y => y, tint){
     const col = tint ? (r.dbl ? lt(tint, .35) : tint) : r.dbl ? '#C79BFF' : '#F2C14E', dk = tint ? fdk(tint, .35) : r.dbl ? '#6B3FA0' : '#A87A1A', rx = 40 * k, ry = 118 * k, y = Y(r.y);
     const arc = (side) => `M ${r.x} ${y - ry} A ${rx} ${ry} 0 0 ${side} ${r.x} ${y + ry}`;
-    const back = mk('g', { class:'kf-ring' }, `<ellipse cx="${r.x}" cy="${y}" rx="${rx + 30 * k}" ry="${ry + 30 * k}" fill="${col}" opacity=".12"/><path d="${arc(0)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(0)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/>`);
-    const front = mk('g', { class:'kf-ring' }, `<path d="${arc(1)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(1)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/><path d="M ${r.x + 18 * k} ${y - 80 * k} Q ${r.x + 34 * k} ${y - 20 * k} ${r.x + 26 * k} ${y + 40 * k}" fill="none" stroke="#FFFFFF" stroke-width="${4 * k}" stroke-linecap="round" opacity=".7"/>`
+    const back = mk('g', { class:'kf-ring' }, `<ellipse cx="${r.x}" cy="${y}" rx="${rx + 30 * k}" ry="${ry + 30 * k}" fill="${col}" fill-opacity=".12"/><path d="${arc(0)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(0)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/>`);
+    const front = mk('g', { class:'kf-ring' }, `<path d="${arc(1)}" fill="none" stroke="${dk}" stroke-width="${20 * k}" stroke-linecap="round"/><path d="${arc(1)}" fill="none" stroke="${col}" stroke-width="${12 * k}" stroke-linecap="round"/><path d="M ${r.x + 18 * k} ${y - 80 * k} Q ${r.x + 34 * k} ${y - 20 * k} ${r.x + 26 * k} ${y + 40 * k}" fill="none" stroke="#FFFFFF" stroke-width="${4 * k}" stroke-linecap="round" stroke-opacity=".7"/>`
       + (r.dbl === 'hi' && k === 1 ? `<g transform="translate(${r.x} ${y + 150})"><rect x="-52" y="-20" width="104" height="40" rx="20" fill="#6B3FA0" stroke="#FFFFFF" stroke-width="3"/><text x="0" y="9" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="24" fill="#FFFFFF">LOOP</text></g>` : ''));
     return [back, front];
   }
@@ -528,6 +528,8 @@ const Kost = (() => {
     sc.querySelector('.kf-front').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-fx').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
     sc.querySelector('.kf-lanes').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
+    if (!S.cull){ S.cull = [...sc.querySelectorAll('.kf-world > *, .kf-front > *, .kf-trackB > *, .kf-trackF > *')].map(g => { try { const b = g.getBBox(); return { g, x0: b.x, x1: b.x + b.width, on: true }; } catch (e){ return null; } }).filter(Boolean); }
+    for (const c of S.cull){ const on = c.x1 > cam - 700 && c.x0 < cam + 2400; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
     S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
     S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
     /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */

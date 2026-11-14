@@ -290,12 +290,18 @@ function potionScene(){
   o += placeMood([[CX, 820, 420, 260], [250, 500, 260, 380]], { vign: .85, warm: .2, dx: 500, dw: 700 });
   o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#2AFF9A" opacity=".035" pointer-events="none"/>`;
   /* professorens taleboble */
-  o += `<g class="say" pointer-events="none"><path d="M 470 34 Q 470 10 494 10 H 1016 Q 1040 10 1040 34 V 92 L 1092 132 L 1040 128 V 150 Q 1040 174 1016 174 H 494 Q 470 174 470 150 Z" fill="#FFF8EC" stroke="#2A3A34" stroke-width="4"/>`
-    + `<foreignObject x="484" y="16" width="544" height="152"><div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div></foreignObject></g>`;
+  o += `<g class="say" data-hit="say"><path d="M 470 34 Q 470 10 494 10 H 1016 Q 1040 10 1040 34 V 92 L 1092 132 L 1040 128 V 150 Q 1040 174 1016 174 H 494 Q 470 174 470 150 Z" fill="#FFF8EC" stroke="#2A3A34" stroke-width="4"/>`
+    + `<foreignObject x="484" y="16" width="544" height="152"><div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div></foreignObject>`
+    + `<g class="say-more" hidden><circle cx="1012" cy="150" r="20" fill="#7A4FD8" stroke="#2A3A34" stroke-width="3"/><path d="M 1005 140 L 1022 150 L 1005 160 Z" fill="#FFF8EC"/></g></g>`;
   o += `<g class="fx" pointer-events="none"></g></svg>`;
   return scopeIds(o, 'po');
 }
-function profSay(t){ const s = $('#potScene .say-text'); if (!s) return; s.textContent = t; s.style.fontSize = t.length > 112 ? '23px' : t.length > 88 ? '26px' : ''; const g = s.closest('.say'); g.classList.remove('popsay'); void g.getBoundingClientRect(); g.classList.add('popsay'); }
+/* professoren taler. Har hun mere at sige, viser boblen en lille pil, og man trykker på boblen for at gå videre */
+function profSay(t, more = []){
+  POT.sayQ = more.slice();
+  if (t && typeof t === 'object'){ markTip(t.k); t = t.t; }
+  const s = $('#potScene .say-text'); if (!s) return; s.textContent = t;
+  const m = $('#potScene .say-more'); if (m) m.toggleAttribute('hidden', !POT.sayQ.length); s.style.fontSize = t.length > 112 ? '23px' : t.length > 88 ? '26px' : ''; const g = s.closest('.say'); g.classList.remove('popsay'); void g.getBoundingClientRect(); g.classList.add('popsay'); }
 
 /* ---------- opskrifter: længere og sværere jo flere eliksirer man har brygget ---------- */
 function potLevel(){ return Math.min(4, Math.floor((prog.potions || 0) / 3)); }
@@ -323,11 +329,13 @@ function startRecipe(){
 }
 /* professoren forklarer en ny ting første gang, den dukker op */
 function tipOnce(k, text){ prog.potTips = prog.potTips || []; if (prog.potTips.includes(k)) return ''; prog.potTips.push(k); saveProg(); return text; }
+function markTip(k){ prog.potTips = prog.potTips || []; if (k && !prog.potTips.includes(k)){ prog.potTips.push(k); saveProg(); } }
+/* nye ting forklares, første gang de dukker op. De står i kø efter goddag og regnes først som set, når de er vist */
 function startTips(){
-  const lv = potLevel(), p = POT.p, tips = [];
-  if (lv >= 1){ const t = tipOnce('timeglas', 'Se timeglasset! Bliver du færdig, før det løber ud, får du en ekstra stjerne.'); if (t) tips.push(t); }
-  if (lv >= 3){ const t = tipOnce('tavle0', 'Kig godt på tavlen, for om lidt dækker jeg den!'); if (t) tips.push(t); }
-  tips.forEach((t, i) => setTimeout(() => { if (POT.p === p && p.i === 0 && !POT.busy) profSay(t); }, 4200 + i * 4200));
+  const lv = potLevel(), seen = prog.potTips || [], tips = [];
+  if (lv >= 1 && !seen.includes('timeglas')) tips.push({ k: 'timeglas', t: 'Se timeglasset! Bliver du færdig, før det løber ud, får du en ekstra stjerne.' });
+  if (lv >= 3 && !seen.includes('tavle0')) tips.push({ k: 'tavle0', t: 'Kig godt på tavlen, for om lidt dækker jeg den!' });
+  return tips;
 }
 function showPotions(){
   showScreen('#potion'); playMusic('kaelder');
@@ -337,7 +345,7 @@ function showPotions(){
   POT.p = makeRecipe();
   if (potLevel() >= 3) POT.order = shuffle(INGR_IDS);
   renderPotions(); startRecipe();
-  profSay(`${pick(PROF_HI)} I dag brygger vi ${POT.p.name}. Se opskriften på tavlen, og tryk på krukkerne.`); startTips();
+  profSay(pick(PROF_HI), [`I dag brygger vi ${POT.p.name}. Se opskriften på tavlen, og tryk på krukkerne.`, ...startTips()]);
 }
 function renderPotions(){
   const box = $('#potionBody'); box.innerHTML = '';
@@ -365,6 +373,7 @@ const potFx = () => $('#potScene .fx');
 
 function potTap(hit, g, pt){
   const [k, v] = hit.split(':'), svg = $('#potScene svg'), p = POT.p;
+  if (k === 'say'){ if (POT.sayQ && POT.sayQ.length){ sfx.pick(); const [n, ...rest] = POT.sayQ; profSay(n, rest); } return; }
   if (k === 'prof'){ sfx.pick(); replay(g, 'hop'); profSay(PROF_TAP[POT.tapN++ % PROF_TAP.length]); return; }
   if (k === 'mate'){ sfx.pick(); replay(g, 'hop'); sparkle(svg, pt.x, pt.y, 4); return; }
   if (k === 'dyr'){ sfx.pick(); replay(g, 'hop'); sparkle(svg, pt.x, pt.y - 60, 5, '#FF8FC7'); return; }
@@ -443,6 +452,13 @@ async function potPuff(){
 }
 
 /* ---------- røre rundt: man tegner cirkler i gryden ---------- */
+/* sleven går hen, hvor fingeren er, men bliver inde i gryden, og skaftet vipper lidt med */
+function ladleTo(q){
+  const lad = $('#potScene .ladle'); if (!lad) return;
+  const RX = CRX - 60, RY = CRY - 4; let dx = q.x - CX, dy = q.y - CY - 6;
+  const k = Math.hypot(dx / RX, dy / RY); if (k > 1){ dx /= k; dy /= k; }
+  lad.style.transform = `translate(${(CX + dx).toFixed(0)}px,${(CY + 6 + dy).toFixed(0)}px) rotate(${(-12 * dx / RX).toFixed(1)}deg)`;
+}
 function stirStart(e){
   const p = POT.p, s = p && p.steps[p.i]; if (!s || s.kind !== 'ror' || POT.busy) return;
   const svg = e.currentTarget, q = svgPoint(svg, e), nx = (q.x - CX) / (CRX + 120), ny = (q.y - CY) / (CRY + 160);
@@ -450,6 +466,7 @@ function stirStart(e){
   POT.stir = { a: Math.atan2((q.y - CY) / CRY, (q.x - CX) / CRX), acc: 0, id: e.pointerId, turns: 0 };
   if (s.time && !POT.timer) POT.timer = { t0: performance.now(), lim: s.time * 1000, step: s };
   try { svg.setPointerCapture(e.pointerId); } catch (er) {}
+  ladleTo(q);
   const h = $('#potScene .stirhint'); if (h) h.classList.add('fade');
 }
 function stirMove(e){
@@ -457,7 +474,7 @@ function stirMove(e){
   const q = svgPoint(e.currentTarget, e), a = Math.atan2((q.y - CY) / CRY, (q.x - CX) / CRX);
   let d = a - st.a; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI;
   st.a = a; st.acc += d;
-  const lad = $('#potScene .ladle'); if (lad) lad.style.transform = `translate(${(CX + Math.cos(a) * (CRX - 50)).toFixed(0)}px,${(CY + 6 + Math.sin(a) * (CRY - 10)).toFixed(0)}px)`;
+  ladleTo(q);
   const p = POT.p, s = p.steps[p.i], dir = s.dir || 0;
   if (dir && st.acc * dir < -Math.PI * 1.2){ POT.stir = null; sfx.nope(); profSay(`Hov, forkert vej! Rør ${dir > 0 ? 'med' : 'mod'} uret – følg pilen.`); return; }
   const turns = Math.floor(Math.max(0, dir ? st.acc * dir : Math.abs(st.acc)) / (2 * Math.PI));
@@ -548,7 +565,7 @@ async function finishPotion(){
   else if (needGear) renderPotions();
   startRecipe();
   setLiquid(POT.p.mix); POT.busy = false; drawRecipe();
-  profSay(`Næste eliksir: ${POT.p.name}! ${nextLine(POT.p.steps[0])}`); startTips();
+  profSay(`Næste eliksir: ${POT.p.name}! ${nextLine(POT.p.steps[0])}`, startTips());
 }
 function starBurst(n){
   const fx = potFx(); if (!fx) return; sfx.coin();

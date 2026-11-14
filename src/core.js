@@ -2,7 +2,7 @@
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.19.2';
+const VERSION = 'v0.19.3';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -46,7 +46,27 @@ const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10"
 
 /* ---------- skærme ---------- */
 const SCREENS = ['#title','#town','#home','#room','#editor','#balls','#school','#potion','#broom','#fald','#arkade','#game'];
-function showScreen(id){ for (const s of SCREENS) $(s).hidden = s !== id; window.scrollTo(0,0); }
+/* blink-animationer (opacity) køres som CSS i stedet for SMIL: samme bevægelse, men langt billigere for telefonen */
+const SMIL_KF = new Map(); let smilSheet = null;
+function smilOpacityToCss(root){
+  if (!root) return;
+  if (!smilSheet){ smilSheet = document.createElement('style'); document.head.append(smilSheet); }
+  root.querySelectorAll('animate[attributeName="opacity"]').forEach(a => {
+    const p = a.parentElement, vals = a.getAttribute('values');
+    if (!vals || a.getAttribute('repeatCount') !== 'indefinite' || a.hasAttribute('calcMode') || p.getAttribute('class') || p.dataset.tap || p.style.animation) return;
+    const v = vals.split(';'), kt = a.getAttribute('keyTimes'), t = kt ? kt.split(';').map(Number) : v.map((_, i) => i / (v.length - 1)), key = vals + '|' + (kt || '');
+    let name = SMIL_KF.get(key);
+    if (!name){ name = 'smo' + SMIL_KF.size; SMIL_KF.set(key, name); smilSheet.append(`@keyframes ${name}{${v.map((x, i) => `${+(t[i] * 100).toFixed(3)}%{opacity:${x}}`).join('')}}`); }
+    p.style.animation = `${name} ${a.getAttribute('dur')} linear ${a.getAttribute('begin') || '0s'} infinite`;
+    a.remove();
+  });
+}
+/* skjulte skærme får deres SVG-animationer sat på pause; ellers kører de videre usynligt og koster i hvert billede */
+function showScreen(id){
+  for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
+    e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
+  window.scrollTo(0,0);
+}
 
 /* ---------- lyd ---------- */
 let AC = null, soundOn = store.get(KEY_SOUND, true);

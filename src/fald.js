@@ -379,7 +379,15 @@ const Fald = (() => {
   /* den del af tegningen, der faktisk kan ses på skærmen (den er bredere end 1600 på en telefon) */
   function visBox(sc){ const svg = sc.querySelector('svg'), r = sc.getBoundingClientRect(), m = svg && svg.getScreenCTM(); if (!m) return { x0: 0, x1: 1600, y0: 0, y1: 1000 };
     return { x0: (r.left - m.e) / m.a, x1: (r.right - m.e) / m.a, y0: (r.top - m.f) / m.d, y1: (r.bottom - m.f) / m.d }; }
-  function groundAt(ppm, cx, cy){ const g = $('#fsScene .fs-ground'); if (g) g.setAttribute('transform', `translate(${SCX} ${SCY}) scale(${ppm.toFixed(4)}) translate(${(-cx).toFixed(2)} ${(-cy).toFixed(2)})`); S.ppm = ppm; }
+  function groundAt(ppm, cx, cy){ const g = $('#fsScene .fs-ground'); if (g){ g.setAttribute('transform', `translate(${SCX} ${SCY}) scale(${ppm.toFixed(4)}) translate(${(-cx).toFixed(2)} ${(-cy).toFixed(2)})`); cullGround(g, ppm, cx, cy); } S.ppm = ppm; }
+  /* kun det af jorden, der kan ses, tegnes: kasserne måles én gang i jordens egne koordinater */
+  function cullGround(g, k, cx, cy){
+    if (!g.__cull){ const sc = $('#fsScene'), m = g.getScreenCTM(); if (!m) return; const inv = m.inverse(), vb = visBox(sc);
+      g.__vb = vb; g.__cull = [...g.children].map(c => { const r = c.getBoundingClientRect(); if (!r.width && !r.height) return null; const p = new DOMPoint(r.left, r.top).matrixTransform(inv), q = new DOMPoint(r.right, r.bottom).matrixTransform(inv);
+        return { c, x0: Math.min(p.x, q.x), y0: Math.min(p.y, q.y), x1: Math.max(p.x, q.x), y1: Math.max(p.y, q.y), on: true }; }).filter(Boolean); }
+    const v = g.__vb, M = 200, x0 = (v.x0 - M - SCX) / k + cx, x1 = (v.x1 + M - SCX) / k + cx, y0 = (v.y0 - M - SCY) / k + cy, y1 = (v.y1 + M - SCY) / k + cy;
+    for (const e of g.__cull){ const on = e.x1 > x0 && e.x0 < x1 && e.y1 > y0 && e.y0 < y1; if (on !== e.on){ e.on = on; e.c.style.display = on ? '' : 'none'; } }
+  }
 
   /* ---------- skærmen folder sig ud ---------- */
   function openStart(){

@@ -58,7 +58,7 @@
     /* en bunke: bred nederst, højest på midten */
     [[676, 15, 470, 1350], [596, 9, 590, 1230], [516, 4, 720, 1100]].forEach(([y0, n, x0, x1]) => { for (let i = 0; i < n; i++){
       const x = x0 + i * (x1 - x0) / (n - 1) + (Math.random() - .5) * 36, y = y0 + (Math.random() - .5) * 20;
-      const b = Body.create({ parts: [Bodies.circle(x, y - 14 * SC, 22 * SC), Bodies.circle(x, y + 16 * SC, 21 * SC)],
+      const b = Body.create({ parts: [Bodies.circle(x, y - 14 * SC, 22 * SC, {}, 16), Bodies.circle(x, y + 16 * SC, 21 * SC, {}, 16)],
         friction: 0.9, frictionStatic: 2, restitution: 0.05, frictionAir: 0.012, collisionFilter: { category: CAT_PLUSH } });
       b.off = { x: x - b.position.x, y: y - b.position.y }; b.k = kinds[Math.floor(Math.random() * kinds.length)];
       Body.setAngle(b, (Math.random() - .5) * 0.7); plushes.push(b);
@@ -169,6 +169,7 @@
     if (!S || S.over) return;
     const dt = Math.min(0.05, (now - S.last) / 1000); S.last = now;
     const ph = S.phase;
+    if (S.ended && (S.endT = (S.endT || 0) + dt) > 2.5) return;   /* slutkortet er fremme: fysikken hviler */
     if (ph === 'flyt'){
       const left = Math.max(0, LIMIT - (now - S.t0) / 1000), sec = Math.ceil(left);
       if (sec !== S.sec){ S.sec = sec; S.api.info(`Tid ${sec}`); }

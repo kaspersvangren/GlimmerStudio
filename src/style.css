@@ -398,6 +398,9 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* ---------- Boblebutikken som sted ---------- */
 .say-text{font-family:var(--display);font-weight:600;font-size:25px;line-height:1.25;color:#3A2340;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 8px;box-sizing:border-box}
 #potScene .say-text{font-size:30px;line-height:1.2}
+#potScene .say{cursor:pointer}
+#potScene .say-more{transform-box:fill-box;transform-origin:50% 50%;animation:saymore 1.1s ease-in-out infinite}
+@keyframes saymore{50%{transform:translateX(5px)}}
 .scene .say{transform-box:fill-box;transform-origin:90% 100%}
 .scene .popsay{animation:popsay .35s ease-out}
 @keyframes popsay{0%{transform:scale(.85);opacity:.4}100%{transform:scale(1);opacity:1}}

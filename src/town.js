@@ -152,6 +152,7 @@ function showTitle(){
     el('p', { class:'ver' }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);
+  smilOpacityToCss($('#titleBody'));
   updateAudioBtns();
 }
 
