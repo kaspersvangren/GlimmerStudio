@@ -125,7 +125,7 @@ form.add{display:grid; grid-template-columns:1fr auto auto; gap:8px}
     <div class="card"><h2>Sådan kommer dine egne lyde i spillet</h2>
       <ol class="steps">
         <li>Find pladsen under <a href="#lyd">Lyd og musik</a>, og tryk på den runde knap for at høre den lyd, der er der nu.</li>
-        <li>Skriv dit ønske, eller læg en lydfil op (mp3, m4a eller wav). En kort lyd på under et sekund virker bedst til effekter.</li>
+        <li>Skriv dit ønske, eller læg en lydfil op (mp3, m4a eller wav). Filen behøver ikke være færdig: skriv hvad jeg skal rette, så klipper og justerer jeg den.</li>
         <li>Sig til mig i chatten, så lægger jeg filerne ind i spillet og sætter pladsen til <span class="pill spil">I spillet</span>.</li>
       </ol>
       <p class="muted" style="margin:10px 0 0">Hvis en fil ikke vil lægges op her, kan du bare sende den til mig i chatten og skrive hvilken plads den skal på.</p>
@@ -244,8 +244,8 @@ function slotHtml(s){
       <span class="pill ${cls}" data-pill>${txt}</span></summary>
     <div class="body">
       <div class="forslag"><b>Forslag</b>${esc(s.forslag)}</div>
-      <div><label class="lbl" for="n-${docId(s.key)}">Dit ønske</label>
-        <textarea id="n-${docId(s.key)}" data-act="note" placeholder="Hvordan skal den lyde? Fx et link til en lyd, du kan lide.">${esc(d.note || '')}</textarea>
+      <div><label class="lbl" for="n-${docId(s.key)}">Dit ønske, eller hvad jeg skal rette i din fil</label>
+        <textarea id="n-${docId(s.key)}" data-act="note" placeholder="Fx: kortere, start ved 0,5 sek, lidt lavere, fade ud, lidt lysere, eller et link til en lyd du kan lide.">${esc(d.note || '')}</textarea>
         <div class="saved" data-saved></div></div>
       <div data-filearea>${fileArea(s.key)}</div>
       <div class="muted" style="font-size:12px">Plads: <span class="key">${esc(s.key)}</span></div>
