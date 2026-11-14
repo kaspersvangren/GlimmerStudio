@@ -777,6 +777,74 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .gr-btn .gr-cap{transition:transform .08s}
 .gr-btn.down .gr-cap{transform:translateY(9px)}
 
+/* nye eliksir-effekter */
+#potScene .fxbit{opacity:0;transform-box:fill-box;transform-origin:50% 50%;animation:fxbit 2s ease-out forwards}
+@keyframes fxbit{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:1;transform:translate(calc(var(--dx) * .15),calc(var(--dy) * .15)) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
+#potScene .fxbit.fall{animation-name:fxfall;animation-timing-function:linear}
+@keyframes fxfall{0%{opacity:0;transform:translate(0,0)}10%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+#potScene .fxbit.pop{animation-name:fxpop;animation-timing-function:ease-out}
+@keyframes fxpop{0%{opacity:0;transform:scale(0)}12%{opacity:1;transform:scale(1.15)}22%{transform:scale(1)}85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9)}}
+#potScene .flap{transform-box:fill-box;transform-origin:50% 50%;animation:flap .22s ease-in-out infinite}
+@keyframes flap{50%{transform:scaleX(.3)}}
+#potScene .orbit{animation:orbit 1.1s linear infinite}
+@keyframes orbit{to{transform:rotate(360deg)}}
+#potScene .hero.fx-hop{animation:phop .85s ease-in-out 4}
+@keyframes phop{0%,100%{transform:translateY(0) scale(1)}12%{transform:translateY(0) scale(1.08,.92)}45%{transform:translateY(-120px) scale(.96,1.05)}80%{transform:translateY(0) scale(1.06,.94)}}
+#potScene .hero.fx-hop1{animation:phop1 1.7s ease-in-out 2}
+@keyframes phop1{0%,100%{transform:translateY(0)}30%{transform:translateY(-36px)}}
+#potScene .hero.fx-snurre{animation:psnurre .8s linear 4}
+@keyframes psnurre{0%{transform:scaleX(1)}25%{transform:scaleX(.05)}50%{transform:scaleX(-1)}75%{transform:scaleX(.05)}100%{transform:scaleX(1)}}
+#potScene .hero.fx-latter{animation:platter .24s ease-in-out 14}
+@keyframes platter{50%{transform:translateY(-10px) rotate(2deg)}}
+#potScene .hero.fx-spejl{animation:pspejl 3.4s ease-in-out}
+@keyframes pspejl{0%,100%{transform:scaleX(1)}12%,88%{transform:scaleX(-1)}}
+#potScene .hero.fx-kold{animation:pkold .12s linear 28}
+@keyframes pkold{50%{transform:translateX(5px)}}
+#potScene .hero.fx-vug{animation:pvug .9s ease-in-out 4}
+@keyframes pvug{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+#potScene .hero.fx-flad{animation:pflad 3.4s ease-in-out}
+@keyframes pflad{0%,100%{transform:scale(1)}15%,85%{transform:scale(1.4,.5)}}
+#potScene .hero.fx-lang{animation:plang 3.4s ease-in-out}
+@keyframes plang{0%,100%{transform:scale(1)}15%,85%{transform:scale(.72,1.4)}}
+#potScene .hero.fx-zzz{animation:pzzz 3.6s ease-in-out}
+@keyframes pzzz{0%,100%{transform:rotate(0)}20%,80%{transform:rotate(-7deg) translateY(6px)}50%{transform:rotate(-9deg) translateY(10px)}}
+#potScene .hero.fx-usynlig{animation:pusyn 3.4s ease-in-out}
+@keyframes pusyn{0%,100%{opacity:1}20%,80%{opacity:.06}}
+#potScene .hero.fx-hoved{transform-origin:50% 50%;animation:phoved 3.4s ease-in-out}
+@keyframes phoved{0%,100%{transform:translateY(0) rotate(0)}22%,78%{transform:translateY(-300px) rotate(180deg)}}
+#potScene .hero.klon{pointer-events:none;opacity:0;animation:pklon 3.5s ease-in-out forwards}
+@keyframes pklon{0%{opacity:0;transform:translateX(0)}20%,80%{opacity:.9;transform:translateX(var(--kx)) scale(.92)}100%{opacity:0;transform:translateX(0)}}
+#potScene .hero.fx-lys{animation:plys 3.4s ease-in-out}
+@keyframes plys{0%,100%{filter:none}20%,80%{filter:drop-shadow(0 0 16px #FFFFFF) drop-shadow(0 0 44px #FFF2A0) brightness(1.3)}}
+#potScene .hero.fx-surt{animation:psurt 3.4s ease-in-out}
+@keyframes psurt{0%,100%{transform:none}20%,80%{transform:translateY(8px) scale(.98,1)}}
+#potScene .hero.fx-ild{animation:pild 3.4s ease-in-out}
+@keyframes pild{0%,100%{transform:none}12%,88%{transform:rotate(-4deg)}}
+#potScene .hero.fx-farver{animation:pfarver 1.1s linear 3}
+@keyframes pfarver{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+#potScene .hero.fx-spoegelse{animation:pspoeg 3.4s ease-in-out}
+@keyframes pspoeg{0%,100%{opacity:1;transform:translate(0,0)}20%{opacity:.4;transform:translate(0,-40px)}40%{transform:translate(-24px,-64px)}60%{transform:translate(24px,-52px)}80%{opacity:.4;transform:translate(0,-40px)}}
+#potScene .hero.fx-svimmel{animation:psvim .85s ease-in-out 4}
+@keyframes psvim{25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+/* valg af sværhedsgrad og eliksirbogen */
+.diff-card .reveal-info,.book-card .reveal-info{max-width:560px!important}
+.diff-list{display:flex;flex-direction:column;gap:8px;width:100%}
+.diff-btn{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"n m" "t t";gap:2px 12px;align-items:baseline;text-align:left;border:3px solid #2A2238;border-radius:16px;padding:8px 14px;cursor:pointer;font-family:var(--display);color:#2A2238;background:#E6F6EE;box-shadow:0 4px 0 #2A2238}
+.diff-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #2A2238}
+.diff-btn.d1{background:#FFF1C9}
+.diff-btn.d2{background:#FFD6CF}
+.diff-btn.last{outline:3px solid #FFE27A;outline-offset:2px}
+.diff-name{grid-area:n;font-weight:700;font-size:clamp(18px,4vh,24px)}
+.diff-meta{grid-area:m;justify-self:end;font-weight:600;font-size:clamp(12px,2.4vh,15px);opacity:.8}
+.diff-note{grid-area:t;font-family:var(--body,Nunito,sans-serif);font-weight:700;font-size:clamp(12px,2.5vh,15px);line-height:1.25}
+.book-grid{display:flex;flex-direction:column;gap:6px;width:100%}
+.book-lv{margin:0;color:#FFE27A;font-weight:700;font-size:clamp(13px,2.6vh,16px);text-align:left}
+.book-cells{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.book-cell{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.book-cell span{font-size:clamp(8px,1.6vh,11px);font-weight:700;color:#E6F6EE;text-align:center;line-height:1.05;overflow-wrap:anywhere;opacity:.55}
+.book-cell.known span{opacity:1}
+.book-bottle svg{width:clamp(22px,6vh,40px);height:auto;display:block}
+
 </style>
 </head>
 <body>
@@ -1915,7 +1983,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.19.3';
+const VERSION = 'v0.20.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3735,14 +3803,46 @@ const INGR = {
 const INGR_IDS = Object.keys(INGR);
 /* hylden med krukker: to søjler, tre hylder */
 const JAR_POS = [[140, 340], [330, 340], [140, 540], [330, 540], [140, 740], [330, 740]];
+/* 30 eliksirer, 10 på hvert niveau. Hver eliksir har sin egen faste opskrift (se makeRecipe) */
 const POTIONS = [
-  { name:'Svæveeliksir', fx:'svaev', col:'#8FD8FF', line:'Du svæver! Hold fast i hatten!' },
-  { name:'Krympedrik', fx:'lille', col:'#FF8FC7', line:'Hov, hvor blev du af? Bare rolig, det går over.' },
-  { name:'Regnbuesaft', fx:'haar', col:'#FFB347', line:'Sikke en hårfarve! Den holder heldigvis kun lidt.' },
-  { name:'Pelsfarvebryg', fx:'pels', col:'#7AE0C0', line:'Se dit dyr! Det har skiftet farve!', pet: true },
-  { name:'Glimmerdrik', fx:'glimmer', col:'#FFE27A', line:'Du glimter som en stjerne!' },
-  { name:'Kæmpedrik', fx:'stor', col:'#A07AFF', line:'Du er blevet kæmpestor!' },
-  { name:'Hikkedrik', fx:'hik', col:'#9BE36A', line:'Hik! Det er en ægte hikkedrik.' },
+  /* let */
+  { lv:0, name:'Svæveeliksir', fx:'svaev', col:'#8FD8FF', line:'Du svæver! Hold fast i hatten!' },
+  { lv:0, name:'Krympedrik', fx:'lille', col:'#FF8FC7', line:'Hov, hvor blev du af? Bare rolig, det går over.' },
+  { lv:0, name:'Glimmerdrik', fx:'glimmer', col:'#FFE27A', line:'Du glimter som en stjerne!' },
+  { lv:0, name:'Hikkedrik', fx:'hik', col:'#9BE36A', line:'Hik! Det er en ægte hikkedrik.' },
+  { lv:0, name:'Hjertedrik', fx:'hjerter', col:'#FF6F9C', line:'Der flyver hjerter ud af ørerne på dig!' },
+  { lv:0, name:'Boblebryg', fx:'bobler', col:'#9FE7FF', line:'Sæbebobler over det hele!' },
+  { lv:0, name:'Hoppesaft', fx:'hop', col:'#FFB347', line:'Hop, hop, hop! Benene vil ikke holde op.' },
+  { lv:0, name:'Snurredrik', fx:'snurre', col:'#C9A0FF', line:'Du snurrer rundt som en top!' },
+  { lv:0, name:'Blomsterdrik', fx:'blomster', col:'#FF9FD0', line:'Der gror blomster omkring dig!' },
+  { lv:0, name:'Kildedrik', fx:'latter', col:'#FFD36E', line:'Hihi! Den kilder helt ned i tæerne.' },
+  /* mellem */
+  { lv:1, name:'Kæmpedrik', fx:'stor', col:'#A07AFF', line:'Du er blevet kæmpestor!' },
+  { lv:1, name:'Regnbuesaft', fx:'haar', col:'#FFB347', line:'Sikke en hårfarve! Den holder heldigvis kun lidt.' },
+  { lv:1, name:'Pelsfarvebryg', fx:'pels', col:'#7AE0C0', line:'Se dit dyr! Det har skiftet farve!', pet: true },
+  { lv:1, name:'Spejldrik', fx:'spejl', col:'#B8C6FF', line:'Alt er spejlvendt! Venstre er højre, og højre er venstre.' },
+  { lv:1, name:'Snefnugdrik', fx:'sne', col:'#DDF3FF', line:'Brr! Det sner kun på dig.' },
+  { lv:1, name:'Musikdrik', fx:'noder', col:'#7AD0FF', line:'Du synger, hver gang du trækker vejret!' },
+  { lv:1, name:'Sommerfugledrik', fx:'sommerfugle', col:'#FFC0E8', line:'Sommerfuglene tror, du er en blomst.' },
+  { lv:1, name:'Fladdrik', fx:'flad', col:'#9BE3C8', line:'Du er blevet flad som en pandekage!' },
+  { lv:1, name:'Strækkedrik', fx:'lang', col:'#F2A86A', line:'Du er blevet lang som en stige!' },
+  { lv:1, name:'Søvndrik', fx:'zzz', col:'#8A9BE0', line:'Gaaab ... bare et lille hvil.' },
+  /* svær */
+  { lv:2, name:'Usynlighedsdrik', fx:'usynlig', col:'#E8F4FF', line:'Hvor blev du af? Du er helt usynlig!' },
+  { lv:2, name:'Hovedkulsdrik', fx:'hoved', col:'#FF7A5A', line:'Du står på hovedet! Pas på hatten.' },
+  { lv:2, name:'Dobbeltdrik', fx:'klon', col:'#7AE0C0', line:'Nu er der tre af dig!' },
+  { lv:2, name:'Lysdrik', fx:'lys', col:'#FFF2A0', line:'Du lyser op i hele kælderen!' },
+  { lv:2, name:'Regnskydrik', fx:'regn', col:'#7FA8D8', line:'Du har fået din helt egen regnsky.' },
+  { lv:2, name:'Dragepust', fx:'ild', col:'#FF5A2A', line:'Du puster ild som en rigtig drage!' },
+  { lv:2, name:'Farveskiftedrik', fx:'farver', col:'#E07AFF', line:'Du skifter farve som en kamæleon!' },
+  { lv:2, name:'Spøgelsesdrik', fx:'spoegelse', col:'#CFE8F0', line:'Buuh! Du er gennemsigtig som et spøgelse.' },
+  { lv:2, name:'Svimmeldrik', fx:'stjerner', col:'#FFD54A', line:'Du ser stjerner! Hold fast i gryden.' },
+  { lv:2, name:'Regnbuedrik', fx:'regnbue', col:'#FF8AD8', line:'En regnbue lige over dit hoved!' },
+];
+const DIFF = [
+  { name:'Let', note:'Krukker og omrøring. Kan ikke gå galt.', stars:'1 ★ pr. eliksir', bonus: 1 },
+  { name:'Mellem', note:'Rør den rigtige vej, timeglas og blæsebælg.', stars:'op til 4 ★ pr. eliksir', bonus: 2 },
+  { name:'Svær', note:'Tavlen dækkes, og der røres på tid. Løber timeglasset ud, eller laver du 3 fejl, koger eliksiren over.', stars:'op til 5 ★ pr. eliksir', bonus: 3 },
 ];
 const PROF = 'Professor Mosegrøn';
 const PROF_ST = { skin:'#F1DCCB', eyes:{ color:'#3FA34D', pupil:'rund' }, mk:{ blush:'#E8A0A0', lips:'#A0526B', lipShape:'smil', mark:'ingen', markColor:'#B07A45' },
@@ -3758,6 +3858,7 @@ const PROF_OVER = [1, -1].map(f => { const X = x => 400.5 + f * (x - 400.5);
 const PROF_HI = ['Velkommen til eliksirtimen!', 'Goddag, goddag, mine små bryggere!', 'Sæt jer, sæt jer. Gryderne er varme!'];
 const PROF_OK = ['Fint!', 'Godt!', 'Præcis!', 'Ja, sådan!', 'Flot!'];
 const PROF_MISS = ['PUF! Den var vist ikke på opskriften.', 'Hov! Kig på tavlen igen.', 'Ups, det sodede lidt. Prøv igen!', 'Næsten! Se efter på tavlen.'];
+const PROF_FAIL = ['Det sker for selv de bedste bryggere.', 'Øv! Den prøver vi igen en anden gang.', 'Svære eliksirer er svære. Det er derfor, de giver flest stjerner.'];
 const PROF_DONE = ['Fremragende brygget!', 'En perfekt eliksir!', 'Den kunne jeg ikke have lavet bedre selv.', 'Bravo!'];
 const PROF_TAP = ['Mine ører? De er helt almindelige elverører.', 'Jeg har brygget eliksirer i fire hundrede år.', 'Pas på dampen, den kilder i næsen.', 'Brillerne har jeg på, når noget eksploderer. Det sker tit.'];
 
@@ -3925,25 +4026,28 @@ function profSay(t, more = []){
   const m = $('#potScene .say-more'); if (m) m.toggleAttribute('hidden', !POT.sayQ.length); s.style.fontSize = t.length > 112 ? '23px' : t.length > 88 ? '26px' : ''; const g = s.closest('.say'); g.classList.remove('popsay'); void g.getBoundingClientRect(); g.classList.add('popsay'); }
 
 /* ---------- opskrifter: længere og sværere jo flere eliksirer man har brygget ---------- */
-function potLevel(){ return Math.min(4, Math.floor((prog.potions || 0) / 3)); }
-function makeRecipe(){
-  const lv = potLevel(), n = 2 + Math.min(3, lv), maxN = lv >= 2 ? 3 : 2, steps = [];
-  const potion = pick(POTIONS.filter(p => !p.pet || heroState().pet.kind !== 'ingen'));
+/* sværhedsgraden vælges ved timens start: let (0), mellem (1), svær (2). Scenens udstyr følger med */
+function potLevel(){ return [0, 2, 4][POT.diff || 0]; }
+/* en eliksirs opskrift er altid den samme: tilfældet er sået med eliksirens navn */
+function seeded(str){ let h = 1779033703 ^ str.length; for (let i = 0; i < str.length; i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  return () => { h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; }
+function makeRecipe(potion){
+  const d = potion.lv, R = seeded(potion.name), n = [3, 4, 5][d], maxN = [2, 3, 3][d], steps = [];
   let last = null;
   for (let i = 0; i < n; i++){
-    const stir = i === n - 1 || (lv >= 2 && i > 0 && steps[i-1].kind !== 'ror' && Math.random() < 0.3);
-    if (stir && i > 0) steps.push({ kind:'ror', n: 1 + Math.floor(Math.random() * (lv >= 1 ? 3 : 2)) });
-    else { let id; do { id = pick(INGR_IDS); } while (id === last); last = id; steps.push({ kind:'ing', id, n: 1 + Math.floor(Math.random() * maxN) }); }
+    const stir = i === n - 1 || (d >= 1 && i > 0 && steps[i-1].kind !== 'ror' && R() < 0.3);
+    if (stir && i > 0) steps.push({ kind:'ror', n: 1 + Math.floor(R() * (d >= 1 ? 3 : 2)) });
+    else { let id; do { id = INGR_IDS[Math.floor(R() * INGR_IDS.length)]; } while (id === last); last = id; steps.push({ kind:'ing', id, n: 1 + Math.floor(R() * maxN) }); }
   }
-  /* niveau 1: der skal røres en bestemt vej. Niveau 2: nogle gange på tid, og gryden skal varmes med blæsebælgen */
-  steps.forEach(st => { if (st.kind === 'ror'){ if (lv >= 1) st.dir = Math.random() < .5 ? 1 : -1; if (lv >= 2 && Math.random() < .5) st.time = Math.round(3 + st.n * 2.5); } });
-  if (lv >= 2 && Math.random() < .7){ const at = 1 + Math.floor(Math.random() * (steps.length - 1)); steps.splice(at, 0, { kind:'varme', n: 1 }); }
+  /* mellem: der skal røres en bestemt vej, og gryden skal tit varmes. Svær: nogle gange skal der røres på tid */
+  steps.forEach(st => { if (st.kind === 'ror'){ if (d >= 1) st.dir = R() < .5 ? 1 : -1; if (d >= 2 && R() < .5) st.time = Math.round(3 + st.n * 2.5); } });
+  if (d >= 1 && R() < .7){ const at = 1 + Math.floor(R() * (steps.length - 1)); steps.splice(at, 0, { kind:'varme', n: 1 }); }
   return { name: potion.name, potion, steps, i: 0, got: 0, miss: 0, mix: '#3E6A5A' };
 }
 /* en ny opskrift går i gang: timeglasset vendes, gryden er lun, og fra niveau 3 dækkes tavlen efter et øjeblik */
 function startRecipe(){
   const lv = potLevel(), p = POT.p, varme = p.steps.filter(st => st.kind === 'varme').length;
-  POT.hg = lv >= 1 ? { t0: performance.now(), lim: (12 + p.steps.length * 6 + varme * 6) * 1000, out: false } : null;
+  POT.hg = lv >= 1 ? { t0: performance.now(), lim: (POT.diff === 2 ? 10 + p.steps.length * 5 + varme * 5 : 12 + p.steps.length * 6 + varme * 6) * 1000, out: false } : null;
   POT.heat = 30; POT.heatOk = 0; POT.timer = null; POT.covered = false;
   clearTimeout(POT.coverT);
   if (lv >= 3) POT.coverT = setTimeout(() => { if (POT.p === p && p.i < p.steps.length){ POT.covered = true; drawRecipe(); profSay(tipOnce('tavle', 'Nu dækker jeg tavlen! Kan du huske opskriften? Tryk på tavlen, hvis du vil kigge.') || 'Tavlen er dækket. Tryk på den for at kigge.'); } }, 8000);
@@ -3954,7 +4058,8 @@ function markTip(k){ prog.potTips = prog.potTips || []; if (k && !prog.potTips.i
 /* nye ting forklares, første gang de dukker op. De står i kø efter goddag og regnes først som set, når de er vist */
 function startTips(){
   const lv = potLevel(), seen = prog.potTips || [], tips = [];
-  if (lv >= 1 && !seen.includes('timeglas')) tips.push({ k: 'timeglas', t: 'Se timeglasset! Bliver du færdig, før det løber ud, får du en ekstra stjerne.' });
+  if (POT.diff === 1 && !seen.includes('timeglas')) tips.push({ k: 'timeglas', t: 'Se timeglasset! Bliver du færdig, før det løber ud, får du en ekstra stjerne.' });
+  if (POT.diff === 2 && !seen.includes('timeglas2')) tips.push({ k: 'timeglas2', t: 'På svær skal du være færdig, før timeglasset løber ud. Og laver du tre fejl, koger eliksiren over!' });
   if (lv >= 3 && !seen.includes('tavle0')) tips.push({ k: 'tavle0', t: 'Kig godt på tavlen, for om lidt dækker jeg den!' });
   return tips;
 }
@@ -3963,10 +4068,58 @@ function showPotions(){
   POT.lesson = { n: 0, stars: 0 }; POT.busy = false; POT.order = null;
   const taken = [];
   POT.mates = [0, 1].map(i => { const own = i === 1 && Math.random() < 0.3 ? ownGuest(figures.length ? figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].id : null) : null; const g = own || randomGuest(taken); taken.push(g.name); return g; });
-  POT.p = makeRecipe();
-  if (potLevel() >= 3) POT.order = shuffle(INGR_IDS);
+  POT.diff = Math.max(0, Math.min(2, prog.potDiff || 0)); POT.queue = lessonPotions(POT.diff);
+  POT.p = makeRecipe(POT.queue[0]); POT.busy = true;
+  renderPotions(); profSay(pick(PROF_HI));
+  chooseDiff();
+}
+/* tre forskellige eliksirer fra niveauet; dem man ikke har brygget før, kommer først */
+function lessonPotions(d){
+  const br = prog.brewed || {}, pool = POTIONS.filter(p => p.lv === d && (!p.pet || heroState().pet.kind !== 'ingen'));
+  return shuffle(pool.filter(p => !br[p.name])).concat(shuffle(pool.filter(p => br[p.name]))).slice(0, 3);
+}
+const brewedOf = d => POTIONS.filter(p => p.lv === d && (prog.brewed || {})[p.name]).length;
+function chooseDiff(){
+  const veil = el('div', { class:'shop-veil diff-veil' });
+  const card = el('div', { class:'reveal magic m-dyr lesson-card diff-card' }, [
+    el('div', { class:'mc-pattern', 'aria-hidden':'true' }),
+    ...[0, 1, 2, 3].map(i => el('span', { class:'mc-corner c' + i, 'aria-hidden':'true', html: MC_CORNER })),
+    el('div', { class:'reveal-info' }, [
+      el('p', { class:'reveal-cat' }, 'Eliksirtimen'),
+      el('h3', { class:'reveal-name' }, 'Hvor svært skal det være?'),
+      el('div', { class:'diff-list' }, DIFF.map((d, i) => el('button', { class:'diff-btn d' + i + (i === POT.diff ? ' last' : ''), type:'button', on:{ click: () => { sfx.pick(); veil.remove(); startLesson(i); } } }, [
+        el('span', { class:'diff-name' }, d.name), el('span', { class:'diff-note' }, d.note),
+        el('span', { class:'diff-meta' }, `${d.stars} · ${brewedOf(i)}/${POTIONS.filter(p => p.lv === i).length} i bogen`) ]))),
+      el('div', { class:'reveal-btns row' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); potionBook(veil); } } }, `Eliksirbogen (${POTIONS.filter(p => (prog.brewed || {})[p.name]).length}/${POTIONS.length})`) ]) ]) ]);
+  veil.append(card); $('#potionBody').append(veil);
+}
+function startLesson(d){
+  POT.diff = d; prog.potDiff = d; saveProg();
+  POT.lesson = { n: 0, stars: 0, fail: 0 }; POT.queue = lessonPotions(d);
+  POT.p = makeRecipe(POT.queue[0]); POT.order = potLevel() >= 3 ? shuffle(INGR_IDS) : null; POT.busy = false;
   renderPotions(); startRecipe();
-  profSay(pick(PROF_HI), [`I dag brygger vi ${POT.p.name}. Se opskriften på tavlen, og tryk på krukkerne.`, ...startTips()]);
+  profSay(`I dag brygger vi ${POT.p.name}. Se opskriften på tavlen, og tryk på krukkerne.`, startTips());
+}
+/* eliksirbogen: alle 30, dem man har brygget, står med navn og farve */
+function bottleSvg(col, known){
+  return `<svg viewBox="-34 -50 68 92" xmlns="http://www.w3.org/2000/svg"><path d="M -9 -40 H 9 V -26 C 24 -20 30 -8 30 6 C 30 26 16 38 0 38 C -16 38 -30 26 -30 6 C -30 -8 -24 -20 -9 -26 Z" fill="${known ? col : '#4A4266'}" stroke="#1E1830" stroke-width="3.5" stroke-linejoin="round"/>`
+    + (known ? `<path d="M -26 8 C -26 24 -14 34 0 34 C 14 34 26 24 26 8 Z" fill="#FFF" opacity=".18"/><path d="M -18 -6 Q -22 6 -18 16" stroke="#FFF" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/>`
+             : `<text y="16" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="30" fill="#8A82AE">?</text>`)
+    + `<rect x="-11" y="-48" width="22" height="11" rx="3" fill="#B5844A" stroke="#1E1830" stroke-width="3"/></svg>`;
+}
+function potionBook(veil){
+  const card = veil.querySelector('.diff-card'); card.hidden = true;
+  const br = prog.brewed || {};
+  const book = el('div', { class:'reveal magic m-dyr lesson-card book-card' }, [
+    el('div', { class:'mc-pattern', 'aria-hidden':'true' }),
+    el('div', { class:'reveal-info' }, [
+      el('p', { class:'reveal-cat' }, 'Eliksirbogen'),
+      el('h3', { class:'reveal-name' }, `${POTIONS.filter(p => br[p.name]).length} af ${POTIONS.length} eliksirer`),
+      el('div', { class:'book-grid' }, DIFF.map((d, i) => el('div', { class:'book-row' }, [ el('p', { class:'book-lv' }, d.name),
+        el('div', { class:'book-cells' }, POTIONS.filter(p => p.lv === i).map(p => el('div', { class:'book-cell' + (br[p.name] ? ' known' : '') }, [
+          el('div', { class:'book-bottle', html: bottleSvg(p.col, !!br[p.name]) }), el('span', {}, br[p.name] ? p.name : '???') ]))) ]))),
+      el('div', { class:'reveal-btns row' }, [ el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); book.remove(); card.hidden = false; } } }, 'Tilbage') ]) ]) ]);
+  veil.append(book);
 }
 function renderPotions(){
   const box = $('#potionBody'); box.innerHTML = '';
@@ -4046,7 +4199,7 @@ async function throwIn(id, jar, right){
   } else {
     p.miss++;
     await potPuff();
-    profSay(pick(PROF_MISS));
+    profSay(pick(PROF_MISS) + (POT.diff === 2 && p.miss < 3 ? (p.miss === 2 ? ' Pas på, én fejl mere, så koger den over!' : ' Det var fejl nummer ét.') : ''));
     POT.busy = false;
   }
 }
@@ -4142,6 +4295,7 @@ function potLoop(now){
   if (POT.hg){ const k = Math.min(1, (now - POT.hg.t0) / POT.hg.lim), t = svg.querySelector('.hg-top'), b = svg.querySelector('.hg-bot'), sr = svg.querySelector('.hg-str');
     if (t){ t.setAttribute('y', (-60 + k * 26).toFixed(1)); t.setAttribute('height', (26 - k * 26).toFixed(1)); b.setAttribute('y', (-6 - k * 26).toFixed(1)); b.setAttribute('height', (k * 26).toFixed(1)); sr.style.display = k < 1 ? '' : 'none'; }
     if (k >= 1 && !POT.hg.out){ POT.hg.out = true; tone(330, 0.2, 'sine', 0.04); const hg = svg.querySelector('.hglass'); if (hg) hg.classList.add('out'); } }
+  if (POT.diff === 2 && p && !POT.busy && p.i < p.steps.length && ((POT.hg && POT.hg.out) || p.miss >= 3)) failPotion(p.miss >= 3 ? 'Tre fejl, og så kogte den over!' : 'Timeglasset løb ud, og eliksiren kogte over!');
   if (st && st.kind === 'varme' && !POT.busy){
     POT.heat = Math.max(0, POT.heat - 6 * dt);
     if (POT.heat > 100){ boilOver('Uha, den kogte over! Lidt mere forsigtigt med blæsebælgen.'); POT.heat = 40; }
@@ -4166,36 +4320,99 @@ async function boilOver(msg){
 async function finishPotion(){
   POT.busy = true;
   const fast = !!(POT.hg && !POT.hg.out); POT.hg = null; POT.timer = null; clearTimeout(POT.coverT); POT.covered = false; drawRecipe();
-  const p = POT.p, svg = $('#potScene svg'), stars = Math.max(1, 3 - p.miss) + (fast ? 1 : 0);
+  const p = POT.p, svg = $('#potScene svg'), d = POT.diff || 0, bonusFast = fast && d === 1;
+  const stars = d === 0 ? 1 : d === 1 ? Math.max(1, 3 - p.miss) + (bonusFast ? 1 : 0) : Math.max(2, 5 - p.miss);
   setLiquid(p.potion.col); svg.classList.add('brewed');
   sfx.magic();
   if (!calm) for (let i = 0; i < 3; i++) setTimeout(() => sparkle(svg, CX - 120 + i * 120, CY - 40 - i * 30, 8, p.potion.col), i * 180);
   await wait(calm ? 200 : 900);
-  profSay(`${pick(PROF_DONE)} ${p.name}: ${p.potion.line}${fast ? ' Og du nåede det før timeglasset: en ekstra stjerne!' : ''}`);
+  const first = !(prog.brewed || {})[p.name]; prog.brewed = prog.brewed || {}; prog.brewed[p.name] = (prog.brewed[p.name] || 0) + 1;
+  profSay(`${pick(PROF_DONE)} ${p.name}: ${p.potion.line}${bonusFast ? ' Og du nåede det før timeglasset: en ekstra stjerne!' : ''}${first ? ' Den er ny i din eliksirbog!' : ''}`);
   await potionEffect(p.potion.fx);
   prog.potions = (prog.potions || 0) + 1; saveProg();
   addStars(stars); POT.lesson.stars += stars;
   starBurst(stars);
   await wait(calm ? 200 : 1500);
   svg.classList.remove('brewed');
+  nextPotion();
+}
+/* næste eliksir i timen, eller timen er slut */
+function nextPotion(){
   POT.lesson.n++;
   if (POT.lesson.n >= 3){ lessonDone(); return; }
-  POT.p = makeRecipe();
-  const lv = potLevel(), needGear = (lv >= 2 && !$('#potScene .bellows')) || (lv >= 1 && !$('#potScene .hglass'));
-  if (lv >= 3){ POT.order = shuffle(INGR_IDS); renderPotions(); }
-  else if (needGear) renderPotions();
+  POT.p = makeRecipe(POT.queue[POT.lesson.n]);
+  if (potLevel() >= 3){ POT.order = shuffle(INGR_IDS); renderPotions(); }
   startRecipe();
   setLiquid(POT.p.mix); POT.busy = false; drawRecipe();
   profSay(`Næste eliksir: ${POT.p.name}! ${nextLine(POT.p.steps[0])}`, startTips());
+}
+/* svær: eliksiren kogte over. Ingen stjerner for den, men timen går videre */
+async function failPotion(msg){
+  POT.busy = true; POT.hg = null; POT.timer = null; POT.stir = null; clearTimeout(POT.coverT); POT.covered = false; drawRecipe();
+  POT.lesson.fail++;
+  await potPuff(); setLiquid('#5A5048');
+  profSay(`${msg} ${pick(PROF_FAIL)}`);
+  await wait(calm ? 300 : 2800);
+  nextPotion();
 }
 function starBurst(n){
   const fx = potFx(); if (!fx) return; sfx.coin();
   for (let i = 0; i < n; i++){ const s = svgEl('g', { class:'starfly', style:`--dx:${(i - (n-1)/2) * 110}px;animation-delay:${i * 0.15}s` }, starP(CX, CY - 120, 40, '#FFE27A') + `<polygon points="${star5pts(CX, CY - 120, 40, 17)}" fill="none" stroke="#B98516" stroke-width="4" stroke-linejoin="round"/>`);
     fx.append(s); setTimeout(() => s.remove(), 1800); }
 }
+/* ---------- effekterne fra de nye eliksirer ---------- */
+const HEAD = { x: CX, y: 300 };
+const frnd = (a, b) => a + Math.random() * (b - a);
+function fxBit(html, x, y, dx, dy, dur, delay = 0, cls = ''){
+  const fx = potFx(); if (!fx || calm) return;
+  const g = svgEl('g', { class: 'fxbit ' + cls, style: `--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px;animation-duration:${dur}s;animation-delay:${delay.toFixed(2)}s` }, `<g transform="translate(${x.toFixed(0)} ${y.toFixed(0)})">${html}</g>`);
+  fx.append(g); setTimeout(() => g.remove(), (dur + delay) * 1000 + 100);
+}
+const SHAPE = {
+  heart: (s, c) => `<path d="M 0 ${s * .9} C ${-s * 1.4} ${-s * .1} ${-s * .7} ${-s * 1.1} 0 ${-s * .35} C ${s * .7} ${-s * 1.1} ${s * 1.4} ${-s * .1} 0 ${s * .9} Z" fill="${c}" stroke="#7A2A4A" stroke-width="3" stroke-linejoin="round"/>`,
+  bubble: r => `<circle r="${r}" fill="#BFF0FF" fill-opacity=".22" stroke="#E8FBFF" stroke-width="3"/><path d="M ${-r * .55} ${-r * .15} A ${r * .6} ${r * .6} 0 0 1 ${-r * .1} ${-r * .6}" stroke="#FFF" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  flower: (s, c) => [0, 1, 2, 3, 4].map(i => { const a = i / 5 * Math.PI * 2; return `<circle cx="${(Math.cos(a) * s * .55).toFixed(1)}" cy="${(Math.sin(a) * s * .55).toFixed(1)}" r="${s * .42}" fill="${c}" stroke="#7A2A4A" stroke-width="2"/>`; }).join('') + `<circle r="${s * .32}" fill="#FFD54A" stroke="#9A6A10" stroke-width="2"/>`,
+  note: c => `<ellipse cx="-6" cy="14" rx="11" ry="8" fill="${c}" stroke="#1E1830" stroke-width="2" transform="rotate(-20 -6 14)"/><path d="M 4 12 V -20 Q 16 -12 18 0" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+  snow: s => `<path d="M 0 ${-s} V ${s} M ${-s * .87} ${-s * .5} L ${s * .87} ${s * .5} M ${-s * .87} ${s * .5} L ${s * .87} ${-s * .5}" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>`,
+  fly: c => `<g class="flap"><ellipse cx="-11" cy="-5" rx="11" ry="13" fill="${c}" stroke="#3A2340" stroke-width="2"/><ellipse cx="11" cy="-5" rx="11" ry="13" fill="${c}" stroke="#3A2340" stroke-width="2"/><ellipse cx="-8" cy="11" rx="7" ry="8" fill="${c}" stroke="#3A2340" stroke-width="2"/><ellipse cx="8" cy="11" rx="7" ry="8" fill="${c}" stroke="#3A2340" stroke-width="2"/></g><rect x="-2" y="-14" width="4" height="30" rx="2" fill="#3A2340"/>`,
+  z: s => `<text font-family="${FONT_S}" font-weight="700" font-size="${s}" fill="#E8E8FF" stroke="#2A2238" stroke-width="5" paint-order="stroke">Z</text>`,
+  word: (t, s, c) => `<text text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="${s}" fill="${c}" stroke="#2A2238" stroke-width="5" paint-order="stroke">${t}</text>`,
+  flame: s => `<path d="M 0 ${s} C ${-s * .9} ${s} ${-s} ${s * .1} ${-s * .4} ${-s * .5} C ${-s * .3} ${-s * .1} 0 0 ${s * .1} ${-s} C ${s * .5} ${-s * .4} ${s * .9} ${s * .2} 0 ${s} Z" fill="#FF8A3D" stroke="#A8301A" stroke-width="2"/><path d="M 0 ${s * .8} C ${-s * .4} ${s * .8} ${-s * .5} ${s * .3} 0 ${-s * .1} C ${s * .4} ${s * .3} ${s * .4} ${s * .8} 0 ${s * .8} Z" fill="#FFE27A"/>`,
+  drop: s => `<path d="M 0 ${-s} C ${s * .5} ${-s * .2} ${s * .7} ${s * .3} 0 ${s * .7} C ${-s * .7} ${s * .3} ${-s * .5} ${-s * .2} 0 ${-s} Z" fill="#7FC8FF" stroke="#2F6FA0" stroke-width="2"/>`,
+};
+async function fxClass(hero, cls, ms = 3400){ hero.classList.add('fx-' + cls); await wait(calm ? 300 : ms); hero.classList.remove('fx-' + cls); }
+const FX = {
+  hjerter: h => { for (let i = 0; i < 14; i++) fxBit(SHAPE.heart(frnd(16, 26), pick(['#FF6F9C', '#FF9FC0', '#E8457A'])), HEAD.x + frnd(-90, 90), HEAD.y + 60, frnd(-80, 80), frnd(-300, -220), 2.2, i * .2); return fxClass(h, 'hop1', 3400); },
+  bobler: h => { for (let i = 0; i < 18; i++) fxBit(SHAPE.bubble(frnd(14, 30)), CX + frnd(-180, 180), frnd(480, 640), frnd(-40, 40), frnd(-420, -320), 2.6, i * .16); return wait(calm ? 300 : 3600); },
+  hop: h => fxClass(h, 'hop', 3400),
+  snurre: h => fxClass(h, 'snurre', 3200),
+  blomster: h => { for (let i = 0; i < 9; i++){ const a = Math.PI + i / 8 * Math.PI; fxBit(SHAPE.flower(frnd(16, 24), pick(['#FF9FD0', '#FFD36E', '#B8A0FF', '#FF8A8A'])), HEAD.x + Math.cos(a) * 150, HEAD.y + 40 + Math.sin(a) * 120, 0, 0, 3.2, i * .12, 'pop'); } return wait(calm ? 300 : 3600); },
+  latter: h => { for (let i = 0; i < 5; i++) fxBit(SHAPE.word(pick(['Hihi!', 'Haha!', 'Hihihi!']), 40, '#FFE27A'), HEAD.x + frnd(-150, 150), HEAD.y, frnd(-30, 30), -160, 1.6, i * .5); return fxClass(h, 'latter', 3300); },
+  spejl: h => fxClass(h, 'spejl', 3400),
+  sne: h => { for (let i = 0; i < 26; i++) fxBit(SHAPE.snow(frnd(8, 14)), CX + frnd(-220, 220), frnd(120, 200), frnd(-30, 30), frnd(380, 460), 2.4, i * .11, 'fall'); return fxClass(h, 'kold', 3400); },
+  noder: h => { const mel = [523, 659, 784, 659, 880, 784, 659, 523]; mel.forEach((f, i) => { tone(f, 0.22, 'triangle', 0.05, i * 0.36); fxBit(SHAPE.note(pick(['#7AD0FF', '#FF8FC7', '#FFE27A', '#9BE36A'])), HEAD.x + frnd(-60, 60), HEAD.y + 60, frnd(-160, 160), frnd(-260, -200), 2, i * .36); }); return fxClass(h, 'vug', 3400); },
+  sommerfugle: h => { for (let i = 0; i < 9; i++) fxBit(SHAPE.fly(pick(['#FFC0E8', '#FFD36E', '#9FE7FF', '#C9A0FF'])), CX + frnd(-200, 200), frnd(420, 600), frnd(-200, 200), frnd(-380, -260), 3, i * .25); return wait(calm ? 300 : 3800); },
+  flad: h => fxClass(h, 'flad', 3400),
+  lang: h => fxClass(h, 'lang', 3400),
+  zzz: h => { for (let i = 0; i < 6; i++) fxBit(SHAPE.z(30 + i * 6), HEAD.x + 70, HEAD.y + 10, 90 + i * 10, -170, 1.8, i * .45); return fxClass(h, 'zzz', 3600); },
+  usynlig: h => fxClass(h, 'usynlig', 3400),
+  hoved: h => fxClass(h, 'hoved', 3400),
+  klon: async h => { const cs = [-1, 1].map(s => { const c = h.cloneNode(true); c.classList.add('klon'); c.style.setProperty('--kx', s * 270 + 'px'); h.after(c); return c; }); await wait(calm ? 300 : 3500); cs.forEach(c => c.remove()); },
+  lys: h => { if (!calm) for (let i = 0; i < 4; i++) setTimeout(() => sparkle($('#potScene svg'), HEAD.x + frnd(-120, 120), HEAD.y + frnd(0, 260), 6, '#FFFFFF'), i * 600); return fxClass(h, 'lys', 3400); },
+  regn: h => { fxBit(`<path d="M -110 0 C -130 -40 -80 -70 -50 -50 C -40 -90 30 -95 40 -55 C 80 -80 130 -40 105 0 Z" fill="#8A9AB8" stroke="#3A4460" stroke-width="4" stroke-linejoin="round"/>`, HEAD.x, HEAD.y - 90, 0, 0, 3.4, 0, 'pop');
+    for (let i = 0; i < 22; i++) fxBit(SHAPE.drop(9), HEAD.x + frnd(-95, 95), HEAD.y - 80, 0, frnd(240, 300), 0.9, .3 + i * .12, 'fall'); return fxClass(h, 'surt', 3400); },
+  ild: h => { for (let i = 0; i < 16; i++) fxBit(SHAPE.flame(frnd(16, 26)), HEAD.x + 40, HEAD.y + 70, frnd(260, 380), frnd(-60, 40), .9, .4 + i * .14); return fxClass(h, 'ild', 3400); },
+  farver: h => fxClass(h, 'farver', 3400),
+  spoegelse: h => fxClass(h, 'spoegelse', 3400),
+  stjerner: async h => { const fx = potFx(); let g = null;
+    if (fx && !calm){ g = svgEl('g', { transform: `translate(${HEAD.x} ${HEAD.y - 40}) scale(1 .4)` }, `<g class="orbit">${[0, 1, 2, 3, 4].map(i => { const a = i / 5 * Math.PI * 2; return star4(Math.cos(a) * 140, Math.sin(a) * 140, 28, '#FFE27A'); }).join('')}</g>`); fx.append(g); }
+    await fxClass(h, 'svimmel', 3400); if (g) g.remove(); },
+  regnbue: h => { fxBit(['#FF5A5A', '#FFA03A', '#FFE24A', '#6ED86A', '#4AA8FF', '#9A6AFF'].map((c, i) => `<path d="M ${-260 + i * 16} 0 A ${260 - i * 16} ${165 - i * 12} 0 0 1 ${260 - i * 16} 0" stroke="${c}" stroke-width="16" fill="none"/>`).join(''), HEAD.x, HEAD.y + 90, 0, 0, 3.6, 0, 'pop'); return wait(calm ? 300 : 3800); },
+};
 async function potionEffect(fx){
   const hero = $('#potScene .hero'), img = $('#potScene .heroimg'), pimg = $('#potScene .petimg'), st = heroState();
   if (!hero) return;
+  if (FX[fx]){ await FX[fx](hero); return; }
   if (fx === 'haar' || fx === 'pels'){
     const s2 = clone(st), rainbow = ['#FF5FA8','#FFC02E','#62E0CB','#7B5CFF','#9BE36A','#FF8A3D'];
     if (fx === 'haar'){ s2.hair.a = pick(rainbow); s2.hair.b = pickOther(rainbow, s2.hair.a); s2.hair.ombre = true; img.setAttribute('href', dollUrl(s2, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })); }
@@ -4214,7 +4431,8 @@ async function potionEffect(fx){
   await wait(calm ? 0 : 500);
 }
 function lessonDone(){
-  const bonus = 2; addStars(bonus); POT.lesson.stars += bonus;
+  const d = POT.diff || 0, bonus = d === 2 && POT.lesson.fail ? 0 : DIFF[d].bonus; addStars(bonus); POT.lesson.stars += bonus;
+  const made = 3 - POT.lesson.fail;
   sfx.fanfare();
   const card = el('div', { class:'reveal magic m-dyr lesson-card' }, [
     el('div', { class:'mc-pattern', 'aria-hidden':'true' }),
@@ -4223,7 +4441,7 @@ function lessonDone(){
       el('p', { class:'reveal-cat' }, 'Eliksirtimen er slut'),
       el('h3', { class:'reveal-name' }, `Du fik ${POT.lesson.stars} stjerner!`),
       el('div', { class:'lesson-stars', html: STAR_SVG.repeat(Math.min(12, POT.lesson.stars)) }),
-      el('p', { class:'lesson-note' }, `Tre eliksirer brygget, plus ${bonus} ekstra for en hel time.`),
+      el('p', { class:'lesson-note' }, `${DIFF[d].name}: ${made === 3 ? 'tre eliksirer brygget' : made === 0 ? 'ingen eliksirer lykkedes' : `${made} af 3 eliksirer lykkedes`}${bonus ? `, plus ${bonus} ekstra for en hel time` : ''}.`),
       el('div', { class:'reveal-btns row' }, [
         el('button', { class:'btn', type:'button', on:{ click: () => { sfx.pick(); goTo(showSchool); } } }, 'Tilbage til gangen'),
         el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); goTo(showPotions); } } }, 'En time til') ]) ]) ]);

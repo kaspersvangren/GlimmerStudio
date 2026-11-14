@@ -24,8 +24,9 @@ async function run(w, h){
   await p.waitForTimeout(800); ok(await p.evaluate(() => !!document.querySelector('.shop-veil .reveal.magic')), `${tag} butikken: intet gevinstkort`); await noScroll('gevinstkort');
   /* eliksirtimen: en hel time på begyndertrinnet og en på det sværeste (retning, tid, varme og dækket tavle) */
   const toScreen = (x, y) => p.evaluate(([x, y]) => { const svg = $('#potScene svg'), pt = svg.createSVGPoint(); pt.x = x; pt.y = y; const q = pt.matrixTransform(svg.getScreenCTM()); return [q.x, q.y]; }, [x, y]);
-  for (const lvPotions of [0, 12]){
-    await p.evaluate(n => { prog.potions = n; showPotions(); }, lvPotions); await p.waitForTimeout(800); await noScroll('eliksirtimen');
+  for (const lvPotions of [0, 1, 2]){   /* sværhedsgrad: let, mellem, svær */
+    await p.evaluate(n => { showPotions(); }, lvPotions); await p.waitForTimeout(600); await noScroll('eliksir-valg');
+    await p.click(`.diff-btn.d${lvPotions}`); await p.waitForTimeout(800); await noScroll('eliksirtimen');
     let sawHeat = false, sawDir = false;
     for (let g = 0; g < 160; g++){
       const st = await p.evaluate(() => ({ busy: POT.busy, step: POT.p.steps[POT.p.i], heat: POT.heat, done: !!document.querySelector('#potionBody .shop-veil') }));
