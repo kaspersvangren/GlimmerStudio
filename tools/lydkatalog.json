@@ -234,12 +234,6 @@
     "forslag": "Et klik og et lille \"vuup\" nedad."
    },
    {
-    "key": "gribe.bump",
-    "navn": "Bamsen lander",
-    "hvor": "En bamse falder ned i bunken",
-    "forslag": "Blødt bump, som en bamse på en dyne."
-   },
-   {
     "key": "gribe.glider",
     "navn": "Bamsen glider ud",
     "hvor": "I det øjeblik bamsen slipper kloen",

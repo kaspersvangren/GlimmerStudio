@@ -34,7 +34,7 @@
     S.meteors.push({ x: sx, y: sy, sx, sy, vx: (tx - sx) / d * sp, vy: (ty - sy) / d * sp, r: 13 + Math.random() * 6, split: S.wave >= 3 && Math.random() < 0.25, rot: Math.random() * 6 });
   }
   function shoot(p){
-    if (!S || S.over || S.bolts.length >= 3) return;
+    if (!S || S.over || S.ending || S.bolts.length >= 3) return;
     if (p.y > GROUND - 140) p.y = GROUND - 140;
     const d = Math.hypot(p.x - WAND.x, p.y - WAND.y) || 1;
     S.bolts.push({ x: WAND.x, y: WAND.y, tx: p.x, ty: p.y, vx: (p.x - WAND.x) / d * 1500, vy: (p.y - WAND.y) / d * 1500 });
@@ -48,7 +48,8 @@
     if (b.kind === 'skole' && --b.hp > 0){ for (let i = 0; i < 14; i++) S.parts.push({ x: m.x, y: GROUND - 60, vx: (Math.random() - .5) * 300, vy: -Math.random() * 300, t: 0, c: '#7FD8FF' }); return; }
     b.alive = false;
     for (let i = 0; i < 24; i++) S.parts.push({ x: b.x + (Math.random() - .5) * b.w, y: GROUND - 40, vx: (Math.random() - .5) * 320, vy: -Math.random() * 420, t: 0, c: Math.random() < .5 ? '#FF8A3D' : '#FFD36E' });
-    if (!S.builds.some(b => b.alive)) setTimeout(finish, 900);
+    /* falder skolen, er tryllestaven væk, og spillet er slut */
+    if (b.kind === 'skole' || !S.builds.some(b => b.alive)){ S.ending = true; setTimeout(finish, 1100); }
   }
   function shieldHit(m, b){ // skjoldet tager slaget på kuplen og blinker
     b.hp--; b.flash = 0.35; boom(m.x, m.y, 60, '#FF8A3D'); SND.play('skjold.skjold', () => { tone(300, 0.2, 'triangle', 0.05, 0, 0.6); tone(900, 0.12, 'sine', 0.03, 0.02, 0.8); });
@@ -59,7 +60,7 @@
     const dt = Math.min(0.05, (now - S.last) / 1000); S.last = now; S.t += dt;
     if (S.pause > 0) S.pause -= dt;
     else if (S.left > 0){ S.spawnT -= dt; if (S.spawnT <= 0){ spawnMeteor(); S.left--; S.spawnT = Math.max(0.45, 1.5 - S.wave * 0.12) * (0.6 + Math.random() * 0.8); } }
-    else if (!S.meteors.length && !S.booms.length && S.builds.some(b => b.alive)){
+    else if (!S.ending && !S.meteors.length && !S.booms.length && S.builds.some(b => b.alive)){
       const bonus = S.builds.filter(b => b.alive).length * 25; S.score += bonus; S.api.score(S.score);
       S.msg = `Bølge ${S.wave} klaret! +${bonus}`; S.msgT = 2; SND.play('skjold.boelge', () => sfx.magic()); nextWave(); S.pause = 2.2;
     }
@@ -154,7 +155,9 @@
   function finish(){
     if (!S || S.over) return; S.over = true;
     const n = S.score, w = S.wave, api = S.api;
-    setTimeout(() => api.end(n, `Du holdt meteorerne væk i ${w} ${w === 1 ? 'bølge' : 'bølger'}.`), 300);
+    const skole = S.builds.find(b => b.kind === 'skole');
+    const line = (skole && !skole.alive ? 'Skolen blev ramt, og tryllestaven faldt ned. ' : '') + `Du holdt meteorerne væk i ${w} ${w === 1 ? 'bølge' : 'bølger'}.`;
+    setTimeout(() => api.end(n, line), 300);
   }
   Arkade.GAMES.skjold = { start, stop, test: () => { if (S) S.builds.forEach(b => { b.alive = false; }), setTimeout(finish, 50); }, state: () => S && { meteors: S.meteors.map(m => ({ x: m.x, y: m.y, vx: m.vx, vy: m.vy })), score: S.score, wave: S.wave, alive: S.builds.filter(b => b.alive).length } };
 })();

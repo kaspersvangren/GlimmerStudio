@@ -10,7 +10,8 @@ const fonts='<link rel="preconnect" href="https://fonts.googleapis.com"><link re
       const names = m[1] ? [m[1]] : m[2].split(',').map(x => x.trim()).filter(x => /^[A-Za-z_$][\w$]*$/.test(x));
       for (const n of names){ if (seen[n] && seen[n] !== f) dup.push(n+' ('+seen[n]+'.js og '+f+'.js)'); else if (seen[n] === f && /^(?:async\s+)?function/.test(m[0])) dup.push(n+' (to gange i '+f+'.js)'); seen[n] = f; } } }
   if (dup.length){ console.error('STOP: samme navn bruges flere steder:\n  ' + dup.join('\n  ')); process.exit(1); } }
-const scripts=`<script>\n${draw}\n</script>\n<script>\n${app}\n</script>`;
+const vendor=fs.readFileSync('src/vendor/matter.min.js','utf8'); /* fysikmotoren til gribemaskinen (matter-js 0.19.0, MIT) */
+const scripts=`<script>\n${vendor}\n</script>\n<script>\n${draw}\n</script>\n<script>\n${app}\n</script>`;
 const sw=`<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}</script>`;
 fs.mkdirSync('dist',{recursive:true}); /* dist/index.html kopieres til roden ved udgivelse */
 fs.writeFileSync('dist/index.html',`<!doctype html>
