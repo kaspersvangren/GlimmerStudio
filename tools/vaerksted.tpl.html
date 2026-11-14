@@ -1,0 +1,374 @@
+<meta charset="utf-8">
+<title>Værkstedet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: en smal arbejdsbænk – faner øverst, kort i én kolonne, lyd-pladser som foldbare rækker */
+:root{
+  --bg:#F5F2FB; --surface:#FFFFFF; --sunk:#ECE6F7; --line:#DCD2EE; --fg:#22183A; --muted:#6A5E85;
+  --accent:#6B4BD8; --accent-ink:#FFFFFF; --gold:#C98A0E; --gold-bg:#FCEFCF; --ok:#1E8A5A; --ok-bg:#DDF3E7; --warn:#B4492E; --warn-bg:#FBE3DC; --info-bg:#E6E0FB;
+  --display:"Baloo 2", "Nunito", system-ui, sans-serif; --body:"Nunito", system-ui, -apple-system, sans-serif; --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#150F26; --surface:#211936; --sunk:#1A1330; --line:#352A55; --fg:#EFEAFB; --muted:#A99CC8;
+  --accent:#A98BFF; --accent-ink:#150F26; --gold:#F2C14E; --gold-bg:#3A2E12; --ok:#5ED39A; --ok-bg:#163526; --warn:#FF9C80; --warn-bg:#3D1F17; --info-bg:#2C2250; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#150F26; --surface:#211936; --sunk:#1A1330; --line:#352A55; --fg:#EFEAFB; --muted:#A99CC8;
+  --accent:#A98BFF; --accent-ink:#150F26; --gold:#F2C14E; --gold-bg:#3A2E12; --ok:#5ED39A; --ok-bg:#163526; --warn:#FF9C80; --warn-bg:#3D1F17; --info-bg:#2C2250; color-scheme:dark }
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{background:var(--bg); color:var(--fg); font:15px/1.5 var(--body); margin:0}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px); z-index:10; background:var(--bg)}
+.wrap{max-width:860px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:20px 60px}
+header.top{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.mark{width:44px; height:44px; flex:none}
+h1{font:800 30px/1 var(--display); margin:0; letter-spacing:.2px}
+.sub{color:var(--muted); font-size:14px; margin-top:2px}
+.ver{margin-left:auto; font:500 12px var(--mono); background:var(--gold-bg); color:var(--gold); padding:4px 10px; border-radius:999px}
+nav.tabs{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--bg); display:flex; gap:6px; margin:18px 0 18px; padding-block:8px; border-bottom:1px solid var(--line); overflow-x:auto}
+nav.tabs a{font:700 15px var(--body); color:var(--muted); text-decoration:none; padding:8px 14px; border-radius:10px; white-space:nowrap}
+nav.tabs a[aria-current="page"]{background:var(--accent); color:var(--accent-ink)}
+nav.tabs a:focus-visible, button:focus-visible, summary:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+h2{font:800 21px/1.2 var(--display); margin:0 0 10px; text-wrap:balance}
+h3{font:700 16px/1.3 var(--body); margin:0}
+section.view{display:grid; gap:22px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px}
+.muted{color:var(--muted)}
+.tools{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:12px}
+.tool{display:grid; gap:6px; text-decoration:none; color:var(--fg); background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; transition:border-color .15s, transform .15s}
+.tool:hover{border-color:var(--accent); transform:translateY(-1px)}
+.tool b{font:800 18px var(--display); color:var(--accent)}
+.tool span{color:var(--muted); font-size:14px}
+.stats{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px}
+.stat{background:var(--sunk); border-radius:12px; padding:12px 14px}
+.stat .n{font:800 28px/1 var(--display); font-variant-numeric:tabular-nums}
+.stat .l{color:var(--muted); font-size:13px}
+ul.nyt{margin:0; padding-left:20px; display:grid; gap:4px}
+ol.steps{margin:0; padding-left:20px; display:grid; gap:6px}
+code, .key{font:500 12px var(--mono); background:var(--sunk); padding:1px 6px; border-radius:6px; color:var(--muted); overflow-wrap:anywhere}
+/* lyd */
+.filters{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:700 13px var(--body); border:1px solid var(--line); background:var(--surface); color:var(--fg); border-radius:999px; padding:5px 12px; cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg); color:var(--bg); border-color:var(--fg)}
+.group{display:grid; gap:8px}
+.group > h2{margin-top:6px}
+details.slot{background:var(--surface); border:1px solid var(--line); border-radius:12px}
+details.slot[open]{border-color:var(--accent)}
+details.slot > summary{list-style:none; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:10px 12px; cursor:pointer}
+details.slot > summary::-webkit-details-marker{display:none}
+.play{width:36px; height:36px; border-radius:50%; border:none; background:var(--info-bg); color:var(--accent); display:grid; place-items:center; cursor:pointer; flex:none}
+.play svg{width:14px; height:14px}
+.play.on{background:var(--accent); color:var(--accent-ink)}
+.slot .t{min-width:0}
+.slot .t h3{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.slot .t .w{color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pill{font:700 12px var(--body); border-radius:999px; padding:3px 10px; white-space:nowrap; background:var(--sunk); color:var(--muted)}
+.pill.oensket{background:var(--gold-bg); color:var(--gold)}
+.pill.fil{background:var(--info-bg); color:var(--accent)}
+.pill.spil{background:var(--ok-bg); color:var(--ok)}
+.pill.ny{background:var(--gold-bg); color:var(--gold)}
+.pill.igang{background:var(--info-bg); color:var(--accent)}
+.pill.klar{background:var(--ok-bg); color:var(--ok)}
+.pill.fejl{background:var(--warn-bg); color:var(--warn)}
+.body{padding:0 14px 14px; display:grid; gap:12px}
+.forslag{background:var(--sunk); border-radius:10px; padding:10px 12px; font-size:14px}
+.forslag b{display:block; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:2px}
+label.lbl{font:700 13px var(--body); color:var(--muted); display:block; margin-bottom:4px}
+textarea, input[type=text], select{width:100%; font:15px/1.4 var(--body); color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:9px 11px}
+textarea{min-height:64px; resize:vertical}
+.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.btn{font:700 14px var(--body); border:1px solid var(--line); background:var(--surface); color:var(--fg); border-radius:10px; padding:8px 14px; cursor:pointer}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.danger{color:var(--warn)}
+.btn:disabled{opacity:.5; cursor:default}
+.saved{font-size:13px; color:var(--muted)}
+.filebox{display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--sunk); border-radius:10px; padding:8px 10px}
+.filebox audio{height:34px; max-width:100%}
+.note{font-size:14px; background:var(--gold-bg); color:var(--fg); border-radius:10px; padding:10px 12px}
+/* ønsker */
+form.add{display:grid; grid-template-columns:1fr auto auto; gap:8px}
+@media (max-width:560px){ form.add{grid-template-columns:1fr 1fr} form.add input{grid-column:1/-1} }
+.wishes{display:grid; gap:8px}
+.wish{display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+.wish.klar{opacity:.7}
+.wish .txt{min-width:0; overflow-wrap:anywhere}
+.wish .meta{color:var(--muted); font-size:12px; margin-top:2px}
+.wish .acts{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+.wish .acts .btn{padding:5px 10px; font-size:13px}
+.empty{color:var(--muted); background:var(--sunk); border-radius:12px; padding:14px; text-align:center}
+.status{font-size:13px; color:var(--muted); min-height:1.4em}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="24" width="40" height="18" rx="4" fill="var(--accent)"/><rect x="8" y="20" width="32" height="6" rx="3" fill="var(--gold)"/><path d="M24 4 L27 13 L36 13 L29 18 L32 27 L24 21 L16 27 L19 18 L12 13 L21 13 Z" fill="var(--gold)" transform="translate(0 -1) scale(1)"/></svg>
+    <div><h1>Værkstedet</h1><div class="sub">Magiske Mig · godkendelser, lyde og ønsker</div></div>
+    <span class="ver" id="ver"></span>
+  </header>
+  <nav class="tabs" aria-label="Faner">
+    <a href="#oversigt" data-v="oversigt">Oversigt</a>
+    <a href="#lyd" data-v="lyd">Lyd og musik</a>
+    <a href="#oensker" data-v="oensker">Ønsker og fejl</a>
+  </nav>
+
+  <section class="view" id="v-oversigt">
+    <div class="stats" id="stats"></div>
+    <div><h2>Værktøjer</h2>
+      <div class="tools">
+        <a class="tool" href="https://kaspersvangren.github.io/GlimmerStudio/" target="_blank" rel="noopener"><b>Spillet</b><span>Den rigtige version, som appen på telefonen bruger.</span></a>
+        <a class="tool" href="https://claude.ai/artifact/5ttk23aff8VN37S7Lzfyy3" target="_blank" rel="noopener"><b>Tegnebordet</b><span>Godkend grafik: figurer, kortet og bygninger. Skriv rettelser direkte på hvert billede.</span></a>
+        <a class="tool" href="https://claude.ai/artifact/VRrzWoc8WLdnC9opy66Pk5" target="_blank" rel="noopener"><b>Replikker</b><span>Tekster: dragens vitser og hvad dyrene og figurerne siger.</span></a>
+      </div>
+    </div>
+    <div class="card"><h2 id="nyt-h">Nyt</h2><ul class="nyt" id="nyt"></ul></div>
+    <div class="card"><h2>Sådan kommer dine egne lyde i spillet</h2>
+      <ol class="steps">
+        <li>Find pladsen under <a href="#lyd">Lyd og musik</a>, og tryk på den runde knap for at høre den lyd, der er der nu.</li>
+        <li>Skriv dit ønske, eller læg en lydfil op (mp3, m4a eller wav). En kort lyd på under et sekund virker bedst til effekter.</li>
+        <li>Sig til mig i chatten, så lægger jeg filerne ind i spillet og sætter pladsen til <span class="pill spil">I spillet</span>.</li>
+      </ol>
+      <p class="muted" style="margin:10px 0 0">Hvis en fil ikke vil lægges op her, kan du bare sende den til mig i chatten og skrive hvilken plads den skal på.</p>
+    </div>
+  </section>
+
+  <section class="view" id="v-lyd" hidden>
+    <div class="filters" id="filters" role="group" aria-label="Vis gruppe"></div>
+    <div class="status" id="lyd-status">Henter dine noter …</div>
+    <div id="groups" class="view"></div>
+  </section>
+
+  <section class="view" id="v-oensker" hidden>
+    <div class="card">
+      <h2>Nyt ønske eller fejl</h2>
+      <form class="add" id="addform">
+        <input type="text" id="w-text" placeholder="Fx: Kragen skal kunne flyve væk" aria-label="Beskrivelse" autocomplete="off">
+        <select id="w-type" aria-label="Type"><option value="oenske">Ønske</option><option value="fejl">Fejl</option><option value="ide">Idé</option></select>
+        <button class="btn primary" type="submit">Tilføj</button>
+      </form>
+      <div class="status" id="w-status"></div>
+    </div>
+    <div id="wishgroups" class="view"></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const CATALOG = /*CATALOG*/;
+const DEMO = /*DEMO*/;
+const VERSION = /*VERSION*/;
+const NYT = /*NYT*/;
+const INGAME = /*INGAME*/;
+
+/* ---- spillets egen lydmotor, kopieret fra koden, så knapperne spiller det samme som spillet ---- */
+const store = { get: (k, d) => d, set(){} }; const KEY_SOUND = 'x', KEY_MUSIC = 'y';
+const SND = { music: () => false, stopMusic(){}, musicPlaying: () => false };
+/*ENGINE*/
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const PLAY = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg>';
+const STOP = '<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2.5" y="2.5" width="9" height="9" rx="1.5" fill="currentColor"/></svg>';
+const docId = k => k.replace(/\./g, '_');
+const clone = o => JSON.parse(JSON.stringify(o || {}));
+const fmt = ts => { try { return new Date(ts).toLocaleDateString('da-DK', { day:'numeric', month:'short' }); } catch (e){ return ''; } };
+
+$('#ver').textContent = VERSION;
+$('#nyt-h').textContent = 'Nyt i ' + VERSION;
+$('#nyt').innerHTML = NYT.map(t => '<li>' + esc(t) + '</li>').join('');
+
+/* ---- faner ---- */
+function route(){
+  const v = (location.hash || '#oversigt').slice(1); const ok = ['oversigt','lyd','oensker'].includes(v) ? v : 'oversigt';
+  document.querySelectorAll('section.view[id^="v-"]').forEach(s => s.hidden = s.id !== 'v-' + ok);
+  document.querySelectorAll('nav.tabs a').forEach(a => a.dataset.v === ok ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+}
+addEventListener('hashchange', route); route();
+
+/* ---- data ---- */
+let db = null, assets = null;
+const LYD = {}, WISH = {};
+const slotIndex = {}; CATALOG.forEach(g => g.slots.forEach(s => slotIndex[s.key] = { ...s, gruppe: g.gruppe }));
+
+function slotState(k){
+  const d = LYD[docId(k)] || {};
+  if (INGAME.includes(k) || d.status === 'spil') return ['spil', 'I spillet'];
+  if (d.fileUrl) return ['fil', 'Fil lagt op'];
+  if (d.note && d.note.trim()) return ['oensket', 'Ønske skrevet'];
+  return ['', 'Indbygget'];
+}
+
+/* ---- afspilning ---- */
+let playing = null;
+function stopAll(){
+  if (!playing) return;
+  try { if (playing.audio){ playing.audio.pause(); } if (playing.music){ stopMusic(); } } catch (e){}
+  clearTimeout(playing.timer); if (playing.btn){ playing.btn.classList.remove('on'); playing.btn.innerHTML = PLAY; playing.btn.setAttribute('aria-label', playing.label); }
+  playing = null;
+}
+function playBuiltin(k, btn){
+  const was = playing && playing.btn === btn; stopAll(); if (was) return;
+  const s = slotIndex[k];
+  try { if (AC && AC.state === 'suspended') AC.resume(); } catch (e){}
+  if (s.musik){
+    MUSIC.on = true; MUSIC.track = null; playMusic(k);
+    btn.classList.add('on'); btn.innerHTML = STOP;
+    playing = { btn, music: true, label: btn.getAttribute('aria-label'), timer: setTimeout(stopAll, 12000) };
+    btn.setAttribute('aria-label', 'Stop');
+    return;
+  }
+  if (k.startsWith('sfx.')){ const f = sfx[k.slice(4)]; if (f) f(); }
+  else if (DEMO[k]){ try { (new Function('tone', 'sfx', 'return (' + DEMO[k] + ')'))(tone, sfx)(); } catch (e){ console.warn(k, e); } }
+}
+function playFile(url, btn){
+  const was = playing && playing.btn === btn; stopAll(); if (was) return;
+  const a = new Audio(url); a.play().catch(() => {});
+  btn.classList.add('on'); btn.innerHTML = STOP;
+  playing = { btn, audio: a, label: btn.getAttribute('aria-label') };
+  a.onended = stopAll;
+}
+
+/* ---- lyd-fanen ---- */
+let groupFilter = 'alle';
+function renderFilters(){
+  const opts = [['alle', 'Alle']].concat(CATALOG.map(g => [g.id, g.gruppe]));
+  $('#filters').innerHTML = opts.map(([id, n]) => `<button class="chip" type="button" data-g="${id}" aria-pressed="${groupFilter === id}">${esc(n)}</button>`).join('');
+}
+$('#filters').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; groupFilter = b.dataset.g; renderFilters(); document.querySelectorAll('#groups .group').forEach(g => g.hidden = groupFilter !== 'alle' && g.dataset.g !== groupFilter); });
+
+function slotHtml(s){
+  const [cls, txt] = slotState(s.key), d = LYD[docId(s.key)] || {};
+  return `<details class="slot" data-k="${esc(s.key)}">
+    <summary><button class="play" type="button" data-act="builtin" aria-label="Hør den lyd der er nu: ${esc(s.navn)}">${PLAY}</button>
+      <div class="t"><h3>${esc(s.navn)}</h3><div class="w">${esc(s.hvor)}</div></div>
+      <span class="pill ${cls}" data-pill>${txt}</span></summary>
+    <div class="body">
+      <div class="forslag"><b>Forslag</b>${esc(s.forslag)}</div>
+      <div><label class="lbl" for="n-${docId(s.key)}">Dit ønske</label>
+        <textarea id="n-${docId(s.key)}" data-act="note" placeholder="Hvordan skal den lyde? Fx et link til en lyd, du kan lide.">${esc(d.note || '')}</textarea>
+        <div class="saved" data-saved></div></div>
+      <div data-filearea>${fileArea(s.key)}</div>
+      <div class="muted" style="font-size:12px">Plads: <span class="key">${esc(s.key)}</span></div>
+    </div></details>`;
+}
+function fileArea(k){
+  const d = LYD[docId(k)] || {};
+  if (d.fileUrl) return `<div class="filebox"><button class="play" type="button" data-act="file" aria-label="Hør din fil">${PLAY}</button><span>${esc(d.fileName || 'Din lydfil')}</span><span style="flex:1"></span><button class="btn danger" type="button" data-act="rmfile">Fjern filen</button></div>`;
+  if (!assets) return `<div class="note">Send lydfilen til mig i chatten og skriv pladsen <span class="key">${esc(k)}</span>, så sætter jeg den ind.</div>`;
+  const id = 'f-' + docId(k);
+  return `<label class="lbl" for="${id}">Læg din egen lydfil op</label><input type="file" id="${id}" data-act="upload" accept="audio/*,.mp3,.m4a,.wav,.ogg,video/mp4"><div class="saved" data-up></div>`;
+}
+function renderGroups(){
+  const open = new Set([...document.querySelectorAll('details.slot[open]')].map(d => d.dataset.k));
+  $('#groups').innerHTML = CATALOG.map(g => `<div class="group" data-g="${g.id}" ${groupFilter !== 'alle' && groupFilter !== g.id ? 'hidden' : ''}><h2>${esc(g.gruppe)}</h2>${g.slots.map(slotHtml).join('')}</div>`).join('');
+  open.forEach(k => { const d = document.querySelector(`details.slot[data-k="${CSS.escape(k)}"]`); if (d) d.open = true; });
+}
+function refreshSlot(k){
+  const el = document.querySelector(`details.slot[data-k="${CSS.escape(k)}"]`); if (!el) return;
+  const [cls, txt] = slotState(k), p = el.querySelector('[data-pill]'); p.className = 'pill ' + cls; p.textContent = txt;
+  const ta = el.querySelector('textarea'); const d = LYD[docId(k)] || {};
+  if (ta && document.activeElement !== ta && ta.value !== (d.note || '')) ta.value = d.note || '';
+  const fa = el.querySelector('[data-filearea]'); if (fa && !fa.contains(document.activeElement)) fa.innerHTML = fileArea(k);
+}
+
+$('#groups').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const el = b.closest('details.slot'), k = el.dataset.k;
+  if (b.dataset.act === 'builtin'){ e.preventDefault(); e.stopPropagation(); playBuiltin(k, b); }
+  if (b.dataset.act === 'file'){ e.preventDefault(); const d = LYD[docId(k)]; if (d && d.fileUrl) playFile(d.fileUrl, b); }
+  if (b.dataset.act === 'rmfile'){
+    if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Tryk igen for at fjerne'; return; }
+    const d = clone(LYD[docId(k)]), id = d.fileId; delete d.fileId; delete d.fileUrl; delete d.fileName; if (d.status === 'fil') delete d.status;
+    save(k, d).then(() => { if (id && assets) assets.delete(id).catch(() => {}); });
+  }
+});
+const timers = {};
+$('#groups').addEventListener('input', e => {
+  if (e.target.dataset.act !== 'note') return;
+  const el = e.target.closest('details.slot'), k = el.dataset.k, out = el.querySelector('[data-saved]');
+  out.textContent = 'Gemmer …'; clearTimeout(timers[k]);
+  timers[k] = setTimeout(() => { const d = clone(LYD[docId(k)]); d.note = e.target.value; save(k, d).then(ok => out.textContent = ok ? 'Gemt kl. ' + new Date().toLocaleTimeString('da-DK', { hour:'2-digit', minute:'2-digit' }) : 'Kunne ikke gemme. Prøv igen om lidt.'); }, 700);
+});
+$('#groups').addEventListener('change', async e => {
+  if (e.target.dataset.act !== 'upload') return;
+  const el = e.target.closest('details.slot'), k = el.dataset.k, out = el.querySelector('[data-up]'), f = e.target.files && e.target.files[0];
+  if (!f) return;
+  if (f.size > 15 * 1024 * 1024){ out.textContent = 'Filen er over 15 MB. Send den til mig i chatten i stedet.'; return; }
+  out.textContent = 'Lægger op …';
+  try {
+    const r = await assets.upload(f);
+    const d = clone(LYD[docId(k)]); Object.assign(d, { fileId: r.id, fileUrl: r.url, fileName: f.name, status: 'fil' });
+    await save(k, d);
+  } catch (err){
+    out.textContent = 'Filen kunne ikke lægges op her (' + (err && (err.code || err.message) || 'ukendt fejl') + '). Send den til mig i chatten, og skriv pladsen ' + k + '.';
+  }
+});
+async function save(k, d){
+  d.key = k; d.ts = Date.now(); LYD[docId(k)] = d; refreshSlot(k); renderStats();
+  if (!db) return false;
+  try { await db.collection('lyd').doc(docId(k)).set(d); return true; } catch (e){ console.warn(e); return false; }
+}
+
+/* ---- ønsker ---- */
+const TYPE = { oenske: ['Ønske', ''], fejl: ['Fejl', 'fejl'], ide: ['Idé', ''] };
+const STATUS = [['ny', 'Nye'], ['igang', 'I gang'], ['klar', 'Klar']];
+function renderWishes(){
+  const list = Object.entries(WISH).map(([id, w]) => ({ id, ...w })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  $('#wishgroups').innerHTML = STATUS.map(([st, n]) => {
+    const items = list.filter(w => (w.status || 'ny') === st);
+    if (!items.length && st !== 'ny') return '';
+    return `<div class="group"><h2>${n} <span class="muted" style="font-size:16px">${items.length}</span></h2><div class="wishes">${items.length ? items.map(w => `
+      <div class="wish ${st}" data-id="${esc(w.id)}"><span class="pill ${TYPE[w.type] ? TYPE[w.type][1] : ''}">${TYPE[w.type] ? TYPE[w.type][0] : 'Ønske'}</span>
+        <div class="txt">${esc(w.text)}<div class="meta">${fmt(w.ts)}${w.af === 'claude' ? ' · skrevet af Claude fra jeres snak' : ''}${w.svar ? ' · ' + esc(w.svar) : ''}</div></div>
+        <div class="acts">${st !== 'klar' ? '<button class="btn" type="button" data-w="klar">Klar</button>' : '<button class="btn" type="button" data-w="ny">Åbn igen</button>'}<button class="btn danger" type="button" data-w="slet">Slet</button></div></div>`).join('') : '<div class="empty">Ingen åbne ønsker. Skriv det første ovenfor.</div>'}</div></div>`;
+  }).join('');
+}
+$('#wishgroups').addEventListener('click', async e => {
+  const b = e.target.closest('[data-w]'); if (!b || !db) return;
+  const id = b.closest('.wish').dataset.id, act = b.dataset.w;
+  if (act === 'slet'){
+    if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Sikker?'; return; }
+    delete WISH[id]; renderWishes(); renderStats(); try { await db.collection('oensker').doc(id).delete(); } catch (err){ $('#w-status').textContent = 'Kunne ikke slette. Prøv igen.'; }
+    return;
+  }
+  const w = clone(WISH[id]); w.status = act; w.ts2 = Date.now(); WISH[id] = w; renderWishes(); renderStats();
+  try { await db.collection('oensker').doc(id).set(w); } catch (err){ $('#w-status').textContent = 'Kunne ikke gemme. Prøv igen.'; }
+});
+$('#addform').addEventListener('submit', async e => {
+  e.preventDefault();
+  const t = $('#w-text').value.trim(); if (!t) return;
+  if (!db){ $('#w-status').textContent = 'Kan ikke gemme lige nu. Åbn siden igen om lidt.'; return; }
+  const id = 'w' + Date.now().toString(36), w = { text: t, type: $('#w-type').value, status: 'ny', ts: Date.now() };
+  WISH[id] = w; $('#w-text').value = ''; renderWishes(); renderStats();
+  try { await db.collection('oensker').doc(id).set(w); $('#w-status').textContent = 'Tilføjet.'; } catch (err){ $('#w-status').textContent = 'Kunne ikke gemme. Prøv igen.'; }
+});
+
+/* ---- oversigt ---- */
+function renderStats(){
+  const all = Object.values(slotIndex), notes = all.filter(s => slotState(s.key)[0] === 'oensket').length, files = all.filter(s => slotState(s.key)[0] === 'fil').length, inGame = all.filter(s => slotState(s.key)[0] === 'spil').length;
+  const open = Object.values(WISH).filter(w => (w.status || 'ny') !== 'klar').length;
+  $('#stats').innerHTML = [[open, 'åbne ønsker og fejl', '#oensker'], [notes, 'lyd-ønsker skrevet', '#lyd'], [files, 'lydfiler lagt op', '#lyd'], [inGame + ' / ' + all.length, 'egne lyde i spillet', '#lyd']]
+    .map(([n, l, h]) => `<a class="stat" href="${h}" style="text-decoration:none;color:inherit"><div class="n">${n}</div><div class="l">${l}</div></a>`).join('');
+}
+
+renderFilters(); renderGroups(); renderStats(); renderWishes();
+
+(async () => {
+  const to = setTimeout(() => { if (!db) $('#lyd-status').textContent = 'Kunne ikke hente dine noter. Lydene kan stadig afspilles.'; }, 10000);
+  try { db = await window.claude.use('db'); } catch (e){ db = null; }
+  try { assets = await window.claude.use('assets'); } catch (e){ assets = null; }
+  if (assets) renderGroups();
+  if (!db){ clearTimeout(to); $('#lyd-status').textContent = 'Dine noter kan ikke gemmes i denne visning. Åbn siden i claude.ai for at skrive.'; return; }
+  db.collection('lyd').onSnapshot(snap => {
+    clearTimeout(to); $('#lyd-status').textContent = '';
+    snap.docs.forEach(doc => { const d = clone(doc.data()), cur = LYD[doc.id]; if (!cur || (d.ts || 0) >= (cur.ts || 0)) { LYD[doc.id] = d; refreshSlot(d.key || doc.id); } });
+    renderStats();
+  }, () => { $('#lyd-status').textContent = 'Kunne ikke hente dine noter.'; });
+  db.collection('oensker').onSnapshot(snap => {
+    const seen = new Set();
+    snap.docs.forEach(doc => { seen.add(doc.id); WISH[doc.id] = clone(doc.data()); });
+    Object.keys(WISH).forEach(id => { if (!seen.has(id) && WISH[id].ts < Date.now() - 5000) delete WISH[id]; });
+    renderWishes(); renderStats();
+  }, () => { $('#w-status').textContent = 'Kunne ikke hente ønskerne.'; });
+})();
+</script>

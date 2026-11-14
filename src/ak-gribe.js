@@ -46,12 +46,16 @@
     o += `<text x="660" y="990" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#B9AEDB">Hold pilene nede</text>`;
     return o + `</svg>`;
   }
-  function clawSvg(x, y, open){
-    const a = 6 + open * 26;
-    return `<path d="M ${x} ${TOP} V ${y - 18}" stroke="#C8C4D8" stroke-width="4"/>`
+  /* kloen set forfra: tre arme med en krog i spidsen. open = 1 er helt åben, 0 er lukket */
+  function clawSvg(x, y, open, sway){
+    const a = 3 + open * 30;
+    const arm = d => `<path d="M ${d * 12} -2 C ${d * 30} 18 ${d * 32} 44 ${d * 14} 64 L ${d * 4} 68" stroke="#C8C4D8" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M ${d * 12} -2 C ${d * 30} 18 ${d * 32} 44 ${d * 14} 64 L ${d * 4} 68" stroke="#6A6480" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    return `<path d="M ${x} ${TOP} L ${x + sway * 0.4} ${y - 18}" stroke="#C8C4D8" stroke-width="4"/>`
       + `<rect x="${x - 26}" y="${TOP - 32}" width="52" height="34" rx="6" fill="#6A6480" stroke="${E}" stroke-width="3"/>`
-      + `<g transform="translate(${x} ${y})"><rect x="-22" y="-24" width="44" height="28" rx="6" fill="#8A8AA8" stroke="${E}" stroke-width="3"/>`
-      + [-1, 0, 1].map(d => `<g transform="rotate(${d * a})"><path d="M ${d * 14} 0 C ${d * 26} 24 ${d * 22} 50 ${d * 8} 64" stroke="#C8C4D8" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M ${d * 14} 0 C ${d * 26} 24 ${d * 22} 50 ${d * 8} 64" stroke="#6A6480" stroke-width="2" fill="none" stroke-linecap="round"/></g>`).join('') + `</g>`;
+      + `<g transform="translate(${(x + sway * 0.4).toFixed(1)} ${y.toFixed(1)}) rotate(${(-sway * 0.25).toFixed(1)})">`
+      + arm(0)
+      + [-1, 1].map(d => `<g transform="rotate(${(-d * a).toFixed(1)})">${arm(d)}</g>`).join('')
+      + `<rect x="-22" y="-24" width="44" height="28" rx="6" fill="#8A8AA8" stroke="${E}" stroke-width="3"/><circle cx="0" cy="-10" r="4" fill="#E0457A"/></g>`;
   }
 
   function start(stage, api){
@@ -60,10 +64,12 @@
       api.end(0, 'Et forsøg koster 1 stjerne. Tjen stjerner i skolen, og kom tilbage.', { title: 'Du mangler en stjerne', big: '', again: 'Prøv igen (1 ★)', sound: false });
       sfx.nope(); return;
     }
-    addStars(-1);
+    addStars(-1); playMusic('gribe');
     stage.innerHTML = sceneSvg();
     const svg = stage.querySelector('svg');
-    S = { api, svg, x: 760, y: 200, open: 1, phase: 'flyt', dir: 0, vx: 0, pile: pileLayout(), held: null, t0: performance.now(), last: performance.now(), raf: 0, over: false };
+    /* grebet er forskelligt fra gang til gang, ligesom på en rigtig maskine */
+    S = { api, svg, x: XMIN, y: 200, open: 1, phase: 'flyt', dir: 0, vx: 0, ax: 0, pile: pileLayout(), held: null, grip: 0.35 + Math.random() * 0.65,
+          th: 0, w: 0, t0: performance.now(), last: performance.now(), raf: 0, over: false };
     drawPile();
     const hold = (b, on) => { if (!S || S.phase !== 'flyt') return; if (b === 'grib'){ if (on) grab(); return; } S.dir = on ? (b === 'v' ? -1 : 1) : 0; };
     svg.querySelectorAll('.gr-btn').forEach(g => {
@@ -85,72 +91,106 @@
   }
   function grab(){
     if (!S || S.phase !== 'flyt') return;
-    S.phase = 'ned'; S.dir = 0; sfx.whoosh(); S.api.info('');
+    S.phase = 'ned'; S.dir = 0; S.vx = 0; SND.play('gribe.ned', () => sfx.whoosh()); S.api.info('');
     const under = S.pile.filter(p => !p.gone && Math.abs(p.x - S.x) < 60);
-    S.target = under.length ? Math.min(...under.map(plushTop)) - 6 : FLOOR - 70;
+    S.target = under.length ? Math.min(...under.map(plushTop)) - 4 : FLOOR - 72;
+  }
+  /* kloen bevæger sig med lidt træghed; en bamse i kloen svinger som et pendul */
+  function moveClaw(want, dt){
+    const v0 = S.vx; S.vx += (want - S.vx) * Math.min(1, dt * 7);
+    S.ax = (S.vx - v0) / Math.max(dt, 1e-3);
+    S.x = Math.max(XMIN, Math.min(XMAX, S.x + S.vx * dt));
+    if ((S.x <= XMIN && S.vx < 0) || (S.x >= XMAX && S.vx > 0)){ S.ax += -S.vx * 8; S.vx = 0; }
+  }
+  function swing(dt){
+    const L = 90, g = 1800;
+    const acc = -(g / L) * Math.sin(S.th) - (S.ax / L) * Math.cos(S.th) - 2.2 * S.w;
+    S.w += acc * dt; S.th += S.w * dt;
+    S.th = Math.max(-1.1, Math.min(1.1, S.th));
   }
   function tick(now){
     if (!S || S.over) return;
-    const dt = Math.min(0.05, (now - S.last) / 1000); S.last = now;
+    const dt = Math.min(0.033, (now - S.last) / 1000); S.last = now;
     if (S.phase === 'flyt'){
       const left = Math.max(0, LIMIT - (now - S.t0) / 1000);
       const sec = Math.ceil(left); if (sec !== S.sec){ S.sec = sec; S.api.info(`Tid ${sec}`); }
       if (left <= 0) grab();
-      const want = S.dir * 380; S.vx += (want - S.vx) * Math.min(1, dt * 8);
-      S.x = Math.max(XMIN, Math.min(XMAX, S.x + S.vx * dt));
-      if (S.dir) S.hum = (S.hum || 0) + dt; if (S.dir && S.hum > .16){ S.hum = 0; tone(140, 0.05, 'sawtooth', 0.012, 0, 1); }
+      moveClaw(S.dir * 380, dt);
+      if (S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; SND.play('gribe.motor', () => tone(140, 0.05, 'sawtooth', 0.012, 0, 1)); } }
     } else if (S.phase === 'ned'){
-      S.y += 320 * dt;
-      if (S.y >= S.target){ S.y = S.target; S.phase = 'luk'; S.pt = now; tone(300, 0.12, 'square', 0.03, 0, 0.7); }
+      S.y += 300 * dt; S.open = Math.min(1, S.open + dt * 3);
+      if (S.y >= S.target){ S.y = S.target; S.phase = 'luk'; S.pt = now; SND.play('gribe.luk', () => tone(300, 0.12, 'square', 0.03, 0, 0.7)); }
     } else if (S.phase === 'luk'){
-      S.open = Math.max(0, 1 - (now - S.pt) / 350);
+      S.open = Math.max(0, 1 - (now - S.pt) / 420);
       if (S.open <= 0){
-        /* griber kloen noget? jo tættere på midten af bamsen, jo bedre */
-        const cand = S.pile.filter(p => !p.gone && Math.abs(p.x - S.x) < 52 && plushTop(p) <= S.target + 50).sort((a, b) => Math.abs(a.x - S.x) - Math.abs(b.x - S.x))[0];
-        if (cand){ const d = Math.abs(cand.x - S.x), chance = d < 18 ? 0.85 : d < 34 ? 0.6 : 0.3;
-          if (Math.random() < chance){ S.held = cand; S.slip = Math.random() < 0.06 + d / 260; S.slipAt = 0.25 + Math.random() * 0.6; } }
+        /* griber kloen noget? det afhænger af, hvor tæt den er på midten af bamsen, og hvor stærkt grebet er i dag */
+        const cand = S.pile.filter(p => !p.gone && Math.abs(p.x - S.x) < 54 && plushTop(p) <= S.target + 50).sort((a, b) => Math.abs(a.x - S.x) - Math.abs(b.x - S.x))[0];
+        if (cand){
+          const d = Math.abs(cand.x - S.x), chance = Math.max(0, Math.min(1, 1.1 - d / 42)) * (0.45 + 0.55 * S.grip);
+          if (Math.random() < chance){ S.held = cand; S.th = (cand.x - S.x) / 90; S.w = 0; SND.play('gribe.greb', () => tone(420, 0.08, 'triangle', 0.04)); }
+          else { /* kloen skubber bamsen lidt til siden */ cand.x += Math.sign(cand.x - S.x || 1) * (8 + Math.random() * 10); cand.rot += (Math.random() - .5) * 30; }
+        }
         S.phase = 'op'; drawPile();
       }
     } else if (S.phase === 'op'){
-      S.y -= 260 * dt;
-      if (S.y <= 200){ S.y = 200; S.phase = S.held ? 'hjem' : 'tom'; S.fromX = S.x; }
+      S.y -= 240 * dt; S.ax = 0;
+      if (S.y <= 200){ S.y = 200; S.phase = S.held ? 'hjem' : 'tom'; S.ax = 1400; /* et lille ryk, når kloen stopper i toppen */ }
     } else if (S.phase === 'hjem'){
-      S.x = Math.max(CHUTE, S.x - 300 * dt);
-      const prog_ = (S.fromX - S.x) / Math.max(1, S.fromX - CHUTE);
-      if (S.held && S.slip && prog_ >= S.slipAt){ S.slip = false; drop(false); }
-      if (S.x <= CHUTE){ S.phase = 'slip'; S.pt = now; }
+      moveClaw(-320, dt);
+      if (S.x <= XMIN + 1){ S.x = XMIN; S.phase = 'slip'; S.pt = now; }
     } else if (S.phase === 'tom'){
-      S.phase = 'slut'; setTimeout(() => S && S.api.end(0, 'Kloen greb ved siden af. Prøv at stille den lige over en bamse.', { title: 'Øv!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 700); sfx.nope();
+      S.open = Math.min(1, S.open + dt * 2.5); moveClaw(-320, dt);
+      if (S.open >= 1 && S.x <= XMIN + 1){ S.phase = 'slut'; SND.play('gribe.oev', () => sfx.nope()); setTimeout(() => S && S.api.end(0, 'Kloen greb ved siden af. Prøv at stille den lige over en bamse.', { title: 'Øv!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 500); }
     } else if (S.phase === 'slip'){
-      S.open = Math.min(1, (now - S.pt) / 300);
-      if (S.open >= 1 && S.held){ drop(true); }
+      S.open = Math.min(1, (now - S.pt) / 260);
+      if (S.open >= 0.6 && S.held) drop(true);
     }
-    /* en bamse, der falder */
-    if (S.fall){ const f = S.fall; f.vy += 1400 * dt; f.p.y += f.vy * dt; f.p.rot += f.spin * dt;
-      if (f.p.y >= f.floor){ f.p.y = f.floor; f.p.falling = false; const won = f.won; S.fall = null; drawPile(); if (won) win(f.p); else { tone(200, 0.1, 'sine', 0.05); S.phase = 'slut'; setTimeout(() => S && S.api.end(0, 'Bamsen gled ud af kloen. Så tæt på!', { title: 'Næsten!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 800); } } }
+    /* en bamse i kloen svinger og kan glide ud, især hvis grebet er svagt eller den svinger meget */
+    if (S.held){
+      swing(dt);
+      if (S.phase === 'op' || S.phase === 'hjem'){
+        const hazard = (1 - S.grip) * 0.32 + Math.abs(S.th) * 0.9 + Math.abs(S.w) * 0.05;
+        if (Math.random() < hazard * dt) drop(false);
+      }
+    }
+    /* en bamse, der falder, hopper en gang, når den lander */
+    if (S.fall){ const f = S.fall; f.vy += 1800 * dt; f.p.x += f.vx * dt; f.p.y += f.vy * dt; f.p.rot += f.spin * dt;
+      if (f.p.y >= f.floor){
+        if (!f.bounced && !f.won){ f.bounced = true; f.p.y = f.floor; f.vy = -f.vy * 0.32; f.vx *= 0.5; f.spin *= -0.5; SND.play('gribe.bump', () => tone(180, 0.08, 'sine', 0.05)); }
+        else { f.p.y = f.floor; f.p.falling = false; const won = f.won; S.fall = null; drawPile();
+          if (won) win(f.p); else { S.phase = 'slut'; setTimeout(() => S && S.api.end(0, 'Bamsen gled ud af kloen. Så tæt på!', { title: 'Næsten!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 800); } } } }
     draw();
     if (S) S.raf = requestAnimationFrame(tick);
   }
   function drop(won){
-    const p = S.held; S.held = null; p.x = S.x; p.y = S.y + 58;   /* bamsen falder fra kloen, ikke fra sin gamle plads */
-    if (won){ p.gone = true; S.fall = { p, vy: 0, spin: 60, floor: 780, won: true }; S.phase = 'falder'; tone(500, 0.1, 'triangle', 0.04, 0, 0.6); }
-    else { p.falling = true; S.fall = { p, vy: 0, spin: 120, floor: 690 - Math.random() * 40, won: false }; S.phase = 'falder'; sfx.nope(); }
+    const p = S.held; S.held = null;
+    const hx = S.x + Math.sin(S.th) * 58, hy = S.y + Math.cos(S.th) * 58;
+    p.x = hx; p.y = hy; p.falling = true;
+    const vx = S.vx + S.w * 58 * Math.cos(S.th) * 0.6;
+    if (won){ p.gone = true; S.fall = { p, vx: vx * 0.3, vy: 0, spin: 60, floor: 790, won: true }; S.phase = 'falder'; SND.play('gribe.slip', () => tone(500, 0.1, 'triangle', 0.04, 0, 0.6)); }
+    else {
+      /* lander den over skakten, er det en gevinst alligevel */
+      const overChute = hx < 404;
+      if (overChute){ p.gone = true; S.fall = { p, vx: 0, vy: 0, spin: 80, floor: 790, won: true }; S.phase = 'falder'; return; }
+      S.fall = { p, vx, vy: 0, spin: 140 * Math.sign(vx || 1), floor: 690 - Math.random() * 40, won: false }; S.phase = 'falder'; SND.play('gribe.glider', () => sfx.nope());
+    }
   }
   function win(p){
     const list = Arkade.myPlush(); list.push(p.k); store.set(Arkade.KEY_PLUSH, list);
     const b = Arkade.BAMSER.find(x => x.k === p.k), won = S.svg.querySelector('.gr-won');
     won.innerHTML = `<g transform="translate(310 900)">${Arkade.plush(p.k, 1.4)}</g>`;
     won.animate([{ transform: 'translateY(40px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 400, easing: 'ease-out' });
-    sfx.fanfare(); S.phase = 'slut'; S.api.score(1);
+    SND.play('gribe.vandt', () => sfx.fanfare()); S.phase = 'slut'; S.api.score(1);
     const art = `<svg viewBox="-60 -70 120 120" xmlns="http://www.w3.org/2000/svg">${Arkade.plush(p.k, 1.3)}</svg>`;
     setTimeout(() => S && S.api.end(1, `Den sidder nu på din seng på værelset.`, { title: `Du vandt en ${b.name}!`, big: '', art, again: 'Prøv igen (1 ★)', win: true, sound: false }), 1100);
   }
   function draw(){
-    const c = S.svg.querySelector('.gr-claw');
-    let o = clawSvg(S.x, S.y, S.open);
-    if (S.held) o += `<g transform="translate(${S.x.toFixed(1)} ${(S.y + 58).toFixed(1)}) rotate(${(S.held.rot * .3).toFixed(0)})">${Arkade.plush(S.held.k, S.held.s)}</g>`;
-    if (S.fall && S.fall.p.y < 760) o += `<g transform="translate(${S.fall.p.x.toFixed(1)} ${S.fall.p.y.toFixed(1)}) rotate(${S.fall.p.rot.toFixed(0)})">${Arkade.plush(S.fall.p.k, S.fall.p.s)}</g>`;
+    const c = S.svg.querySelector('.gr-claw'), sway = S.held ? Math.sin(S.th) * 30 : 0;
+    let o = clawSvg(S.x, S.y, S.open, sway);
+    if (S.held){ const hx = S.x + Math.sin(S.th) * 58, hy = S.y + Math.cos(S.th) * 58;
+      o += `<g transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${(S.held.rot * .3 - S.th * 57).toFixed(0)})">${Arkade.plush(S.held.k, S.held.s)}</g>`; }
+    if (S.fall && S.fall.p.y < 770) o += `<g transform="translate(${S.fall.p.x.toFixed(1)} ${S.fall.p.y.toFixed(1)}) rotate(${S.fall.p.rot.toFixed(0)})">${Arkade.plush(S.fall.p.k, S.fall.p.s)}</g>`;
     c.innerHTML = o;
   }
-  Arkade.GAMES.gribe = { start, stop, test: { aimAt: () => { if (!S) return null; const p = S.pile.filter(q => !q.gone).sort((a, b) => plushTop(a) - plushTop(b))[0]; return p && p.x; }, state: () => S && { x: S.x, phase: S.phase } } };
+  Arkade.GAMES.gribe = { start, stop, test: { aimAt: () => { if (!S) return null; const p = S.pile.filter(q => !q.gone).sort((a, b) => plushTop(a) - plushTop(b))[0]; return p && p.x; }, state: () => S && { x: S.x, phase: S.phase, open: S.open, grip: S.grip } } };
 })();

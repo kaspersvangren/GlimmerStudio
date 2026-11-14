@@ -18,7 +18,7 @@ function mNote(freq, t, dur, type, vol){
 }
 function musicTick(){
   if (!AC || !MUSIC.track) return;
-  const tr = TRACKS[MUSIC.track], eighth = 60 / tr.bpm / 2;
+  const tr = TRACKS[MUSIC.track] || TRACKS[MUSIC_SYNTH[MUSIC.track]] || TRACKS.byen, eighth = 60 / tr.bpm / 2;
   while (MUSIC.nextT < AC.currentTime + 0.15){
     const st = MUSIC.step, bar = Math.floor(st / 8) % 4, pos = st % 8, ch = tr.chords[bar], t = MUSIC.nextT;
     if (pos % 4 === 0) mNote(mtof(ch[0] - 24), t, eighth * 3.2, 'triangle', 0.09);
@@ -27,15 +27,18 @@ function musicTick(){
     MUSIC.step++; MUSIC.nextT += eighth;
   }
 }
+const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show' };
 function playMusic(name){
-  if (MUSIC.track === name && MUSIC.timer) return;
+  if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
   stopMusic(); MUSIC.track = name;
-  if (!MUSIC.on || !audioCtx()) return;
+  if (!MUSIC.on) return;
+  if (SND.music(name)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
+  if (!audioCtx()) return;
   MUSIC.out = AC.createGain(); MUSIC.out.gain.value = 0.55; MUSIC.out.connect(AC.destination);
   MUSIC.step = 0; MUSIC.nextT = AC.currentTime + 0.1;
   MUSIC.timer = setInterval(musicTick, 30);
 }
-function stopMusic(){ clearInterval(MUSIC.timer); MUSIC.timer = null; if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch(e){} MUSIC.out = null; } }
+function stopMusic(){ SND.stopMusic(); clearInterval(MUSIC.timer); MUSIC.timer = null; if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch(e){} MUSIC.out = null; } }
 function setMusic(on){ MUSIC.on = on; store.set(KEY_MUSIC, on); const t = MUSIC.track; if (!on) stopMusic(); else if (t){ MUSIC.track = null; playMusic(t); } updateAudioBtns(); }
 function setSound(on){ soundOn = on; store.set(KEY_SOUND, on); updateAudioBtns(); }
 const NOTE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>';

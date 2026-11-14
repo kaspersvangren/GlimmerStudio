@@ -1904,7 +1904,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.19.0';
+const VERSION = 'v0.19.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -5545,7 +5545,7 @@ const Arkade = (() => {
   /* ---------- hallen som skærm ---------- */
   function show(){
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
-    showScreen('#arkade'); playMusic('byen'); busy = false;
+    showScreen('#arkade'); playMusic('arkade'); busy = false;
     const box = $('#arkadeBody'); box.innerHTML = '';
     box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
@@ -5558,7 +5558,7 @@ const Arkade = (() => {
     const id = g.dataset.cab, c = CABS.find(x => x.id === id);
     replay(g, 'jiggle');
     if (!GAMES[id]){ sfx.nope(); toast(`${c.name} kommer snart!`); return; }
-    sfx.coin(); busy = true;
+    SND.play('arkade.start', () => sfx.coin()); busy = true;
     setTimeout(() => openGame(id), 260);
   }
 
@@ -5583,7 +5583,7 @@ const Arkade = (() => {
   /* opts (gribemaskinen): { title, big, art, again } i stedet for point og rekord */
   function endCard(id, name, n, line, opts){
     const o = opts || {}, rec = !opts && hiSet(id, n), hi = hiOf(id);
-    if (o.sound !== false){ if (rec && n > 0 || o.win) sfx.fanfare(); else sfx.magic(); }
+    if (o.sound !== false){ if (rec && n > 0 || o.win) SND.play('arkade.rekord', () => sfx.fanfare()); else SND.play('arkade.slut', () => sfx.magic()); }
     const card = el('div', { class:'ak-end' }, [ el('div', { class:'ak-card' }, [
       el('h2', {}, o.title || (rec && n > 0 ? 'Ny rekord!' : 'Godt spillet!')),
       o.art ? el('div', { class:'ak-art', html: o.art }) : null,
@@ -5722,7 +5722,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
   }
 
   function start(stage, api){
-    stage.innerHTML = boardSvg();
+    stage.innerHTML = boardSvg(); playMusic('gnom');
     const svg = stage.querySelector('svg');
     /* på en bred, lav skærm (telefon) zoomes ind på hullerne, og tiden vises i en pille i stedet for på bagpladen */
     const short = stage.clientWidth / Math.max(1, stage.clientHeight) > 1.75;
@@ -5792,13 +5792,13 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     S.holes.forEach((m, i) => { if (!m || m.state !== 'op' || (m.y || 0) < 0.35) return;
       const k = m.h.k, hx = m.h.x, hy = m.h.y - 100 * k, dx = (p.x - hx) / (100 * k), dy = (p.y - hy) / (130 * k), d = dx * dx + dy * dy;
       if (d < 1 && d < bd){ bd = d; best = i; } });
-    if (best < 0){ tone(140, 0.08, 'sine', 0.06, 0, 0.6); return; }
+    if (best < 0){ SND.play('gnom.forbi', () => tone(140, 0.08, 'sine', 0.06, 0, 0.6)); return; }
     const m = S.holes[best]; m.state = 'ramt'; m.t = performance.now();
     m.g.querySelectorAll('.face-sur').forEach(e => { e.style.display = 'none'; });
     m.g.querySelectorAll('.face-dizzy').forEach(e => { e.style.display = ''; });
     const hx = m.h.x, hy = m.h.y - 150 * m.h.k;
-    if (m.kind === 'kanin'){ S.score = Math.max(0, S.score - 2); sfx.nope(); burst(hx, hy, '#FF8FB0', 'Av! −2'); S.msg = 'Ikke kaninen!'; S.msgUntil = performance.now() + 1400; }
-    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; tone(220, 0.09, 'square', 0.06, 0, 0.5); if (m.kind === 'guld') sfx.twinkle(); else tone(880, 0.06, 'triangle', 0.04, 0.05); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
+    if (m.kind === 'kanin'){ S.score = Math.max(0, S.score - 2); SND.play('gnom.kanin', () => sfx.nope()); burst(hx, hy, '#FF8FB0', 'Av! −2'); S.msg = 'Ikke kaninen!'; S.msgUntil = performance.now() + 1400; }
+    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; SND.play('gnom.slag', () => tone(220, 0.09, 'square', 0.06, 0, 0.5)); if (m.kind === 'guld') SND.play('gnom.guld', () => sfx.twinkle()); else SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
     S.api.score(S.score);
     const pt = S.svg.querySelector('.g-pt'); if (pt) pt.textContent = String(S.score).padStart(3, '0');
   }
@@ -5826,7 +5826,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     { kind:'hus', x: 1130, w: 120, alive: true }, { kind:'hus', x: 1340, w: 120, alive: true } ];
 
   function start(stage, api){
-    const C = akCanvas(stage, SKY);
+    const C = akCanvas(stage, SKY); playMusic('skjold');
     S = { api, C, t: 0, last: performance.now(), score: 0, wave: 0, left: 0, spawnT: 0, meteors: [], bolts: [], booms: [], parts: [], builds: BUILD(),
           stars: Array.from({ length: 90 }, () => ({ x: Math.random() * 2400 - 400, y: Math.random() * 760, r: Math.random() * 1.6 + .4, p: Math.random() * 6 })), over: false, pause: 0, raf: 0 };
     C.cv.addEventListener('pointerdown', e => { e.preventDefault(); shoot(C.toGame(e)); });
@@ -5852,17 +5852,21 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     if (p.y > GROUND - 140) p.y = GROUND - 140;
     const d = Math.hypot(p.x - WAND.x, p.y - WAND.y) || 1;
     S.bolts.push({ x: WAND.x, y: WAND.y, tx: p.x, ty: p.y, vx: (p.x - WAND.x) / d * 1500, vy: (p.y - WAND.y) / d * 1500 });
-    tone(1200, 0.1, 'triangle', 0.04, 0, 1.8);
+    SND.play('skjold.skud', () => tone(1200, 0.1, 'triangle', 0.04, 0, 1.8));
   }
   function boom(x, y, R, col){ S.booms.push({ x, y, R, t: 0, col }); }
   function hitBuilding(m){
     const b = S.builds.find(b => b.alive && Math.abs(m.x - b.x) < b.w / 2 + 10);
-    boom(m.x, GROUND - 20, 70, '#FF8A3D'); tone(110, 0.3, 'sawtooth', 0.04, 0, 0.5);
+    boom(m.x, GROUND - 20, 70, '#FF8A3D'); SND.play('skjold.ramt', () => tone(110, 0.3, 'sawtooth', 0.04, 0, 0.5));
     if (!b) return;
     if (b.kind === 'skole' && --b.hp > 0){ for (let i = 0; i < 14; i++) S.parts.push({ x: m.x, y: GROUND - 60, vx: (Math.random() - .5) * 300, vy: -Math.random() * 300, t: 0, c: '#7FD8FF' }); return; }
     b.alive = false;
     for (let i = 0; i < 24; i++) S.parts.push({ x: b.x + (Math.random() - .5) * b.w, y: GROUND - 40, vx: (Math.random() - .5) * 320, vy: -Math.random() * 420, t: 0, c: Math.random() < .5 ? '#FF8A3D' : '#FFD36E' });
     if (!S.builds.some(b => b.alive)) setTimeout(finish, 900);
+  }
+  function shieldHit(m, b){ // skjoldet tager slaget på kuplen og blinker
+    b.hp--; b.flash = 0.35; boom(m.x, m.y, 60, '#FF8A3D'); SND.play('skjold.skjold', () => { tone(300, 0.2, 'triangle', 0.05, 0, 0.6); tone(900, 0.12, 'sine', 0.03, 0.02, 0.8); });
+    for (let i = 0; i < 14; i++) S.parts.push({ x: m.x, y: m.y, vx: (Math.random() - .5) * 300, vy: -Math.random() * 300, t: 0, c: '#7FD8FF' });
   }
   function tick(now){
     if (!S || S.over) return;
@@ -5871,12 +5875,12 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     else if (S.left > 0){ S.spawnT -= dt; if (S.spawnT <= 0){ spawnMeteor(); S.left--; S.spawnT = Math.max(0.45, 1.5 - S.wave * 0.12) * (0.6 + Math.random() * 0.8); } }
     else if (!S.meteors.length && !S.booms.length && S.builds.some(b => b.alive)){
       const bonus = S.builds.filter(b => b.alive).length * 25; S.score += bonus; S.api.score(S.score);
-      S.msg = `Bølge ${S.wave} klaret! +${bonus}`; S.msgT = 2; sfx.magic(); nextWave(); S.pause = 2.2;
+      S.msg = `Bølge ${S.wave} klaret! +${bonus}`; S.msgT = 2; SND.play('skjold.boelge', () => sfx.magic()); nextWave(); S.pause = 2.2;
     }
     if (S.msgT > 0){ S.msgT -= dt; if (S.msgT <= 0) S.api.info(`Bølge ${S.wave}`); }
     /* formularer flyver, til de når målet, og springer så ud */
     S.bolts = S.bolts.filter(b => { b.x += b.vx * dt; b.y += b.vy * dt;
-      if ((b.tx - b.x) * b.vx + (b.ty - b.y) * b.vy <= 0){ boom(b.tx, b.ty, 95, '#7FD8FF'); sfx.twinkle(); return false; } return true; });
+      if ((b.tx - b.x) * b.vx + (b.ty - b.y) * b.vy <= 0){ boom(b.tx, b.ty, 95, '#7FD8FF'); SND.play('skjold.kugle', () => sfx.twinkle()); return false; } return true; });
     S.booms.forEach(b => { b.t += dt; });
     S.booms = S.booms.filter(b => b.t < 0.9);
     /* meteorer falder; rammer de en kugle, forsvinder de */
@@ -5884,13 +5888,16 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     for (const m of S.meteors){
       m.x += m.vx * dt; m.y += m.vy * dt; m.rot += dt * 2;
       const hit = S.booms.find(b => b.col !== '#FF8A3D' && Math.hypot(m.x - b.x, m.y - b.y) < radiusOf(b) + m.r);
-      if (hit){ S.score += 10; S.api.score(S.score); boom(m.x, m.y, 55, '#FFB8F0'); tone(660, 0.08, 'triangle', 0.05); tone(990, 0.1, 'triangle', 0.04, 0.06);
+      if (hit){ S.score += 10; S.api.score(S.score); boom(m.x, m.y, 55, '#FFB8F0'); SND.play('skjold.meteor', () => { tone(660, 0.08, 'triangle', 0.05); tone(990, 0.1, 'triangle', 0.04, 0.06); });
         for (let i = 0; i < 10; i++) S.parts.push({ x: m.x, y: m.y, vx: (Math.random() - .5) * 260, vy: (Math.random() - .5) * 260, t: 0, c: '#FFE27A' }); continue; }
       if (m.split && m.y > 330){ m.split = false; [-1, 1].forEach(s => { const a = Math.atan2(m.vy, m.vx) + s * 0.35, sp = Math.hypot(m.vx, m.vy); keep.push({ ...m, r: m.r * .75, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, split: false }); }); continue; }
+      const sk = S.builds.find(b => b.kind === 'skole' && b.alive && b.hp > 1);
+      if (sk && ((m.x - sk.x) / 185) ** 2 + ((GROUND - m.y) / 310) ** 2 <= 1){ shieldHit(m, sk); continue; }
       if (m.y >= GROUND - 14){ hitBuilding(m); continue; }
       keep.push(m);
     }
     S.meteors = keep;
+    S.builds.forEach(b => { if (b.flash > 0) b.flash -= dt; });
     S.parts.forEach(p => { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt; });
     S.parts = S.parts.filter(p => p.t < 1.1);
     draw();
@@ -5947,7 +5954,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
       return;
     }
     /* skolen: tre tårne; det midterste har tryllestaven på toppen. Den lilla glans er skjoldet, der tager to slag */
-    if (b.hp > 1){ ctx.fillStyle = `rgba(127,216,255,${0.08 + b.hp * 0.04})`; ctx.beginPath(); ctx.ellipse(b.x, y - 40, 170, 200, 0, Math.PI, 0); ctx.fill(); ctx.strokeStyle = 'rgba(127,216,255,.5)'; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = '#140C2A'; ctx.lineWidth = 4; }
+    if (b.hp > 1){ const fl = b.flash > 0 ? b.flash : 0; ctx.fillStyle = `rgba(127,216,255,${0.08 + b.hp * 0.04 + fl})`; ctx.beginPath(); ctx.ellipse(b.x, GROUND, 185, 310, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'rgba(127,216,255,.5)'; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = '#140C2A'; ctx.lineWidth = 4; }
     ctx.fillStyle = '#5A4AA8';
     [[-90, 70, 150], [90, 70, 150], [0, 80, 210]].forEach(([dx, w, h]) => { ctx.fillRect(b.x + dx - w / 2, y - h, w, h); ctx.strokeRect(b.x + dx - w / 2, y - h, w, h);
       ctx.fillStyle = '#3A2C78'; ctx.beginPath(); ctx.moveTo(b.x + dx - w / 2 - 8, y - h); ctx.lineTo(b.x + dx, y - h - 60); ctx.lineTo(b.x + dx + w / 2 + 8, y - h); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#5A4AA8'; });
@@ -5977,7 +5984,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
   const KINDS = [{ k:'spoegelse', p: 30 }, { k:'flagermus', p: 20 }, { k:'graeskar', p: 10 }];
 
   function start(stage, api){
-    const C = akCanvas(stage, BG);
+    const C = akCanvas(stage, BG); playMusic('invader');
     S = { api, C, t: 0, last: performance.now(), score: 0, wave: 0, lives: 3, wx: 800, inv: 0, fireT: 0, stars: [], slime: [], parts: [], owl: null, owlT: 12,
           keys: {}, drag: null, over: false, raf: 0, sky: Array.from({ length: 70 }, () => ({ x: Math.random() * 2400 - 400, y: Math.random() * 900, r: Math.random() * 1.5 + .3, p: Math.random() * 6 })) };
     const cv = C.cv;
@@ -6018,11 +6025,11 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     if (S.calm > 0) S.calm -= dt;
     /* heksen skyder af sig selv */
     S.fireT -= dt;
-    if (S.fireT <= 0 && S.calm <= 0){ S.fireT = 0.34; S.stars.push({ x: S.wx + 22, y: WY - 70 }); tone(1500, 0.04, 'triangle', 0.02, 0, 1.3); }
+    if (S.fireT <= 0 && S.calm <= 0){ S.fireT = 0.34; S.stars.push({ x: S.wx + 22, y: WY - 70 }); SND.play('invader.skud', () => tone(1500, 0.04, 'triangle', 0.02, 0, 1.3)); }
     S.stars.forEach(s => { s.y -= 980 * dt; });
     /* fjenderne marcherer */
     const alive = S.foes.filter(f => f.alive);
-    if (!alive.length){ S.score += 100; S.api.score(S.score); sfx.magic(); S.stars = []; S.slime = []; nextWave(); }
+    if (!alive.length){ S.score += 100; S.api.score(S.score); SND.play('invader.boelge', () => sfx.magic()); S.stars = []; S.slime = []; nextWave(); }
     else if (S.calm <= 0){
       const sp = 50 + S.wave * 14 + (1 - alive.length / S.total) * 110;
       S.gx += S.dir * sp * dt;
@@ -6044,8 +6051,8 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     /* træffere */
     S.stars = S.stars.filter(s => {
       if (s.y < -30) return false;
-      if (S.owl && Math.abs(s.x - S.owl.x) < 40 && Math.abs(s.y - 64) < 34){ S.score += 100; S.api.score(S.score); pop(S.owl.x, 64, '#FFE27A', 16); sfx.twinkle(); S.owl = null; return false; }
-      for (const f of S.foes){ if (!f.alive) continue; if (Math.abs(s.x - f.x) < 46 && Math.abs(s.y - f.y) < 36){ f.alive = false; S.score += f.p; S.api.score(S.score); pop(f.x, f.y, f.k === 'graeskar' ? '#FF8A3D' : f.k === 'flagermus' ? '#C79BFF' : '#F2EEFF', 10); tone(520 + f.p * 10, 0.07, 'square', 0.03, 0, 1.6); return false; } }
+      if (S.owl && Math.abs(s.x - S.owl.x) < 40 && Math.abs(s.y - 64) < 34){ S.score += 100; S.api.score(S.score); pop(S.owl.x, 64, '#FFE27A', 16); SND.play('invader.ugle', () => sfx.twinkle()); S.owl = null; return false; }
+      for (const f of S.foes){ if (!f.alive) continue; if (Math.abs(s.x - f.x) < 46 && Math.abs(s.y - f.y) < 36){ f.alive = false; S.score += f.p; S.api.score(S.score); pop(f.x, f.y, f.k === 'graeskar' ? '#FF8A3D' : f.k === 'flagermus' ? '#C79BFF' : '#F2EEFF', 10); SND.play('invader.ramt', () => tone(520 + f.p * 10, 0.07, 'square', 0.03, 0, 1.6)); return false; } }
       if (cloudHit(s.x, s.y)) return false;
       return true; });
     S.slime = S.slime.filter(s => {
@@ -6065,7 +6072,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
   function pop(x, y, c, n){ for (let i = 0; i < n; i++) S.parts.push({ x, y, vx: (Math.random() - .5) * 300, vy: (Math.random() - .7) * 260, t: 0, c }); }
   function lose(all){
     if (!S) return;
-    S.lives = all ? 0 : S.lives - 1; hearts(); pop(S.wx, WY - 30, '#9BE36A', 18); tone(160, 0.3, 'sawtooth', 0.04, 0, 0.6);
+    S.lives = all ? 0 : S.lives - 1; hearts(); pop(S.wx, WY - 30, '#9BE36A', 18); SND.play('invader.au', () => tone(160, 0.3, 'sawtooth', 0.04, 0, 0.6));
     if (S.lives <= 0){ S.over = true; const n = S.score, w = S.wave, api = S.api; draw(); setTimeout(() => api.end(n, `Du nåede bølge ${w}.`), 700); return; }
     S.inv = 1.6; S.slime = [];
   }
@@ -6194,12 +6201,16 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     o += `<text x="660" y="990" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#B9AEDB">Hold pilene nede</text>`;
     return o + `</svg>`;
   }
-  function clawSvg(x, y, open){
-    const a = 6 + open * 26;
-    return `<path d="M ${x} ${TOP} V ${y - 18}" stroke="#C8C4D8" stroke-width="4"/>`
+  /* kloen set forfra: tre arme med en krog i spidsen. open = 1 er helt åben, 0 er lukket */
+  function clawSvg(x, y, open, sway){
+    const a = 3 + open * 30;
+    const arm = d => `<path d="M ${d * 12} -2 C ${d * 30} 18 ${d * 32} 44 ${d * 14} 64 L ${d * 4} 68" stroke="#C8C4D8" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M ${d * 12} -2 C ${d * 30} 18 ${d * 32} 44 ${d * 14} 64 L ${d * 4} 68" stroke="#6A6480" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    return `<path d="M ${x} ${TOP} L ${x + sway * 0.4} ${y - 18}" stroke="#C8C4D8" stroke-width="4"/>`
       + `<rect x="${x - 26}" y="${TOP - 32}" width="52" height="34" rx="6" fill="#6A6480" stroke="${E}" stroke-width="3"/>`
-      + `<g transform="translate(${x} ${y})"><rect x="-22" y="-24" width="44" height="28" rx="6" fill="#8A8AA8" stroke="${E}" stroke-width="3"/>`
-      + [-1, 0, 1].map(d => `<g transform="rotate(${d * a})"><path d="M ${d * 14} 0 C ${d * 26} 24 ${d * 22} 50 ${d * 8} 64" stroke="#C8C4D8" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M ${d * 14} 0 C ${d * 26} 24 ${d * 22} 50 ${d * 8} 64" stroke="#6A6480" stroke-width="2" fill="none" stroke-linecap="round"/></g>`).join('') + `</g>`;
+      + `<g transform="translate(${(x + sway * 0.4).toFixed(1)} ${y.toFixed(1)}) rotate(${(-sway * 0.25).toFixed(1)})">`
+      + arm(0)
+      + [-1, 1].map(d => `<g transform="rotate(${(-d * a).toFixed(1)})">${arm(d)}</g>`).join('')
+      + `<rect x="-22" y="-24" width="44" height="28" rx="6" fill="#8A8AA8" stroke="${E}" stroke-width="3"/><circle cx="0" cy="-10" r="4" fill="#E0457A"/></g>`;
   }
 
   function start(stage, api){
@@ -6208,10 +6219,12 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
       api.end(0, 'Et forsøg koster 1 stjerne. Tjen stjerner i skolen, og kom tilbage.', { title: 'Du mangler en stjerne', big: '', again: 'Prøv igen (1 ★)', sound: false });
       sfx.nope(); return;
     }
-    addStars(-1);
+    addStars(-1); playMusic('gribe');
     stage.innerHTML = sceneSvg();
     const svg = stage.querySelector('svg');
-    S = { api, svg, x: 760, y: 200, open: 1, phase: 'flyt', dir: 0, vx: 0, pile: pileLayout(), held: null, t0: performance.now(), last: performance.now(), raf: 0, over: false };
+    /* grebet er forskelligt fra gang til gang, ligesom på en rigtig maskine */
+    S = { api, svg, x: XMIN, y: 200, open: 1, phase: 'flyt', dir: 0, vx: 0, ax: 0, pile: pileLayout(), held: null, grip: 0.35 + Math.random() * 0.65,
+          th: 0, w: 0, t0: performance.now(), last: performance.now(), raf: 0, over: false };
     drawPile();
     const hold = (b, on) => { if (!S || S.phase !== 'flyt') return; if (b === 'grib'){ if (on) grab(); return; } S.dir = on ? (b === 'v' ? -1 : 1) : 0; };
     svg.querySelectorAll('.gr-btn').forEach(g => {
@@ -6233,74 +6246,108 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
   }
   function grab(){
     if (!S || S.phase !== 'flyt') return;
-    S.phase = 'ned'; S.dir = 0; sfx.whoosh(); S.api.info('');
+    S.phase = 'ned'; S.dir = 0; S.vx = 0; SND.play('gribe.ned', () => sfx.whoosh()); S.api.info('');
     const under = S.pile.filter(p => !p.gone && Math.abs(p.x - S.x) < 60);
-    S.target = under.length ? Math.min(...under.map(plushTop)) - 6 : FLOOR - 70;
+    S.target = under.length ? Math.min(...under.map(plushTop)) - 4 : FLOOR - 72;
+  }
+  /* kloen bevæger sig med lidt træghed; en bamse i kloen svinger som et pendul */
+  function moveClaw(want, dt){
+    const v0 = S.vx; S.vx += (want - S.vx) * Math.min(1, dt * 7);
+    S.ax = (S.vx - v0) / Math.max(dt, 1e-3);
+    S.x = Math.max(XMIN, Math.min(XMAX, S.x + S.vx * dt));
+    if ((S.x <= XMIN && S.vx < 0) || (S.x >= XMAX && S.vx > 0)){ S.ax += -S.vx * 8; S.vx = 0; }
+  }
+  function swing(dt){
+    const L = 90, g = 1800;
+    const acc = -(g / L) * Math.sin(S.th) - (S.ax / L) * Math.cos(S.th) - 2.2 * S.w;
+    S.w += acc * dt; S.th += S.w * dt;
+    S.th = Math.max(-1.1, Math.min(1.1, S.th));
   }
   function tick(now){
     if (!S || S.over) return;
-    const dt = Math.min(0.05, (now - S.last) / 1000); S.last = now;
+    const dt = Math.min(0.033, (now - S.last) / 1000); S.last = now;
     if (S.phase === 'flyt'){
       const left = Math.max(0, LIMIT - (now - S.t0) / 1000);
       const sec = Math.ceil(left); if (sec !== S.sec){ S.sec = sec; S.api.info(`Tid ${sec}`); }
       if (left <= 0) grab();
-      const want = S.dir * 380; S.vx += (want - S.vx) * Math.min(1, dt * 8);
-      S.x = Math.max(XMIN, Math.min(XMAX, S.x + S.vx * dt));
-      if (S.dir) S.hum = (S.hum || 0) + dt; if (S.dir && S.hum > .16){ S.hum = 0; tone(140, 0.05, 'sawtooth', 0.012, 0, 1); }
+      moveClaw(S.dir * 380, dt);
+      if (S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; SND.play('gribe.motor', () => tone(140, 0.05, 'sawtooth', 0.012, 0, 1)); } }
     } else if (S.phase === 'ned'){
-      S.y += 320 * dt;
-      if (S.y >= S.target){ S.y = S.target; S.phase = 'luk'; S.pt = now; tone(300, 0.12, 'square', 0.03, 0, 0.7); }
+      S.y += 300 * dt; S.open = Math.min(1, S.open + dt * 3);
+      if (S.y >= S.target){ S.y = S.target; S.phase = 'luk'; S.pt = now; SND.play('gribe.luk', () => tone(300, 0.12, 'square', 0.03, 0, 0.7)); }
     } else if (S.phase === 'luk'){
-      S.open = Math.max(0, 1 - (now - S.pt) / 350);
+      S.open = Math.max(0, 1 - (now - S.pt) / 420);
       if (S.open <= 0){
-        /* griber kloen noget? jo tættere på midten af bamsen, jo bedre */
-        const cand = S.pile.filter(p => !p.gone && Math.abs(p.x - S.x) < 52 && plushTop(p) <= S.target + 50).sort((a, b) => Math.abs(a.x - S.x) - Math.abs(b.x - S.x))[0];
-        if (cand){ const d = Math.abs(cand.x - S.x), chance = d < 18 ? 0.85 : d < 34 ? 0.6 : 0.3;
-          if (Math.random() < chance){ S.held = cand; S.slip = Math.random() < 0.06 + d / 260; S.slipAt = 0.25 + Math.random() * 0.6; } }
+        /* griber kloen noget? det afhænger af, hvor tæt den er på midten af bamsen, og hvor stærkt grebet er i dag */
+        const cand = S.pile.filter(p => !p.gone && Math.abs(p.x - S.x) < 54 && plushTop(p) <= S.target + 50).sort((a, b) => Math.abs(a.x - S.x) - Math.abs(b.x - S.x))[0];
+        if (cand){
+          const d = Math.abs(cand.x - S.x), chance = Math.max(0, Math.min(1, 1.1 - d / 42)) * (0.45 + 0.55 * S.grip);
+          if (Math.random() < chance){ S.held = cand; S.th = (cand.x - S.x) / 90; S.w = 0; SND.play('gribe.greb', () => tone(420, 0.08, 'triangle', 0.04)); }
+          else { /* kloen skubber bamsen lidt til siden */ cand.x += Math.sign(cand.x - S.x || 1) * (8 + Math.random() * 10); cand.rot += (Math.random() - .5) * 30; }
+        }
         S.phase = 'op'; drawPile();
       }
     } else if (S.phase === 'op'){
-      S.y -= 260 * dt;
-      if (S.y <= 200){ S.y = 200; S.phase = S.held ? 'hjem' : 'tom'; S.fromX = S.x; }
+      S.y -= 240 * dt; S.ax = 0;
+      if (S.y <= 200){ S.y = 200; S.phase = S.held ? 'hjem' : 'tom'; S.ax = 1400; /* et lille ryk, når kloen stopper i toppen */ }
     } else if (S.phase === 'hjem'){
-      S.x = Math.max(CHUTE, S.x - 300 * dt);
-      const prog_ = (S.fromX - S.x) / Math.max(1, S.fromX - CHUTE);
-      if (S.held && S.slip && prog_ >= S.slipAt){ S.slip = false; drop(false); }
-      if (S.x <= CHUTE){ S.phase = 'slip'; S.pt = now; }
+      moveClaw(-320, dt);
+      if (S.x <= XMIN + 1){ S.x = XMIN; S.phase = 'slip'; S.pt = now; }
     } else if (S.phase === 'tom'){
-      S.phase = 'slut'; setTimeout(() => S && S.api.end(0, 'Kloen greb ved siden af. Prøv at stille den lige over en bamse.', { title: 'Øv!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 700); sfx.nope();
+      S.open = Math.min(1, S.open + dt * 2.5); moveClaw(-320, dt);
+      if (S.open >= 1 && S.x <= XMIN + 1){ S.phase = 'slut'; SND.play('gribe.oev', () => sfx.nope()); setTimeout(() => S && S.api.end(0, 'Kloen greb ved siden af. Prøv at stille den lige over en bamse.', { title: 'Øv!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 500); }
     } else if (S.phase === 'slip'){
-      S.open = Math.min(1, (now - S.pt) / 300);
-      if (S.open >= 1 && S.held){ drop(true); }
+      S.open = Math.min(1, (now - S.pt) / 260);
+      if (S.open >= 0.6 && S.held) drop(true);
     }
-    /* en bamse, der falder */
-    if (S.fall){ const f = S.fall; f.vy += 1400 * dt; f.p.y += f.vy * dt; f.p.rot += f.spin * dt;
-      if (f.p.y >= f.floor){ f.p.y = f.floor; f.p.falling = false; const won = f.won; S.fall = null; drawPile(); if (won) win(f.p); else { tone(200, 0.1, 'sine', 0.05); S.phase = 'slut'; setTimeout(() => S && S.api.end(0, 'Bamsen gled ud af kloen. Så tæt på!', { title: 'Næsten!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 800); } } }
+    /* en bamse i kloen svinger og kan glide ud, især hvis grebet er svagt eller den svinger meget */
+    if (S.held){
+      swing(dt);
+      if (S.phase === 'op' || S.phase === 'hjem'){
+        const hazard = (1 - S.grip) * 0.32 + Math.abs(S.th) * 0.9 + Math.abs(S.w) * 0.05;
+        if (Math.random() < hazard * dt) drop(false);
+      }
+    }
+    /* en bamse, der falder, hopper en gang, når den lander */
+    if (S.fall){ const f = S.fall; f.vy += 1800 * dt; f.p.x += f.vx * dt; f.p.y += f.vy * dt; f.p.rot += f.spin * dt;
+      if (f.p.y >= f.floor){
+        if (!f.bounced && !f.won){ f.bounced = true; f.p.y = f.floor; f.vy = -f.vy * 0.32; f.vx *= 0.5; f.spin *= -0.5; SND.play('gribe.bump', () => tone(180, 0.08, 'sine', 0.05)); }
+        else { f.p.y = f.floor; f.p.falling = false; const won = f.won; S.fall = null; drawPile();
+          if (won) win(f.p); else { S.phase = 'slut'; setTimeout(() => S && S.api.end(0, 'Bamsen gled ud af kloen. Så tæt på!', { title: 'Næsten!', big: '', again: 'Prøv igen (1 ★)', sound: false }), 800); } } } }
     draw();
     if (S) S.raf = requestAnimationFrame(tick);
   }
   function drop(won){
-    const p = S.held; S.held = null; p.x = S.x; p.y = S.y + 58;   /* bamsen falder fra kloen, ikke fra sin gamle plads */
-    if (won){ p.gone = true; S.fall = { p, vy: 0, spin: 60, floor: 780, won: true }; S.phase = 'falder'; tone(500, 0.1, 'triangle', 0.04, 0, 0.6); }
-    else { p.falling = true; S.fall = { p, vy: 0, spin: 120, floor: 690 - Math.random() * 40, won: false }; S.phase = 'falder'; sfx.nope(); }
+    const p = S.held; S.held = null;
+    const hx = S.x + Math.sin(S.th) * 58, hy = S.y + Math.cos(S.th) * 58;
+    p.x = hx; p.y = hy; p.falling = true;
+    const vx = S.vx + S.w * 58 * Math.cos(S.th) * 0.6;
+    if (won){ p.gone = true; S.fall = { p, vx: vx * 0.3, vy: 0, spin: 60, floor: 790, won: true }; S.phase = 'falder'; SND.play('gribe.slip', () => tone(500, 0.1, 'triangle', 0.04, 0, 0.6)); }
+    else {
+      /* lander den over skakten, er det en gevinst alligevel */
+      const overChute = hx < 404;
+      if (overChute){ p.gone = true; S.fall = { p, vx: 0, vy: 0, spin: 80, floor: 790, won: true }; S.phase = 'falder'; return; }
+      S.fall = { p, vx, vy: 0, spin: 140 * Math.sign(vx || 1), floor: 690 - Math.random() * 40, won: false }; S.phase = 'falder'; SND.play('gribe.glider', () => sfx.nope());
+    }
   }
   function win(p){
     const list = Arkade.myPlush(); list.push(p.k); store.set(Arkade.KEY_PLUSH, list);
     const b = Arkade.BAMSER.find(x => x.k === p.k), won = S.svg.querySelector('.gr-won');
     won.innerHTML = `<g transform="translate(310 900)">${Arkade.plush(p.k, 1.4)}</g>`;
     won.animate([{ transform: 'translateY(40px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 400, easing: 'ease-out' });
-    sfx.fanfare(); S.phase = 'slut'; S.api.score(1);
+    SND.play('gribe.vandt', () => sfx.fanfare()); S.phase = 'slut'; S.api.score(1);
     const art = `<svg viewBox="-60 -70 120 120" xmlns="http://www.w3.org/2000/svg">${Arkade.plush(p.k, 1.3)}</svg>`;
     setTimeout(() => S && S.api.end(1, `Den sidder nu på din seng på værelset.`, { title: `Du vandt en ${b.name}!`, big: '', art, again: 'Prøv igen (1 ★)', win: true, sound: false }), 1100);
   }
   function draw(){
-    const c = S.svg.querySelector('.gr-claw');
-    let o = clawSvg(S.x, S.y, S.open);
-    if (S.held) o += `<g transform="translate(${S.x.toFixed(1)} ${(S.y + 58).toFixed(1)}) rotate(${(S.held.rot * .3).toFixed(0)})">${Arkade.plush(S.held.k, S.held.s)}</g>`;
-    if (S.fall && S.fall.p.y < 760) o += `<g transform="translate(${S.fall.p.x.toFixed(1)} ${S.fall.p.y.toFixed(1)}) rotate(${S.fall.p.rot.toFixed(0)})">${Arkade.plush(S.fall.p.k, S.fall.p.s)}</g>`;
+    const c = S.svg.querySelector('.gr-claw'), sway = S.held ? Math.sin(S.th) * 30 : 0;
+    let o = clawSvg(S.x, S.y, S.open, sway);
+    if (S.held){ const hx = S.x + Math.sin(S.th) * 58, hy = S.y + Math.cos(S.th) * 58;
+      o += `<g transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${(S.held.rot * .3 - S.th * 57).toFixed(0)})">${Arkade.plush(S.held.k, S.held.s)}</g>`; }
+    if (S.fall && S.fall.p.y < 770) o += `<g transform="translate(${S.fall.p.x.toFixed(1)} ${S.fall.p.y.toFixed(1)}) rotate(${S.fall.p.rot.toFixed(0)})">${Arkade.plush(S.fall.p.k, S.fall.p.s)}</g>`;
     c.innerHTML = o;
   }
-  Arkade.GAMES.gribe = { start, stop, test: { aimAt: () => { if (!S) return null; const p = S.pile.filter(q => !q.gone).sort((a, b) => plushTop(a) - plushTop(b))[0]; return p && p.x; }, state: () => S && { x: S.x, phase: S.phase } } };
+  Arkade.GAMES.gribe = { start, stop, test: { aimAt: () => { if (!S) return null; const p = S.pile.filter(q => !q.gone).sort((a, b) => plushTop(a) - plushTop(b))[0]; return p && p.x; }, state: () => S && { x: S.x, phase: S.phase, open: S.open, grip: S.grip } } };
 })();
 
 /* ================= Det nye kort over byen (skitse til Tegnebordet) =================
@@ -6961,7 +7008,7 @@ function mNote(freq, t, dur, type, vol){
 }
 function musicTick(){
   if (!AC || !MUSIC.track) return;
-  const tr = TRACKS[MUSIC.track], eighth = 60 / tr.bpm / 2;
+  const tr = TRACKS[MUSIC.track] || TRACKS[MUSIC_SYNTH[MUSIC.track]] || TRACKS.byen, eighth = 60 / tr.bpm / 2;
   while (MUSIC.nextT < AC.currentTime + 0.15){
     const st = MUSIC.step, bar = Math.floor(st / 8) % 4, pos = st % 8, ch = tr.chords[bar], t = MUSIC.nextT;
     if (pos % 4 === 0) mNote(mtof(ch[0] - 24), t, eighth * 3.2, 'triangle', 0.09);
@@ -6970,15 +7017,18 @@ function musicTick(){
     MUSIC.step++; MUSIC.nextT += eighth;
   }
 }
+const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show' };
 function playMusic(name){
-  if (MUSIC.track === name && MUSIC.timer) return;
+  if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
   stopMusic(); MUSIC.track = name;
-  if (!MUSIC.on || !audioCtx()) return;
+  if (!MUSIC.on) return;
+  if (SND.music(name)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
+  if (!audioCtx()) return;
   MUSIC.out = AC.createGain(); MUSIC.out.gain.value = 0.55; MUSIC.out.connect(AC.destination);
   MUSIC.step = 0; MUSIC.nextT = AC.currentTime + 0.1;
   MUSIC.timer = setInterval(musicTick, 30);
 }
-function stopMusic(){ clearInterval(MUSIC.timer); MUSIC.timer = null; if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch(e){} MUSIC.out = null; } }
+function stopMusic(){ SND.stopMusic(); clearInterval(MUSIC.timer); MUSIC.timer = null; if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch(e){} MUSIC.out = null; } }
 function setMusic(on){ MUSIC.on = on; store.set(KEY_MUSIC, on); const t = MUSIC.track; if (!on) stopMusic(); else if (t){ MUSIC.track = null; playMusic(t); } updateAudioBtns(); }
 function setSound(on){ soundOn = on; store.set(KEY_SOUND, on); updateAudioBtns(); }
 const NOTE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>';
@@ -7902,6 +7952,47 @@ function showTown(){
   fill('swingKid', randomState({}), VB_DOLL, 108, 152);
   fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
 }
+
+// Egne lydfiler. Læg filen i mappen lyd/ og skriv den her, fx  'gnom.slag': 'lyd/gnom-slag.mp3'
+// Nøglerne står i Værkstedet (lyd-fanen). Alt der ikke står her, bruger spillets indbyggede lyd.
+const LYD_FILER = {
+};
+// Musik: 'byen', 'kaelder', 'show', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
+const LYD_MUSIK = {
+};
+
+// Lydlaget: hver lyd i spillet har en nøgle. Findes der en egen fil i LYD_FILER, spilles den; ellers den indbyggede.
+const SND = (() => {
+  const pool = {}, MAXP = 4;
+  let song = null, songName = null;
+  function file(key){ return (typeof LYD_FILER === 'object' && LYD_FILER[key]) || null; }
+  function play(key, fallback){
+    if (!soundOn) return;
+    const src = file(key);
+    if (!src){ if (fallback) fallback(); return; }
+    const list = pool[key] || (pool[key] = []);
+    let a = list.find(x => x.paused || x.ended);
+    if (!a && list.length < MAXP){ a = new Audio(src); a.preload = 'auto'; list.push(a); }
+    if (!a) a = list[0];
+    try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => { if (fallback) fallback(); }); }
+    catch (e){ if (fallback) fallback(); }
+  }
+  function music(name){
+    const src = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name];
+    if (!src) return false;
+    stopSong();
+    song = new Audio(src); song.loop = true; song.volume = 0.6; songName = name;
+    try { const p = song.play(); if (p && p.catch) p.catch(() => {}); } catch (e){}
+    return true;
+  }
+  function stopSong(){ if (song){ try { song.pause(); } catch (e){} song = null; songName = null; } }
+  function musicPlaying(){ return !!(song && !song.paused); }
+  // alle de små standardlyde (sfx.pick, sfx.magic …) får nøglen 'sfx.<navn>'
+  Object.keys(sfx).forEach(k => { const f = sfx[k]; sfx[k] = (...a) => play('sfx.' + k, () => f(...a)); });
+  // en app der kommer tilbage fra baggrunden genoptager musikken
+  document.addEventListener('visibilitychange', () => { if (!song) return; if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); });
+  return { play, music, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
+})();
 
 /* ================= Forside og start ================= */
 /* ---------- testtilstand: tryk 5 gange på logoet ---------- */

@@ -12,7 +12,7 @@
     { kind:'hus', x: 1130, w: 120, alive: true }, { kind:'hus', x: 1340, w: 120, alive: true } ];
 
   function start(stage, api){
-    const C = akCanvas(stage, SKY);
+    const C = akCanvas(stage, SKY); playMusic('skjold');
     S = { api, C, t: 0, last: performance.now(), score: 0, wave: 0, left: 0, spawnT: 0, meteors: [], bolts: [], booms: [], parts: [], builds: BUILD(),
           stars: Array.from({ length: 90 }, () => ({ x: Math.random() * 2400 - 400, y: Math.random() * 760, r: Math.random() * 1.6 + .4, p: Math.random() * 6 })), over: false, pause: 0, raf: 0 };
     C.cv.addEventListener('pointerdown', e => { e.preventDefault(); shoot(C.toGame(e)); });
@@ -38,17 +38,21 @@
     if (p.y > GROUND - 140) p.y = GROUND - 140;
     const d = Math.hypot(p.x - WAND.x, p.y - WAND.y) || 1;
     S.bolts.push({ x: WAND.x, y: WAND.y, tx: p.x, ty: p.y, vx: (p.x - WAND.x) / d * 1500, vy: (p.y - WAND.y) / d * 1500 });
-    tone(1200, 0.1, 'triangle', 0.04, 0, 1.8);
+    SND.play('skjold.skud', () => tone(1200, 0.1, 'triangle', 0.04, 0, 1.8));
   }
   function boom(x, y, R, col){ S.booms.push({ x, y, R, t: 0, col }); }
   function hitBuilding(m){
     const b = S.builds.find(b => b.alive && Math.abs(m.x - b.x) < b.w / 2 + 10);
-    boom(m.x, GROUND - 20, 70, '#FF8A3D'); tone(110, 0.3, 'sawtooth', 0.04, 0, 0.5);
+    boom(m.x, GROUND - 20, 70, '#FF8A3D'); SND.play('skjold.ramt', () => tone(110, 0.3, 'sawtooth', 0.04, 0, 0.5));
     if (!b) return;
     if (b.kind === 'skole' && --b.hp > 0){ for (let i = 0; i < 14; i++) S.parts.push({ x: m.x, y: GROUND - 60, vx: (Math.random() - .5) * 300, vy: -Math.random() * 300, t: 0, c: '#7FD8FF' }); return; }
     b.alive = false;
     for (let i = 0; i < 24; i++) S.parts.push({ x: b.x + (Math.random() - .5) * b.w, y: GROUND - 40, vx: (Math.random() - .5) * 320, vy: -Math.random() * 420, t: 0, c: Math.random() < .5 ? '#FF8A3D' : '#FFD36E' });
     if (!S.builds.some(b => b.alive)) setTimeout(finish, 900);
+  }
+  function shieldHit(m, b){ // skjoldet tager slaget på kuplen og blinker
+    b.hp--; b.flash = 0.35; boom(m.x, m.y, 60, '#FF8A3D'); SND.play('skjold.skjold', () => { tone(300, 0.2, 'triangle', 0.05, 0, 0.6); tone(900, 0.12, 'sine', 0.03, 0.02, 0.8); });
+    for (let i = 0; i < 14; i++) S.parts.push({ x: m.x, y: m.y, vx: (Math.random() - .5) * 300, vy: -Math.random() * 300, t: 0, c: '#7FD8FF' });
   }
   function tick(now){
     if (!S || S.over) return;
@@ -57,12 +61,12 @@
     else if (S.left > 0){ S.spawnT -= dt; if (S.spawnT <= 0){ spawnMeteor(); S.left--; S.spawnT = Math.max(0.45, 1.5 - S.wave * 0.12) * (0.6 + Math.random() * 0.8); } }
     else if (!S.meteors.length && !S.booms.length && S.builds.some(b => b.alive)){
       const bonus = S.builds.filter(b => b.alive).length * 25; S.score += bonus; S.api.score(S.score);
-      S.msg = `Bølge ${S.wave} klaret! +${bonus}`; S.msgT = 2; sfx.magic(); nextWave(); S.pause = 2.2;
+      S.msg = `Bølge ${S.wave} klaret! +${bonus}`; S.msgT = 2; SND.play('skjold.boelge', () => sfx.magic()); nextWave(); S.pause = 2.2;
     }
     if (S.msgT > 0){ S.msgT -= dt; if (S.msgT <= 0) S.api.info(`Bølge ${S.wave}`); }
     /* formularer flyver, til de når målet, og springer så ud */
     S.bolts = S.bolts.filter(b => { b.x += b.vx * dt; b.y += b.vy * dt;
-      if ((b.tx - b.x) * b.vx + (b.ty - b.y) * b.vy <= 0){ boom(b.tx, b.ty, 95, '#7FD8FF'); sfx.twinkle(); return false; } return true; });
+      if ((b.tx - b.x) * b.vx + (b.ty - b.y) * b.vy <= 0){ boom(b.tx, b.ty, 95, '#7FD8FF'); SND.play('skjold.kugle', () => sfx.twinkle()); return false; } return true; });
     S.booms.forEach(b => { b.t += dt; });
     S.booms = S.booms.filter(b => b.t < 0.9);
     /* meteorer falder; rammer de en kugle, forsvinder de */
@@ -70,13 +74,16 @@
     for (const m of S.meteors){
       m.x += m.vx * dt; m.y += m.vy * dt; m.rot += dt * 2;
       const hit = S.booms.find(b => b.col !== '#FF8A3D' && Math.hypot(m.x - b.x, m.y - b.y) < radiusOf(b) + m.r);
-      if (hit){ S.score += 10; S.api.score(S.score); boom(m.x, m.y, 55, '#FFB8F0'); tone(660, 0.08, 'triangle', 0.05); tone(990, 0.1, 'triangle', 0.04, 0.06);
+      if (hit){ S.score += 10; S.api.score(S.score); boom(m.x, m.y, 55, '#FFB8F0'); SND.play('skjold.meteor', () => { tone(660, 0.08, 'triangle', 0.05); tone(990, 0.1, 'triangle', 0.04, 0.06); });
         for (let i = 0; i < 10; i++) S.parts.push({ x: m.x, y: m.y, vx: (Math.random() - .5) * 260, vy: (Math.random() - .5) * 260, t: 0, c: '#FFE27A' }); continue; }
       if (m.split && m.y > 330){ m.split = false; [-1, 1].forEach(s => { const a = Math.atan2(m.vy, m.vx) + s * 0.35, sp = Math.hypot(m.vx, m.vy); keep.push({ ...m, r: m.r * .75, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, split: false }); }); continue; }
+      const sk = S.builds.find(b => b.kind === 'skole' && b.alive && b.hp > 1);
+      if (sk && ((m.x - sk.x) / 185) ** 2 + ((GROUND - m.y) / 310) ** 2 <= 1){ shieldHit(m, sk); continue; }
       if (m.y >= GROUND - 14){ hitBuilding(m); continue; }
       keep.push(m);
     }
     S.meteors = keep;
+    S.builds.forEach(b => { if (b.flash > 0) b.flash -= dt; });
     S.parts.forEach(p => { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt; });
     S.parts = S.parts.filter(p => p.t < 1.1);
     draw();
@@ -133,7 +140,7 @@
       return;
     }
     /* skolen: tre tårne; det midterste har tryllestaven på toppen. Den lilla glans er skjoldet, der tager to slag */
-    if (b.hp > 1){ ctx.fillStyle = `rgba(127,216,255,${0.08 + b.hp * 0.04})`; ctx.beginPath(); ctx.ellipse(b.x, y - 40, 170, 200, 0, Math.PI, 0); ctx.fill(); ctx.strokeStyle = 'rgba(127,216,255,.5)'; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = '#140C2A'; ctx.lineWidth = 4; }
+    if (b.hp > 1){ const fl = b.flash > 0 ? b.flash : 0; ctx.fillStyle = `rgba(127,216,255,${0.08 + b.hp * 0.04 + fl})`; ctx.beginPath(); ctx.ellipse(b.x, GROUND, 185, 310, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'rgba(127,216,255,.5)'; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = '#140C2A'; ctx.lineWidth = 4; }
     ctx.fillStyle = '#5A4AA8';
     [[-90, 70, 150], [90, 70, 150], [0, 80, 210]].forEach(([dx, w, h]) => { ctx.fillRect(b.x + dx - w / 2, y - h, w, h); ctx.strokeRect(b.x + dx - w / 2, y - h, w, h);
       ctx.fillStyle = '#3A2C78'; ctx.beginPath(); ctx.moveTo(b.x + dx - w / 2 - 8, y - h); ctx.lineTo(b.x + dx, y - h - 60); ctx.lineTo(b.x + dx + w / 2 + 8, y - h); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#5A4AA8'; });

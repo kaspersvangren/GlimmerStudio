@@ -9,7 +9,7 @@
   const KINDS = [{ k:'spoegelse', p: 30 }, { k:'flagermus', p: 20 }, { k:'graeskar', p: 10 }];
 
   function start(stage, api){
-    const C = akCanvas(stage, BG);
+    const C = akCanvas(stage, BG); playMusic('invader');
     S = { api, C, t: 0, last: performance.now(), score: 0, wave: 0, lives: 3, wx: 800, inv: 0, fireT: 0, stars: [], slime: [], parts: [], owl: null, owlT: 12,
           keys: {}, drag: null, over: false, raf: 0, sky: Array.from({ length: 70 }, () => ({ x: Math.random() * 2400 - 400, y: Math.random() * 900, r: Math.random() * 1.5 + .3, p: Math.random() * 6 })) };
     const cv = C.cv;
@@ -50,11 +50,11 @@
     if (S.calm > 0) S.calm -= dt;
     /* heksen skyder af sig selv */
     S.fireT -= dt;
-    if (S.fireT <= 0 && S.calm <= 0){ S.fireT = 0.34; S.stars.push({ x: S.wx + 22, y: WY - 70 }); tone(1500, 0.04, 'triangle', 0.02, 0, 1.3); }
+    if (S.fireT <= 0 && S.calm <= 0){ S.fireT = 0.34; S.stars.push({ x: S.wx + 22, y: WY - 70 }); SND.play('invader.skud', () => tone(1500, 0.04, 'triangle', 0.02, 0, 1.3)); }
     S.stars.forEach(s => { s.y -= 980 * dt; });
     /* fjenderne marcherer */
     const alive = S.foes.filter(f => f.alive);
-    if (!alive.length){ S.score += 100; S.api.score(S.score); sfx.magic(); S.stars = []; S.slime = []; nextWave(); }
+    if (!alive.length){ S.score += 100; S.api.score(S.score); SND.play('invader.boelge', () => sfx.magic()); S.stars = []; S.slime = []; nextWave(); }
     else if (S.calm <= 0){
       const sp = 50 + S.wave * 14 + (1 - alive.length / S.total) * 110;
       S.gx += S.dir * sp * dt;
@@ -76,8 +76,8 @@
     /* træffere */
     S.stars = S.stars.filter(s => {
       if (s.y < -30) return false;
-      if (S.owl && Math.abs(s.x - S.owl.x) < 40 && Math.abs(s.y - 64) < 34){ S.score += 100; S.api.score(S.score); pop(S.owl.x, 64, '#FFE27A', 16); sfx.twinkle(); S.owl = null; return false; }
-      for (const f of S.foes){ if (!f.alive) continue; if (Math.abs(s.x - f.x) < 46 && Math.abs(s.y - f.y) < 36){ f.alive = false; S.score += f.p; S.api.score(S.score); pop(f.x, f.y, f.k === 'graeskar' ? '#FF8A3D' : f.k === 'flagermus' ? '#C79BFF' : '#F2EEFF', 10); tone(520 + f.p * 10, 0.07, 'square', 0.03, 0, 1.6); return false; } }
+      if (S.owl && Math.abs(s.x - S.owl.x) < 40 && Math.abs(s.y - 64) < 34){ S.score += 100; S.api.score(S.score); pop(S.owl.x, 64, '#FFE27A', 16); SND.play('invader.ugle', () => sfx.twinkle()); S.owl = null; return false; }
+      for (const f of S.foes){ if (!f.alive) continue; if (Math.abs(s.x - f.x) < 46 && Math.abs(s.y - f.y) < 36){ f.alive = false; S.score += f.p; S.api.score(S.score); pop(f.x, f.y, f.k === 'graeskar' ? '#FF8A3D' : f.k === 'flagermus' ? '#C79BFF' : '#F2EEFF', 10); SND.play('invader.ramt', () => tone(520 + f.p * 10, 0.07, 'square', 0.03, 0, 1.6)); return false; } }
       if (cloudHit(s.x, s.y)) return false;
       return true; });
     S.slime = S.slime.filter(s => {
@@ -97,7 +97,7 @@
   function pop(x, y, c, n){ for (let i = 0; i < n; i++) S.parts.push({ x, y, vx: (Math.random() - .5) * 300, vy: (Math.random() - .7) * 260, t: 0, c }); }
   function lose(all){
     if (!S) return;
-    S.lives = all ? 0 : S.lives - 1; hearts(); pop(S.wx, WY - 30, '#9BE36A', 18); tone(160, 0.3, 'sawtooth', 0.04, 0, 0.6);
+    S.lives = all ? 0 : S.lives - 1; hearts(); pop(S.wx, WY - 30, '#9BE36A', 18); SND.play('invader.au', () => tone(160, 0.3, 'sawtooth', 0.04, 0, 0.6));
     if (S.lives <= 0){ S.over = true; const n = S.score, w = S.wave, api = S.api; draw(); setTimeout(() => api.end(n, `Du nåede bølge ${w}.`), 700); return; }
     S.inv = 1.6; S.slime = [];
   }

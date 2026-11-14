@@ -164,7 +164,7 @@ const Arkade = (() => {
   /* ---------- hallen som skærm ---------- */
   function show(){
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
-    showScreen('#arkade'); playMusic('byen'); busy = false;
+    showScreen('#arkade'); playMusic('arkade'); busy = false;
     const box = $('#arkadeBody'); box.innerHTML = '';
     box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
@@ -177,7 +177,7 @@ const Arkade = (() => {
     const id = g.dataset.cab, c = CABS.find(x => x.id === id);
     replay(g, 'jiggle');
     if (!GAMES[id]){ sfx.nope(); toast(`${c.name} kommer snart!`); return; }
-    sfx.coin(); busy = true;
+    SND.play('arkade.start', () => sfx.coin()); busy = true;
     setTimeout(() => openGame(id), 260);
   }
 
@@ -202,7 +202,7 @@ const Arkade = (() => {
   /* opts (gribemaskinen): { title, big, art, again } i stedet for point og rekord */
   function endCard(id, name, n, line, opts){
     const o = opts || {}, rec = !opts && hiSet(id, n), hi = hiOf(id);
-    if (o.sound !== false){ if (rec && n > 0 || o.win) sfx.fanfare(); else sfx.magic(); }
+    if (o.sound !== false){ if (rec && n > 0 || o.win) SND.play('arkade.rekord', () => sfx.fanfare()); else SND.play('arkade.slut', () => sfx.magic()); }
     const card = el('div', { class:'ak-end' }, [ el('div', { class:'ak-card' }, [
       el('h2', {}, o.title || (rec && n > 0 ? 'Ny rekord!' : 'Godt spillet!')),
       o.art ? el('div', { class:'ak-art', html: o.art }) : null,

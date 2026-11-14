@@ -1,0 +1,412 @@
+[
+ {
+  "gruppe": "Musik",
+  "id": "musik",
+  "slots": [
+   {
+    "key": "byen",
+    "musik": true,
+    "navn": "Byen",
+    "hvor": "Kortet, værelset, kollegiet",
+    "forslag": "Rolig, glad melodi med celesta eller spilledåse og blid pizzicato. Skal kunne køre i lang tid uden at blive irriterende, ca. 90-100 slag i minuttet."
+   },
+   {
+    "key": "kaelder",
+    "musik": true,
+    "navn": "Eliksirkælderen",
+    "hvor": "Skolen og eliksirkælderen",
+    "forslag": "Lidt mystisk og hyggelig: fagot, klarinet og en boblende harpe. Mol, men aldrig uhyggelig."
+   },
+   {
+    "key": "show",
+    "musik": true,
+    "navn": "Show og fart",
+    "hvor": "Modeshow, kosteflyvning, faldskærm",
+    "forslag": "Festlig og fremadrettet, gerne med messing og trommer. Omkring 120-130 slag i minuttet."
+   },
+   {
+    "key": "arkade",
+    "musik": true,
+    "navn": "Arkadehallen",
+    "hvor": "Inde i arkaden mellem spillene",
+    "forslag": "Glad chiptune-agtig hall-musik i 8-bit-stil, blandet med lidt klokkespil, så det stadig føles magisk."
+   },
+   {
+    "key": "gnom",
+    "musik": true,
+    "navn": "Bank en gnom",
+    "hvor": "Under gnom-spillet",
+    "forslag": "Hurtig og fjollet polka eller cirkusmusik, der giver lyst til at banke løs."
+   },
+   {
+    "key": "skjold",
+    "musik": true,
+    "navn": "Stjerneskjoldet",
+    "hvor": "Under meteor-spillet",
+    "forslag": "Episk, men for børn: strygere og pauker, der bygger op med hver bølge."
+   },
+   {
+    "key": "invader",
+    "musik": true,
+    "navn": "Hekse-invaders",
+    "hvor": "Under heksespillet",
+    "forslag": "Driftig synth-melodi med en lille hekse-latter-agtig figur. Gerne et loop på 30-60 sekunder."
+   },
+   {
+    "key": "gribe",
+    "musik": true,
+    "navn": "Gribemaskinen",
+    "hvor": "Ved klomaskinen",
+    "forslag": "Afslappet spilledåse eller lounge-jazz, som en rigtig klomaskine i et indkøbscenter."
+   }
+  ]
+ },
+ {
+  "gruppe": "Arkaden",
+  "id": "arkade",
+  "slots": [
+   {
+    "key": "arkade.start",
+    "navn": "Mønt i maskinen",
+    "hvor": "Når man starter et spil (koster 1 stjerne)",
+    "forslag": "En mønt der klirrer ned i en automat, efterfulgt af et lille kling."
+   },
+   {
+    "key": "arkade.rekord",
+    "navn": "Ny rekord eller gevinst",
+    "hvor": "Slutkortet, når man slår sin rekord",
+    "forslag": "Kort fanfare med klokkespil, 1-2 sekunder."
+   },
+   {
+    "key": "arkade.slut",
+    "navn": "Spillet er slut",
+    "hvor": "Slutkortet uden rekord",
+    "forslag": "Blød harpe-opadgang. Venlig, ikke skuffet."
+   }
+  ]
+ },
+ {
+  "gruppe": "Bank en gnom",
+  "id": "gnom",
+  "slots": [
+   {
+    "key": "gnom.slag",
+    "navn": "Køllen rammer",
+    "hvor": "Hver gang man rammer en gnom",
+    "forslag": "Et gummiagtigt bonk, som en skumkølle på et hoved."
+   },
+   {
+    "key": "gnom.av",
+    "navn": "Gnomen siger av",
+    "hvor": "En sur gnom bliver ramt",
+    "forslag": "Et lille surt grynt eller \"Av!\". Agnes kunne indtale den selv."
+   },
+   {
+    "key": "gnom.guld",
+    "navn": "Guldgnom",
+    "hvor": "Guldgnomen bliver ramt (+3)",
+    "forslag": "Klirrende guldmønter og et glimt."
+   },
+   {
+    "key": "gnom.kanin",
+    "navn": "Ups, kaninen",
+    "hvor": "Man rammer kaninen (-2)",
+    "forslag": "Et forskrækket piv efterfulgt af en lille \"buuh\"-tone."
+   },
+   {
+    "key": "gnom.forbi",
+    "navn": "Forbi",
+    "hvor": "Man slår i et tomt hul",
+    "forslag": "Dumpt bank i træ."
+   }
+  ]
+ },
+ {
+  "gruppe": "Stjerneskjoldet",
+  "id": "skjold",
+  "slots": [
+   {
+    "key": "skjold.skud",
+    "navn": "Tryllestaven skyder",
+    "hvor": "Hvert tryk på himlen",
+    "forslag": "Kort glitrende sus opad, som et stjerneskud."
+   },
+   {
+    "key": "skjold.kugle",
+    "navn": "Stjernekuglen springer",
+    "hvor": "Når skuddet når frem og folder sig ud",
+    "forslag": "Blødt glimmer-pop, som et lille fyrværkeri."
+   },
+   {
+    "key": "skjold.meteor",
+    "navn": "Meteor knust",
+    "hvor": "En meteor bliver ramt",
+    "forslag": "Sten der knaser, efterfulgt af en lys klokketone."
+   },
+   {
+    "key": "skjold.skjold",
+    "navn": "Skjoldet tager slaget",
+    "hvor": "En meteor rammer kuplen over skolen",
+    "forslag": "Et dybt glas-\"woong\", som at slå på en stor krystalskål."
+   },
+   {
+    "key": "skjold.ramt",
+    "navn": "Huset bliver ramt",
+    "hvor": "En meteor rammer jorden eller et hus",
+    "forslag": "Dump rumlen med lidt grus. Ikke en voldsom eksplosion."
+   },
+   {
+    "key": "skjold.boelge",
+    "navn": "Ny bølge",
+    "hvor": "Når en bølge er klaret",
+    "forslag": "Harpe-glissando opad."
+   }
+  ]
+ },
+ {
+  "gruppe": "Hekse-invaders",
+  "id": "invader",
+  "slots": [
+   {
+    "key": "invader.skud",
+    "navn": "Heksen skyder",
+    "hvor": "Hvert skud (kommer tit)",
+    "forslag": "Meget kort og blødt pling. Den høres hele tiden, så den skal være stille og behagelig."
+   },
+   {
+    "key": "invader.ramt",
+    "navn": "Fjende ramt",
+    "hvor": "En flagermus, et spøgelse eller lignende bliver ramt",
+    "forslag": "Et lille puf og en sød tone."
+   },
+   {
+    "key": "invader.au",
+    "navn": "Heksen bliver ramt",
+    "hvor": "Man mister et liv",
+    "forslag": "Et komisk \"øv\" eller en nedadgående fløjtetone."
+   },
+   {
+    "key": "invader.ugle",
+    "navn": "Uglen",
+    "hvor": "Bonus-uglen bliver ramt",
+    "forslag": "Ugle-\"huhu\" og en glimmerlyd."
+   },
+   {
+    "key": "invader.boelge",
+    "navn": "Ny bølge",
+    "hvor": "Alle fjender er væk",
+    "forslag": "Kort triumf-arpeggio."
+   }
+  ]
+ },
+ {
+  "gruppe": "Gribemaskinen",
+  "id": "gribe",
+  "slots": [
+   {
+    "key": "gribe.motor",
+    "navn": "Kloen kører",
+    "hvor": "Mens man holder en pil nede",
+    "forslag": "Svag elektrisk summen. Kort, så den kan gentages."
+   },
+   {
+    "key": "gribe.ned",
+    "navn": "Kloen sænkes",
+    "hvor": "Når man trykker GRIB",
+    "forslag": "Wire der ruller ud, med en lille motorlyd."
+   },
+   {
+    "key": "gribe.luk",
+    "navn": "Kloen lukker",
+    "hvor": "Nede i bunken",
+    "forslag": "Mekanisk klik-klak."
+   },
+   {
+    "key": "gribe.greb",
+    "navn": "Fik fat",
+    "hvor": "Kloen har fat i en bamse",
+    "forslag": "Et lille glad bip."
+   },
+   {
+    "key": "gribe.slip",
+    "navn": "Kloen slipper",
+    "hvor": "Kloen åbner over præmie-lugen",
+    "forslag": "Et klik og et lille \"vuup\" nedad."
+   },
+   {
+    "key": "gribe.bump",
+    "navn": "Bamsen lander",
+    "hvor": "En bamse falder ned i bunken",
+    "forslag": "Blødt bump, som en bamse på en dyne."
+   },
+   {
+    "key": "gribe.glider",
+    "navn": "Bamsen glider ud",
+    "hvor": "I det øjeblik bamsen slipper kloen",
+    "forslag": "Et \"vuup\" nedad."
+   },
+   {
+    "key": "gribe.oev",
+    "navn": "Greb forbi",
+    "hvor": "Slutkortet, når kloen ikke fik fat",
+    "forslag": "Venlig \"buuh\"-tone."
+   },
+   {
+    "key": "gribe.vandt",
+    "navn": "Vundet!",
+    "hvor": "Bamsen falder ned i præmie-lugen",
+    "forslag": "Fanfare og konfetti-lyd."
+   }
+  ]
+ },
+ {
+  "gruppe": "Dyr og figurer",
+  "id": "dyr",
+  "slots": [
+   {
+    "key": "sfx.meow",
+    "navn": "Kat",
+    "hvor": "Katten på kortet og kæledyret",
+    "forslag": "Et rigtigt, lille kattemjav."
+   },
+   {
+    "key": "sfx.bark",
+    "navn": "Hund",
+    "hvor": "Kæledyret",
+    "forslag": "Et lille glad vov."
+   },
+   {
+    "key": "sfx.quack",
+    "navn": "Ænder",
+    "hvor": "Ænderne og anden",
+    "forslag": "To små rap."
+   },
+   {
+    "key": "sfx.ribbit",
+    "navn": "Frø",
+    "hvor": "Frøen ved vandet",
+    "forslag": "Kvæk."
+   },
+   {
+    "key": "sfx.chirp",
+    "navn": "Fugle og enhjørning",
+    "hvor": "Fuglerede, duer, kragen, enhjørningen",
+    "forslag": "Små fuglepip."
+   },
+   {
+    "key": "sfx.roar",
+    "navn": "Brum",
+    "hvor": "Bjørnen, trolden, dragen",
+    "forslag": "Et brum, der er mere sødt end farligt."
+   },
+   {
+    "key": "sfx.squeak",
+    "navn": "Små pip",
+    "hvor": "Pindsvin, egern, mus, kanin",
+    "forslag": "Små pip og snøft."
+   },
+   {
+    "key": "sfx.hello",
+    "navn": "Hej",
+    "hvor": "Folk der hilser, isbod, gyngen",
+    "forslag": "Venligt to-tone \"hej-hej\"."
+   }
+  ]
+ },
+ {
+  "gruppe": "Standardlyde",
+  "id": "std",
+  "slots": [
+   {
+    "key": "sfx.pick",
+    "navn": "Vælg",
+    "hvor": "Tryk på knapper og ting overalt",
+    "forslag": "Kort, blødt klik. Den bruges hele tiden."
+   },
+   {
+    "key": "sfx.magic",
+    "navn": "Magi",
+    "hvor": "Noget lykkes, en trylleformular",
+    "forslag": "Glitrende arpeggio opad."
+   },
+   {
+    "key": "sfx.coin",
+    "navn": "Stjerne",
+    "hvor": "Man får eller betaler en stjerne",
+    "forslag": "Mønt-kling."
+   },
+   {
+    "key": "sfx.fanfare",
+    "navn": "Fanfare",
+    "hvor": "Store sejre: eliksir klar, rekorder",
+    "forslag": "Kort trompetfanfare."
+   },
+   {
+    "key": "sfx.nope",
+    "navn": "Nej",
+    "hvor": "Noget går ikke, eller er forkert",
+    "forslag": "Venligt \"uh-uh\", aldrig hårdt."
+   },
+   {
+    "key": "sfx.open",
+    "navn": "Åbn",
+    "hvor": "Døre, skuffer og menuer åbnes",
+    "forslag": "Lille dør-knirk eller sød to-tone."
+   },
+   {
+    "key": "sfx.undo",
+    "navn": "Tilbage",
+    "hvor": "Fortryd, tilbage",
+    "forslag": "En enkelt blød tone."
+   },
+   {
+    "key": "sfx.whoosh",
+    "navn": "Sus",
+    "hvor": "Ting der flyver forbi",
+    "forslag": "Vindsus."
+   },
+   {
+    "key": "sfx.splash",
+    "navn": "Plask",
+    "hvor": "Springvandet, brønden, eliksir",
+    "forslag": "Lille plask."
+   },
+   {
+    "key": "sfx.pop",
+    "navn": "Pop",
+    "hvor": "Nisserne, drageægget, bobler",
+    "forslag": "Boble-pop."
+   },
+   {
+    "key": "sfx.twinkle",
+    "navn": "Glimt",
+    "hvor": "Stjerner og glimmer",
+    "forslag": "Tre lyse klokketoner."
+   },
+   {
+    "key": "sfx.wobble",
+    "navn": "Vrik",
+    "hvor": "Tryllekugler der vugger",
+    "forslag": "Gummi-boing."
+   },
+   {
+    "key": "sfx.crack",
+    "navn": "Revne",
+    "hvor": "Tryllekuglen der knækker",
+    "forslag": "Glas der klirrer, men pænt."
+   },
+   {
+    "key": "sfx.color",
+    "navn": "Farve",
+    "hvor": "Valg af farve på værelset",
+    "forslag": "Pensel-strøg eller en lille tone."
+   },
+   {
+    "key": "sfx.paddle",
+    "navn": "Catwalk-trin",
+    "hvor": "Modeshowet",
+    "forslag": "Hæle på et gulv."
+   }
+  ]
+ }
+]

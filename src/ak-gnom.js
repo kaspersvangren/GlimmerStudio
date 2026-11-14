@@ -55,7 +55,7 @@
   }
 
   function start(stage, api){
-    stage.innerHTML = boardSvg();
+    stage.innerHTML = boardSvg(); playMusic('gnom');
     const svg = stage.querySelector('svg');
     /* på en bred, lav skærm (telefon) zoomes ind på hullerne, og tiden vises i en pille i stedet for på bagpladen */
     const short = stage.clientWidth / Math.max(1, stage.clientHeight) > 1.75;
@@ -125,13 +125,13 @@
     S.holes.forEach((m, i) => { if (!m || m.state !== 'op' || (m.y || 0) < 0.35) return;
       const k = m.h.k, hx = m.h.x, hy = m.h.y - 100 * k, dx = (p.x - hx) / (100 * k), dy = (p.y - hy) / (130 * k), d = dx * dx + dy * dy;
       if (d < 1 && d < bd){ bd = d; best = i; } });
-    if (best < 0){ tone(140, 0.08, 'sine', 0.06, 0, 0.6); return; }
+    if (best < 0){ SND.play('gnom.forbi', () => tone(140, 0.08, 'sine', 0.06, 0, 0.6)); return; }
     const m = S.holes[best]; m.state = 'ramt'; m.t = performance.now();
     m.g.querySelectorAll('.face-sur').forEach(e => { e.style.display = 'none'; });
     m.g.querySelectorAll('.face-dizzy').forEach(e => { e.style.display = ''; });
     const hx = m.h.x, hy = m.h.y - 150 * m.h.k;
-    if (m.kind === 'kanin'){ S.score = Math.max(0, S.score - 2); sfx.nope(); burst(hx, hy, '#FF8FB0', 'Av! −2'); S.msg = 'Ikke kaninen!'; S.msgUntil = performance.now() + 1400; }
-    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; tone(220, 0.09, 'square', 0.06, 0, 0.5); if (m.kind === 'guld') sfx.twinkle(); else tone(880, 0.06, 'triangle', 0.04, 0.05); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
+    if (m.kind === 'kanin'){ S.score = Math.max(0, S.score - 2); SND.play('gnom.kanin', () => sfx.nope()); burst(hx, hy, '#FF8FB0', 'Av! −2'); S.msg = 'Ikke kaninen!'; S.msgUntil = performance.now() + 1400; }
+    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; SND.play('gnom.slag', () => tone(220, 0.09, 'square', 0.06, 0, 0.5)); if (m.kind === 'guld') SND.play('gnom.guld', () => sfx.twinkle()); else SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
     S.api.score(S.score);
     const pt = S.svg.querySelector('.g-pt'); if (pt) pt.textContent = String(S.score).padStart(3, '0');
   }
