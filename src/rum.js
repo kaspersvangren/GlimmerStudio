@@ -408,7 +408,8 @@ function placeMood(pools = [], opts = {}){
   if (opts.moon) o += opts.moon;
   o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="url(#${id}v)"/>`;
   if (!calm) for (let i = 0; i < 14; i++){ const x = (opts.dx || 380) + (i * 97) % (opts.dw || 900), y = 220 + (i * 61) % 560;
-    o += `<circle cx="${x}" cy="${y}" r="${1.5 + (i % 3)}" fill="#FFF3D0" opacity="0"><animate attributeName="opacity" values="0;.7;0" dur="${5 + i % 4}s" begin="${(i * 0.7).toFixed(1)}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;${(i%2 ? 18 : -14)} -40" dur="${5 + i % 4}s" begin="${(i * 0.7).toFixed(1)}s" repeatCount="indefinite"/></circle>`; }
+    /* støvet svæver med CSS (SVG'ens egne animationer får browseren til at regne hele scenen igennem i hvert billede) */
+    o += `<circle class="mote" cx="${x}" cy="${y}" r="${1.5 + (i % 3)}" fill="#FFF3D0" style="--mx:${i % 2 ? 18 : -14}px;--dur:${5 + i % 4}s;--del:${(i * 0.7).toFixed(1)}s"/>`; }
   return `<g pointer-events="none">${o}</g>`;
 }
 function roomMood(lit, moonlit){ return placeMood(lit ? [[860, 360, 620, 460]] : [], { moon: moonlit ? `<path d="M 300 440 L 580 440 L 820 1000 L 180 1000 Z" fill="#BFD6FF" opacity=".07"/>` : '' }); }

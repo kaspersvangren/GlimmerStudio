@@ -574,7 +574,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #potScene .hglass.out{opacity:.45}
 #potScene .cover{cursor:pointer}
 @keyframes stirspin{0%{opacity:.95}50%{opacity:.5}100%{opacity:.95}}
-#potScene .ladle{transition:transform .08s linear}
+/* sleven følger fingeren direkte (ingen forsinkelse) */
+
 #potScene .drop{transform-box:fill-box;transform-origin:50% 50%;animation:pdrop .7s ease-out forwards}
 @keyframes pdrop{0%{transform:translate(0,0)}60%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
 #potScene .smoke{transform-box:fill-box;transform-origin:50% 100%;animation:smoke 1s ease-out forwards}
@@ -846,3 +847,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .gpu-cam .gpu-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
 .gpu-cam .gpu-p,.gpu-cam .gpu-bg{position:absolute;left:0;top:0;display:block;max-width:none}
 .gpu-layer.px1 .gpu-bg,.gpu-layer.px1 .gpu-fix{image-rendering:pixelated;will-change:transform}
+
+/* svævende støv i stederne (før SVG-animationer) */
+.mote{opacity:0;animation:mote var(--dur) linear var(--del) infinite}
+@keyframes mote{0%{opacity:0;transform:translate(0,0)}50%{opacity:.7}100%{opacity:0;transform:translate(var(--mx),-40px)}}
+@media (prefers-reduced-motion: reduce){ .mote{animation:none} }
