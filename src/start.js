@@ -1,0 +1,205 @@
+/* ================= Start: indlæsning, tre gemte spil og bog-introen ================= */
+
+/* ---------- indlæsning: byen bygges og bages bag et tæppe, før titelskærmen vises ----------
+   Første gang en ny udgave kører, skal kortet tegnes om (det tager flere sekunder på en telefon).
+   Det sker her, så man aldrig ser et kort, der hakker. Næste gang hentes det fra lageret og går hurtigt. */
+async function startGame(){
+  const bar = el('i'), msg = el('p', { class:'ld-msg' }, 'Tryller byen frem …');
+  const ld = el('div', { id:'loader', role:'status', 'aria-live':'polite' }, [
+    el('div', { class:'ld-logo' }, GAME_NAME),
+    el('div', { class:'ld-star', 'aria-hidden':'true', html:'<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z" fill="#FFE27A" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/></svg>' }),
+    el('div', { class:'ld-bar' }, [ bar ]), msg ]);
+  document.body.append(ld);
+  const t0 = performance.now(); let shown = 0;
+  try { showTown({ quiet: true }); } catch (e){ DBG.row('fejl', { besked: 'indlæsning: ' + e.message }); }
+  const canBake = !window.NO_BAKE && !!window.indexedDB;
+  while (canBake && performance.now() - t0 < 30000 && !(BAKE.ok && BAKE.ok === BAKE.gen)){
+    const t = (performance.now() - t0) / 1000;
+    shown = Math.max(shown, Math.min(.95, BAKE.prog * .85 + Math.min(.1, t / 40)));
+    bar.style.width = (shown * 100).toFixed(1) + '%';
+    if (t > 4) msg.textContent = 'Første gang tager det lidt længere …';
+    await wait(100);
+  }
+  bar.style.width = '100%';
+  DBG.row('indlaest', { ms: Math.round(performance.now() - t0), klar: !!(BAKE.ok && BAKE.ok === BAKE.gen) });
+  await wait(350);              // lad telefonen tegne kortet færdigt én gang, mens tæppet stadig er der
+  showTitle();
+  ld.classList.add('out'); setTimeout(() => ld.remove(), 600);
+}
+
+/* ---------- tre gemte spil ---------- */
+const SLOT_DATA = ['glimmerstudiet.dukker.v1', 'glimmerstudiet.fremskridt.v1', 'glimmerstudiet.gemtstjerne', 'glimmerstudiet.oekser', 'glimmerstudiet.arkade', 'glimmerstudiet.bamser'];
+let firstDress = false;         /* sat, når en ny heks skal laves lige efter introen: tilbage-knappen går så ud i byen */
+function slotInfo(n){
+  const figs = store.get(KEY, [], n), p = store.get(KEY_PROG, null, n) || {};
+  const list = Array.isArray(figs) ? figs.slice().sort((a, b) => (b.t || 0) - (a.t || 0)) : [];
+  const used = list.length > 0 || !!p.intro || (+p.stars || 0) > 0;
+  return { n, used, name: p.name || (list[0] && list[0].name) || '', stars: Math.max(0, +p.stars || 0), st: list[0] ? enforce(fixState(clone(list[0].st))) : null };
+}
+function setSlot(n){
+  SLOT = n; try { localStorage.setItem(SLOT_KEY, String(n)); } catch (e){}
+  const f = store.get(KEY, []); figures = Array.isArray(f) ? f : [];
+  prog = loadProg(); heroAt = 'hus'; cur = null; history = [];
+  updateStarPills();
+}
+function clearSlot(n){ for (const k of SLOT_DATA) store.del(k, n); if (n === SLOT) setSlot(n); }
+
+const BOOK_COL = [['#5B2E91', '#3A1A63'], ['#1F6E6A', '#10433F'], ['#8E2A3F', '#5A1426']];
+function showSlots(){
+  showScreen('#slots'); playMusic('byen');
+  const box = $('#slotsBody'); box.innerHTML = '';
+  const books = [1, 2, 3].map(n => {
+    const s = slotInfo(n), [c1, c2] = BOOK_COL[n - 1];
+    const face = s.used
+      ? [ el('div', { class:'sb-port' }, [ dollImg(s.st || enforce(clone(DEFAULT_STATE)), { viewBox: '205 150 390 390', pet: false, alt: '' }) ]),
+          el('div', { class:'sb-name' }, s.name || 'Uden navn'),
+          el('div', { class:'sb-stars', html: STAR_SVG + '<span>' + s.stars + '</span>' }) ]
+      : [ el('div', { class:'sb-port sb-new', html: '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 22v56M22 50h56" stroke="#F2D27A" stroke-width="9" stroke-linecap="round"/></svg>' }),
+          el('div', { class:'sb-name' }, 'Nyt spil') ];
+    const book = el('button', { class:'sbook' + (s.used ? '' : ' empty'), type:'button', style:`--c1:${c1};--c2:${c2}`, 'aria-label': s.used ? `Spil som ${s.name || 'uden navn'}` : 'Start et nyt spil',
+      on:{ click: () => pickSlot(n, s.used) } }, [ el('div', { class:'sb-cover' }, face) ]);
+    const del = s.used ? el('button', { class:'sb-del', type:'button', 'aria-label':'Slet dette spil', html: ic('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
+      on:{ click: e => { e.stopPropagation(); sfx.pick(); showModal('Slet ' + (s.name || 'dette spil') + '?', 'Hele spillet bliver slettet: heksen, stjernerne og alt det, hun har samlet. Det kan ikke fortrydes.', [
+        { label:'Nej' }, { label:'Ja, slet', hot:true, fn: () => { clearSlot(n); sfx.undo(); showSlots(); } } ]); } } }) : null;
+    return el('div', { class:'sb-wrap' }, [ book, del ]);
+  });
+  box.append(
+    el('div', { class:'sb-bg', 'aria-hidden':'true' }),
+    el('div', { class:'place-ui tl' }, [ backBtn('Forsiden', showTitle) ]),
+    el('h1', { class:'sb-title' }, 'Hvem skal spille?'),
+    el('div', { class:'sb-shelf' }, books));
+}
+function pickSlot(n, used){
+  sfx.magic(); setSlot(n);
+  if (used) goTo(showTown); else goTo(showIntro);
+}
+
+/* ---------- introen: en illustreret eventyrbog ----------
+   Tekst: Kaspers oplæg, skrevet til at kunne læses af en 8-årig. {navn} er det navn, man skriver på første side. */
+const INTRO_PAGES = [
+  { art:'portraet', lines:[ ['big', 'Hej med dig!'], ['name', 'Jeg hedder'], ['', 'og jeg vil gerne invitere dig ind i min verden.'] ] },
+  { art:'hat', lines:[ ['', 'Min verden er ikke helt almindelig.'], ['', 'For jeg er heller ikke helt almindelig …'], ['big glow', 'Jeg er nemlig en heks!'] ] },
+  { art:'slot', lines:[ ['', 'Jeg går i skole, ligesom dig.'], ['big', 'Men min skole er en magisk skole!'] ] },
+  { art:'kost', lines:[ ['', 'Vi flyver på koste, brygger eliksirer og springer i faldskærm fra skyerne.'], ['', 'Og nogle gange hygger vi os bare.'] ] },
+  { art:'doer', lines:[ ['', 'Så kom med mig ind i min verden …'], ['big', 'eller skulle jeg sige …'] ] },
+];
+const INTRO_END = { text: 'Men hov … hvordan ser jeg egentlig ud? Det må du bestemme!', btn: 'Lav min heks' };
+
+/* tegningerne på venstresiderne: blæk og vandfarve på gammelt papir */
+function introArt(kind){
+  const INK = '#4A3020', W = (id, c, o = .55) => `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity="${o}"/><stop offset=".7" stop-color="${c}" stop-opacity="${o * .45}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+  const star = (x, y, r, c = '#E2A93B') => `<path d="M ${x} ${y - r} L ${x + r * .28} ${y - r * .28} L ${x + r} ${y} L ${x + r * .28} ${y + r * .28} L ${x} ${y + r} L ${x - r * .28} ${y + r * .28} L ${x - r} ${y} L ${x - r * .28} ${y - r * .28} Z" fill="${c}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  const dots = [[60, 70, 7], [330, 90, 9], [300, 360, 6], [80, 330, 8], [350, 230, 5], [50, 200, 5]].map(([x, y, r]) => star(x, y, r)).join('');
+  let d = `<defs>${W('wP', '#7B4FD0')}${W('wB', '#3D6FC2')}${W('wG', '#F2C14E', .7)}${W('wR', '#C2465E')}${W('wT', '#2E9C8A')}</defs>`;
+  if (kind === 'portraet'){
+    d += `<ellipse cx="200" cy="215" rx="150" ry="160" fill="url(#wG)"/>`
+      + `<ellipse cx="200" cy="215" rx="112" ry="140" fill="#F7EBD0" stroke="#B88A2E" stroke-width="10"/><ellipse cx="200" cy="215" rx="112" ry="140" fill="none" stroke="${INK}" stroke-width="2"/><ellipse cx="200" cy="215" rx="98" ry="126" fill="url(#wP)" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 116 330 C 124 280 160 262 200 262 C 240 262 276 280 284 330 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/><circle cx="200" cy="222" r="42" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/>`
+      + `<path d="M 134 196 Q 200 176 266 196 Q 200 206 134 196 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/><path d="M 160 192 C 172 150 190 116 236 90 C 222 120 226 156 240 190 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/>`
+      + `<text x="200" y="244" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="62" fill="#F2C14E" stroke="${INK}" stroke-width="1.5">?</text>`
+      + [[200, 68], [92, 215], [308, 215], [200, 362]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="#E2A93B" stroke="${INK}" stroke-width="1.5"/>`).join('') + dots;
+  } else if (kind === 'hat'){
+    d += `<ellipse cx="200" cy="250" rx="170" ry="130" fill="url(#wP)"/><ellipse cx="290" cy="120" rx="90" ry="70" fill="url(#wG)"/>`
+      + `<ellipse cx="190" cy="318" rx="150" ry="34" fill="#5B3FA8" stroke="${INK}" stroke-width="2.5"/><path d="M 72 316 Q 190 346 308 316" fill="none" stroke="#8B6FD8" stroke-width="5" opacity=".6"/>`
+      + `<path d="M 112 314 C 130 240 150 170 176 118 C 194 82 226 64 262 70 C 238 84 224 108 224 140 C 226 200 248 262 270 312 Q 190 330 112 314 Z" fill="#6B4FC0" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`
+      + `<path d="M 122 286 Q 196 304 266 286 L 272 306 Q 194 324 116 306 Z" fill="#C2465E" stroke="${INK}" stroke-width="2"/><rect x="176" y="284" width="34" height="28" rx="4" fill="#F2C14E" stroke="${INK}" stroke-width="2"/><rect x="185" y="292" width="16" height="12" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>`
+      + star(170, 200, 12, '#F2D27A') + star(206, 150, 9, '#F2D27A') + star(150, 250, 8, '#F2D27A')
+      + `<path d="M 300 330 L 360 206" stroke="#6A4128" stroke-width="10" stroke-linecap="round"/><path d="M 300 330 L 360 206" stroke="${INK}" stroke-width="2" fill="none"/>` + star(364, 196, 20, '#F2C14E')
+      + `<path d="M 340 170 q -20 -30 -60 -36 M 384 178 q 10 -36 -4 -70 M 352 160 q -6 -24 -2 -44" stroke="#E2A93B" stroke-width="3" fill="none" stroke-dasharray="4 8" stroke-linecap="round"/>` + dots;
+  } else if (kind === 'slot'){
+    d += `<ellipse cx="200" cy="170" rx="190" ry="150" fill="url(#wB)"/><circle cx="300" cy="96" r="40" fill="#F7E7B0" stroke="${INK}" stroke-width="2"/><circle cx="318" cy="84" r="36" fill="#E9D9F2"/>`
+      + `<path d="M 0 360 C 80 290 160 284 230 300 C 300 316 360 300 400 280 V 440 H 0 Z" fill="#5E8F5A" stroke="${INK}" stroke-width="2.5"/><path d="M 0 400 C 120 360 260 370 400 340 V 440 H 0 Z" fill="#46703F" opacity=".7"/>`
+      + `<rect x="120" y="190" width="160" height="112" fill="#8A7FB0" stroke="${INK}" stroke-width="2.5"/>`
+      + [[96, 150, 40, 156], [264, 140, 44, 166], [176, 120, 48, 76]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#9A8FC0" stroke="${INK}" stroke-width="2.5"/><path d="M ${x - 8} ${y} L ${x + w / 2} ${y - w * 1.3} L ${x + w + 8} ${y} Z" fill="#5B3FA8" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`).join('')
+      + `<path d="M 180 302 V 262 a 20 20 0 0 1 40 0 V 302 Z" fill="#5A3A24" stroke="${INK}" stroke-width="2"/>`
+      + [[106, 180], [106, 230], [274, 176], [274, 226], [190, 150], [140, 230], [250, 230]].map(([x, y]) => `<rect x="${x}" y="${y}" width="18" height="24" rx="9" fill="#FFD86B" stroke="${INK}" stroke-width="1.5"/>`).join('')
+      + `<path d="M 200 44 V 20 L 226 28 L 200 36" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>` + dots;
+  } else if (kind === 'kost'){
+    d += `<circle cx="210" cy="160" r="120" fill="url(#wG)"/><circle cx="210" cy="160" r="86" fill="#F7E7B0" stroke="${INK}" stroke-width="2"/>`
+      + `<g transform="rotate(-12 200 170)">`
+      + `<path d="M 186 96 C 160 92 140 100 118 96 C 136 108 146 112 160 114 C 146 120 136 126 124 126 C 150 130 170 120 186 110 Z" fill="#E2A93B" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`
+      + `<path d="M 70 176 L 300 176" stroke="#8A5A35" stroke-width="9" stroke-linecap="round"/><path d="M 70 176 L 300 176" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 74 166 C 50 160 30 152 8 160 C 24 172 24 180 8 192 C 30 200 50 192 74 186 Z" fill="#E2A93B" stroke="${INK}" stroke-width="2"/><path d="M 74 170 L 20 166 M 74 176 L 14 176 M 74 182 L 20 188" stroke="${INK}" stroke-width="1.2"/>`
+      + `<path d="M 212 192 L 236 226" stroke="#3A2A5A" stroke-width="12" stroke-linecap="round"/><path d="M 228 222 L 252 224 Q 256 232 246 234 L 226 232 Z" fill="#6A4128" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>`
+      + `<path d="M 188 110 C 170 128 160 160 154 196 Q 186 206 222 198 C 222 168 216 132 204 110 Z" fill="#6B4FC0" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`
+      + `<path d="M 202 122 C 220 138 236 156 248 170" stroke="#6B4FC0" stroke-width="13" stroke-linecap="round" fill="none"/><circle cx="250" cy="174" r="8" fill="#F2D2B8" stroke="${INK}" stroke-width="1.8"/>`
+      + `<circle cx="200" cy="92" r="20" fill="#F2D2B8" stroke="${INK}" stroke-width="2"/><circle cx="210" cy="90" r="2.6" fill="${INK}"/><path d="M 206 101 Q 212 105 217 100" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="204" cy="98" r="4" fill="#FF9AA8" opacity=".6"/>`
+      + `<path d="M 178 78 C 168 60 156 40 132 30 C 160 34 184 50 206 74 Z" fill="#5B3FA8" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><ellipse cx="196" cy="77" rx="32" ry="7" transform="rotate(-8 196 77)" fill="#5B3FA8" stroke="${INK}" stroke-width="2"/><path d="M 180 74 Q 194 70 208 70" stroke="#C2465E" stroke-width="4" fill="none"/>`
+      + `</g>`
+      + `<ellipse cx="300" cy="352" rx="64" ry="18" fill="#3A2A2A" stroke="${INK}" stroke-width="2"/><path d="M 240 316 Q 236 382 300 384 Q 364 382 360 316 Z" fill="#3A2A2A" stroke="${INK}" stroke-width="2.5"/><ellipse cx="300" cy="316" rx="62" ry="16" fill="#62E0A0" stroke="${INK}" stroke-width="2"/>`
+      + [[280, 290, 10], [312, 270, 7], [296, 246, 5], [330, 296, 6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#B8F5D0" stroke="${INK}" stroke-width="1.5"/>`).join('')
+      + `<path d="M 250 392 Q 270 410 300 404 Q 330 410 350 392" stroke="#E2672E" stroke-width="6" fill="none" stroke-linecap="round"/>` + dots;
+  } else if (kind === 'doer'){
+    d += `<ellipse cx="200" cy="230" rx="180" ry="170" fill="url(#wT)"/><ellipse cx="200" cy="250" rx="120" ry="130" fill="url(#wG)"/>`
+      + `<path d="M 110 360 V 170 a 90 90 0 0 1 180 0 V 360 Z" fill="#FFF0B8" stroke="${INK}" stroke-width="3"/>`
+      + `<path d="M 110 360 V 170 a 90 90 0 0 1 64 -86 L 150 110 Q 140 140 140 180 V 380 Z" fill="#7A4A2A" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="152" cy="250" r="6" fill="#F2C14E" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 160 360 L 240 360 L 330 440 L 70 440 Z" fill="#F7E2A0" opacity=".8"/><path d="M 110 360 H 290" stroke="${INK}" stroke-width="2.5"/>`
+      + [[200, 220], [232, 180], [176, 160], [244, 270], [210, 300]].map(([x, y], i) => star(x, y, 8 + (i % 2) * 4, '#FFFFFF')).join('') + dots;
+  }
+  return `<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${d}</svg>`;
+}
+function introCover(){
+  const G = '#E8C66A', INK = '#2A1440';
+  const corner = `<path d="M 0 0 H 70 Q 40 10 30 30 Q 10 40 0 70 Z" fill="${G}" stroke="${INK}" stroke-width="1.5"/><circle cx="26" cy="26" r="8" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="22" y="22" width="356" height="396" rx="10" fill="none" stroke="${G}" stroke-width="5"/><rect x="34" y="34" width="332" height="372" rx="6" fill="none" stroke="${G}" stroke-width="1.5" stroke-dasharray="2 6"/>
+  <g transform="translate(22 22)">${corner}</g><g transform="translate(378 22) scale(-1 1)">${corner}</g><g transform="translate(22 418) scale(1 -1)">${corner}</g><g transform="translate(378 418) scale(-1 -1)">${corner}</g>
+  <path d="M 200 70 L 214 106 L 252 108 L 222 132 L 232 170 L 200 148 L 168 170 L 178 132 L 148 108 L 186 106 Z" fill="${G}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+  <text x="200" y="250" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="58" fill="${G}" stroke="${INK}" stroke-width="1.2">Magiske</text>
+  <text x="200" y="318" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="58" fill="${G}" stroke="${INK}" stroke-width="1.2">Mig</text>
+  <path d="M 110 350 Q 200 380 290 350" stroke="${G}" stroke-width="3" fill="none"/><circle cx="200" cy="366" r="6" fill="${G}"/></svg>`;
+}
+function introPage(i, side, name){
+  if (side === 'l') return el('div', { class:'pg-art', html: introArt(INTRO_PAGES[i].art) });
+  const box = el('div', { class:'pg-text' });
+  for (const [cls, txt] of INTRO_PAGES[i].lines){
+    if (cls === 'name'){
+      const inp = el('input', { class:'pg-name', maxlength:'14', autocomplete:'off', autocapitalize:'words', spellcheck:'false', placeholder:'skriv dit navn', 'aria-label':'Dit navn', value: name || '' });
+      box.append(el('p', { class:'pg-line' }, [ txt + ' ', inp ]));
+    } else box.append(el('p', { class:'pg-line ' + cls }, txt));
+  }
+  box.append(el('div', { class:'pg-num' }, String(i + 1)));
+  return box;
+}
+function showIntro(){
+  showScreen('#intro'); playMusic('byen');
+  const box = $('#introBody'); box.innerHTML = '';
+  let i = 0, name = '', busy = false;
+  const L = el('div', { class:'pg l' }), R = el('div', { class:'pg r' });
+  const next = el('button', { class:'pg-next', type:'button', 'aria-label':'Vend siden', html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' });
+  const book = el('div', { class:'ibook' }, [ el('div', { class:'ib-leather' }), L, R, el('div', { class:'ib-spine' }), next ]);
+  const after = el('div', { class:'ib-after' }, [ el('p', {}, INTRO_END.text), el('button', { class:'btn hot ib-go', type:'button', on:{ click: () => finish() } }, INTRO_END.btn) ]);
+  box.append(el('div', { class:'ib-table', 'aria-hidden':'true' }), el('div', { class:'ib-candle', 'aria-hidden':'true' }), book, after);
+  const fill = () => { L.replaceChildren(introPage(i, 'l')); R.replaceChildren(introPage(i, 'r', name)); wireName(); };
+  const nameOk = () => name.trim().length > 0;
+  const wireName = () => { const inp = R.querySelector('.pg-name'); next.disabled = !!inp && !nameOk(); if (!inp) return;
+    inp.addEventListener('input', () => { name = inp.value.replace(/\s+/g, ' ').replace(/^\s/, ''); next.disabled = !nameOk(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); inp.blur(); turn(); } }); };
+  fill();
+  async function turn(){
+    if (busy || !nameOk()) return; busy = true; sfx.whoosh();
+    const a = document.activeElement; if (a && a.blur) a.blur();
+    name = name.trim(); name = name.charAt(0).toLocaleUpperCase('da') + name.slice(1);
+    if (i === INTRO_PAGES.length - 1){ await closeBook(); busy = false; return; }
+    /* et blad vendes: forsiden er den højre side nu, bagsiden er den næste venstre side */
+    const leaf = el('div', { class:'ib-leaf' }, [ el('div', { class:'lf front' }, [ introPage(i, 'r', name) ]), el('div', { class:'lf back' }, [ introPage(i + 1, 'l') ]) ]);
+    i++; R.replaceChildren(introPage(i, 'r', name)); book.append(leaf);
+    if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(900); }
+    L.replaceChildren(introPage(i, 'l')); leaf.remove(); wireName(); busy = false;
+  }
+  async function closeBook(){
+    /* bogen lukkes: venstre side folder over, og forsiden kommer frem */
+    const leaf = el('div', { class:'ib-leaf left' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back cover', html: introCover() }) ]);
+    L.style.visibility = 'hidden'; book.append(leaf); next.hidden = true;
+    if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(1000); }
+    book.classList.add('closed'); sfx.magic();
+    prog.name = name; prog.intro = true; saveProg();
+    await wait(calm ? 0 : 1300); after.classList.add('on');
+  }
+  function finish(){
+    sfx.pick();
+    goTo(() => { firstDress = true; const f = newFigure(); f.name = name; saveAll(); $('#nameInput').value = name; $('#backLabel').textContent = 'Ud i byen'; });
+  }
+  next.addEventListener('click', turn);
+  R.addEventListener('click', e => { if (e.target.closest('input')) return; turn(); });
+}

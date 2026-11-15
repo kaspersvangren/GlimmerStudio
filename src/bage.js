@@ -5,7 +5,7 @@
    hvor det sker, så intet havner forkert i dybden. Går noget galt, bliver kortet bare som før.
    Billedet gemmes i telefonen (IndexedDB) under et fingeraftryk af kortet, så det kun skal bages én gang
    for hver udgave af kortet (tid på dagen, vejr, årstid ...). Næste gang lægges det bare på. */
-const BAKE = { url: null, gen: 0, src: '' };
+const BAKE = { url: null, gen: 0, src: '', ok: 0, prog: 0 };  /* ok: den udgave af byen, der er helt færdig (til indlæsningsskærmen) */
 const BAKE_SKIP = 'defs,clipPath,mask,pattern,linearGradient,radialGradient,filter,symbol,marker';
 const BAKE_VOLATILE = '#chars,#bubbles,#hiddenStars,.tapzone';
 const bakeLeaves = svg => [...svg.querySelectorAll('path,rect,circle,ellipse,polygon,polyline,line,use,text,image,foreignObject')].filter(e => !e.closest(BAKE_SKIP));
@@ -65,7 +65,8 @@ function bakeApply(svg, gen, rec, cached){
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
     if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
-      .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message }));
+      .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message })).finally(() => { BAKE.ok = gen; });
+    else BAKE.ok = gen;
     DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms });
   };
   if (im.decode) im.decode().then(swap, swap); else swap();
@@ -213,6 +214,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
         regs.forEach(r => { const nb = [...r]; nb.el = e; nb.t = t; if (t === 'l' && !dyn.some(d => d.t === 'l' && !d.mov && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1])) nb.mov = true; if (window.BAKE_LOG) nb.src = 'lap(' + e.tagName + ')<' + (dyn.find(d => d.t === t && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1]) || {}).src; dyn.push(nb); }); }
       clipped.set(e, R); }
     }
+    BAKE.prog = li / leaves.length;
     if (li < leaves.length){ setTimeout(step, 16); return; }
     refresh(); finish();
   };

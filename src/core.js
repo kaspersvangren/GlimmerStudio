@@ -2,14 +2,19 @@
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.24.3';
+const VERSION = 'v0.25.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+/* tre gemte spil: plads 1 bruger de gamle nøgler (så det, der allerede er gemt, bliver plads 1), plads 2 og 3 får @2 og @3 på.
+   Lyd og musik er fælles for alle tre. */
+const SLOT_KEY = 'glimmerstudiet.plads', SLOT_GLOBAL = new Set(['glimmerstudiet.lyd', 'glimmerstudiet.musik', SLOT_KEY]);
+let SLOT = (() => { try { const n = +localStorage.getItem(SLOT_KEY); return n >= 1 && n <= 3 ? n : 1; } catch(e){ return 1; } })();
+const slotKey = (k, n = SLOT) => n > 1 && !SLOT_GLOBAL.has(k) ? k + '@' + n : k;
 const store = {
-  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
-  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
-  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+  get(k, d, n){ try { const v = localStorage.getItem(slotKey(k, n)); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v, n){ try { localStorage.setItem(slotKey(k, n), JSON.stringify(v)); } catch(e){} },
+  del(k, n){ try { localStorage.removeItem(slotKey(k, n)); } catch(e){} }
 };
 const KEY = 'glimmerstudiet.dukker.v1', KEY_SOUND = 'glimmerstudiet.lyd', KEY_PROG = 'glimmerstudiet.fremskridt.v1';
 const pick = a => a[Math.floor(Math.random()*a.length)];
@@ -45,7 +50,7 @@ const STAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9
 const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3" fill="#7B5CFF"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#7B5CFF" stroke-width="2.6"/><circle cx="12" cy="15.5" r="1.8" fill="#FFFFFF"/></svg>';
 
 /* ---------- skærme ---------- */
-const SCREENS = ['#title','#town','#home','#room','#editor','#balls','#school','#potion','#broom','#fald','#arkade','#game'];
+const SCREENS = ['#title','#slots','#intro','#town','#home','#room','#editor','#balls','#school','#potion','#broom','#fald','#arkade','#game'];
 /* blink-animationer (opacity) køres som CSS i stedet for SMIL: samme bevægelse, men langt billigere for telefonen */
 const SMIL_KF = new Map(); let smilSheet = null;
 function smilOpacityToCss(root){

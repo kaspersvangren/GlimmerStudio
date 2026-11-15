@@ -11,7 +11,7 @@ const ok = (cond, msg) => { if (!cond) fails.push(msg); };
 async function run(w, h){
   const b = await chromium.launch(), p = await b.newPage({ viewport: { width: w, height: h } });
   const errs = []; p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n')[1]));
-  await p.route(/fonts\./, r => r.abort()); await p.goto(URL); await p.waitForTimeout(400);
+  await p.route(/fonts\./, r => r.abort()); await p.goto(URL); await p.waitForFunction(() => !document.getElementById('loader'), null, { timeout: 45000 }); await p.waitForTimeout(200);
   const noScroll = async (name) => { const s = await p.evaluate(() => ({ sh: document.documentElement.scrollHeight, sw: document.documentElement.scrollWidth })); ok(s.sh <= h + 1 && s.sw <= w + 1, `${w}x${h} ${name}: siden ruller (${s.sw}x${s.sh})`); };
   const tag = `${w}x${h}`;
   await p.evaluate(() => { newFigure(); saveAll(); prog.stars = 100; saveProg(); });
@@ -99,17 +99,38 @@ async function run(w, h){
 async function playJump(){
   const { devices } = require('playwright');
   const b = await chromium.launch(), ctx = await b.newContext({ ...devices['Pixel 7 landscape'] }), p = await ctx.newPage();
-  await p.route(/fonts\./, r => r.abort()); await p.goto(URL); await p.waitForTimeout(600);
+  await p.route(/fonts\./, r => r.abort()); await p.goto(URL); await p.waitForFunction(() => !document.getElementById('loader'), null, { timeout: 45000 }); await p.waitForTimeout(600);
   const cdp = await ctx.newCDPSession(p), bb = await p.locator('.playbtn').boundingBox(), x = bb.x + bb.width / 2, y = bb.y + bb.height / 2;
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
   await p.evaluate(() => { $('.playbtn').style.left = '10px'; }); await p.waitForTimeout(80);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await p.waitForTimeout(1200);
   const scr = await p.evaluate(() => SCREENS.find(s => !$(s).hidden));
-  ok(scr === '#town', `startknappen virkede ikke, da den hoppede under fingeren (endte på ${scr})`);
+  ok(scr === '#slots', `startknappen virkede ikke, da den hoppede under fingeren (endte på ${scr})`);
+  await b.close();
+}
+/* nyt spil: bogen med introen, navnet, spejlet og ud i byen — og de andre gemte spil må ikke røres */
+async function introFlow(){
+  const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 960, height: 432 } });
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.route(/fonts\./, r => r.abort()); await p.goto(URL); await p.waitForFunction(() => !document.getElementById('loader'), null, { timeout: 45000 });
+  await p.evaluate(() => { newFigure(); saveAll(); prog.stars = 7; saveProg(); showTitle(); });
+  await p.evaluate(() => startPlay()); await p.waitForTimeout(1200);
+  ok(await p.evaluate(() => !$('#slots').hidden && document.querySelectorAll('.sbook').length === 3), 'bøgerne med de gemte spil blev ikke vist');
+  await p.locator('.sbook').nth(2).click(); await p.waitForTimeout(1200);
+  ok(await p.evaluate(() => !$('#intro').hidden && $('.pg-next').disabled), 'introen startede ikke, eller man kunne gå videre uden navn');
+  await p.fill('.pg.r .pg-name', 'test'); for (let i = 0; i < 5; i++){ await p.click('.pg-next', { force: true }); await p.waitForTimeout(1200); }
+  await p.waitForTimeout(2000); ok(await p.evaluate(() => $('.ibook').classList.contains('closed') && $('.ib-after').classList.contains('on')), 'bogen lukkede ikke til sidst');
+  await p.click('.ib-go'); await p.waitForTimeout(1500); ok(await p.evaluate(() => !$('#editor').hidden && $('#nameInput').value === 'Test'), 'spejlet åbnede ikke med navnet');
+  await p.click('#backBtn'); await p.waitForTimeout(1500);
+  const r = await p.evaluate(() => ({ scr: SCREENS.find(s => !$(s).hidden), slot: SLOT, name: prog.name, stars: prog.stars, one: slotInfo(1) }));
+  ok(r.scr === '#town' && r.slot === 3 && r.name === 'Test' && r.stars === 0, 'det nye spil endte forkert: ' + JSON.stringify(r).slice(0, 160));
+  ok(r.one.used && r.one.stars === 7, 'det første gemte spil blev ændret');
+  ok(!errs.length, 'fejl i introen: ' + errs.join(' | '));
   await b.close();
 }
 (async () => {
   await playJump();
+  await introFlow();
   for (const [w, h] of SIZES) await run(w, h);
   if (fails.length){ console.error('FEJL:\n  ' + fails.join('\n  ')); process.exit(1); }
   console.log('Alt spillet igennem uden fejl.');

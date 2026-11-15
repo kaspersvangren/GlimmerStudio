@@ -142,7 +142,8 @@ const Kost = (() => {
     const ha = hat.a, hb = hat.b, hs = SH(ha), hx = cx + 6, hy = cy - 44 + (hat.id === 'kort' ? 18 : hat.id === 'hue' ? 12 : 0);
     if (gear){
       /* hjelmen: en rund skal over issen og baghovedet i hattens farve, med en stribe, hageremme og briller skubbet op */
-      o += `<path d="M ${cx - 40} ${cy + 14} C ${cx - 50} ${cy - 34} ${cx - 16} ${cy - 66} ${cx + 18} ${cy - 62} C ${cx + 46} ${cy - 58} ${cx + 60} ${cy - 36} ${cx + 58} ${cy - 16} Q ${cx + 30} ${cy - 30} ${cx + 4} ${cy - 22} Q ${cx - 18} ${cy - 14} ${cx - 22} ${cy + 18} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/>`
+      o += `<path d="M ${cx - 52} ${cy + 18} C ${cx - 66} ${cy - 30} ${cx - 22} ${cy - 68} ${cx + 18} ${cy - 62} C ${cx + 46} ${cy - 58} ${cx + 60} ${cy - 36} ${cx + 58} ${cy - 16} Q ${cx + 30} ${cy - 30} ${cx + 4} ${cy - 22} Q ${cx - 14} ${cy - 14} ${cx - 16} ${cy + 10} L ${cx - 20} ${cy + 22} Q ${cx - 36} ${cy + 30} ${cx - 52} ${cy + 18} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/>`
+        + `<path d="M ${cx - 48} ${cy + 8} Q ${cx - 34} ${cy + 18} ${cx - 20} ${cy + 12}" stroke="${hs}" stroke-width="2.5" fill="none" opacity=".5"/>`
         + `<path d="M ${cx - 30} ${cy - 30} C ${cx - 14} ${cy - 56} ${cx + 20} ${cy - 60} ${cx + 44} ${cy - 44}" stroke="${hb}" stroke-width="8" fill="none" stroke-linecap="round"/>`
         + `<path d="M ${cx - 16} ${cy - 50} Q ${cx} ${cy - 60} ${cx + 16} ${cy - 58}" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round" opacity=".45"/>`
         + `<path d="M ${cx - 20} ${cy + 14} Q ${cx - 4} ${cy + 44} ${cx + 26} ${cy + 44}" stroke="#2A2238" stroke-width="3.5" fill="none"/>`

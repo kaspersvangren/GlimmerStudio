@@ -389,7 +389,7 @@ const PET_FACE = { enhjoerning: -1 };          // enhjørningen er tegnet med ho
 const VB_DOLL = '40 40 720 1010', VB_PET = '460 700 400 380';
 const DOLL_H = 150, PET_H = 70;               // højde ved dybde-skala 1
 const depthS = y => 0.6 + (y - 380) / 575 * 0.5;
-/* ruter fra torvet (HUB) ud til hvert sted på kortet; figurer går altid via torvet foran brønden */
+/* ruter fra torvet (HUB) ud til hvert sted på kortet — de lægges sammen til et stinet (GRAPH) */
 const HUB = [800, 724];
 const R_HUS = [HUB, [700,722], [612,706], [560,748], [500,778], [440,792], [380,792], [334,786]];
 const R_BRO = [HUB, [900,716], [962,708], [1020,766], [1064,846], [1108,874], [1172,852]];
@@ -427,8 +427,40 @@ function raster(svg, w, h){
     img.onload = () => { try { const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/png')); } catch(e){ res(img.src); } };
     img.onerror = () => res(''); img.src = svgUrl(svg); });
 }
-/* vejen fra et sted til et andet: tilbage til hvor ruterne skilles, og så ud ad den nye (ofte via torvet) */
-const routeTo = (from, to) => { const A = ROUTES[from] || ROUTES.hub, B = ROUTES[to] || ROUTES.hub; let k = 0; while (k < A.length && k < B.length && A[k] === B[k]) k++; k = Math.max(1, k); return A.slice(k - 1).reverse().concat(B.slice(k)); };
+/* stierne er et net: alle ruterne lægges sammen (punkter tættere end 14 er det samme kryds), plus stier rundt om brønden,
+   så hun altid tager den korteste vej — fx bag om brønden fra skolen til broen i stedet for ned foran den */
+const PLAZA = [ [[812,562], [716,578], [700,620], [700,722]], [[900,640], [960,640]] ];
+const GRAPH = (() => {
+  const N = [], E = [], ends = {};
+  const at = p => { let i = N.findIndex(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 14); if (i < 0){ i = N.length; N.push([p[0], p[1]]); E.push(new Map()); } return i; };
+  const line = pts => { let prev = -1; for (const p of pts){ const i = at(p); if (prev >= 0 && prev !== i){ const d = Math.hypot(N[i][0] - N[prev][0], N[i][1] - N[prev][1]); E[i].set(prev, d); E[prev].set(i, d); } prev = i; } return prev; };
+  for (const [id, pts] of Object.entries(ROUTES)) ends[id] = line(pts);
+  PLAZA.forEach(line);
+  return { N, E, ends };
+})();
+/* korteste vej (Dijkstra) fra et eller flere startkryds (med en startafstand) til et mål-kryds */
+function shortest(starts, goal){
+  const dist = new Map(), prev = new Map(), done = new Set();
+  for (const [n, c] of starts) if (!(dist.get(n) <= c)){ dist.set(n, c); prev.set(n, -1); }
+  for (;;){
+    let u = -1, best = Infinity; for (const [n, d] of dist) if (!done.has(n) && d < best){ best = d; u = n; }
+    if (u < 0) return null; if (u === goal) break; done.add(u);
+    for (const [v, w] of GRAPH.E[u]) if (!(dist.get(v) <= best + w)){ dist.set(v, best + w); prev.set(v, u); }
+  }
+  const path = []; for (let n = goal; n !== -1; n = prev.get(n)) path.unshift(n); return path;
+}
+const node = n => [GRAPH.N[n][0], GRAPH.N[n][1], n];
+const routeTo = (from, to) => { const a = GRAPH.ends[from] ?? GRAPH.ends.hub, b = GRAPH.ends[to] ?? GRAPH.ends.hub; return (shortest([[a, 0]], b) || [a]).map(node); };
+/* ny vej for en figur, der allerede er på vej: fra hvor hun står, via det nærmeste kryds på den sti hun går på */
+function routeFromHere(c, to){
+  const r = c.route, goal = GRAPH.ends[to] ?? GRAPH.ends.hub;
+  if (!r) return null;
+  let i = 0, d = r.d; while (i < r.seg.length - 1 && d > r.seg[i]){ d -= r.seg[i]; i++; }
+  const a = r.pts[i], b = r.pts[i + 1] || a, edge = a[2] != null && b[2] != null ? [a[2], b[2]] : r.edge || [b[2]];
+  const starts = edge.filter(n => n != null).map(n => [n, Math.hypot(GRAPH.N[n][0] - c.x, GRAPH.N[n][1] - c.y)]);
+  const path = shortest(starts, goal); if (!path) return null;
+  return { pts: [[c.x, c.y, null]].concat(path.map(node)), edge };
+}
 const endOf = id => { const r = ROUTES[id] || ROUTES.hub; return r[r.length - 1]; };
 /* en figur: dukke eller dyr, med position, dybde og retning */
 function makeChar(kind, href, o = {}){
@@ -446,6 +478,16 @@ function walkRoute(c, pts, speed, done){
   const seg = []; let total = 0;
   for (let i = 1; i < pts.length; i++){ const l = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); seg.push(l); total += l; }
   c.route = { pts, seg, total, d: 0, speed, done };
+  return c.route;
+}
+/* heltinden går til et sted — også hvis hun allerede er på vej et andet sted hen (så vender hun bare om) */
+function heroWalk(id, done){
+  const h = LIFE.hero, pet = LIFE.pet, fresh = routeFromHere(h, id);
+  walking = true; h.dest = id;
+  h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
+  const fin = () => { heroAt = id; walking = false; h.dest = null; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); done(); };
+  if (fresh){ const r = walkRoute(h, fresh.pts, 0.3, fin); r.edge = fresh.edge; }
+  else walkRoute(h, routeTo(heroAt, id), 0.3, fin);
 }
 function routePos(r, d){
   let i = 0; while (i < r.seg.length - 1 && d > r.seg[i]){ d -= r.seg[i]; i++; }
@@ -535,15 +577,13 @@ function heroPetFollow(){
   pet.sx = r && r.d <= 60 ? pet.sx : undefined; pet.sy = r && r.d <= 60 ? pet.sy : undefined;
 }
 function visit(id){
-  const p = PLACES.find(x => x.id === id); if (!p || walking) return;
+  const p = PLACES.find(x => x.id === id); if (!p) return;
   if (p.soon){ sfx.nope(); toast(p.name + ' kommer snart!'); return; }
-  sfx.pick(); walking = true;
-  const h = LIFE.hero, pet = LIFE.pet;
-  const done = () => { heroAt = id; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); sfx.open(); goTo(() => p.open()); };
-  if (calm || heroAt === id){ done(); return; }
-  h.img.setAttribute('href', SPR.walk);
-  if (pet) pet.img.setAttribute('href', SPR.pwalk);
-  walkRoute(h, routeTo(heroAt, id), 0.3, done);
+  if (walking && LIFE.hero.dest === id) return;
+  sfx.pick();
+  const done = () => { sfx.open(); goTo(() => p.open()); };
+  if (calm || (!walking && heroAt === id)){ walking = false; done(); return; }
+  heroWalk(id, done);
 }
 
 /* ---------- tryk på ting ---------- */
@@ -587,19 +627,15 @@ function tapThing(t){
   /* det nye kort: dragen, Øksebrønden og dyrene */
   const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, Math.max(ms, 1300 + [...txt].length * 75));
   if (kind === 'drage'){
-    if (dragonBusy || walking) return;
-    if (heroAt === 'drage' || calm) return dragonTalk(t);
-    const h = LIFE.hero, pet = LIFE.pet; walking = true; sfx.pick();
-    h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
-    return walkRoute(h, routeTo(heroAt, 'drage'), 0.3, () => { heroAt = 'drage'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); dragonTalk(t); });
+    if (dragonBusy || (walking && LIFE.hero.dest === 'drage')) return;
+    if ((!walking && heroAt === 'drage') || calm) return dragonTalk(t);
+    sfx.pick(); return heroWalk('drage', () => dragonTalk(t));
   }
   if (kind === 'broend'){
     /* hun går hen til brønden først, ligesom ved dragen */
-    if (wellBusy || walking) return;
-    if (heroAt === 'broend' || calm) return wellWish(t);
-    const h = LIFE.hero, pet = LIFE.pet; walking = true; sfx.pick();
-    h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
-    return walkRoute(h, routeTo(heroAt, 'broend'), 0.3, () => { heroAt = 'broend'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); wellWish(t); });
+    if (wellBusy || (walking && LIFE.hero.dest === 'broend')) return;
+    if ((!walking && heroAt === 'broend') || calm) return wellWish(t);
+    sfx.pick(); return heroWalk('broend', () => wellWish(t));
   }
   if (kind === 'trold'){ sfx.roar(); jump('.tapjump'); return sayT(pick(TXT.trold), 2200); }
   if (kind === 'krage'){ sfx.chirp(); jump('.tapjump'); return sayT(pick(TXT.krage), 2000); }
@@ -805,15 +841,22 @@ function growTaps(svg){
 }
 
 /* ================= Skærmen ================= */
-function showTown(){
-  showScreen('#town'); playMusic('byen');
+/* byen bygges kun, når kortet har ændret sig (fx ny tid på dagen). Ellers genbruges den færdige by med sit bagte billede,
+   og kun figurerne laves på ny — så hakker det ikke, hver gang man kommer tilbage. */
+const mapNorm = src => src.replace(/\b(id="|url\(#|href="#)[a-z]+\d+/gi, '$1#');
+function showTown(o = {}){
+  showScreen('#town'); if (!o.quiet) playMusic('byen');
   LIFE.peds.forEach(p => clearTimeout(p.wait));
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
-  const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = Kort.svg({ game: true })) + '</div>' }),
-    el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
-  $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
+  const src = Kort.svg({ game: true }), reuse = !!$('#townSvg') && !!BAKE.src && mapNorm(src) === mapNorm(BAKE.src);
+  if (reuse){ $('#chars').innerHTML = ''; $('#bubbles').innerHTML = ''; }
+  else {
+    const box = $('#townBody'); box.innerHTML = '';
+    box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = src) + '</div>' }),
+      el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
+    $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
+  }
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
   SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),
@@ -825,22 +868,26 @@ function showTown(){
   LIFE.pet = hasPet ? makeChar('pet', SPR.sit, { x: hx + 50, y: hy + 6, face: PET_FACE[hero.pet.kind] || 1 }) : null;
   if (LIFE.pet) LIFE.pet.dir = 1;
   sortChars();
-  // en af hendes andre dukker kigger ud ad vinduet i Mit hus
-  const sorted = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0));
-  if (!$('#homeDoll')){} else if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
-  else $('#homeDoll').remove();
-  placeHiddenStar();
-  $('#townLogo').addEventListener('click', logoTap);
   const svg = $('#townSvg');
-  camWire($('#street')); camFit(); growTaps(svg);
-  bakeTown(svg);
-  svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
-  svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
+  if (reuse){ camFit(); updateStarPills(); }
+  else {
+    // en af hendes andre dukker kigger ud ad vinduet i Mit hus
+    const sorted = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0));
+    if (!$('#homeDoll')){} else if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
+    else $('#homeDoll').remove();
+    placeHiddenStar();
+    $('#townLogo').addEventListener('click', logoTap);
+    camWire($('#street')); camFit(); growTaps(svg);
+    bakeTown(svg);
+    svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
+    svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
+    // udstillingsdukker, isælgeren og børnene laves som billeder bagefter, så byen vises med det samme
+    const fill = async (id, st, vb, w, h) => { if (!$('#' + id)) return; const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
+    fill('vendor', randomState({}), VB_DOLL, 144, 200);
+    fill('swingKid', randomState({}), VB_DOLL, 108, 152);
+    fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
+  }
   updateAudioBtns();
   if (!LIFE.on){ LIFE.on = true; LIFE.last = performance.now(); requestAnimationFrame(lifeTick); }
-  // udstillingsdukker, isælgeren og børnene laves som billeder bagefter, så byen vises med det samme
-  const fill = async (id, st, vb, w, h) => { if (!$('#' + id)) return; const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
-  fill('vendor', randomState({}), VB_DOLL, 144, 200);
-  fill('swingKid', randomState({}), VB_DOLL, 108, 152);
-  fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
+  return reuse;
 }

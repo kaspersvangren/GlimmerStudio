@@ -134,7 +134,7 @@ function titleScene(){
 }
 const RING_SVG = `<svg viewBox="0 0 400 80" aria-hidden="true"><ellipse cx="200" cy="40" rx="190" ry="32" fill="#FFE9A8" opacity=".18"/><ellipse cx="200" cy="40" rx="170" ry="26" fill="none" stroke="#FFE27A" stroke-width="4" opacity=".9"/><ellipse cx="200" cy="40" rx="140" ry="19" fill="none" stroke="#FFE27A" stroke-width="2" stroke-dasharray="3 9" opacity=".8"/>${[[40,40],[360,40],[200,14],[200,66],[90,22],[310,58],[90,58],[310,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#FFF6D0"/>`).join('')}</svg>`;
 let playing = 0;
-function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); }
+function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showSlots); }
 function showTitle(){
   showScreen('#title');
   const box = $('#titleBody'); box.innerHTML = '';

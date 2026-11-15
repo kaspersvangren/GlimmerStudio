@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&family=Alegreya:wght@500;700&family=Uncial+Antiqua&display=swap">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}
 [hidden]{display:none!important}
@@ -883,11 +883,101 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @keyframes mote{0%{opacity:0;transform:translate(0,0)}50%{opacity:.7}100%{opacity:0;transform:translate(var(--mx),-40px)}}
 @media (prefers-reduced-motion: reduce){ .mote{animation:none} }
 
+/* ---------- indlæsning ---------- */
+#loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,3vh,22px);
+  background:radial-gradient(ellipse at 50% 40%,#3A2585 0%,#1E1352 55%,#0E0A35 100%);color:#FFFFFF;transition:opacity .5s ease}
+#loader.out{opacity:0;pointer-events:none}
+.ld-logo{font-family:var(--display);font-weight:700;font-size:clamp(40px,12vh,96px);line-height:1;background:linear-gradient(180deg,#FFFFFF 10%,#FFE27A 55%,#FF8FC7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8A2E7A) drop-shadow(0 0 16px rgba(255,200,255,.5))}
+.ld-star{width:clamp(34px,9vh,60px);aspect-ratio:1;animation:ldspin 2.4s linear infinite;filter:drop-shadow(0 0 10px rgba(255,226,122,.9))}
+.ld-star svg{width:100%;height:100%;display:block}
+@keyframes ldspin{from{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.15)}to{transform:rotate(360deg) scale(1)}}
+.ld-bar{width:min(60vw,420px);height:12px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 2px rgba(255,255,255,.22);overflow:hidden}
+.ld-bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#FF8FC7,#FFE27A);transition:width .25s linear}
+.ld-msg{margin:0;font-size:clamp(14px,3.6vh,19px);color:rgba(255,255,255,.8)}
+
+/* ---------- tre gemte spil: tre bøger på en hylde ---------- */
+#slots{position:relative;overflow:hidden;background:#24160F;color:#FFFFFF}
+#slots .btn{color:var(--ink)}
+.slots-inner{position:relative;height:100%}
+.sb-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 50% 30%,rgba(255,200,120,.22),transparent 60%),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 120px),
+  linear-gradient(180deg,#3B2418,#24160F 70%,#1A0F0A)}
+.sb-title{position:absolute;left:0;right:0;top:max(10px,3vh);margin:0;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(26px,8vh,52px);color:#FFE9B8;text-shadow:0 3px 0 #5A2A10,0 0 18px rgba(255,190,90,.5);pointer-events:none}
+.sb-shelf{position:absolute;left:50%;bottom:9vh;transform:translateX(-50%);display:flex;gap:clamp(16px,5vw,60px);align-items:flex-end;padding:0 4vw 0}
+.sb-shelf::after{content:"";position:absolute;left:-2vw;right:-2vw;bottom:-3.2vh;height:3.4vh;border-radius:4px;background:linear-gradient(180deg,#8A5A35,#5C3A24);box-shadow:0 8px 18px rgba(0,0,0,.5)}
+.sb-wrap{position:relative;display:flex;flex-direction:column;align-items:center}
+.sbook{position:relative;border:none;padding:0;background:none;cursor:pointer;height:min(62vh,420px);aspect-ratio:.74;transition:transform .2s ease}
+.sbook:active{transform:translateY(4px) scale(.98)}
+.sb-cover{position:absolute;inset:0;border-radius:6px 14px 14px 6px;background:linear-gradient(90deg,rgba(0,0,0,.35) 0 7%,rgba(255,255,255,.08) 8%,transparent 14%),linear-gradient(160deg,var(--c1),var(--c2));
+  box-shadow:inset 0 0 0 3px #E8C66A,inset 0 0 0 7px var(--c2),inset 0 0 0 8px rgba(232,198,106,.6),6px 8px 0 #E9DDBF,7px 10px 18px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%;padding:10% 10% 8% 16%;box-sizing:border-box}
+.sbook.empty .sb-cover{filter:saturate(.55) brightness(.85)}
+.sb-port{width:62%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 40%,#FFF3D0,#E9D3A0);box-shadow:0 0 0 4px #E8C66A,0 0 0 6px rgba(0,0,0,.35)}
+.sb-port img{width:100%;height:100%;object-fit:cover;display:block}
+.sb-port.sb-new{background:rgba(0,0,0,.25);display:grid;place-items:center}
+.sb-port.sb-new svg{width:50%;height:50%}
+.sb-name{font-family:"Uncial Antiqua",var(--display);font-size:clamp(15px,4.6vh,26px);color:#F2D98A;text-shadow:0 2px 0 rgba(0,0,0,.5);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.sb-stars{display:flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:clamp(14px,4vh,22px);color:#FFE9B8}
+.sb-stars svg{width:1.1em;height:1.1em}
+.sb-del{position:absolute;right:-8px;top:-8px;width:40px;height:40px;border-radius:50%;border:none;background:#3B2418;color:#FFD9C2;box-shadow:0 0 0 2px #E8C66A;display:grid;place-items:center;padding:0;z-index:2}
+.sb-del svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- introen: en eventyrbog på et bord ---------- */
+#intro{position:relative;overflow:hidden;background:#1A0F0A}
+.intro-inner{position:relative;height:100%;--bh:min(86vh,calc(92vw / 1.8))}
+.ib-table{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,#5A3520 0%,#3B2418 45%,#1A0F0A 100%)}
+.ib-candle{position:absolute;right:3vw;top:4vh;width:18vh;height:18vh;border-radius:50%;background:radial-gradient(circle,rgba(255,214,120,.55),rgba(255,180,80,.12) 50%,transparent 70%);animation:flick 2.6s ease-in-out infinite;pointer-events:none}
+@keyframes flick{0%,100%{opacity:.85;transform:scale(1)}45%{opacity:1;transform:scale(1.06)}70%{opacity:.75;transform:scale(.97)}}
+.ibook{position:absolute;left:50%;top:50%;width:calc(var(--bh) * 1.8);height:var(--bh);transform:translate(-50%,-50%);perspective:calc(var(--bh) * 4);transition:transform 1s cubic-bezier(.4,0,.2,1)}
+.ib-leather{position:absolute;inset:-2.2% -1.4%;border-radius:10px;background:linear-gradient(160deg,#5B2E91,#3A1A63);box-shadow:0 18px 40px rgba(0,0,0,.6),inset 0 0 0 3px #E8C66A;transition:left 1s cubic-bezier(.4,0,.2,1)}
+.pg,.lf{position:absolute;top:0;width:50%;height:100%;box-sizing:border-box;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 50%,#FBF1DA 40%,#EEDDB6 100%);color:#3A2414}
+.pg.l,.lf.back{left:0;box-shadow:inset -18px 0 24px -14px rgba(90,50,20,.45)}
+.pg.r,.lf.front{left:50%;box-shadow:inset 18px 0 24px -14px rgba(90,50,20,.45)}
+.pg.l{border-radius:6px 0 0 6px}.pg.r{border-radius:0 6px 6px 0}
+.ib-spine{position:absolute;left:calc(50% - 1px);top:0;width:2px;height:100%;background:rgba(90,50,20,.35)}
+.pg-art{position:absolute;inset:5% 6%;display:grid;place-items:center}
+.pg-art svg{width:100%;height:100%;display:block}
+.pg-text{position:absolute;inset:9% 9% 12% 10%;display:flex;flex-direction:column;justify-content:center;gap:calc(var(--bh) * .035);font-family:Alegreya,Georgia,serif;font-weight:500;font-size:calc(var(--bh) * .062);line-height:1.3}
+.pg-line{margin:0}
+.pg-line.big{font-weight:700;font-size:calc(var(--bh) * .085);line-height:1.15;color:#4A2370}
+.pg-line.glow{color:#7B2FB0;text-shadow:0 0 12px rgba(255,214,120,.9)}
+.pg-text .pg-line:first-child::first-letter{font-family:"Uncial Antiqua",serif;font-size:1.5em;color:#8E2A3F}
+.pg-name{font:inherit;font-weight:700;color:#4A2370;width:7.2em;max-width:100%;border:none;border-bottom:3px dotted #8A5A35;background:transparent;padding:0 2px;outline:none}
+.pg-name:focus{outline:none;border-bottom:3px solid #7B2FB0}
+.pg-name::placeholder{color:rgba(90,58,36,.45);font-weight:500}
+.pg-num{position:absolute;bottom:-9%;left:0;right:0;text-align:center;font-size:.6em;color:rgba(90,58,36,.6)}
+.pg-next{position:absolute;right:2%;bottom:3%;z-index:5;width:calc(var(--bh) * .15);height:calc(var(--bh) * .15);min-width:44px;min-height:44px;border-radius:50%;border:3px solid #FFFFFF;background:radial-gradient(circle at 35% 30%,#FF8FC7,#FF3D8F 55%,#C21D68);color:#FFFFFF;box-shadow:0 4px 0 #8A1550,0 0 18px rgba(255,140,220,.6);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
+.pg-next svg{width:55%;height:55%}
+.pg-next:disabled{filter:grayscale(1) brightness(.8);opacity:.5;animation:none}
+.ib-leaf{position:absolute;left:50%;top:0;width:50%;height:100%;transform-style:preserve-3d;transform-origin:0 50%;transition:transform .9s cubic-bezier(.45,.05,.3,1);z-index:4}
+.ib-leaf.turn{transform:rotateY(-180deg)}
+.ib-leaf.left{left:0;transform-origin:100% 50%;transition-duration:1s}
+.ib-leaf.left.turn{transform:rotateY(180deg)}
+.ib-leaf .lf{left:0;width:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.ib-leaf .lf.back{transform:rotateY(180deg)}
+.ib-leaf.left .lf.front{box-shadow:inset -18px 0 24px -14px rgba(90,50,20,.45);border-radius:6px 0 0 6px}
+.lf.cover{background:linear-gradient(160deg,#5B2E91,#3A1A63);box-shadow:inset 0 0 0 3px #E8C66A;border-radius:6px 10px 10px 6px}
+.lf.cover svg{width:100%;height:100%;display:block}
+.ibook.closed{transform:translate(-92%,-50%)}
+.ibook.closed .ib-leather{left:49%}
+.ibook.closed .pg,.ibook.closed .ib-spine{visibility:hidden}
+.ibook.closed .lf.cover{animation:covershine 2.4s ease-in-out .8s 2}
+@keyframes covershine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25) drop-shadow(0 0 20px rgba(255,214,120,.8))}}
+.ib-after{position:absolute;left:calc(50% + var(--bh) * .24);right:3vw;top:50%;transform:translateY(-50%);max-width:420px;display:flex;flex-direction:column;gap:16px;align-items:flex-start;opacity:0;pointer-events:none;transition:opacity .7s ease;color:#FFE9B8;font-family:Alegreya,Georgia,serif;font-weight:700;font-size:clamp(17px,5vh,26px);line-height:1.3}
+.ib-after.on{opacity:1;pointer-events:auto}
+.ib-after p{margin:0;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.ib-go{font-size:clamp(16px,4.6vh,22px);padding:12px 24px}
+@media (prefers-reduced-motion: reduce){ .ld-star,.ib-candle,.pg-next{animation:none!important} .ibook,.ib-leaf{transition:none!important} }
+
 </style>
 </head>
 <body>
 <div id="app">
   <section id="title" class="screen" hidden><div class="title-inner" id="titleBody"></div></section>
+  <section id="slots" class="screen" hidden><div class="slots-inner" id="slotsBody"></div></section>
+  <section id="intro" class="screen" hidden><div class="intro-inner" id="introBody"></div></section>
   <section id="town" class="screen" hidden><div class="town-inner" id="townBody"></div></section>
   <section id="home" class="screen place" hidden><div class="place-inner" id="homeBody"></div></section>
   <section id="editor" class="screen" hidden>
@@ -2021,14 +2111,19 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.24.3';
+const VERSION = 'v0.25.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+/* tre gemte spil: plads 1 bruger de gamle nøgler (så det, der allerede er gemt, bliver plads 1), plads 2 og 3 får @2 og @3 på.
+   Lyd og musik er fælles for alle tre. */
+const SLOT_KEY = 'glimmerstudiet.plads', SLOT_GLOBAL = new Set(['glimmerstudiet.lyd', 'glimmerstudiet.musik', SLOT_KEY]);
+let SLOT = (() => { try { const n = +localStorage.getItem(SLOT_KEY); return n >= 1 && n <= 3 ? n : 1; } catch(e){ return 1; } })();
+const slotKey = (k, n = SLOT) => n > 1 && !SLOT_GLOBAL.has(k) ? k + '@' + n : k;
 const store = {
-  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
-  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
-  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+  get(k, d, n){ try { const v = localStorage.getItem(slotKey(k, n)); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v, n){ try { localStorage.setItem(slotKey(k, n), JSON.stringify(v)); } catch(e){} },
+  del(k, n){ try { localStorage.removeItem(slotKey(k, n)); } catch(e){} }
 };
 const KEY = 'glimmerstudiet.dukker.v1', KEY_SOUND = 'glimmerstudiet.lyd', KEY_PROG = 'glimmerstudiet.fremskridt.v1';
 const pick = a => a[Math.floor(Math.random()*a.length)];
@@ -2064,7 +2159,7 @@ const STAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9
 const LOCK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3" fill="#7B5CFF"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#7B5CFF" stroke-width="2.6"/><circle cx="12" cy="15.5" r="1.8" fill="#FFFFFF"/></svg>';
 
 /* ---------- skærme ---------- */
-const SCREENS = ['#title','#town','#home','#room','#editor','#balls','#school','#potion','#broom','#fald','#arkade','#game'];
+const SCREENS = ['#title','#slots','#intro','#town','#home','#room','#editor','#balls','#school','#potion','#broom','#fald','#arkade','#game'];
 /* blink-animationer (opacity) køres som CSS i stedet for SMIL: samme bevægelse, men langt billigere for telefonen */
 const SMIL_KF = new Map(); let smilSheet = null;
 function smilOpacityToCss(root){
@@ -2154,7 +2249,7 @@ const CAT_INFO = {
   petacc: { label:'Dyretilbehør', ids: () => Object.keys(PET_ACC), name: k => PET_ACC[k].label, multi:true, get: st=>st.pet.acc, apply: (st,k)=>{ st.pet.acc[k] = st.pet.acc[k] || PET_ACC[k].color; }, vb: () => VB.pet, petOnly:true },
 };
 
-function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [], room: (p.room && typeof p.room === 'object') ? p.room : null, potions: Math.max(0, +p.potions || 0), flights: Math.max(0, +p.flights || 0), jumps: Math.max(0, +p.jumps || 0) } : { stars:0, unlocked:[], fresh:[], room:null, potions:0, flights:0, jumps:0 }; }
+function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [], room: (p.room && typeof p.room === 'object') ? p.room : null, potions: Math.max(0, +p.potions || 0), flights: Math.max(0, +p.flights || 0), jumps: Math.max(0, +p.jumps || 0), name: typeof p.name === 'string' ? p.name : '', intro: !!p.intro } : { stars:0, unlocked:[], fresh:[], room:null, potions:0, flights:0, jumps:0, name:'', intro:false }; }
 let prog = loadProg();
 const saveProg = () => store.set(KEY_PROG, prog);
 /* nye ting pulserer i skaberen, indtil man har trykket på dem */
@@ -4650,7 +4745,8 @@ const Kost = (() => {
     const ha = hat.a, hb = hat.b, hs = SH(ha), hx = cx + 6, hy = cy - 44 + (hat.id === 'kort' ? 18 : hat.id === 'hue' ? 12 : 0);
     if (gear){
       /* hjelmen: en rund skal over issen og baghovedet i hattens farve, med en stribe, hageremme og briller skubbet op */
-      o += `<path d="M ${cx - 40} ${cy + 14} C ${cx - 50} ${cy - 34} ${cx - 16} ${cy - 66} ${cx + 18} ${cy - 62} C ${cx + 46} ${cy - 58} ${cx + 60} ${cy - 36} ${cx + 58} ${cy - 16} Q ${cx + 30} ${cy - 30} ${cx + 4} ${cy - 22} Q ${cx - 18} ${cy - 14} ${cx - 22} ${cy + 18} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/>`
+      o += `<path d="M ${cx - 52} ${cy + 18} C ${cx - 66} ${cy - 30} ${cx - 22} ${cy - 68} ${cx + 18} ${cy - 62} C ${cx + 46} ${cy - 58} ${cx + 60} ${cy - 36} ${cx + 58} ${cy - 16} Q ${cx + 30} ${cy - 30} ${cx + 4} ${cy - 22} Q ${cx - 14} ${cy - 14} ${cx - 16} ${cy + 10} L ${cx - 20} ${cy + 22} Q ${cx - 36} ${cy + 30} ${cx - 52} ${cy + 18} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/>`
+        + `<path d="M ${cx - 48} ${cy + 8} Q ${cx - 34} ${cy + 18} ${cx - 20} ${cy + 12}" stroke="${hs}" stroke-width="2.5" fill="none" opacity=".5"/>`
         + `<path d="M ${cx - 30} ${cy - 30} C ${cx - 14} ${cy - 56} ${cx + 20} ${cy - 60} ${cx + 44} ${cy - 44}" stroke="${hb}" stroke-width="8" fill="none" stroke-linecap="round"/>`
         + `<path d="M ${cx - 16} ${cy - 50} Q ${cx} ${cy - 60} ${cx + 16} ${cy - 58}" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round" opacity=".45"/>`
         + `<path d="M ${cx - 20} ${cy + 14} Q ${cx - 4} ${cy + 44} ${cx + 26} ${cy + 44}" stroke="#2A2238" stroke-width="3.5" fill="none"/>`
@@ -7580,7 +7676,7 @@ const Kort = (() => {
     lit(x + 36, top + 66, 68, 68); lit(x + w - 104, top + 66, 68, 68);
     s += `<path d="M ${x + w / 2 - 34} ${base} V ${base - 64} a 34 34 0 0 1 68 0 V ${base} Z" fill="#FFD36E" stroke="#F2C14E" stroke-width="3"/><path d="M ${x + w / 2 - 34} ${base} L ${x + w / 2 - 44} ${base + 22} H ${x + w / 2 + 44} L ${x + w / 2 + 34} ${base} Z" fill="#FFD36E" opacity=".3"/>`; lit(x + w / 2 - 34, base - 98, 68, 98);
     s += `<g transform="translate(${x + w / 2} ${base - 56})"><rect x="-14" y="-18" width="28" height="36" rx="4" fill="#E0457A"/><rect x="-10" y="-14" width="20" height="14" fill="#7FD8FF"/><circle cx="-4" cy="8" r="3" fill="#F2C14E"/><circle cx="5" cy="8" r="3" fill="#43D3BE"/></g>`;
-    return placeG('arkade', 'Arkaden', true, hit(x - 10, top - 170, w + 20, h + 180) + s + soon(x + w / 2, base - 44));
+    return placeG('arkade', 'Arkaden', true, hit(x - 10, top - 56, w + 20, h + 66) + s + soon(x + w / 2, base - 44));
   }
 
   /* ---------- småting overalt og liv i luften ---------- */
@@ -7806,7 +7902,7 @@ function titleScene(){
 }
 const RING_SVG = `<svg viewBox="0 0 400 80" aria-hidden="true"><ellipse cx="200" cy="40" rx="190" ry="32" fill="#FFE9A8" opacity=".18"/><ellipse cx="200" cy="40" rx="170" ry="26" fill="none" stroke="#FFE27A" stroke-width="4" opacity=".9"/><ellipse cx="200" cy="40" rx="140" ry="19" fill="none" stroke="#FFE27A" stroke-width="2" stroke-dasharray="3 9" opacity=".8"/>${[[40,40],[360,40],[200,14],[200,66],[90,22],[310,58],[90,58],[310,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#FFF6D0"/>`).join('')}</svg>`;
 let playing = 0;
-function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showTown); }
+function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showSlots); }
 function showTitle(){
   showScreen('#title');
   const box = $('#titleBody'); box.innerHTML = '';
@@ -8223,7 +8319,7 @@ const PET_FACE = { enhjoerning: -1 };          // enhjørningen er tegnet med ho
 const VB_DOLL = '40 40 720 1010', VB_PET = '460 700 400 380';
 const DOLL_H = 150, PET_H = 70;               // højde ved dybde-skala 1
 const depthS = y => 0.6 + (y - 380) / 575 * 0.5;
-/* ruter fra torvet (HUB) ud til hvert sted på kortet; figurer går altid via torvet foran brønden */
+/* ruter fra torvet (HUB) ud til hvert sted på kortet — de lægges sammen til et stinet (GRAPH) */
 const HUB = [800, 724];
 const R_HUS = [HUB, [700,722], [612,706], [560,748], [500,778], [440,792], [380,792], [334,786]];
 const R_BRO = [HUB, [900,716], [962,708], [1020,766], [1064,846], [1108,874], [1172,852]];
@@ -8261,8 +8357,40 @@ function raster(svg, w, h){
     img.onload = () => { try { const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/png')); } catch(e){ res(img.src); } };
     img.onerror = () => res(''); img.src = svgUrl(svg); });
 }
-/* vejen fra et sted til et andet: tilbage til hvor ruterne skilles, og så ud ad den nye (ofte via torvet) */
-const routeTo = (from, to) => { const A = ROUTES[from] || ROUTES.hub, B = ROUTES[to] || ROUTES.hub; let k = 0; while (k < A.length && k < B.length && A[k] === B[k]) k++; k = Math.max(1, k); return A.slice(k - 1).reverse().concat(B.slice(k)); };
+/* stierne er et net: alle ruterne lægges sammen (punkter tættere end 14 er det samme kryds), plus stier rundt om brønden,
+   så hun altid tager den korteste vej — fx bag om brønden fra skolen til broen i stedet for ned foran den */
+const PLAZA = [ [[812,562], [716,578], [700,620], [700,722]], [[900,640], [960,640]] ];
+const GRAPH = (() => {
+  const N = [], E = [], ends = {};
+  const at = p => { let i = N.findIndex(q => Math.hypot(q[0] - p[0], q[1] - p[1]) < 14); if (i < 0){ i = N.length; N.push([p[0], p[1]]); E.push(new Map()); } return i; };
+  const line = pts => { let prev = -1; for (const p of pts){ const i = at(p); if (prev >= 0 && prev !== i){ const d = Math.hypot(N[i][0] - N[prev][0], N[i][1] - N[prev][1]); E[i].set(prev, d); E[prev].set(i, d); } prev = i; } return prev; };
+  for (const [id, pts] of Object.entries(ROUTES)) ends[id] = line(pts);
+  PLAZA.forEach(line);
+  return { N, E, ends };
+})();
+/* korteste vej (Dijkstra) fra et eller flere startkryds (med en startafstand) til et mål-kryds */
+function shortest(starts, goal){
+  const dist = new Map(), prev = new Map(), done = new Set();
+  for (const [n, c] of starts) if (!(dist.get(n) <= c)){ dist.set(n, c); prev.set(n, -1); }
+  for (;;){
+    let u = -1, best = Infinity; for (const [n, d] of dist) if (!done.has(n) && d < best){ best = d; u = n; }
+    if (u < 0) return null; if (u === goal) break; done.add(u);
+    for (const [v, w] of GRAPH.E[u]) if (!(dist.get(v) <= best + w)){ dist.set(v, best + w); prev.set(v, u); }
+  }
+  const path = []; for (let n = goal; n !== -1; n = prev.get(n)) path.unshift(n); return path;
+}
+const node = n => [GRAPH.N[n][0], GRAPH.N[n][1], n];
+const routeTo = (from, to) => { const a = GRAPH.ends[from] ?? GRAPH.ends.hub, b = GRAPH.ends[to] ?? GRAPH.ends.hub; return (shortest([[a, 0]], b) || [a]).map(node); };
+/* ny vej for en figur, der allerede er på vej: fra hvor hun står, via det nærmeste kryds på den sti hun går på */
+function routeFromHere(c, to){
+  const r = c.route, goal = GRAPH.ends[to] ?? GRAPH.ends.hub;
+  if (!r) return null;
+  let i = 0, d = r.d; while (i < r.seg.length - 1 && d > r.seg[i]){ d -= r.seg[i]; i++; }
+  const a = r.pts[i], b = r.pts[i + 1] || a, edge = a[2] != null && b[2] != null ? [a[2], b[2]] : r.edge || [b[2]];
+  const starts = edge.filter(n => n != null).map(n => [n, Math.hypot(GRAPH.N[n][0] - c.x, GRAPH.N[n][1] - c.y)]);
+  const path = shortest(starts, goal); if (!path) return null;
+  return { pts: [[c.x, c.y, null]].concat(path.map(node)), edge };
+}
 const endOf = id => { const r = ROUTES[id] || ROUTES.hub; return r[r.length - 1]; };
 /* en figur: dukke eller dyr, med position, dybde og retning */
 function makeChar(kind, href, o = {}){
@@ -8280,6 +8408,16 @@ function walkRoute(c, pts, speed, done){
   const seg = []; let total = 0;
   for (let i = 1; i < pts.length; i++){ const l = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); seg.push(l); total += l; }
   c.route = { pts, seg, total, d: 0, speed, done };
+  return c.route;
+}
+/* heltinden går til et sted — også hvis hun allerede er på vej et andet sted hen (så vender hun bare om) */
+function heroWalk(id, done){
+  const h = LIFE.hero, pet = LIFE.pet, fresh = routeFromHere(h, id);
+  walking = true; h.dest = id;
+  h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
+  const fin = () => { heroAt = id; walking = false; h.dest = null; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); done(); };
+  if (fresh){ const r = walkRoute(h, fresh.pts, 0.3, fin); r.edge = fresh.edge; }
+  else walkRoute(h, routeTo(heroAt, id), 0.3, fin);
 }
 function routePos(r, d){
   let i = 0; while (i < r.seg.length - 1 && d > r.seg[i]){ d -= r.seg[i]; i++; }
@@ -8369,15 +8507,13 @@ function heroPetFollow(){
   pet.sx = r && r.d <= 60 ? pet.sx : undefined; pet.sy = r && r.d <= 60 ? pet.sy : undefined;
 }
 function visit(id){
-  const p = PLACES.find(x => x.id === id); if (!p || walking) return;
+  const p = PLACES.find(x => x.id === id); if (!p) return;
   if (p.soon){ sfx.nope(); toast(p.name + ' kommer snart!'); return; }
-  sfx.pick(); walking = true;
-  const h = LIFE.hero, pet = LIFE.pet;
-  const done = () => { heroAt = id; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); sfx.open(); goTo(() => p.open()); };
-  if (calm || heroAt === id){ done(); return; }
-  h.img.setAttribute('href', SPR.walk);
-  if (pet) pet.img.setAttribute('href', SPR.pwalk);
-  walkRoute(h, routeTo(heroAt, id), 0.3, done);
+  if (walking && LIFE.hero.dest === id) return;
+  sfx.pick();
+  const done = () => { sfx.open(); goTo(() => p.open()); };
+  if (calm || (!walking && heroAt === id)){ walking = false; done(); return; }
+  heroWalk(id, done);
 }
 
 /* ---------- tryk på ting ---------- */
@@ -8421,19 +8557,15 @@ function tapThing(t){
   /* det nye kort: dragen, Øksebrønden og dyrene */
   const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, Math.max(ms, 1300 + [...txt].length * 75));
   if (kind === 'drage'){
-    if (dragonBusy || walking) return;
-    if (heroAt === 'drage' || calm) return dragonTalk(t);
-    const h = LIFE.hero, pet = LIFE.pet; walking = true; sfx.pick();
-    h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
-    return walkRoute(h, routeTo(heroAt, 'drage'), 0.3, () => { heroAt = 'drage'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); dragonTalk(t); });
+    if (dragonBusy || (walking && LIFE.hero.dest === 'drage')) return;
+    if ((!walking && heroAt === 'drage') || calm) return dragonTalk(t);
+    sfx.pick(); return heroWalk('drage', () => dragonTalk(t));
   }
   if (kind === 'broend'){
     /* hun går hen til brønden først, ligesom ved dragen */
-    if (wellBusy || walking) return;
-    if (heroAt === 'broend' || calm) return wellWish(t);
-    const h = LIFE.hero, pet = LIFE.pet; walking = true; sfx.pick();
-    h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
-    return walkRoute(h, routeTo(heroAt, 'broend'), 0.3, () => { heroAt = 'broend'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); wellWish(t); });
+    if (wellBusy || (walking && LIFE.hero.dest === 'broend')) return;
+    if ((!walking && heroAt === 'broend') || calm) return wellWish(t);
+    sfx.pick(); return heroWalk('broend', () => wellWish(t));
   }
   if (kind === 'trold'){ sfx.roar(); jump('.tapjump'); return sayT(pick(TXT.trold), 2200); }
   if (kind === 'krage'){ sfx.chirp(); jump('.tapjump'); return sayT(pick(TXT.krage), 2000); }
@@ -8639,15 +8771,22 @@ function growTaps(svg){
 }
 
 /* ================= Skærmen ================= */
-function showTown(){
-  showScreen('#town'); playMusic('byen');
+/* byen bygges kun, når kortet har ændret sig (fx ny tid på dagen). Ellers genbruges den færdige by med sit bagte billede,
+   og kun figurerne laves på ny — så hakker det ikke, hver gang man kommer tilbage. */
+const mapNorm = src => src.replace(/\b(id="|url\(#|href="#)[a-z]+\d+/gi, '$1#');
+function showTown(o = {}){
+  showScreen('#town'); if (!o.quiet) playMusic('byen');
   LIFE.peds.forEach(p => clearTimeout(p.wait));
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
-  const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = Kort.svg({ game: true })) + '</div>' }),
-    el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
-  $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
+  const src = Kort.svg({ game: true }), reuse = !!$('#townSvg') && !!BAKE.src && mapNorm(src) === mapNorm(BAKE.src);
+  if (reuse){ $('#chars').innerHTML = ''; $('#bubbles').innerHTML = ''; }
+  else {
+    const box = $('#townBody'); box.innerHTML = '';
+    box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = src) + '</div>' }),
+      el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
+    $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
+  }
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
   SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),
@@ -8659,24 +8798,28 @@ function showTown(){
   LIFE.pet = hasPet ? makeChar('pet', SPR.sit, { x: hx + 50, y: hy + 6, face: PET_FACE[hero.pet.kind] || 1 }) : null;
   if (LIFE.pet) LIFE.pet.dir = 1;
   sortChars();
-  // en af hendes andre dukker kigger ud ad vinduet i Mit hus
-  const sorted = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0));
-  if (!$('#homeDoll')){} else if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
-  else $('#homeDoll').remove();
-  placeHiddenStar();
-  $('#townLogo').addEventListener('click', logoTap);
   const svg = $('#townSvg');
-  camWire($('#street')); camFit(); growTaps(svg);
-  bakeTown(svg);
-  svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
-  svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
+  if (reuse){ camFit(); updateStarPills(); }
+  else {
+    // en af hendes andre dukker kigger ud ad vinduet i Mit hus
+    const sorted = figures.slice().sort((a,b)=>(b.t||0)-(a.t||0));
+    if (!$('#homeDoll')){} else if (sorted[1]) $('#homeDoll').setAttribute('href', svgUrl(renderDoll(enforce(fixState(clone(sorted[1].st))), { viewBox:'170 60 460 520', anim: !calm, idle: true, pet: false })));
+    else $('#homeDoll').remove();
+    placeHiddenStar();
+    $('#townLogo').addEventListener('click', logoTap);
+    camWire($('#street')); camFit(); growTaps(svg);
+    bakeTown(svg);
+    svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
+    svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
+    // udstillingsdukker, isælgeren og børnene laves som billeder bagefter, så byen vises med det samme
+    const fill = async (id, st, vb, w, h) => { if (!$('#' + id)) return; const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
+    fill('vendor', randomState({}), VB_DOLL, 144, 200);
+    fill('swingKid', randomState({}), VB_DOLL, 108, 152);
+    fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
+  }
   updateAudioBtns();
   if (!LIFE.on){ LIFE.on = true; LIFE.last = performance.now(); requestAnimationFrame(lifeTick); }
-  // udstillingsdukker, isælgeren og børnene laves som billeder bagefter, så byen vises med det samme
-  const fill = async (id, st, vb, w, h) => { if (!$('#' + id)) return; const u = await raster(renderDoll(st, { viewBox: vb, pet: false }), w, h); const e = $('#' + id); if (e && u) e.setAttribute('href', u); };
-  fill('vendor', randomState({}), VB_DOLL, 144, 200);
-  fill('swingKid', randomState({}), VB_DOLL, 108, 152);
-  fill('kiteKid', randomState({}), VB_DOLL, 124, 176);
+  return reuse;
 }
 
 /* ---------- kortet bages: alt det stillestående tegnes én gang som ét billede ----------
@@ -8686,7 +8829,7 @@ function showTown(){
    hvor det sker, så intet havner forkert i dybden. Går noget galt, bliver kortet bare som før.
    Billedet gemmes i telefonen (IndexedDB) under et fingeraftryk af kortet, så det kun skal bages én gang
    for hver udgave af kortet (tid på dagen, vejr, årstid ...). Næste gang lægges det bare på. */
-const BAKE = { url: null, gen: 0, src: '' };
+const BAKE = { url: null, gen: 0, src: '', ok: 0, prog: 0 };  /* ok: den udgave af byen, der er helt færdig (til indlæsningsskærmen) */
 const BAKE_SKIP = 'defs,clipPath,mask,pattern,linearGradient,radialGradient,filter,symbol,marker';
 const BAKE_VOLATILE = '#chars,#bubbles,#hiddenStars,.tapzone';
 const bakeLeaves = svg => [...svg.querySelectorAll('path,rect,circle,ellipse,polygon,polyline,line,use,text,image,foreignObject')].filter(e => !e.closest(BAKE_SKIP));
@@ -8746,7 +8889,8 @@ function bakeApply(svg, gen, rec, cached){
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
     if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
-      .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message }));
+      .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message })).finally(() => { BAKE.ok = gen; });
+    else BAKE.ok = gen;
     DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms });
   };
   if (im.decode) im.decode().then(swap, swap); else swap();
@@ -8894,6 +9038,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
         regs.forEach(r => { const nb = [...r]; nb.el = e; nb.t = t; if (t === 'l' && !dyn.some(d => d.t === 'l' && !d.mov && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1])) nb.mov = true; if (window.BAKE_LOG) nb.src = 'lap(' + e.tagName + ')<' + (dyn.find(d => d.t === t && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1]) || {}).src; dyn.push(nb); }); }
       clipped.set(e, R); }
     }
+    BAKE.prog = li / leaves.length;
     if (li < leaves.length){ setTimeout(step, 16); return; }
     refresh(); finish();
   };
@@ -9504,6 +9649,212 @@ const DBG = (() => {
   return { tap, count, row, get on(){ return on; }, flush };
 })();
 
+/* ================= Start: indlæsning, tre gemte spil og bog-introen ================= */
+
+/* ---------- indlæsning: byen bygges og bages bag et tæppe, før titelskærmen vises ----------
+   Første gang en ny udgave kører, skal kortet tegnes om (det tager flere sekunder på en telefon).
+   Det sker her, så man aldrig ser et kort, der hakker. Næste gang hentes det fra lageret og går hurtigt. */
+async function startGame(){
+  const bar = el('i'), msg = el('p', { class:'ld-msg' }, 'Tryller byen frem …');
+  const ld = el('div', { id:'loader', role:'status', 'aria-live':'polite' }, [
+    el('div', { class:'ld-logo' }, GAME_NAME),
+    el('div', { class:'ld-star', 'aria-hidden':'true', html:'<svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z" fill="#FFE27A" stroke="#C98A00" stroke-width="1.2" stroke-linejoin="round"/></svg>' }),
+    el('div', { class:'ld-bar' }, [ bar ]), msg ]);
+  document.body.append(ld);
+  const t0 = performance.now(); let shown = 0;
+  try { showTown({ quiet: true }); } catch (e){ DBG.row('fejl', { besked: 'indlæsning: ' + e.message }); }
+  const canBake = !window.NO_BAKE && !!window.indexedDB;
+  while (canBake && performance.now() - t0 < 30000 && !(BAKE.ok && BAKE.ok === BAKE.gen)){
+    const t = (performance.now() - t0) / 1000;
+    shown = Math.max(shown, Math.min(.95, BAKE.prog * .85 + Math.min(.1, t / 40)));
+    bar.style.width = (shown * 100).toFixed(1) + '%';
+    if (t > 4) msg.textContent = 'Første gang tager det lidt længere …';
+    await wait(100);
+  }
+  bar.style.width = '100%';
+  DBG.row('indlaest', { ms: Math.round(performance.now() - t0), klar: !!(BAKE.ok && BAKE.ok === BAKE.gen) });
+  await wait(350);              // lad telefonen tegne kortet færdigt én gang, mens tæppet stadig er der
+  showTitle();
+  ld.classList.add('out'); setTimeout(() => ld.remove(), 600);
+}
+
+/* ---------- tre gemte spil ---------- */
+const SLOT_DATA = ['glimmerstudiet.dukker.v1', 'glimmerstudiet.fremskridt.v1', 'glimmerstudiet.gemtstjerne', 'glimmerstudiet.oekser', 'glimmerstudiet.arkade', 'glimmerstudiet.bamser'];
+let firstDress = false;         /* sat, når en ny heks skal laves lige efter introen: tilbage-knappen går så ud i byen */
+function slotInfo(n){
+  const figs = store.get(KEY, [], n), p = store.get(KEY_PROG, null, n) || {};
+  const list = Array.isArray(figs) ? figs.slice().sort((a, b) => (b.t || 0) - (a.t || 0)) : [];
+  const used = list.length > 0 || !!p.intro || (+p.stars || 0) > 0;
+  return { n, used, name: p.name || (list[0] && list[0].name) || '', stars: Math.max(0, +p.stars || 0), st: list[0] ? enforce(fixState(clone(list[0].st))) : null };
+}
+function setSlot(n){
+  SLOT = n; try { localStorage.setItem(SLOT_KEY, String(n)); } catch (e){}
+  const f = store.get(KEY, []); figures = Array.isArray(f) ? f : [];
+  prog = loadProg(); heroAt = 'hus'; cur = null; history = [];
+  updateStarPills();
+}
+function clearSlot(n){ for (const k of SLOT_DATA) store.del(k, n); if (n === SLOT) setSlot(n); }
+
+const BOOK_COL = [['#5B2E91', '#3A1A63'], ['#1F6E6A', '#10433F'], ['#8E2A3F', '#5A1426']];
+function showSlots(){
+  showScreen('#slots'); playMusic('byen');
+  const box = $('#slotsBody'); box.innerHTML = '';
+  const books = [1, 2, 3].map(n => {
+    const s = slotInfo(n), [c1, c2] = BOOK_COL[n - 1];
+    const face = s.used
+      ? [ el('div', { class:'sb-port' }, [ dollImg(s.st || enforce(clone(DEFAULT_STATE)), { viewBox: '205 150 390 390', pet: false, alt: '' }) ]),
+          el('div', { class:'sb-name' }, s.name || 'Uden navn'),
+          el('div', { class:'sb-stars', html: STAR_SVG + '<span>' + s.stars + '</span>' }) ]
+      : [ el('div', { class:'sb-port sb-new', html: '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 22v56M22 50h56" stroke="#F2D27A" stroke-width="9" stroke-linecap="round"/></svg>' }),
+          el('div', { class:'sb-name' }, 'Nyt spil') ];
+    const book = el('button', { class:'sbook' + (s.used ? '' : ' empty'), type:'button', style:`--c1:${c1};--c2:${c2}`, 'aria-label': s.used ? `Spil som ${s.name || 'uden navn'}` : 'Start et nyt spil',
+      on:{ click: () => pickSlot(n, s.used) } }, [ el('div', { class:'sb-cover' }, face) ]);
+    const del = s.used ? el('button', { class:'sb-del', type:'button', 'aria-label':'Slet dette spil', html: ic('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
+      on:{ click: e => { e.stopPropagation(); sfx.pick(); showModal('Slet ' + (s.name || 'dette spil') + '?', 'Hele spillet bliver slettet: heksen, stjernerne og alt det, hun har samlet. Det kan ikke fortrydes.', [
+        { label:'Nej' }, { label:'Ja, slet', hot:true, fn: () => { clearSlot(n); sfx.undo(); showSlots(); } } ]); } } }) : null;
+    return el('div', { class:'sb-wrap' }, [ book, del ]);
+  });
+  box.append(
+    el('div', { class:'sb-bg', 'aria-hidden':'true' }),
+    el('div', { class:'place-ui tl' }, [ backBtn('Forsiden', showTitle) ]),
+    el('h1', { class:'sb-title' }, 'Hvem skal spille?'),
+    el('div', { class:'sb-shelf' }, books));
+}
+function pickSlot(n, used){
+  sfx.magic(); setSlot(n);
+  if (used) goTo(showTown); else goTo(showIntro);
+}
+
+/* ---------- introen: en illustreret eventyrbog ----------
+   Tekst: Kaspers oplæg, skrevet til at kunne læses af en 8-årig. {navn} er det navn, man skriver på første side. */
+const INTRO_PAGES = [
+  { art:'portraet', lines:[ ['big', 'Hej med dig!'], ['name', 'Jeg hedder'], ['', 'og jeg vil gerne invitere dig ind i min verden.'] ] },
+  { art:'hat', lines:[ ['', 'Min verden er ikke helt almindelig.'], ['', 'For jeg er heller ikke helt almindelig …'], ['big glow', 'Jeg er nemlig en heks!'] ] },
+  { art:'slot', lines:[ ['', 'Jeg går i skole, ligesom dig.'], ['big', 'Men min skole er en magisk skole!'] ] },
+  { art:'kost', lines:[ ['', 'Vi flyver på koste, brygger eliksirer og springer i faldskærm fra skyerne.'], ['', 'Og nogle gange hygger vi os bare.'] ] },
+  { art:'doer', lines:[ ['', 'Så kom med mig ind i min verden …'], ['big', 'eller skulle jeg sige …'] ] },
+];
+const INTRO_END = { text: 'Men hov … hvordan ser jeg egentlig ud? Det må du bestemme!', btn: 'Lav min heks' };
+
+/* tegningerne på venstresiderne: blæk og vandfarve på gammelt papir */
+function introArt(kind){
+  const INK = '#4A3020', W = (id, c, o = .55) => `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity="${o}"/><stop offset=".7" stop-color="${c}" stop-opacity="${o * .45}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+  const star = (x, y, r, c = '#E2A93B') => `<path d="M ${x} ${y - r} L ${x + r * .28} ${y - r * .28} L ${x + r} ${y} L ${x + r * .28} ${y + r * .28} L ${x} ${y + r} L ${x - r * .28} ${y + r * .28} L ${x - r} ${y} L ${x - r * .28} ${y - r * .28} Z" fill="${c}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  const dots = [[60, 70, 7], [330, 90, 9], [300, 360, 6], [80, 330, 8], [350, 230, 5], [50, 200, 5]].map(([x, y, r]) => star(x, y, r)).join('');
+  let d = `<defs>${W('wP', '#7B4FD0')}${W('wB', '#3D6FC2')}${W('wG', '#F2C14E', .7)}${W('wR', '#C2465E')}${W('wT', '#2E9C8A')}</defs>`;
+  if (kind === 'portraet'){
+    d += `<ellipse cx="200" cy="215" rx="150" ry="160" fill="url(#wG)"/>`
+      + `<ellipse cx="200" cy="215" rx="112" ry="140" fill="#F7EBD0" stroke="#B88A2E" stroke-width="10"/><ellipse cx="200" cy="215" rx="112" ry="140" fill="none" stroke="${INK}" stroke-width="2"/><ellipse cx="200" cy="215" rx="98" ry="126" fill="url(#wP)" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 116 330 C 124 280 160 262 200 262 C 240 262 276 280 284 330 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/><circle cx="200" cy="222" r="42" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/>`
+      + `<path d="M 134 196 Q 200 176 266 196 Q 200 206 134 196 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/><path d="M 160 192 C 172 150 190 116 236 90 C 222 120 226 156 240 190 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/>`
+      + `<text x="200" y="244" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="62" fill="#F2C14E" stroke="${INK}" stroke-width="1.5">?</text>`
+      + [[200, 68], [92, 215], [308, 215], [200, 362]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="#E2A93B" stroke="${INK}" stroke-width="1.5"/>`).join('') + dots;
+  } else if (kind === 'hat'){
+    d += `<ellipse cx="200" cy="250" rx="170" ry="130" fill="url(#wP)"/><ellipse cx="290" cy="120" rx="90" ry="70" fill="url(#wG)"/>`
+      + `<ellipse cx="190" cy="318" rx="150" ry="34" fill="#5B3FA8" stroke="${INK}" stroke-width="2.5"/><path d="M 72 316 Q 190 346 308 316" fill="none" stroke="#8B6FD8" stroke-width="5" opacity=".6"/>`
+      + `<path d="M 112 314 C 130 240 150 170 176 118 C 194 82 226 64 262 70 C 238 84 224 108 224 140 C 226 200 248 262 270 312 Q 190 330 112 314 Z" fill="#6B4FC0" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`
+      + `<path d="M 122 286 Q 196 304 266 286 L 272 306 Q 194 324 116 306 Z" fill="#C2465E" stroke="${INK}" stroke-width="2"/><rect x="176" y="284" width="34" height="28" rx="4" fill="#F2C14E" stroke="${INK}" stroke-width="2"/><rect x="185" y="292" width="16" height="12" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>`
+      + star(170, 200, 12, '#F2D27A') + star(206, 150, 9, '#F2D27A') + star(150, 250, 8, '#F2D27A')
+      + `<path d="M 300 330 L 360 206" stroke="#6A4128" stroke-width="10" stroke-linecap="round"/><path d="M 300 330 L 360 206" stroke="${INK}" stroke-width="2" fill="none"/>` + star(364, 196, 20, '#F2C14E')
+      + `<path d="M 340 170 q -20 -30 -60 -36 M 384 178 q 10 -36 -4 -70 M 352 160 q -6 -24 -2 -44" stroke="#E2A93B" stroke-width="3" fill="none" stroke-dasharray="4 8" stroke-linecap="round"/>` + dots;
+  } else if (kind === 'slot'){
+    d += `<ellipse cx="200" cy="170" rx="190" ry="150" fill="url(#wB)"/><circle cx="300" cy="96" r="40" fill="#F7E7B0" stroke="${INK}" stroke-width="2"/><circle cx="318" cy="84" r="36" fill="#E9D9F2"/>`
+      + `<path d="M 0 360 C 80 290 160 284 230 300 C 300 316 360 300 400 280 V 440 H 0 Z" fill="#5E8F5A" stroke="${INK}" stroke-width="2.5"/><path d="M 0 400 C 120 360 260 370 400 340 V 440 H 0 Z" fill="#46703F" opacity=".7"/>`
+      + `<rect x="120" y="190" width="160" height="112" fill="#8A7FB0" stroke="${INK}" stroke-width="2.5"/>`
+      + [[96, 150, 40, 156], [264, 140, 44, 166], [176, 120, 48, 76]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#9A8FC0" stroke="${INK}" stroke-width="2.5"/><path d="M ${x - 8} ${y} L ${x + w / 2} ${y - w * 1.3} L ${x + w + 8} ${y} Z" fill="#5B3FA8" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`).join('')
+      + `<path d="M 180 302 V 262 a 20 20 0 0 1 40 0 V 302 Z" fill="#5A3A24" stroke="${INK}" stroke-width="2"/>`
+      + [[106, 180], [106, 230], [274, 176], [274, 226], [190, 150], [140, 230], [250, 230]].map(([x, y]) => `<rect x="${x}" y="${y}" width="18" height="24" rx="9" fill="#FFD86B" stroke="${INK}" stroke-width="1.5"/>`).join('')
+      + `<path d="M 200 44 V 20 L 226 28 L 200 36" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>` + dots;
+  } else if (kind === 'kost'){
+    d += `<circle cx="210" cy="160" r="120" fill="url(#wG)"/><circle cx="210" cy="160" r="86" fill="#F7E7B0" stroke="${INK}" stroke-width="2"/>`
+      + `<g transform="rotate(-12 200 170)">`
+      + `<path d="M 186 96 C 160 92 140 100 118 96 C 136 108 146 112 160 114 C 146 120 136 126 124 126 C 150 130 170 120 186 110 Z" fill="#E2A93B" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`
+      + `<path d="M 70 176 L 300 176" stroke="#8A5A35" stroke-width="9" stroke-linecap="round"/><path d="M 70 176 L 300 176" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 74 166 C 50 160 30 152 8 160 C 24 172 24 180 8 192 C 30 200 50 192 74 186 Z" fill="#E2A93B" stroke="${INK}" stroke-width="2"/><path d="M 74 170 L 20 166 M 74 176 L 14 176 M 74 182 L 20 188" stroke="${INK}" stroke-width="1.2"/>`
+      + `<path d="M 212 192 L 236 226" stroke="#3A2A5A" stroke-width="12" stroke-linecap="round"/><path d="M 228 222 L 252 224 Q 256 232 246 234 L 226 232 Z" fill="#6A4128" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>`
+      + `<path d="M 188 110 C 170 128 160 160 154 196 Q 186 206 222 198 C 222 168 216 132 204 110 Z" fill="#6B4FC0" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`
+      + `<path d="M 202 122 C 220 138 236 156 248 170" stroke="#6B4FC0" stroke-width="13" stroke-linecap="round" fill="none"/><circle cx="250" cy="174" r="8" fill="#F2D2B8" stroke="${INK}" stroke-width="1.8"/>`
+      + `<circle cx="200" cy="92" r="20" fill="#F2D2B8" stroke="${INK}" stroke-width="2"/><circle cx="210" cy="90" r="2.6" fill="${INK}"/><path d="M 206 101 Q 212 105 217 100" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="204" cy="98" r="4" fill="#FF9AA8" opacity=".6"/>`
+      + `<path d="M 178 78 C 168 60 156 40 132 30 C 160 34 184 50 206 74 Z" fill="#5B3FA8" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><ellipse cx="196" cy="77" rx="32" ry="7" transform="rotate(-8 196 77)" fill="#5B3FA8" stroke="${INK}" stroke-width="2"/><path d="M 180 74 Q 194 70 208 70" stroke="#C2465E" stroke-width="4" fill="none"/>`
+      + `</g>`
+      + `<ellipse cx="300" cy="352" rx="64" ry="18" fill="#3A2A2A" stroke="${INK}" stroke-width="2"/><path d="M 240 316 Q 236 382 300 384 Q 364 382 360 316 Z" fill="#3A2A2A" stroke="${INK}" stroke-width="2.5"/><ellipse cx="300" cy="316" rx="62" ry="16" fill="#62E0A0" stroke="${INK}" stroke-width="2"/>`
+      + [[280, 290, 10], [312, 270, 7], [296, 246, 5], [330, 296, 6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#B8F5D0" stroke="${INK}" stroke-width="1.5"/>`).join('')
+      + `<path d="M 250 392 Q 270 410 300 404 Q 330 410 350 392" stroke="#E2672E" stroke-width="6" fill="none" stroke-linecap="round"/>` + dots;
+  } else if (kind === 'doer'){
+    d += `<ellipse cx="200" cy="230" rx="180" ry="170" fill="url(#wT)"/><ellipse cx="200" cy="250" rx="120" ry="130" fill="url(#wG)"/>`
+      + `<path d="M 110 360 V 170 a 90 90 0 0 1 180 0 V 360 Z" fill="#FFF0B8" stroke="${INK}" stroke-width="3"/>`
+      + `<path d="M 110 360 V 170 a 90 90 0 0 1 64 -86 L 150 110 Q 140 140 140 180 V 380 Z" fill="#7A4A2A" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="152" cy="250" r="6" fill="#F2C14E" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 160 360 L 240 360 L 330 440 L 70 440 Z" fill="#F7E2A0" opacity=".8"/><path d="M 110 360 H 290" stroke="${INK}" stroke-width="2.5"/>`
+      + [[200, 220], [232, 180], [176, 160], [244, 270], [210, 300]].map(([x, y], i) => star(x, y, 8 + (i % 2) * 4, '#FFFFFF')).join('') + dots;
+  }
+  return `<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${d}</svg>`;
+}
+function introCover(){
+  const G = '#E8C66A', INK = '#2A1440';
+  const corner = `<path d="M 0 0 H 70 Q 40 10 30 30 Q 10 40 0 70 Z" fill="${G}" stroke="${INK}" stroke-width="1.5"/><circle cx="26" cy="26" r="8" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="22" y="22" width="356" height="396" rx="10" fill="none" stroke="${G}" stroke-width="5"/><rect x="34" y="34" width="332" height="372" rx="6" fill="none" stroke="${G}" stroke-width="1.5" stroke-dasharray="2 6"/>
+  <g transform="translate(22 22)">${corner}</g><g transform="translate(378 22) scale(-1 1)">${corner}</g><g transform="translate(22 418) scale(1 -1)">${corner}</g><g transform="translate(378 418) scale(-1 -1)">${corner}</g>
+  <path d="M 200 70 L 214 106 L 252 108 L 222 132 L 232 170 L 200 148 L 168 170 L 178 132 L 148 108 L 186 106 Z" fill="${G}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+  <text x="200" y="250" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="58" fill="${G}" stroke="${INK}" stroke-width="1.2">Magiske</text>
+  <text x="200" y="318" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="58" fill="${G}" stroke="${INK}" stroke-width="1.2">Mig</text>
+  <path d="M 110 350 Q 200 380 290 350" stroke="${G}" stroke-width="3" fill="none"/><circle cx="200" cy="366" r="6" fill="${G}"/></svg>`;
+}
+function introPage(i, side, name){
+  if (side === 'l') return el('div', { class:'pg-art', html: introArt(INTRO_PAGES[i].art) });
+  const box = el('div', { class:'pg-text' });
+  for (const [cls, txt] of INTRO_PAGES[i].lines){
+    if (cls === 'name'){
+      const inp = el('input', { class:'pg-name', maxlength:'14', autocomplete:'off', autocapitalize:'words', spellcheck:'false', placeholder:'skriv dit navn', 'aria-label':'Dit navn', value: name || '' });
+      box.append(el('p', { class:'pg-line' }, [ txt + ' ', inp ]));
+    } else box.append(el('p', { class:'pg-line ' + cls }, txt));
+  }
+  box.append(el('div', { class:'pg-num' }, String(i + 1)));
+  return box;
+}
+function showIntro(){
+  showScreen('#intro'); playMusic('byen');
+  const box = $('#introBody'); box.innerHTML = '';
+  let i = 0, name = '', busy = false;
+  const L = el('div', { class:'pg l' }), R = el('div', { class:'pg r' });
+  const next = el('button', { class:'pg-next', type:'button', 'aria-label':'Vend siden', html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' });
+  const book = el('div', { class:'ibook' }, [ el('div', { class:'ib-leather' }), L, R, el('div', { class:'ib-spine' }), next ]);
+  const after = el('div', { class:'ib-after' }, [ el('p', {}, INTRO_END.text), el('button', { class:'btn hot ib-go', type:'button', on:{ click: () => finish() } }, INTRO_END.btn) ]);
+  box.append(el('div', { class:'ib-table', 'aria-hidden':'true' }), el('div', { class:'ib-candle', 'aria-hidden':'true' }), book, after);
+  const fill = () => { L.replaceChildren(introPage(i, 'l')); R.replaceChildren(introPage(i, 'r', name)); wireName(); };
+  const nameOk = () => name.trim().length > 0;
+  const wireName = () => { const inp = R.querySelector('.pg-name'); next.disabled = !!inp && !nameOk(); if (!inp) return;
+    inp.addEventListener('input', () => { name = inp.value.replace(/\s+/g, ' ').replace(/^\s/, ''); next.disabled = !nameOk(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); inp.blur(); turn(); } }); };
+  fill();
+  async function turn(){
+    if (busy || !nameOk()) return; busy = true; sfx.whoosh();
+    const a = document.activeElement; if (a && a.blur) a.blur();
+    name = name.trim(); name = name.charAt(0).toLocaleUpperCase('da') + name.slice(1);
+    if (i === INTRO_PAGES.length - 1){ await closeBook(); busy = false; return; }
+    /* et blad vendes: forsiden er den højre side nu, bagsiden er den næste venstre side */
+    const leaf = el('div', { class:'ib-leaf' }, [ el('div', { class:'lf front' }, [ introPage(i, 'r', name) ]), el('div', { class:'lf back' }, [ introPage(i + 1, 'l') ]) ]);
+    i++; R.replaceChildren(introPage(i, 'r', name)); book.append(leaf);
+    if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(900); }
+    L.replaceChildren(introPage(i, 'l')); leaf.remove(); wireName(); busy = false;
+  }
+  async function closeBook(){
+    /* bogen lukkes: venstre side folder over, og forsiden kommer frem */
+    const leaf = el('div', { class:'ib-leaf left' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back cover', html: introCover() }) ]);
+    L.style.visibility = 'hidden'; book.append(leaf); next.hidden = true;
+    if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(1000); }
+    book.classList.add('closed'); sfx.magic();
+    prog.name = name; prog.intro = true; saveProg();
+    await wait(calm ? 0 : 1300); after.classList.add('on');
+  }
+  function finish(){
+    sfx.pick();
+    goTo(() => { firstDress = true; const f = newFigure(); f.name = name; saveAll(); $('#nameInput').value = name; $('#backLabel').textContent = 'Ud i byen'; });
+  }
+  next.addEventListener('click', turn);
+  R.addEventListener('click', e => { if (e.target.closest('input')) return; turn(); });
+}
+
 /* ================= Forside og start ================= */
 /* ---------- testtilstand: tryk 5 gange på logoet ---------- */
 let logoTaps = 0, logoTimer = null;
@@ -9527,6 +9878,7 @@ function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }
+  if (firstDress){ firstDress = false; if (cur) cur.t = Date.now(); saveAll(); goTo(showTown); return; }   /* den nye heks er færdig: ud i byen */
   saveAll(); goTo(showHome);
 };
 $('#doneBtn').onclick = () => { sfx.magic(); gameDress = null; $('#editor').classList.remove('in-game'); finishDress(); };
@@ -9540,7 +9892,7 @@ $('#randBtn').onclick = () => {
 $('#nameInput').addEventListener('input', e => { if (cur.temp) return; cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
 document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') hideModal(); });
-showTitle();
+startGame();
 
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}</script>

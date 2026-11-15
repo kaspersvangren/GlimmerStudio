@@ -546,7 +546,7 @@ const Kort = (() => {
     lit(x + 36, top + 66, 68, 68); lit(x + w - 104, top + 66, 68, 68);
     s += `<path d="M ${x + w / 2 - 34} ${base} V ${base - 64} a 34 34 0 0 1 68 0 V ${base} Z" fill="#FFD36E" stroke="#F2C14E" stroke-width="3"/><path d="M ${x + w / 2 - 34} ${base} L ${x + w / 2 - 44} ${base + 22} H ${x + w / 2 + 44} L ${x + w / 2 + 34} ${base} Z" fill="#FFD36E" opacity=".3"/>`; lit(x + w / 2 - 34, base - 98, 68, 98);
     s += `<g transform="translate(${x + w / 2} ${base - 56})"><rect x="-14" y="-18" width="28" height="36" rx="4" fill="#E0457A"/><rect x="-10" y="-14" width="20" height="14" fill="#7FD8FF"/><circle cx="-4" cy="8" r="3" fill="#F2C14E"/><circle cx="5" cy="8" r="3" fill="#43D3BE"/></g>`;
-    return placeG('arkade', 'Arkaden', true, hit(x - 10, top - 170, w + 20, h + 180) + s + soon(x + w / 2, base - 44));
+    return placeG('arkade', 'Arkaden', true, hit(x - 10, top - 56, w + 20, h + 66) + s + soon(x + w / 2, base - 44));
   }
 
   /* ---------- småting overalt og liv i luften ---------- */

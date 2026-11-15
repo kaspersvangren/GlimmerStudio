@@ -21,6 +21,7 @@ function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }
+  if (firstDress){ firstDress = false; if (cur) cur.t = Date.now(); saveAll(); goTo(showTown); return; }   /* den nye heks er færdig: ud i byen */
   saveAll(); goTo(showHome);
 };
 $('#doneBtn').onclick = () => { sfx.magic(); gameDress = null; $('#editor').classList.remove('in-game'); finishDress(); };
@@ -34,4 +35,4 @@ $('#randBtn').onclick = () => {
 $('#nameInput').addEventListener('input', e => { if (cur.temp) return; cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
 document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') hideModal(); });
-showTitle();
+startGame();
