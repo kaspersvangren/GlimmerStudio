@@ -589,7 +589,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #potScene .hglass.out{opacity:.45}
 #potScene .cover{cursor:pointer}
 @keyframes stirspin{0%{opacity:.95}50%{opacity:.5}100%{opacity:.95}}
-#potScene .ladle{transition:transform .08s linear}
+/* sleven følger fingeren direkte (ingen forsinkelse) */
+
 #potScene .drop{transform-box:fill-box;transform-origin:50% 50%;animation:pdrop .7s ease-out forwards}
 @keyframes pdrop{0%{transform:translate(0,0)}60%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
 #potScene .smoke{transform-box:fill-box;transform-origin:50% 100%;animation:smoke 1s ease-out forwards}
@@ -861,6 +862,11 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .gpu-cam .gpu-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
 .gpu-cam .gpu-p,.gpu-cam .gpu-bg{position:absolute;left:0;top:0;display:block;max-width:none}
 .gpu-layer.px1 .gpu-bg,.gpu-layer.px1 .gpu-fix{image-rendering:pixelated;will-change:transform}
+
+/* svævende støv i stederne (før SVG-animationer) */
+.mote{opacity:0;animation:mote var(--dur) linear var(--del) infinite}
+@keyframes mote{0%{opacity:0;transform:translate(0,0)}50%{opacity:.7}100%{opacity:0;transform:translate(var(--mx),-40px)}}
+@media (prefers-reduced-motion: reduce){ .mote{animation:none} }
 
 </style>
 </head>
@@ -2000,7 +2006,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.23.0';
+const VERSION = 'v0.23.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3117,7 +3123,8 @@ function placeMood(pools = [], opts = {}){
   if (opts.moon) o += opts.moon;
   o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="url(#${id}v)"/>`;
   if (!calm) for (let i = 0; i < 14; i++){ const x = (opts.dx || 380) + (i * 97) % (opts.dw || 900), y = 220 + (i * 61) % 560;
-    o += `<circle cx="${x}" cy="${y}" r="${1.5 + (i % 3)}" fill="#FFF3D0" opacity="0"><animate attributeName="opacity" values="0;.7;0" dur="${5 + i % 4}s" begin="${(i * 0.7).toFixed(1)}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0;${(i%2 ? 18 : -14)} -40" dur="${5 + i % 4}s" begin="${(i * 0.7).toFixed(1)}s" repeatCount="indefinite"/></circle>`; }
+    /* støvet svæver med CSS (SVG'ens egne animationer får browseren til at regne hele scenen igennem i hvert billede) */
+    o += `<circle class="mote" cx="${x}" cy="${y}" r="${1.5 + (i % 3)}" fill="#FFF3D0" style="--mx:${i % 2 ? 18 : -14}px;--dur:${5 + i % 4}s;--del:${(i * 0.7).toFixed(1)}s"/>`; }
   return `<g pointer-events="none">${o}</g>`;
 }
 function roomMood(lit, moonlit){ return placeMood(lit ? [[860, 360, 620, 460]] : [], { moon: moonlit ? `<path d="M 300 440 L 580 440 L 820 1000 L 180 1000 Z" fill="#BFD6FF" opacity=".07"/>` : '' }); }
@@ -3997,7 +4004,19 @@ function dirIcon(d){
 }
 function flameIcon(){ return `<g><path d="M 0 40 C -30 40 -36 12 -20 -8 C -18 6 -10 10 -6 4 C -12 -16 -2 -34 10 -42 C 8 -24 34 -10 30 14 C 28 32 16 40 0 40 Z" fill="#FF8A3D" stroke="#A8442A" stroke-width="4" stroke-linejoin="round"/><path d="M 0 36 C -14 36 -16 20 -6 10 C -4 18 4 18 6 12 C 14 20 14 36 0 36 Z" fill="#FFE27A"/></g>`; }
 function hgIcon(){ return `<g><rect x="-24" y="-46" width="48" height="8" rx="3" fill="#C9A04A"/><rect x="-24" y="38" width="48" height="8" rx="3" fill="#C9A04A"/><path d="M -18 -38 H 18 C 18 -14 4 -6 2 0 C 4 6 18 14 18 38 H -18 C -18 14 -4 6 -2 0 C -4 -6 -18 -14 -18 -38 Z" fill="#DDEFFF" stroke="#FFF6D0" stroke-width="3"/><path d="M -12 38 C -10 26 10 26 12 38 Z M -6 -20 H 6 L 0 -8 Z" fill="#FFD36E"/></g>`; }
-function mateImg(m, x, y, h){ return `<image href="${dollUrl(m.st, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${x - h*0.2427}" y="${y - h}" width="${h*0.4854}" height="${h}"/>`; }
+function mateImg(m, x, y, h, i){ return `<image class="still-doll" data-doll="mate:${i}" href="${dollUrl(m.st, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${x - h*0.2427}" y="${y - h}" width="${h*0.4854}" height="${h}"/>`; }
+/* klassekammeraterne og professoren laves om til almindelige billeder: en animeret SVG-figur tegnes helt forfra
+   i hvert eneste billede, og fem af dem gjorde eliksirtimen langsom */
+async function stillDolls(svg){
+  if (typeof raster !== 'function') return;
+  const m = svg.getScreenCTM(); const k = Math.min(3, Math.max(1, (m ? m.a : .5) * (window.devicePixelRatio || 1)));
+  for (const im of svg.querySelectorAll('image[data-doll]')){
+    const [kind, i] = im.dataset.doll.split(':'), st = kind === 'prof' ? PROF_ST : kind === 'hero' ? heroState() : (POT.mates[+i] || {}).st; if (!st) continue;
+    const w = +im.getAttribute('width'), h = +im.getAttribute('height');
+    const n = CLIPN, u = await raster(renderDoll(st, { viewBox:'150 40 500 1030', pet:false, anim: false, idle: true }), w * k, h * k); CLIPN = n;
+    if (u && im.isConnected) im.setAttribute('href', u);
+  }
+}
 function smallCauldron(x, y, col, i){
   return `<g class="mate-pot"><ellipse cx="${x}" cy="${y+44}" rx="60" ry="8" fill="#000" opacity=".3"/><path d="M ${x-50} ${y} C ${x-66} ${y+30} ${x-50} ${y+50} ${x} ${y+52} C ${x+50} ${y+50} ${x+66} ${y+30} ${x+50} ${y} Z" fill="#2A2632" stroke="#0E0A12" stroke-width="3"/><ellipse cx="${x}" cy="${y}" rx="52" ry="11" fill="#3A3644" stroke="#0E0A12" stroke-width="3"/><ellipse cx="${x}" cy="${y+1}" rx="44" ry="8" fill="${col}"/>`
     + (calm ? '' : `<circle class="mbub" style="animation-delay:${-i*1.3}s" cx="${x-10}" cy="${y}" r="7" fill="${col}"/><circle class="mbub" style="animation-delay:${-i*1.3-0.8}s" cx="${x+14}" cy="${y}" r="5" fill="${col}"/>`) + `</g>`;
@@ -4013,15 +4032,15 @@ function potionScene(){
   /* klassekammeraterne bagved ved deres egne små gryder */
   o += `<rect x="452" y="618" width="210" height="16" rx="5" fill="#5A3A28" stroke="#2A1810" stroke-width="3"/><rect x="470" y="630" width="12" height="190" fill="#4A2E1E"/><rect x="632" y="630" width="12" height="190" fill="#4A2E1E"/>`;
   o += `<rect x="972" y="618" width="200" height="16" rx="5" fill="#5A3A28" stroke="#2A1810" stroke-width="3"/><rect x="988" y="630" width="12" height="190" fill="#4A2E1E"/><rect x="1144" y="630" width="12" height="190" fill="#4A2E1E"/>`;
-  if (m[0]) o += `<g data-hit="mate:0"><g class="anim">${mateImg(m[0], 548, 700, 360)}</g></g>`;
-  if (m[1]) o += `<g data-hit="mate:1"><g class="anim">${mateImg(m[1], 1074, 700, 350)}</g></g>`;
+  if (m[0]) o += `<g data-hit="mate:0"><g class="anim">${mateImg(m[0], 548, 700, 360, 0)}</g></g>`;
+  if (m[1]) o += `<g data-hit="mate:1"><g class="anim">${mateImg(m[1], 1074, 700, 350, 1)}</g></g>`;
   o += smallCauldron(560, 588, '#E07AFF', 0) + smallCauldron(1072, 588, '#FFB347', 1);
   o += shelfUnit() + INGR_IDS.map((id, i) => ingrJar(POT.order ? POT.order[i] : id, i)).join('');
   /* professoren til højre under tavlen */
   const S = 700/1030, px = 1210, py = 300;
-  o += `<g data-hit="prof"><g class="anim"><image href="${dollUrl(PROF_ST, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${px}" y="${py}" width="${500*S}" height="700"/><g transform="translate(${px} ${py}) scale(${S}) translate(-150 -40)">${PROF_OVER}</g></g></g>`;
+  o += `<g data-hit="prof"><g class="anim"><image class="still-doll" data-doll="prof:0" href="${dollUrl(PROF_ST, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${px}" y="${py}" width="${500*S}" height="700"/><g transform="translate(${px} ${py}) scale(${S}) translate(-150 -40)">${PROF_OVER}</g></g></g>`;
   /* figuren bag gryden */
-  o += `<g class="hero"><image class="heroimg" href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${CX - 160}" y="214" width="320" height="660"/></g>`;
+  o += `<g class="hero"><image class="heroimg still-doll" data-doll="hero:0" href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="${CX - 160}" y="214" width="320" height="660"/></g>`;
   o += `<g data-hit="gryde">${cauldron()}</g>`;
   if (potLevel() >= 2) o += heatGear();
   o += steam() + ladle() + `<g class="stirwrap"></g>`;
@@ -4143,6 +4162,7 @@ function renderPotions(){
   box.append(el('div', { class:'scene-wrap', id:'potScene' }), ...placeUi([ backBtn('Gangen', showSchool) ], [ starPill() ]));
   const w = $('#potScene'); w.innerHTML = potionScene();
   const svg = w.querySelector('svg');
+  stillDolls(svg);
   svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) potTap(g.dataset.hit, g, svgPoint(svg, e)); });
   svg.addEventListener('pointerdown', stirStart);
   svg.addEventListener('pointermove', stirMove);
@@ -4310,7 +4330,9 @@ function potLoop(now){
   const dt = Math.min(.05, (now - POT.last) / 1000); POT.last = now;
   const svg = $('#potScene svg'), p = POT.p, st = p && p.steps[p.i];
   if (POT.hg){ const k = Math.min(1, (now - POT.hg.t0) / POT.hg.lim), t = svg.querySelector('.hg-top'), b = svg.querySelector('.hg-bot'), sr = svg.querySelector('.hg-str');
-    if (t){ t.setAttribute('y', (-60 + k * 26).toFixed(1)); t.setAttribute('height', (26 - k * 26).toFixed(1)); b.setAttribute('y', (-6 - k * 26).toFixed(1)); b.setAttribute('height', (k * 26).toFixed(1)); sr.style.display = k < 1 ? '' : 'none'; }
+    /* sandet flyttes i små hop (hver halve enhed), ikke i hvert billede */
+    const q = Math.round(k * 52) / 52;
+    if (t && q !== POT.hg.q){ POT.hg.q = q; t.setAttribute('y', (-60 + q * 26).toFixed(1)); t.setAttribute('height', (26 - q * 26).toFixed(1)); b.setAttribute('y', (-6 - q * 26).toFixed(1)); b.setAttribute('height', (q * 26).toFixed(1)); sr.style.display = k < 1 ? '' : 'none'; }
     if (k >= 1 && !POT.hg.out){ POT.hg.out = true; tone(330, 0.2, 'sine', 0.04); const hg = svg.querySelector('.hglass'); if (hg) hg.classList.add('out'); } }
   if (POT.diff === 2 && p && !POT.busy && p.i < p.steps.length && ((POT.hg && POT.hg.out) || p.miss >= 3)) failPotion(p.miss >= 3 ? 'Tre fejl, og så kogte den over!' : 'Timeglasset løb ud, og eliksiren kogte over!');
   if (st && st.kind === 'varme' && !POT.busy){
@@ -4326,7 +4348,7 @@ function potLoop(now){
   const fire = (Math.round((0.75 + Math.min(110, POT.heat) / 100 * 0.7) * 20) / 20).toFixed(2);
   if (fire !== svg._fire){ svg._fire = fire; const fl = svg.querySelectorAll('.fire'); fl.forEach(e => e.style.setProperty('--fire', fire)); }
   if (POT.timer && st === POT.timer.step && !POT.busy){ const k = (now - POT.timer.t0) / POT.timer.lim, r = svg.querySelector('.tring');
-    if (r) r.setAttribute('stroke-dashoffset', (Math.min(1, k) * 2 * Math.PI * 34).toFixed(1));
+    const dv = (Math.min(1, k) * 2 * Math.PI * 34).toFixed(0); if (r && dv !== r._dv){ r._dv = dv; r.setAttribute('stroke-dashoffset', dv); }
     if (k >= 1){ POT.timer = null; POT.stir = null; p.got = 0; boilOver('Tiden løb ud, og den kogte over! Prøv igen, lidt hurtigere.'); } }
   POT.raf = requestAnimationFrame(potLoop);
 }
@@ -4433,12 +4455,12 @@ async function potionEffect(fx){
   if (!hero) return;
   if (FX[fx]){ await FX[fx](hero); return; }
   if (fx === 'haar' || fx === 'pels'){
-    const s2 = clone(st), rainbow = ['#FF5FA8','#FFC02E','#62E0CB','#7B5CFF','#9BE36A','#FF8A3D'];
+    const s2 = clone(st), rainbow = ['#FF5FA8','#FFC02E','#62E0CB','#7B5CFF','#9BE36A','#FF8A3D'], was = img.getAttribute('href');
     if (fx === 'haar'){ s2.hair.a = pick(rainbow); s2.hair.b = pickOther(rainbow, s2.hair.a); s2.hair.ombre = true; img.setAttribute('href', dollUrl(s2, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })); }
     else if (pimg){ s2.pet.a = pick(rainbow); s2.pet.b = pickOther(rainbow, s2.pet.a); pimg.setAttribute('href', dollUrl(s2, { viewBox: VB.pet, petOnly: true })); }
     sparkle($('#potScene svg'), fx === 'haar' ? CX : 1095, fx === 'haar' ? 300 : 860, 10, '#FFF6D0');
     await wait(calm ? 300 : 3600);
-    if (fx === 'haar') img.setAttribute('href', dollUrl(st, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true }));
+    if (fx === 'haar') img.setAttribute('href', was);
     else if (pimg) pimg.setAttribute('href', dollUrl(st, { viewBox: VB.pet, petOnly: true }));
     return;
   }
