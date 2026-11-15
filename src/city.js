@@ -793,6 +793,7 @@ function showTown(){
   $('#townLogo').addEventListener('click', logoTap);
   const svg = $('#townSvg');
   camWire($('#street')); camFit(); growTaps(svg);
+  bakeTown(svg);
   svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
   svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
   updateAudioBtns();

@@ -7,7 +7,7 @@ const DBG = (() => {
   const STORE = 'glimmerstudiet.debug';
   let on = false, session = '', queue = [], frames = [], last = 0, raf = 0, longN = 0, longMs = 0, counts = {}, screen = '', sampleT = 0, flushT = 0, badge = null, obs = null, taps = [];
   const curScreen = () => { for (const s of SCREENS){ const e = document.querySelector(s); if (e && !e.hidden) return s.slice(1); } return '?'; };
-  function row(kind, data){ if (!on) return; queue.push({ session, version: VERSION, kind, screen: curScreen(), data }); if (queue.length > 200) queue.splice(0, queue.length - 200); }
+  function row(kind, data, scr){ if (!on) return; queue.push({ session, version: VERSION, kind, screen: scr || curScreen(), data }); if (queue.length > 200) queue.splice(0, queue.length - 200); }
   function count(k, n = 1){ if (on) counts[k] = (counts[k] || 0) + n; }
   function sample(){
     const f = frames.slice().sort((a, b) => a - b), n = f.length;
@@ -16,7 +16,7 @@ const DBG = (() => {
       const scr = document.querySelector('#' + screen);
       row('maaling', { sek: +(sum / 1000).toFixed(1), fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), hak50: frames.filter(x => x > 50).length, hak100: frames.filter(x => x > 100).length,
         lange: longN, langeMs: Math.round(longMs), elementer: scr ? scr.getElementsByTagName('*').length : 0, animationer: scr ? scr.querySelectorAll('animate,animateTransform,animateMotion').length : 0,
-        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, ...counts });
+        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), ...counts }, screen);
     }
     frames = []; longN = 0; longMs = 0; counts = {};
   }

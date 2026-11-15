@@ -832,3 +832,5 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 
 /* fejlsøgnings-mærket, når loggen er slået til */
 .dbg-badge{position:fixed;left:calc(6px + env(safe-area-inset-left,0px));bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:9999;pointer-events:none;font:700 11px/1 system-ui,sans-serif;color:#FFF;background:rgba(200,30,60,.85);padding:4px 7px;border-radius:8px;letter-spacing:.04em}
+#townSvg.baked .bk{visibility:hidden}
+#townSvg.baked .place .bk{pointer-events:painted}   /* skjulte dele af husene kan stadig trykkes på */
