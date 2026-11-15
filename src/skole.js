@@ -615,8 +615,10 @@ function potLoop(now){
         p.i++; p.got = 0; profSay(pick(PROF_OK) + (p.steps[p.i] ? ' ' + nextLine(p.steps[p.i]) : '')); drawRecipe(); if (p.i >= p.steps.length) finishPotion(); } }
     else POT.heatOk = 0;
   } else if (!POT.busy) POT.heat += (32 - POT.heat) * Math.min(1, dt * .8);
-  const f = svg.querySelector('.thermofill'); if (f){ const y = thermoY(POT.heat); f.setAttribute('y', y.toFixed(1)); f.setAttribute('height', (864 - y).toFixed(1)); }
-  svg.style.setProperty('--fire', (0.75 + Math.min(110, POT.heat) / 100 * 0.7).toFixed(2));
+  /* kun når noget faktisk ændrer sig: hver ændring får browseren til at regne hele tegningen igennem */
+  const f = svg.querySelector('.thermofill'); if (f){ const y = thermoY(POT.heat).toFixed(0); if (y !== svg._thY){ svg._thY = y; f.setAttribute('y', y); f.setAttribute('height', 864 - y); } }
+  const fire = (Math.round((0.75 + Math.min(110, POT.heat) / 100 * 0.7) * 20) / 20).toFixed(2);
+  if (fire !== svg._fire){ svg._fire = fire; const fl = svg.querySelectorAll('.fire'); fl.forEach(e => e.style.setProperty('--fire', fire)); }
   if (POT.timer && st === POT.timer.step && !POT.busy){ const k = (now - POT.timer.t0) / POT.timer.lim, r = svg.querySelector('.tring');
     if (r) r.setAttribute('stroke-dashoffset', (Math.min(1, k) * 2 * Math.PI * 34).toFixed(1));
     if (k >= 1){ POT.timer = null; POT.stir = null; p.got = 0; boilOver('Tiden løb ud, og den kogte over! Prøv igen, lidt hurtigere.'); } }
