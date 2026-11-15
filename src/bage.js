@@ -64,7 +64,7 @@ function bakeApply(svg, gen, rec, cached){
     rec.clips.forEach(([i, id]) => bakeWrap(st[i], 'clip-path', id));
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
-    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length }))
+    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
       .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message }));
     DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms });
   };

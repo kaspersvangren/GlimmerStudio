@@ -716,20 +716,29 @@ function lifeTick(now){
    og når Agnes går, glider kortet med hende. På store skærme ses hele kortet som før. */
 const CAM = { on: false, cx: 800, cy: 560, vw: CW, vh: CH, drag: null, moved: false, userAt: 0 };
 const CAM_PX = 0.62, CAM_X = [-160, 1760], CAM_Y = [-120, CH];   /* lidt himmel over kortet, så bobler ikke havner under logoet */
+/* Kortet tegnes én gang i fuld størrelse, og kameraet flytter det som ét lag (grafikchippen klarer det).
+   Før blev SVG'ens viewBox ændret, og så skulle hele kortet tegnes om for hvert skridt. */
+const CAM_W = CAM_X[1] - CAM_X[0], CAM_H = CAM_Y[1] - CAM_Y[0];
 function camFit(){
-  const st = $('#street'), svg = $('#townSvg'); if (!st || !svg) return;
+  const st = $('#street'), svg = $('#townSvg'), w = $('#world'); if (!st || !svg || !w) return;
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); gpuSync(); return; }
-  CAM.vh = vh; CAM.vw = Math.min(CAM_X[1] - CAM_X[0], vh * W / H);
-  camApply();
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
+  CAM.vh = vh; CAM.vw = Math.min(CAM_W, vh * W / H);
+  CAM.k = Math.min(W / CAM.vw, H / CAM.vh); CAM.ox = (W - CAM.vw * CAM.k) / 2; CAM.oy = (H - CAM.vh * CAM.k) / 2;
+  svg.setAttribute('viewBox', `${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
+  w.classList.add('cam'); w.style.width = (CAM_W * CAM.k).toFixed(2) + 'px'; w.style.height = (CAM_H * CAM.k).toFixed(2) + 'px';
+  CAM.t = ''; camApply();
 }
 function camApply(){
-  const hw = CAM.vw / 2, hh = CAM.vh / 2, svg = $('#townSvg'); if (!svg) return;
+  const hw = CAM.vw / 2, hh = CAM.vh / 2, w = $('#world'); if (!w || !CAM.on) return;
   CAM.cx = Math.max(CAM_X[0] + hw, Math.min(CAM_X[1] - hw, CAM.cx));
   CAM.cy = Math.max(CAM_Y[0] + hh, Math.min(CAM_Y[1] - hh, CAM.cy));
-  svg.setAttribute('viewBox', `${(CAM.cx - hw).toFixed(1)} ${(CAM.cy - hh).toFixed(1)} ${CAM.vw.toFixed(1)} ${CAM.vh.toFixed(1)}`);
+  /* hele skærmpixels, så laget ikke bliver uskarpt */
+  const d = window.devicePixelRatio || 1, px = v => Math.round(v * d) / d;
+  const t = `translate3d(${px(CAM.ox - (CAM.cx - hw - CAM_X[0]) * CAM.k)}px,${px(CAM.oy - (CAM.cy - hh - CAM_Y[0]) * CAM.k)}px,0)`;
+  if (t !== CAM.t){ CAM.t = t; w.style.transform = t; }
   gpuSync();
 }
 const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
@@ -743,7 +752,7 @@ function camWire(st){
   st.addEventListener('pointermove', e => { const d = CAM.drag; if (!d || e.pointerId !== d.id) return;
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (!CAM.moved && Math.hypot(dx, dy) < 9) return;
-    CAM.moved = true; const k = CAM.vh / st.clientHeight;
+    CAM.moved = true; const k = 1 / CAM.k;
     CAM.cx = d.cx - dx * k; CAM.cy = d.cy - dy * k; CAM.userAt = performance.now(); camApply(); });
   const end = e => { if (CAM.drag && e.pointerId === CAM.drag.id) CAM.drag = null; };
   st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
@@ -772,9 +781,9 @@ function showTown(){
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
   const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'map', id:'street', html: (BAKE.src = Kort.svg({ game: true })) }),
+  box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = Kort.svg({ game: true })) + '</div>' }),
     el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
-  $('#street').style.background = SKY[CM.time][0];
+  $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
   SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),

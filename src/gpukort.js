@@ -158,7 +158,7 @@ function gpuRasterSheet(sheet){
 
 /* ---------- byg laget på skærmen ---------- */
 async function gpuMount(svg, gen, rec, st){
-  const g = rec.gpu, street = svg.parentElement;
+  const g = rec.gpu, host = svg.parentElement;
   const sheets = await Promise.all(g.sheets.map(b => createImageBitmap(b)));
   if (gen !== BAKE.gen || !svg.isConnected) return false;
   const layer = document.createElement('div'); layer.className = 'gpu-layer';
@@ -182,14 +182,90 @@ async function gpuMount(svg, gen, rec, st){
   g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place')) r.style.pointerEvents = 'painted'; });
   const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
   /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
-  street.prepend(layer); street.classList.add('gpu-host');
+  host.prepend(layer); host.classList.add('gpu-host');
   GPU.layer = layer; GPU.cam = cam; GPU.svg = svg; GPU.on = true; gpuSync();
+  smilDrive(svg);
   return true;
 }
-/* kameraet: samme matrix som SVG'ens, men på et HTML-lag som grafikchippen flytter */
+/* kameraet: på telefoner flyttes hele verden-laget (#world) af grafikchippen; laget her følger bare med.
+   På store skærme fylder kortet skærmen, og laget får SVG'ens matrix. */
 function gpuSync(){
   if (!GPU.on || !GPU.svg || !GPU.svg.isConnected) return;
-  const m = GPU.svg.getScreenCTM(), r = GPU.layer.getBoundingClientRect(); if (!m) return;
-  GPU.cam.style.transform = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e - r.left},${m.f - r.top})`;
+  let t;
+  if (CAM.on) t = `matrix(${CAM.k},0,0,${CAM.k},${-CAM_X[0] * CAM.k},${-CAM_Y[0] * CAM.k})`;
+  else { const m = GPU.svg.getScreenCTM(), r = GPU.layer.getBoundingClientRect(); if (!m) return; t = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e - r.left},${m.f - r.top})`; }
+  if (t !== GPU.t){ GPU.t = t; GPU.cam.style.transform = t; }
 }
-function gpuReset(){ if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.layer = GPU.cam = GPU.svg = null; }
+function gpuReset(){ if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.layer = GPU.cam = GPU.svg = null; GPU.t = ''; }
+
+/* ---------- de sidste SVG-animationer drives af et lille ur i koden ----------
+   Det, der ikke kan flyttes til grafikchippen (det man kan trykke på, åen, tekst), bliver i SVG'en.
+   SVG'ens eget animationssystem (SMIL) koster dog meget på telefonen, selv for få animationer.
+   Her læses hver animation én gang, fjernes, og værdierne sættes i stedet fra koden ca. 30 gange i sekundet.
+   Står noget uden for skærmen, springes det over. */
+const DRIVE = { jobs: 0 };
+function driveJob(a){
+  const t = a.tagName, at = a.getAttribute('attributeName'), el = a.parentElement;
+  if (t === 'set' || !el) return null;
+  if ((a.getAttribute('repeatCount') || '') !== 'indefinite' || a.getAttribute('accumulate') === 'sum' || a.getAttribute('keyPoints')) return null;
+  const dur = secs(a.getAttribute('dur')), begin = secs(a.getAttribute('begin') || '0');
+  if (!(dur > 0) || isNaN(begin)) return null;
+  const mode = a.getAttribute('calcMode') || (t === 'animateMotion' ? 'paced' : 'linear');
+  if (mode === 'spline') return null;
+  const sum = a.getAttribute('additive') === 'sum';
+  if (t === 'animateMotion'){
+    if (!a.getAttribute('path') || (a.getAttribute('rotate') && a.getAttribute('rotate') !== 'auto')) return null;
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', a.getAttribute('path'));
+    const L = p.getTotalLength(), n = Math.max(16, Math.min(200, Math.round(L / 4))), pts = [];
+    for (let i = 0; i <= n; i++){ const q = p.getPointAtLength(L * i / n); pts.push([q.x, q.y]); }
+    const rot = a.getAttribute('rotate') === 'auto';
+    return { el, kind: 'motion', dur, begin, val: k => { const f = k * n, i = Math.min(n - 1, Math.floor(f)), u = f - i, A = pts[i], B = pts[i + 1];
+      const x = A[0] + (B[0] - A[0]) * u, y = A[1] + (B[1] - A[1]) * u;
+      return `translate(${x.toFixed(2)} ${y.toFixed(2)})` + (rot ? ` rotate(${(Math.atan2(B[1] - A[1], B[0] - A[0]) * 180 / Math.PI).toFixed(1)})` : ''); } };
+  }
+  const raw = (a.getAttribute('values') || [a.getAttribute('from'), a.getAttribute('to')].filter(v => v != null).join(';')).split(';').map(s => s.trim()).filter(s => s !== '');
+  if (!raw.length) return null;
+  const vals = raw.map(s => s.split(/[\s,]+/).map(Number));
+  if (vals.some(v => v.some(isNaN))) return null;
+  const kt = a.getAttribute('keyTimes'), offs = kt ? kt.split(';').map(Number) : vals.map((_, i) => vals.length > 1 ? i / (vals.length - (mode === 'discrete' ? 0 : 1)) : 0);
+  if (offs.length !== vals.length) return null;
+  const sample = k => { let i = 0; while (i < offs.length - 1 && k >= offs[i + 1]) i++;
+    if (mode === 'discrete' || i >= vals.length - 1) return vals[i];
+    const u = (k - offs[i]) / ((offs[i + 1] - offs[i]) || 1), A = vals[i], B = vals[i + 1]; return A.map((v, j) => v + ((B[j] ?? v) - v) * u); };
+  const fmt = v => v.map(x => +x.toFixed(3)).join(' ');
+  if (t === 'animateTransform'){ const type = a.getAttribute('type') || 'translate'; return { el, kind: 'transform', sum, dur, begin, val: k => `${type}(${fmt(sample(k))})` }; }
+  const base = parseFloat(el.getAttribute(at));
+  return { el, kind: 'attr', at, dur, begin, val: k => { const v = sample(k); return fmt(sum && !isNaN(base) ? v.map(x => x + base) : v); } };
+}
+function smilDrive(svg){
+  const groups = new Map();
+  for (const a of [...svg.querySelectorAll(SMIL_SEL)]){
+    if (a.closest('#chars,#bubbles')) continue;
+    const j = driveJob(a); if (!j) continue;
+    let g = groups.get(j.el); if (!g){ g = { el: j.el, jobs: [], tbase: j.el.getAttribute('transform') || '', last: {} }; groups.set(j.el, g); }
+    g.jobs.push(j); a.remove();
+  }
+  const list = [...groups.values()]; DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
+  if (!list.length) return;
+  /* hvor ligger hver ting (med god margen til bevægelsen)? */
+  const m = svg.getScreenCTM(); if (m){ const inv = m.inverse(), pt = svg.createSVGPoint();
+    for (const g of list){ const r = g.el.getBoundingClientRect(); const c = [[r.left, r.top], [r.right, r.bottom]].map(([x, y]) => { pt.x = x; pt.y = y; return pt.matrixTransform(inv); });
+      g.box = [c[0].x - 160, c[0].y - 160, c[1].x + 160, c[1].y + 160]; } }
+  const T0 = performance.now(); let last = 0;
+  const tick = now => {
+    if (!svg.isConnected) return;
+    if (svg.animationsPaused() || now - last < 31){ requestAnimationFrame(tick); return; }
+    last = now; const s = (now - T0) / 1000, [vx0, vx1, vy0] = camView(), vy1 = vy0 + (CAM.on ? CAM.vh : CH);
+    for (const g of list){
+      const b = g.box; if (b && (b[2] < vx0 || b[0] > vx1 || b[3] < vy0 || b[1] > vy1)) continue;
+      let tr = null, mo = '';
+      for (const j of g.jobs){ const u = s - j.begin; if (u < 0) continue; const k = (u % j.dur) / j.dur, v = j.val(k);
+        if (j.kind === 'attr'){ if (g.last[j.at] !== v){ g.last[j.at] = v; g.el.setAttribute(j.at, v); } }
+        else if (j.kind === 'transform') tr = j.sum ? (tr ?? g.tbase) + ' ' + v : v;
+        else mo = v + ' '; }
+      if (tr !== null || mo){ const v = mo + (tr ?? g.tbase); if (g.last.transform !== v){ g.last.transform = v; g.el.setAttribute('transform', v); } }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}

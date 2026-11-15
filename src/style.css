@@ -835,6 +835,9 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #townSvg.baked .bk{visibility:hidden}
 #townSvg.baked .place .bk{pointer-events:painted}   /* skjulte dele af husene kan stadig trykkes på */
 /* kortets animationer på grafikchippen (src/gpukort.js) */
+/* kortets verden: på telefoner er den større end skærmen og flyttes af kameraet som ét lag */
+#town .world{position:absolute;left:0;top:0;width:100%;height:100%}
+#town .world.cam{transform-origin:0 0;will-change:transform}
 .gpu-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
 .gpu-host{isolation:isolate}
 .gpu-cam{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
