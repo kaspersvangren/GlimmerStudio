@@ -610,6 +610,10 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* ================= kosteflyvning ================= */
 #kfScene{touch-action:none;background:#141A4E}
 #kfScene svg{touch-action:none}
+/* flyvetimens lag ligger oven på hinanden og flyttes hver for sig af grafikchippen */
+#kfScene > .kf-L{position:absolute;inset:0;overflow:visible;will-change:transform}
+#kfScene > .kf-L-bg,#kfScene > .kf-L-ev2,#kfScene > .kf-L-me,#kfScene > .kf-L-mood{will-change:auto}
+#kfScene > .kf-L-mood{pointer-events:none}
 .kf-rival{opacity:.82}
 .kf-me.boost,.kf-rider.boost{filter:drop-shadow(0 0 14px #C79BFF) drop-shadow(0 0 30px #FFE27A)}
 .kf-trail{opacity:0;transition:opacity .3s}

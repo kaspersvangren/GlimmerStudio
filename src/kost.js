@@ -1,12 +1,12 @@
 /* ================= Kosteflyvning =================
    Hele faget ligger i sin egen lukkede kasse (Kost), så ingen navne herinde kan ramme andre filer.
    Tryk = flyv op, tyngdekraften trækker ned. Ringene giver fart; to ringe over hinanden giver et loop,
-   og loopet giver et boost, der selv styrer gennem de næste fem ringe. To klassekammerater flyver
+   og loopet giver et boost, der selv styrer gennem de næste fire ringe. To klassekammerater flyver
    samme bane i baggrunden, og pladsen giver guld, sølv eller bronze. */
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 490;
-  const BOOST_N = 3, LOOP_R = 150, LOOP_T = .95, HOLD_MS = 260, BOOST_V = 2.3;
+  const BOOST_N = 4, LOOP_R = 150, LOOP_T = .95, HOLD_MS = 260, BOOST_V = 2.3;
   /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
   /* banerne står i lige store trin bagud: samme forskydning fra din bane til den midterste som fra den midterste til den bagerste */
   /* lige stor luft mellem ringenes kanter: forskydningen er luften plus de to ringes halve bredder */
@@ -260,23 +260,31 @@ const Kost = (() => {
   ];
   /* hvert lag: stykkerne efter hinanden og det første igen til sidst, så det kan køre i ring */
   const layer = (arr, cls) => `<g class="${cls}">${arr.map((f, i) => `<g transform="translate(${i * TW} 0)">${f()}</g>`).join('')}<g transform="translate(${arr.length * TW} 0)">${arr[0]()}</g></g>`;
-  function sceneSvg(){
-    let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="kf-svg"><defs>`
-      + `<linearGradient id="kfSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141A4E"/><stop offset=".55" stop-color="#3E2E88"/><stop offset="1" stop-color="#B0608E"/></linearGradient></defs>`;
-    o += `<rect x="-1700" y="-700" width="5000" height="700" fill="#141A4E"/><rect x="-1700" y="0" width="5000" height="1000" fill="url(#kfSky)"/><rect x="-1700" y="1000" width="5000" height="700" fill="#14102E"/>`;
+  /* scenens lag. I spillet ligger hvert lag i sin egen SVG, som kameraet flytter med CSS (grafikchippen),
+     så telefonen ikke skal tegne hele scenen om i hvert billede. Til Tegnebordet sættes de sammen til én SVG. */
+  function scenePieces(){
+    const defs = `<linearGradient id="kfSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141A4E"/><stop offset=".55" stop-color="#3E2E88"/><stop offset="1" stop-color="#B0608E"/></linearGradient>`;
+    let bg = `<rect x="-1700" y="-700" width="5000" height="700" fill="#141A4E"/><rect x="-1700" y="0" width="5000" height="1000" fill="url(#kfSky)"/><rect x="-1700" y="1000" width="5000" height="700" fill="#14102E"/>`;
     const r = rng(5);
-    for (let i = 0; i < 70; i++) o += `<circle cx="${(-700 + r() * 3000).toFixed(0)}" cy="${(r() * 520).toFixed(0)}" r="${(1 + r() * 2.2).toFixed(1)}" fill="#FFFFFF" opacity="${(.4 + r() * .6).toFixed(2)}"/>`;
-    o += `<g transform="translate(1320 150)"><circle r="120" fill="#FFF6D8" opacity=".12"/><circle r="62" fill="#FFF6D8"/><circle cx="24" cy="-14" r="56" fill="#3A2E7A" opacity=".9"/></g>`;
-    o += `<g class="kf-ev"></g>`;
-    o += layer(FAR, 'kf-far') + layer(MID, 'kf-mid');
-    o += `<g class="kf-cloud">${cloudTile()}<g transform="translate(${TW} 0)">${cloudTile()}</g></g>`;
-    o += `<g class="kf-ev2"></g>`;
-    o += `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
-    o += layer(NEAR, 'kf-near');
-    o += `<g class="kf-fx"></g>`;
-    o += placeMood([], { vign: .6, dx: 200, dw: 1200 });
-    return o + `</svg>`;
+    for (let i = 0; i < 70; i++) bg += `<circle cx="${(-700 + r() * 3000).toFixed(0)}" cy="${(r() * 520).toFixed(0)}" r="${(1 + r() * 2.2).toFixed(1)}" fill="#FFFFFF" opacity="${(.4 + r() * .6).toFixed(2)}"/>`;
+    bg += `<g transform="translate(1320 150)"><circle r="120" fill="#FFF6D8" opacity=".12"/><circle r="62" fill="#FFF6D8"/><circle cx="24" cy="-14" r="56" fill="#3A2E7A" opacity=".9"/></g>`;
+    return [
+      ['bg', 0, bg + `<g class="kf-ev"></g>`],
+      ['far', .12, layer(FAR, 'kf-far')],
+      ['mid', .35, layer(MID, 'kf-mid')],
+      ['cloud', .6, `<g class="kf-cloud">${cloudTile()}<g transform="translate(${TW} 0)">${cloudTile()}</g></g>`],
+      ['ev2', 0, `<g class="kf-ev2"></g>`],
+      ['track', 1, `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g>`],
+      ['me', 0, `<g class="kf-me"></g>`],
+      ['front', 1, `<g class="kf-front"></g>`],
+      ['near', 1.25, layer(NEAR, 'kf-near')],
+      ['fx', 1, `<g class="kf-fx"></g>`],
+      ['mood', 0, placeMood([], { vign: .6, dx: 200, dw: 1200 })],
+    ].map(([id, k, body], i) => ({ id, k, body: i ? body : `<defs>${defs}</defs>` + body }));
   }
+  const SVG0 = cls => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="${cls}">`;
+  function sceneSvg(){ return SVG0('kf-svg') + scenePieces().map(p => p.body).join('') + `</svg>`; }
+  function sceneLayers(){ return scenePieces().map(p => SVG0(`kf-svg kf-L kf-L-${p.id}`).replace('<svg ', `<svg data-k="${p.k}" `) + p.body + `</svg>`).join(''); }
 
   /* ---------- små ting der sker i baggrunden en gang imellem ---------- */
   const EVENTS = ['fyrvaerkeri', 'fyrvaerkeri', 'flagermus', 'stjerneskud', 'lanterne', 'heks'];
@@ -338,7 +346,7 @@ const Kost = (() => {
     S.rivals = makeRivals(mates);
     S.ringsAll = S.course.rings.length;
     const box = $('#broomBody'); box.innerHTML = '';
-    const scene = el('div', { class:'scene-wrap', id:'kfScene', html: scopeIds(sceneSvg(), 'kf') });
+    const scene = el('div', { class:'scene-wrap', id:'kfScene', html: scopeIds(sceneLayers(), 'kf') });
     const track = el('div', { class:'kf-track', 'aria-hidden':'true' }, [ el('div', { class:'kf-line' }), el('span', { class:'kf-flag' }, '🏁'),
       el('span', { class:'kf-dot r0', style:`background:${S.mates[0].st.robe.a}` }), el('span', { class:'kf-dot r1', style:`background:${S.mates[1].st.robe.a}` }), el('span', { class:'kf-dot me', style:`background:${hero.robe.a}` }) ]);
     const count = el('span', { class:'starpill kf-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
@@ -395,7 +403,7 @@ const Kost = (() => {
 
   /* ---------- loop og boost ----------
      Man kan altid loope. Starter loopet lige i den nederste af to ringe over hinanden, går det op gennem
-     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste tre ringe (fem ringe i alt).
+     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste fire ringe (seks ringe i alt).
      Det er tilgivende: er man nogenlunde ud for den nederste ring, bliver man trukket ind i den. */
   /* det par, man er ud for: også hvis man lige er fløjet gennem den nederste ring, før loopet nåede at starte */
   const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r.pair) && r.x - f.x < 180 && r.x - f.x > -230 && Math.abs(r.y - f.y) < 170);
@@ -404,7 +412,9 @@ const Kost = (() => {
     if (f.loop || f.boost > 0) return false;
     const hit = pairAt(f) || null;
     /* rammer man tæt nok på, bliver man trukket ind i den nederste ring, før loopet begynder */
-    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, pre: 0, t: 0, cam: hit.x - PX, hit, px: hit.x - 0.01 } : { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: null, px: f.x - 0.01 };
+    /* loopet begynder der, hvor man er, og glider over i en cirkel gennem ringene (ingen spring) */
+    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, t: 0, cam: hit.x - PX, hit, px: f.x } : { x0: f.x, y0: f.y, sx: f.x, sy: f.y, t: 0, cam: f.x - PX, hit: null, px: f.x - 0.01 };
+    if (hit && !f.seen.has(hit)){ passRing(f, hit); (f.loop.got = new Set()).add(hit); }
     return true;
   }
   function tryLoop(){ if (!S || S.run !== 'fly') return; if (startLoop(S)){ S.vy = 0; S.loop.hit ? sfx.magic() : tone(500, 0.3, 'sine', 0.04, 0, 1.8); } }
@@ -437,9 +447,10 @@ const Kost = (() => {
   /* fælles for figuren og klassekammeraterne: loop, boost og ringene man flyver igennem */
   function moveLoop(f, dt){
     const L = f.loop;
-    if (L.pre !== undefined && L.pre < 1){ L.pre = Math.min(1, L.pre + dt / .22); const e = L.pre * (2 - L.pre); f.x = L.sx + (L.x0 - L.sx) * e; f.y = L.sy + (L.y0 - L.sy) * e; f.ang = 0; if (f === S) S.cam = f.x - PX; return; }
-    L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, cy = L.y0 - LOOP_R;
-    f.x = L.x0 + LOOP_R * Math.cos(a); f.y = cy + LOOP_R * Math.sin(a); f.ang = Math.atan2(-Math.cos(a), Math.sin(a)) * 180 / Math.PI;
+    L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, c = Math.cos(a), sn = Math.sin(a);
+    /* cirklen fra der, hvor loopet begyndte, glider over i cirklen gennem ringene i løbet af den første tredjedel */
+    const u = Math.min(1, t / .38), b = u * u * (3 - 2 * u);
+    f.x = (L.sx + (L.x0 - L.sx) * b) + LOOP_R * c; f.y = (L.sy + (L.y0 - L.sy) * b) - LOOP_R + LOOP_R * sn; f.ang = Math.atan2(-c, sn) * 180 / Math.PI;
     /* ringe tæller, hvis loopet faktisk går igennem dem, uanset om man blev trukket ind eller ej */
     for (const r of S.course.rings){ if (f.seen.has(r) || Math.abs(r.x - L.x0) > LOOP_R + 5) continue;
       if ((L.px - r.x) * (f.x - r.x) <= 0 && L.px !== f.x && Math.abs(f.y - r.y) < 100){ passRing(f, r); (L.got = L.got || new Set()).add(r); } }
@@ -470,7 +481,7 @@ const Kost = (() => {
     if (S.run === 'fly' || S.run === 'done') S.t += dt;
     if (S.run === 'fly' && S.t > S.evT){ spawnEvent(pick(EVENTS)); S.evT = S.t + 4 + Math.random() * 5; }
     for (const rv of S.rivals) if (S.run === 'fly' || S.run === 'done') rivalStep(rv, dt);
-    if (S.loop){ moveLoop(S, dt); if (S.loop){ if (S.loop.pre === undefined || S.loop.pre >= 1) S.cam = S.loop.cam; } else S.cam = S.x - PX; return; }
+    if (S.loop){ moveLoop(S, dt); if (S.loop) S.cam += (S.loop.cam - S.cam) * Math.min(1, dt * 7); else S.cam = S.x - PX; return; }
     const x0 = S.x;
     if (S.boost > 0) moveBoost(S, dt);
     else {
@@ -521,15 +532,19 @@ const Kost = (() => {
   function draw(){
     const sc = $('#kfScene'); if (!sc || !S) return;
     const cam = S.cam;
-    const par = (sel, k) => { const g = sc.querySelector(sel); if (g) g.setAttribute('transform', `translate(${(-((cam * k) % 3200 + 3200) % 3200 - 800).toFixed(1)} 0)`); };
-    const parN = (sel, k, n) => { const g = sc.querySelector(sel); if (g) g.setAttribute('transform', `translate(${(-((cam * k) % (n * TW) + n * TW) % (n * TW) - 800).toFixed(1)} 0)`); };
-    parN('.kf-far', .12, FAR.length); parN('.kf-mid', .35, MID.length); par('.kf-cloud', .6); parN('.kf-near', 1.25, NEAR.length);
-    sc.querySelector('.kf-world').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-front').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-fx').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-lanes').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    if (!S.cull){ S.cull = [...sc.querySelectorAll('.kf-world > *, .kf-front > *, .kf-trackB > *, .kf-trackF > *')].map(g => { try { const b = g.getBBox(); return { g, x0: b.x, x1: b.x + b.width, on: true }; } catch (e){ return null; } }).filter(Boolean); }
-    for (const c of S.cull){ const on = c.x1 > cam - 700 && c.x0 < cam + 2400; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
+    /* kameraet flytter lagene med CSS (hele skærmpixels); de bageste langsommere, så der er dybde */
+    if (!S.lay || S.lay.w !== sc.clientWidth || S.lay.h !== sc.clientHeight){
+      const m = sc.querySelector('.kf-L').getScreenCTM();
+      S.lay = { w: sc.clientWidth, h: sc.clientHeight, a: m ? m.a : 1, d: window.devicePixelRatio || 1, els: [...sc.querySelectorAll('.kf-L')].filter(e => +e.dataset.k).map(e => ({ e, k: +e.dataset.k, n: e.querySelector('.kf-far') ? FAR.length : e.querySelector('.kf-mid') ? MID.length : e.querySelector('.kf-near') ? NEAR.length : e.querySelector('.kf-cloud') ? 1 : 0, last: '' })) };
+      if (S.cull) S.cull.forEach(c => { c.g.style.display = ''; }); S.cull = null; }
+    for (const L of S.lay.els){
+      const u = L.n ? -((cam * L.k) % (L.n * TW) + L.n * TW) % (L.n * TW) - 800 : -cam * L.k, px = Math.round(u * S.lay.a * S.lay.d) / S.lay.d, t = `translate3d(${px}px,0,0)`;
+      if (t !== L.last){ L.last = t; L.e.style.transform = t; } }
+    /* det, der er langt uden for skærmen, tegnes ikke (kasserne måles på skærmen én gang og regnes om til banens x) */
+    if (!S.cull){ const W = sc.getBoundingClientRect(), a = S.lay.a;
+      S.cull = [...sc.querySelectorAll('.kf-world > *, .kf-front > *, .kf-trackB > *, .kf-trackF > *')].map(g => { const b = g.getBoundingClientRect(); if (!b.width && !b.height) return null;
+        const x0 = (b.left - W.left) / a - (W.width / a - 1600) / 2 + cam, x1 = (b.right - W.left) / a - (W.width / a - 1600) / 2 + cam; return { g, x0, x1, on: true }; }).filter(Boolean); }
+    for (const c of S.cull){ const on = c.x1 > cam - 900 && c.x0 < cam + 2600; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
     S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
     S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
     /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */
