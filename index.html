@@ -850,6 +850,9 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #townSvg.baked .bk{visibility:hidden}
 #townSvg.baked .place .bk{pointer-events:painted}   /* skjulte dele af husene kan stadig trykkes på */
 /* kortets animationer på grafikchippen (src/gpukort.js) */
+/* kortets verden: på telefoner er den større end skærmen og flyttes af kameraet som ét lag */
+#town .world{position:absolute;left:0;top:0;width:100%;height:100%}
+#town .world.cam{transform-origin:0 0;will-change:transform}
 .gpu-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
 .gpu-host{isolation:isolate}
 .gpu-cam{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
@@ -1994,7 +1997,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.21.0';
+const VERSION = 'v0.21.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -8194,20 +8197,29 @@ function lifeTick(now){
    og når Agnes går, glider kortet med hende. På store skærme ses hele kortet som før. */
 const CAM = { on: false, cx: 800, cy: 560, vw: CW, vh: CH, drag: null, moved: false, userAt: 0 };
 const CAM_PX = 0.62, CAM_X = [-160, 1760], CAM_Y = [-120, CH];   /* lidt himmel over kortet, så bobler ikke havner under logoet */
+/* Kortet tegnes én gang i fuld størrelse, og kameraet flytter det som ét lag (grafikchippen klarer det).
+   Før blev SVG'ens viewBox ændret, og så skulle hele kortet tegnes om for hvert skridt. */
+const CAM_W = CAM_X[1] - CAM_X[0], CAM_H = CAM_Y[1] - CAM_Y[0];
 function camFit(){
-  const st = $('#street'), svg = $('#townSvg'); if (!st || !svg) return;
+  const st = $('#street'), svg = $('#townSvg'), w = $('#world'); if (!st || !svg || !w) return;
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); gpuSync(); return; }
-  CAM.vh = vh; CAM.vw = Math.min(CAM_X[1] - CAM_X[0], vh * W / H);
-  camApply();
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
+  CAM.vh = vh; CAM.vw = Math.min(CAM_W, vh * W / H);
+  CAM.k = Math.min(W / CAM.vw, H / CAM.vh); CAM.ox = (W - CAM.vw * CAM.k) / 2; CAM.oy = (H - CAM.vh * CAM.k) / 2;
+  svg.setAttribute('viewBox', `${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
+  w.classList.add('cam'); w.style.width = (CAM_W * CAM.k).toFixed(2) + 'px'; w.style.height = (CAM_H * CAM.k).toFixed(2) + 'px';
+  CAM.t = ''; camApply();
 }
 function camApply(){
-  const hw = CAM.vw / 2, hh = CAM.vh / 2, svg = $('#townSvg'); if (!svg) return;
+  const hw = CAM.vw / 2, hh = CAM.vh / 2, w = $('#world'); if (!w || !CAM.on) return;
   CAM.cx = Math.max(CAM_X[0] + hw, Math.min(CAM_X[1] - hw, CAM.cx));
   CAM.cy = Math.max(CAM_Y[0] + hh, Math.min(CAM_Y[1] - hh, CAM.cy));
-  svg.setAttribute('viewBox', `${(CAM.cx - hw).toFixed(1)} ${(CAM.cy - hh).toFixed(1)} ${CAM.vw.toFixed(1)} ${CAM.vh.toFixed(1)}`);
+  /* hele skærmpixels, så laget ikke bliver uskarpt */
+  const d = window.devicePixelRatio || 1, px = v => Math.round(v * d) / d;
+  const t = `translate3d(${px(CAM.ox - (CAM.cx - hw - CAM_X[0]) * CAM.k)}px,${px(CAM.oy - (CAM.cy - hh - CAM_Y[0]) * CAM.k)}px,0)`;
+  if (t !== CAM.t){ CAM.t = t; w.style.transform = t; }
   gpuSync();
 }
 const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
@@ -8221,7 +8233,7 @@ function camWire(st){
   st.addEventListener('pointermove', e => { const d = CAM.drag; if (!d || e.pointerId !== d.id) return;
     const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (!CAM.moved && Math.hypot(dx, dy) < 9) return;
-    CAM.moved = true; const k = CAM.vh / st.clientHeight;
+    CAM.moved = true; const k = 1 / CAM.k;
     CAM.cx = d.cx - dx * k; CAM.cy = d.cy - dy * k; CAM.userAt = performance.now(); camApply(); });
   const end = e => { if (CAM.drag && e.pointerId === CAM.drag.id) CAM.drag = null; };
   st.addEventListener('pointerup', end); st.addEventListener('pointercancel', end);
@@ -8250,9 +8262,9 @@ function showTown(){
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
   const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'map', id:'street', html: (BAKE.src = Kort.svg({ game: true })) }),
+  box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = Kort.svg({ game: true })) + '</div>' }),
     el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
-  $('#street').style.background = SKY[CM.time][0];
+  $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
   SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),
@@ -8350,7 +8362,7 @@ function bakeApply(svg, gen, rec, cached){
     rec.clips.forEach(([i, id]) => bakeWrap(st[i], 'clip-path', id));
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
-    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length }))
+    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
       .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message }));
     DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms });
   };
@@ -8749,7 +8761,7 @@ function gpuRasterSheet(sheet){
 
 /* ---------- byg laget på skærmen ---------- */
 async function gpuMount(svg, gen, rec, st){
-  const g = rec.gpu, street = svg.parentElement;
+  const g = rec.gpu, host = svg.parentElement;
   const sheets = await Promise.all(g.sheets.map(b => createImageBitmap(b)));
   if (gen !== BAKE.gen || !svg.isConnected) return false;
   const layer = document.createElement('div'); layer.className = 'gpu-layer';
@@ -8773,17 +8785,93 @@ async function gpuMount(svg, gen, rec, st){
   g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place')) r.style.pointerEvents = 'painted'; });
   const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
   /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
-  street.prepend(layer); street.classList.add('gpu-host');
+  host.prepend(layer); host.classList.add('gpu-host');
   GPU.layer = layer; GPU.cam = cam; GPU.svg = svg; GPU.on = true; gpuSync();
+  smilDrive(svg);
   return true;
 }
-/* kameraet: samme matrix som SVG'ens, men på et HTML-lag som grafikchippen flytter */
+/* kameraet: på telefoner flyttes hele verden-laget (#world) af grafikchippen; laget her følger bare med.
+   På store skærme fylder kortet skærmen, og laget får SVG'ens matrix. */
 function gpuSync(){
   if (!GPU.on || !GPU.svg || !GPU.svg.isConnected) return;
-  const m = GPU.svg.getScreenCTM(), r = GPU.layer.getBoundingClientRect(); if (!m) return;
-  GPU.cam.style.transform = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e - r.left},${m.f - r.top})`;
+  let t;
+  if (CAM.on) t = `matrix(${CAM.k},0,0,${CAM.k},${-CAM_X[0] * CAM.k},${-CAM_Y[0] * CAM.k})`;
+  else { const m = GPU.svg.getScreenCTM(), r = GPU.layer.getBoundingClientRect(); if (!m) return; t = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e - r.left},${m.f - r.top})`; }
+  if (t !== GPU.t){ GPU.t = t; GPU.cam.style.transform = t; }
 }
-function gpuReset(){ if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.layer = GPU.cam = GPU.svg = null; }
+function gpuReset(){ if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.layer = GPU.cam = GPU.svg = null; GPU.t = ''; }
+
+/* ---------- de sidste SVG-animationer drives af et lille ur i koden ----------
+   Det, der ikke kan flyttes til grafikchippen (det man kan trykke på, åen, tekst), bliver i SVG'en.
+   SVG'ens eget animationssystem (SMIL) koster dog meget på telefonen, selv for få animationer.
+   Her læses hver animation én gang, fjernes, og værdierne sættes i stedet fra koden ca. 30 gange i sekundet.
+   Står noget uden for skærmen, springes det over. */
+const DRIVE = { jobs: 0 };
+function driveJob(a){
+  const t = a.tagName, at = a.getAttribute('attributeName'), el = a.parentElement;
+  if (t === 'set' || !el) return null;
+  if ((a.getAttribute('repeatCount') || '') !== 'indefinite' || a.getAttribute('accumulate') === 'sum' || a.getAttribute('keyPoints')) return null;
+  const dur = secs(a.getAttribute('dur')), begin = secs(a.getAttribute('begin') || '0');
+  if (!(dur > 0) || isNaN(begin)) return null;
+  const mode = a.getAttribute('calcMode') || (t === 'animateMotion' ? 'paced' : 'linear');
+  if (mode === 'spline') return null;
+  const sum = a.getAttribute('additive') === 'sum';
+  if (t === 'animateMotion'){
+    if (!a.getAttribute('path') || (a.getAttribute('rotate') && a.getAttribute('rotate') !== 'auto')) return null;
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', a.getAttribute('path'));
+    const L = p.getTotalLength(), n = Math.max(16, Math.min(200, Math.round(L / 4))), pts = [];
+    for (let i = 0; i <= n; i++){ const q = p.getPointAtLength(L * i / n); pts.push([q.x, q.y]); }
+    const rot = a.getAttribute('rotate') === 'auto';
+    return { el, kind: 'motion', dur, begin, val: k => { const f = k * n, i = Math.min(n - 1, Math.floor(f)), u = f - i, A = pts[i], B = pts[i + 1];
+      const x = A[0] + (B[0] - A[0]) * u, y = A[1] + (B[1] - A[1]) * u;
+      return `translate(${x.toFixed(2)} ${y.toFixed(2)})` + (rot ? ` rotate(${(Math.atan2(B[1] - A[1], B[0] - A[0]) * 180 / Math.PI).toFixed(1)})` : ''); } };
+  }
+  const raw = (a.getAttribute('values') || [a.getAttribute('from'), a.getAttribute('to')].filter(v => v != null).join(';')).split(';').map(s => s.trim()).filter(s => s !== '');
+  if (!raw.length) return null;
+  const vals = raw.map(s => s.split(/[\s,]+/).map(Number));
+  if (vals.some(v => v.some(isNaN))) return null;
+  const kt = a.getAttribute('keyTimes'), offs = kt ? kt.split(';').map(Number) : vals.map((_, i) => vals.length > 1 ? i / (vals.length - (mode === 'discrete' ? 0 : 1)) : 0);
+  if (offs.length !== vals.length) return null;
+  const sample = k => { let i = 0; while (i < offs.length - 1 && k >= offs[i + 1]) i++;
+    if (mode === 'discrete' || i >= vals.length - 1) return vals[i];
+    const u = (k - offs[i]) / ((offs[i + 1] - offs[i]) || 1), A = vals[i], B = vals[i + 1]; return A.map((v, j) => v + ((B[j] ?? v) - v) * u); };
+  const fmt = v => v.map(x => +x.toFixed(3)).join(' ');
+  if (t === 'animateTransform'){ const type = a.getAttribute('type') || 'translate'; return { el, kind: 'transform', sum, dur, begin, val: k => `${type}(${fmt(sample(k))})` }; }
+  const base = parseFloat(el.getAttribute(at));
+  return { el, kind: 'attr', at, dur, begin, val: k => { const v = sample(k); return fmt(sum && !isNaN(base) ? v.map(x => x + base) : v); } };
+}
+function smilDrive(svg){
+  const groups = new Map();
+  for (const a of [...svg.querySelectorAll(SMIL_SEL)]){
+    if (a.closest('#chars,#bubbles')) continue;
+    const j = driveJob(a); if (!j) continue;
+    let g = groups.get(j.el); if (!g){ g = { el: j.el, jobs: [], tbase: j.el.getAttribute('transform') || '', last: {} }; groups.set(j.el, g); }
+    g.jobs.push(j); a.remove();
+  }
+  const list = [...groups.values()]; DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
+  if (!list.length) return;
+  /* hvor ligger hver ting (med god margen til bevægelsen)? */
+  const m = svg.getScreenCTM(); if (m){ const inv = m.inverse(), pt = svg.createSVGPoint();
+    for (const g of list){ const r = g.el.getBoundingClientRect(); const c = [[r.left, r.top], [r.right, r.bottom]].map(([x, y]) => { pt.x = x; pt.y = y; return pt.matrixTransform(inv); });
+      g.box = [c[0].x - 160, c[0].y - 160, c[1].x + 160, c[1].y + 160]; } }
+  const T0 = performance.now(); let last = 0;
+  const tick = now => {
+    if (!svg.isConnected) return;
+    if (svg.animationsPaused() || now - last < 31){ requestAnimationFrame(tick); return; }
+    last = now; const s = (now - T0) / 1000, [vx0, vx1, vy0] = camView(), vy1 = vy0 + (CAM.on ? CAM.vh : CH);
+    for (const g of list){
+      const b = g.box; if (b && (b[2] < vx0 || b[0] > vx1 || b[3] < vy0 || b[1] > vy1)) continue;
+      let tr = null, mo = '';
+      for (const j of g.jobs){ const u = s - j.begin; if (u < 0) continue; const k = (u % j.dur) / j.dur, v = j.val(k);
+        if (j.kind === 'attr'){ if (g.last[j.at] !== v){ g.last[j.at] = v; g.el.setAttribute(j.at, v); } }
+        else if (j.kind === 'transform') tr = j.sum ? (tr ?? g.tbase) + ' ' + v : v;
+        else mo = v + ' '; }
+      if (tr !== null || mo){ const v = mo + (tr ?? g.tbase); if (g.last.transform !== v){ g.last.transform = v; g.el.setAttribute('transform', v); } }
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 
 // Egne lydfiler. Læg filen i mappen lyd/ og skriv den her, fx  'gnom.slag': 'lyd/gnom-slag.mp3'
 // Nøglerne står i Værkstedet (lyd-fanen). Alt der ikke står her, bruger spillets indbyggede lyd.
