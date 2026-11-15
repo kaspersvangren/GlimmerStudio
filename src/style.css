@@ -842,4 +842,5 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .gpu-host{isolation:isolate}
 .gpu-cam{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
 .gpu-cam .gpu-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
-.gpu-cam .gpu-p,.gpu-cam .gpu-bg{position:absolute;display:block;max-width:none}
+.gpu-cam .gpu-p,.gpu-cam .gpu-bg{position:absolute;left:0;top:0;display:block;max-width:none}
+.gpu-layer.px1 .gpu-bg,.gpu-layer.px1 .gpu-fix{image-rendering:pixelated;will-change:transform}

@@ -3,12 +3,14 @@
    Her laves hver animeret ting om til små færdigtegnede billeder (lærreder) i HTML-lag, og bevægelsen
    gives videre som CSS-animationer af flytning, drejning, skalering og gennemsigtighed. Dem kører
    grafikchippen alene, uden at processoren skal tegne noget.
-   Kun animationer der kan oversættes 1:1 flyttes. Resten bliver i SVG'en som før. */
+   Kun animationer der kan oversættes 1:1 flyttes. Resten bliver i SVG'en og drives af et lille ur i koden (nederst). */
 const GPU = { on: false, layer: null, cam: null, svg: null };
 const GPU_KEY = 'glimmerstudiet.gpu';
-/* indtil videre kun når fejlsøgningsloggen er tændt (eller slået til direkte), så det kan prøves af uden at påvirke Agnes */
-function gpuWanted(){ try { const v = localStorage.getItem(GPU_KEY); if (v === '0') return false; if (v === '1') return true; return localStorage.getItem('glimmerstudiet.debug') === '1'; } catch (e){ return false; } }
+/* slået til for alle (kan slås fra med glimmerstudiet.gpu = '0') */
+function gpuWanted(){ try { return localStorage.getItem(GPU_KEY) !== '0'; } catch (e){ return true; } }
 const SMIL_SEL = 'animate,animateTransform,animateMotion,set';
+/* elementer, hvis hop og skjul (klasser/stil) spejles over på grafiklaget */
+const GPU_MIRROR = '[data-tap],.tapjump,.k-sleep,.k-wake';
 const smilKids = el => [...el.children].filter(c => /^(animate|animateTransform|animateMotion|set)$/.test(c.tagName));
 const secs = v => { if (!v) return 0; const m = String(v).trim().match(/^(-?[\d.]+)\s*(ms|s|min)?$/); if (!m) return NaN; const n = parseFloat(m[1]); return m[2] === 'ms' ? n / 1000 : m[2] === 'min' ? n * 60 : n; };
 
@@ -136,7 +138,7 @@ function gpuNodeSpec(el, rootMatrix, pieces, NS){
     const flush = () => { if (run.length){ const p = gpuPiece(run, el, pieces, false); if (p) kids.push(p); run = []; } };
     for (const c of el.children){
       if (/^(animate|animateTransform|animateMotion|set|title|desc|defs|linearGradient|radialGradient|filter|clipPath|mask|pattern|symbol|marker)$/.test(c.tagName)) continue;
-      if (smilKids(c).length || c.querySelector(SMIL_SEL)){ flush(); kids.push(gpuNodeSpec(c, null, pieces, NS)); }
+      if (smilKids(c).length || c.querySelector(SMIL_SEL) || c.matches(GPU_MIRROR) || c.querySelector(GPU_MIRROR)){ flush(); const k = gpuNodeSpec(c, null, pieces, NS); if (c.matches(GPU_MIRROR)) k.mirEl = [c]; kids.push(k); }
       else run.push(c);
     }
     flush();
@@ -169,7 +171,7 @@ function gpuPieceMarkup(pc, svg){
     /* CSS-filtre fra stilarket (fx 'kommer snart'-huse er lidt afblegede) følger med */
     const cf = getComputedStyle(a).filter; if (cf && cf !== 'none' && !a.getAttribute('filter')) g.setAttribute('style', 'filter:' + cf);
     const s = new XMLSerializer().serializeToString(g).replace(/\s*xmlns="[^"]*"/, ''); const i = s.lastIndexOf('</'); open += i > 0 ? s.slice(0, i) : s.replace(/\/>$/, '>'); close = `</${g.tagName}>` + close; }
-  const body = pc.els.map(e => { const c = e.cloneNode(true); c.querySelectorAll && c.querySelectorAll(SMIL_SEL).forEach(a => a.remove());
+  const body = pc.els.filter(e => !/^(text|image|foreignObject)$/.test(e.tagName)).map(e => { const c = e.cloneNode(true); c.querySelectorAll && c.querySelectorAll(SMIL_SEL + ',text,image,foreignObject').forEach(a => a.remove());
     if (pc.self){ c.removeAttribute('transform'); c.removeAttribute('opacity'); c.style && (c.style.opacity = ''); }
     return new XMLSerializer().serializeToString(c).replace(/\s*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, ''); }).join('');
   return open + body + close;
@@ -179,7 +181,7 @@ function gpuAtlas(svg, pieces, extra, sc){
   const MAXW = 4096, MAXH = 4096, sheets = [];
   let sx = 0, sy = 0, rowH = 0, sheet = { items: [], h: 0 };
   const all = pieces.concat(extra);
-  all.forEach((pc, i) => { const pw = Math.ceil(pc.w * sc) + 2, ph = Math.ceil(pc.h * sc) + 2;
+  all.forEach((pc, i) => { const pw = Math.ceil(pc.w * sc - 1e-3) + 2, ph = Math.ceil(pc.h * sc - 1e-3) + 2;
     if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
     if (sy + ph > MAXH){ sheet.h = sy + rowH; sheets.push(sheet); sheet = { items: [], h: 0 }; sx = 0; sy = 0; rowH = 0; }
     pc.sheet = sheets.length; pc.ax = sx; pc.ay = sy; pc.aw = pw - 2; pc.ah = ph - 2; sheet.items.push(i);
@@ -205,12 +207,15 @@ async function gpuMount(svg, gen, rec, st){
   const sheets = await Promise.all(g.sheets.map(b => createImageBitmap(b)));
   if (gen !== BAKE.gen || !svg.isConnected) return false;
   const layer = document.createElement('div'); layer.className = 'gpu-layer';
+  /* én billedpixel pr. skærmpixel: billedet og lapperne vises pixel for pixel, så deres kanter mødes uden striber */
+  if (CAM.on && g.px && Math.abs(g.px - CAM.k * (window.devicePixelRatio || 1)) < 1e-3) layer.classList.add('px1');
   const cam = document.createElement('div'); cam.className = 'gpu-cam'; layer.append(cam);
-  const box = (el, x, y, w, h) => { Object.assign(el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' }); return el; };
+  /* placering med transform (ikke left/top), så den ikke afrundes til layoutets 1/64 pixel */
+  const box = (el, x, y, w, h) => { Object.assign(el.style, { transform: `translate(${x}px,${y}px)`, width: w + 'px', height: h + 'px' }); return el; };
   /* baggrunden: det bagte billede */
   const bg = new Image(); bg.decoding = 'async'; bg.src = BAKE.url; bg.className = 'gpu-bg'; cam.append(box(bg, rec.x0, rec.y0, rec.W, rec.H));
   const piece = i => { const pc = g.pieces[i], cv = document.createElement('canvas'); cv.width = pc.aw; cv.height = pc.ah;
-    cv.getContext('2d').drawImage(sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, 0, 0, pc.aw, pc.ah); cv.className = 'gpu-p'; cv.dataset.i = i; if (pc.blend) cv.style.mixBlendMode = pc.blend; return box(cv, pc.x, pc.y, pc.w, pc.h); };
+    cv.getContext('2d').drawImage(sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, 0, 0, pc.aw, pc.ah); cv.className = pc.fix ? 'gpu-p gpu-fix' : 'gpu-p'; cv.dataset.i = i; if (pc.blend) cv.style.mixBlendMode = pc.blend; return box(cv, pc.x, pc.y, pc.w, pc.h); };
   /* stiplede streger: et lærred i skærmens opløsning, som uret tegner om */
   const res = Math.max(1, Math.min(3, (CAM.on ? CAM.k : ((svg.getScreenCTM() || {}).a || 1)) * (window.devicePixelRatio || 1)));
   const dashCv = d => { const cv = document.createElement('canvas'); cv.width = Math.ceil(d.w * res); cv.height = Math.ceil(d.h * res); cv.className = 'gpu-p';
@@ -222,18 +227,52 @@ async function gpuMount(svg, gen, rec, st){
       if (w.o != null) d.style.opacity = w.o;
       if (w.a){ try { d.animate(w.a.kf, { duration: w.a.dur, delay: w.a.delay, iterations: Infinity, easing: 'linear' }); } catch (e){} }
       cur = d; }
-    for (const k of spec.c) cur.append(k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k));
+    for (const k of spec.c){ let e = k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k);
+      if (k.mir) k.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(e); e = w; gpuMirror(svg, A, w, true); });
+      cur.append(e); }
     return outer; };
-  for (const it of g.items) cam.append(it.p != null ? piece(it.p) : node(it));
+  for (const it of g.items){ let el = it.p != null ? piece(it.p) : node(it);
+    /* ting man kan trykke på: et hop eller et skjul på originalen i SVG'en spejles over på laget */
+    if (it.mir) it.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(el); el = w; gpuMirror(svg, A, w); });
+    cam.append(el); }
   sheets.forEach(s => s.close && s.close());
   /* skjul originalerne i SVG'en og fjern deres animationer, så de ikke tikker videre */
-  g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place')) r.style.pointerEvents = 'painted'; });
+  g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place,[data-tap]')) r.style.pointerEvents = 'painted';
+    /* tekst og billeder i roden bliver vist i SVG'en */
+    r.querySelectorAll('text,image,foreignObject').forEach(t => { t.style.visibility = 'visible'; }); });
   const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
   /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
   host.prepend(layer); host.classList.add('gpu-host');
   GPU.layer = layer; GPU.cam = cam; GPU.svg = svg; GPU.on = true; gpuSync();
   smilDrive(svg);
   return true;
+}
+/* spejl: holder øje med et element i SVG'en (klasser og stil) og gør det samme ved laget w:
+   skjult -> skjult, og CSS-animationer (hop, fund) genskabes med samme forløb omkring samme punkt */
+function gpuMirror(svg, A, w, local){
+  const done = new WeakSet();
+  const sync = () => {
+    if (!A.isConnected){ w.remove(); ob.disconnect(); return; }
+    const cs = getComputedStyle(A); w.style.display = cs.display === 'none' ? 'none' : '';   /* (synligheden sætter vi selv på rødderne, så den tæller ikke) */
+    for (const an of A.getAnimations()){ if (done.has(an) || !an.effect) continue; done.add(an);
+      try {
+        const root = svg.getScreenCTM(), pc = A.parentElement.getScreenCTM(); if (!root || !pc) continue;
+        const P = local ? new DOMMatrix() : DOMMatrix.fromMatrix(root.inverse().multiply(pc)), Pi = P.inverse();
+        const at = A.transform && A.transform.baseVal.numberOfItems ? DOMMatrix.fromMatrix(A.transform.baseVal.consolidate().matrix) : new DOMMatrix();
+        const bb = A.getBBox(), oo = cs.transformOrigin.split(' ').map(parseFloat), ox = (cs.transformBox === 'fill-box' ? bb.x : 0) + (oo[0] || 0), oy = (cs.transformBox === 'fill-box' ? bb.y : 0) + (oo[1] || 0);
+        const kf = an.effect.getKeyframes().map(k => { const o = { offset: k.computedOffset, easing: k.easing || 'linear' };
+          if (k.transform !== undefined){ const K = new DOMMatrix(k.transform === 'none' ? '' : k.transform);
+            const W = P.multiply(new DOMMatrix().translate(ox, oy)).multiply(K).multiply(new DOMMatrix().translate(-ox, -oy)).multiply(at.inverse()).multiply(Pi);
+            o.transform = `matrix(${[W.a, W.b, W.c, W.d, W.e, W.f].map(v => +v.toFixed(5)).join(',')})`; }
+          if (k.opacity !== undefined) o.opacity = k.opacity;
+          return o; });
+        const t = an.effect.getComputedTiming();
+        const m = w.animate(kf, { duration: t.duration, delay: t.delay, iterations: t.iterations, fill: t.fill, direction: t.direction, easing: 'linear' });
+        m.currentTime = an.currentTime || 0;
+      } catch (e){} }
+  };
+  const ob = new MutationObserver(sync); ob.observe(A, { attributes: true, attributeFilter: ['class', 'style'] });
+  sync();
 }
 /* kameraet: på telefoner flyttes hele verden-laget (#world) af grafikchippen; laget her følger bare med.
    På store skærme fylder kortet skærmen, og laget får SVG'ens matrix. */
