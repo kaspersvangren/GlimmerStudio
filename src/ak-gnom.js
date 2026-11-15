@@ -31,26 +31,36 @@
   /* et hul: bagkant, gnomen (klippet, så den kommer op af hullet) og forkanten over den */
   function holeSvg(h, i){
     const rx = 112 * h.k, ry = 34 * h.k, x = h.x, y = h.y;
-    return `<g class="gh" data-i="${i}"><ellipse cx="${x}" cy="${y}" rx="${rx + 12 * h.k}" ry="${ry + 8 * h.k}" fill="#2A5A34" stroke="${E}" stroke-width="4"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#081A0E"/>`
+    return `<g class="gh" data-i="${i}"><ellipse cx="${x}" cy="${y}" rx="${rx + 14 * h.k}" ry="${ry + 9 * h.k}" fill="url(#gbr)" stroke="#2A160C" stroke-width="4"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#120A06"/>`
       + `<clipPath id="gc${i}"><path d="M ${x - rx - 40} ${y - 400} H ${x + rx + 40} V ${y} A ${rx} ${ry} 0 0 1 ${x - rx} ${y} H ${x - rx - 40} Z"/></clipPath>`
       + `<g clip-path="url(#gc${i})"><g class="gm" transform="translate(${x} ${y + 200 * h.k}) scale(${h.k})"></g></g>`
-      + `<path d="M ${x - rx} ${y} A ${rx} ${ry} 0 0 0 ${x + rx} ${y}" stroke="#3A7A44" stroke-width="${8 * h.k}" fill="none"/></g>`;
+      + `<path d="M ${x - rx} ${y} A ${rx} ${ry} 0 0 0 ${x + rx} ${y}" stroke="#C9962E" stroke-width="${8 * h.k}" fill="none"/></g>`;
   }
   function boardSvg(){
+    const W = '#2A160C';
     let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"><defs>`
-      + `<linearGradient id="gbd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E6A3A"/><stop offset="1" stop-color="#3E8A4A"/></linearGradient></defs>`;
-    o += `<rect x="-400" y="-200" width="2400" height="1400" fill="#22163E"/>`;
-    /* bagpladen med lysdisplays */
-    o += `<path d="M 240 -40 H 1360 V 240 H 240 Z" fill="#2E6A3A" stroke="${E}" stroke-width="6"/><path d="M 260 -20 H 1340" stroke="#9BE36A" stroke-width="3" opacity=".5"/>`;
-    o += `<rect x="560" y="74" width="480" height="120" rx="14" fill="#140C2A" stroke="${E}" stroke-width="5"/>`;
-    o += `<text x="610" y="118" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#9BE36A">TID</text><text class="g-tid" x="610" y="178" font-family="'Courier New',monospace" font-weight="700" font-size="58" fill="#FF5A5A" style="filter:drop-shadow(0 0 6px #FF3A3A)">45</text>`;
-    o += `<text x="990" y="118" text-anchor="end" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#9BE36A">POINT</text><text class="g-pt" x="990" y="178" text-anchor="end" font-family="'Courier New',monospace" font-weight="700" font-size="58" fill="#FF5A5A" style="filter:drop-shadow(0 0 6px #FF3A3A)">000</text>`;
-    o += `<text x="800" y="52" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="34" fill="#9BE36A" style="filter:drop-shadow(0 0 8px #9BE36A)">BANK EN GNOM</text>`;
-    /* spillepladen: skrå, bredere ud mod én */
-    o += `<path d="M 240 236 H 1360 L 1640 1040 H -40 Z" fill="url(#gbd)" stroke="${E}" stroke-width="6" stroke-linejoin="round"/>`;
-    o += `<path d="M 268 256 H 1332 L 1588 1000 H 12 Z" fill="none" stroke="#9BE36A" stroke-width="3" opacity=".35"/>`;
+      + `<linearGradient id="gbd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6A3A1E"/><stop offset="1" stop-color="#8A5030"/></linearGradient>`
+      + `<linearGradient id="gbr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7E2A0"/><stop offset=".45" stop-color="#D9A848"/><stop offset="1" stop-color="#8A6420"/></linearGradient>`
+      + `<linearGradient id="gbw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A2E16"/><stop offset=".5" stop-color="#7A4224"/><stop offset="1" stop-color="#4A2412"/></linearGradient>`
+      + `<pattern id="gdam" width="120" height="140" patternUnits="userSpaceOnUse"><rect width="120" height="140" fill="#34101A"/><path d="M 60 14 C 74 34 92 40 92 62 C 92 82 72 88 60 104 C 48 88 28 82 28 62 C 28 40 46 34 60 14 Z" fill="#4A1A26"/></pattern></defs>`;
+    o += `<rect x="-400" y="-200" width="2400" height="1400" fill="url(#gdam)"/>`;
+    /* bagpladen: træ med messingkant, et emaljeskilt og to mekaniske tælleværk */
+    o += `<path d="M 240 -40 H 1360 V 240 H 240 Z" fill="url(#gbw)" stroke="${W}" stroke-width="6"/><path d="M 252 228 H 1348" stroke="#C9962E" stroke-width="5"/>`;
+    o += [[262, 16], [1338, 16], [262, 214], [1338, 214]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="url(#gbr)" stroke="${W}" stroke-width="2"/>`).join('');
+    o += `<rect x="600" y="8" width="400" height="56" rx="10" fill="#F4E6C8" stroke="${W}" stroke-width="4"/><rect x="608" y="16" width="384" height="40" rx="7" fill="none" stroke="#7A2A1A" stroke-width="2"/>`;
+    o += `<text x="800" y="48" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="30" fill="#7A2A1A">BANK EN GNOM</text>`;
+    const counter = (x, label, cls, txt, anchor) => `<rect x="${x}" y="80" width="230" height="130" rx="12" fill="url(#gbr)" stroke="${W}" stroke-width="4"/>`
+      + `<text x="${x + 115}" y="110" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#3A2008">${label}</text>`
+      + `<rect x="${x + 22}" y="120" width="186" height="76" rx="6" fill="#16100C" stroke="${W}" stroke-width="3"/>`
+      + [0, 1, 2].map(k => `<rect x="${x + 28 + k * 59}" y="126" width="56" height="64" rx="3" fill="#221812"/><rect x="${x + 28 + k * 59}" y="126" width="56" height="30" rx="3" fill="#FFF" opacity=".06"/>`).join('')
+      + `<text class="${cls}" x="${x + 115 + 12}" y="180" text-anchor="middle" font-family="'Courier New',monospace" font-weight="700" font-size="58" letter-spacing="24.2" fill="#F2EEDC">${txt}</text>`;
+    o += counter(330, 'TID', 'g-tid', '045') + counter(1040, 'POINT', 'g-pt', '000');
+    /* spillepladen af træplanker, skrå og bredere ud mod én, med messingliste */
+    o += `<path d="M 240 236 H 1360 L 1640 1040 H -40 Z" fill="url(#gbd)" stroke="${W}" stroke-width="6" stroke-linejoin="round"/>`;
+    for (let k = 1; k < 8; k++){ const xt = 240 + k * 140, xb = -40 + k * 210; o += `<path d="M ${xt} 236 L ${xb} 1040" stroke="${W}" stroke-width="3" opacity=".45"/>`; }
+    o += `<path d="M 240 240 H 1360" stroke="#C9962E" stroke-width="6"/>`;
     HOLES.forEach((h, i) => { o += holeSvg(h, i); });
-    o += `<g class="g-fx" pointer-events="none"></g><g class="g-mallet" pointer-events="none" style="display:none"><g class="mm" style="transform-box:fill-box;transform-origin:50% 100%"><rect x="-10" y="0" width="20" height="150" rx="8" fill="#8A5A3C" stroke="${E}" stroke-width="4"/><rect x="-62" y="-60" width="124" height="66" rx="24" fill="#E0457A" stroke="${E}" stroke-width="5"/><path d="M -46 -38 h 92" stroke="#FF8FB0" stroke-width="7" stroke-linecap="round"/></g></g>`;
+    o += `<g class="g-fx" pointer-events="none"></g><g class="g-mallet" pointer-events="none" style="display:none"><g class="mm" style="transform-box:fill-box;transform-origin:50% 100%"><rect x="-10" y="0" width="20" height="150" rx="8" fill="#8A5A3C" stroke="${E}" stroke-width="4"/><rect x="-62" y="-60" width="124" height="66" rx="20" fill="#8E3A22" stroke="${E}" stroke-width="5"/><path d="M -62 -27 h 124" stroke="${W}" stroke-width="3" stroke-dasharray="7 7"/><rect x="-68" y="-64" width="16" height="74" rx="5" fill="url(#gbr)" stroke="${E}" stroke-width="3"/><rect x="52" y="-64" width="16" height="74" rx="5" fill="url(#gbr)" stroke="${E}" stroke-width="3"/></g></g>`;
     return o + `</svg>`;
   }
 
@@ -59,7 +69,7 @@
     const svg = stage.querySelector('svg');
     /* på en bred, lav skærm (telefon) zoomes ind på hullerne, og tiden vises i en pille i stedet for på bagpladen */
     const short = stage.clientWidth / Math.max(1, stage.clientHeight) > 1.75;
-    if (short){ svg.setAttribute('viewBox', '0 170 1600 830'); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet'); }
+    if (short){ svg.setAttribute('viewBox', '0 222 1600 778'); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet'); }
     else svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     S = { api, svg, short, t0: performance.now(), last: performance.now(), score: 0, holes: HOLES.map(() => null), next: 900, over: false, raf: 0, msg: 'Bank de sure gnomer!', msgUntil: performance.now() + 2600 };
     api.score(0);
@@ -84,7 +94,7 @@
     if (!S || S.over) return;
     const dt = now - S.last; S.last = now;
     const el = (now - S.t0) / 1000, left = Math.max(0, T - el);
-    const tid = S.svg.querySelector('.g-tid'); if (tid) tid.textContent = String(Math.ceil(left)).padStart(2, '0');
+    const tid = S.svg.querySelector('.g-tid'); if (tid) tid.textContent = String(Math.ceil(left)).padStart(3, '0');
     const msg = now < S.msgUntil ? S.msg : S.short ? `Tid ${Math.ceil(left)}` : '';
     if (msg !== S.shown){ S.shown = msg; S.api.info(msg); }
     if (left <= 0){ return finish(); }

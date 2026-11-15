@@ -121,7 +121,8 @@ async function introFlow(){
   await p.fill('.pg.r .pg-name', 'test'); for (let i = 0; i < 5; i++){ await p.click('.pg-next', { force: true }); await p.waitForTimeout(1200); }
   await p.waitForTimeout(2000); ok(await p.evaluate(() => $('.ibook').classList.contains('closed') && $('.ib-after').classList.contains('on')), 'bogen lukkede ikke til sidst');
   await p.click('.ib-go'); await p.waitForTimeout(1500); ok(await p.evaluate(() => !$('#editor').hidden && $('#nameInput').value === 'Test'), 'spejlet åbnede ikke med navnet');
-  await p.click('#backBtn'); await p.waitForTimeout(1500);
+  ok(await p.evaluate(() => $('#backBtn').hidden && !$('#doneBtn').hidden), 'spejlet viste ikke Jeg er færdig-knappen');
+  await p.click('#doneBtn', { force: true }); await p.waitForTimeout(1500);
   const r = await p.evaluate(() => ({ scr: SCREENS.find(s => !$(s).hidden), slot: SLOT, name: prog.name, stars: prog.stars, one: slotInfo(1) }));
   ok(r.scr === '#town' && r.slot === 3 && r.name === 'Test' && r.stars === 0, 'det nye spil endte forkert: ' + JSON.stringify(r).slice(0, 160));
   ok(r.one.used && r.one.stars === 7, 'det første gemte spil blev ændret');

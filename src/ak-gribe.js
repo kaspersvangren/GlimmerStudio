@@ -12,11 +12,13 @@
   function sceneSvg(){
     let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet"><defs>`
       + `<linearGradient id="grBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A1A3A"/><stop offset="1" stop-color="#4A2E58"/></linearGradient>`
-      + `<pattern id="grDots" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3" fill="#5A3A68"/><circle cx="40" cy="38" r="2" fill="#5A3A68"/></pattern></defs>`;
-    o += `<rect x="-600" y="-200" width="2800" height="1400" fill="#22163E"/>`;
+      + `<pattern id="grDots" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="3" fill="#5A3A68"/><circle cx="40" cy="38" r="2" fill="#5A3A68"/></pattern>`
+      + `<pattern id="grDam" width="120" height="140" patternUnits="userSpaceOnUse"><rect width="120" height="140" fill="#34101A"/><path d="M 60 14 C 74 34 92 40 92 62 C 92 82 72 88 60 104 C 48 88 28 82 28 62 C 28 40 46 34 60 14 Z" fill="#4A1A26"/></pattern>`
+      + `<linearGradient id="grCase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A2E16"/><stop offset=".5" stop-color="#7A4224"/><stop offset="1" stop-color="#4A2412"/></linearGradient></defs>`;
+    o += `<rect x="-600" y="-200" width="2800" height="1400" fill="url(#grDam)"/>`;
     /* skabet */
-    o += `<rect x="150" y="-30" width="1300" height="1060" rx="30" fill="#C0602A" stroke="${E}" stroke-width="8"/>`;
-    o += `<path d="M 170 -10 V 1010 M 1430 -10 V 1010" stroke="#E08A4A" stroke-width="6" opacity=".6"/>`;
+    o += `<rect x="150" y="-30" width="1300" height="1060" rx="30" fill="url(#grCase)" stroke="#2A160C" stroke-width="8"/>`;
+    o += `<path d="M 170 -10 V 1010 M 1430 -10 V 1010" stroke="#C9962E" stroke-width="6" opacity=".8"/>`;
     /* glaskassen indeni */
     o += `<rect x="206" y="36" width="1188" height="712" fill="url(#grBack)" stroke="${E}" stroke-width="6"/><rect x="206" y="36" width="1188" height="712" fill="url(#grDots)"/>`;
     o += `<rect x="212" y="${FLOOR}" width="1176" height="8" fill="#2A1A3A"/>`;

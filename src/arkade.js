@@ -1,5 +1,5 @@
 /* ================= Arkaden =================
-   En mørk, hyggelig spillehal: neonskilt, ternet gulv, lamper i loftet og fire maskiner.
+   En gammel, hyggelig spillehal: tapet, træpaneler, plankegulv, gaslamper og et skilt med lyspærer. Alt i træ og messing.
    To er gamle spilleautomater med skærm (Stjerneskjoldet og Hekse-invaders). To er rigtige, fysiske maskiner:
    Bank en gnom er et bord med huller og en blød hammer, og Gribemaskinen er en glaskasse fuld af bamser.
    Spillene ligger i hver sin fil og melder sig i GAMES. Fælles for dem er rammen her: Stop-knap, point,
@@ -37,126 +37,164 @@ const Arkade = (() => {
     return o;
   }
 
-  /* ---------- en spilleautomat med skærm ---------- */
+  /* ---------- gammel stil: mørkt træ, messing og lyspærer (som Gribemaskinens panel) ---------- */
+  const WD = '#2A160C';                   /* mørk kant på træ og messing */
+  const brassPlate = (x, y, w, h, txt, fs = 22) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="url(#akBrass)" stroke="${WD}" stroke-width="3"/>`
+    + `<rect x="${x + 5}" y="${y + 5}" width="${w - 10}" height="${h - 10}" rx="4" fill="none" stroke="#8A6420" stroke-width="1.5" opacity=".8"/>`
+    + [[x + 10, y + h / 2], [x + w - 10, y + h / 2]].map(([sx, sy]) => `<circle cx="${sx}" cy="${sy}" r="3.2" fill="#8A6420" stroke="${WD}" stroke-width="1"/><path d="M ${sx - 2} ${sy} h 4" stroke="${WD}" stroke-width="1"/>`).join('')
+    + (txt ? `<text x="${x + w / 2}" y="${y + h / 2 + fs * .36}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="${fs}" fill="#3A2008" opacity=".92">${txt}</text>` : '');
+  const bulbs = (pts, d0 = 0) => pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="7" fill="#FFE9A8" opacity=".35"/><circle class="ak-bulb" cx="${x}" cy="${y}" r="4.2" fill="#FFF3C0" stroke="#8A6420" stroke-width="1" style="animation-delay:${((i + d0) % 3) * .33}s"/>`).join('');
+  const rivets = pts => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="url(#akBrass)" stroke="${WD}" stroke-width="1"/>`).join('');
+  const knob = (x, y, c) => `<ellipse cx="${x}" cy="${y + 4}" rx="17" ry="8" fill="${WD}"/><ellipse cx="${x}" cy="${y + 1}" rx="16" ry="7" fill="url(#akBrass)" stroke="${WD}" stroke-width="1.5"/><ellipse cx="${x}" cy="${y - 2}" rx="10" ry="5" fill="${c}" stroke="${WD}" stroke-width="1.5"/><ellipse cx="${x - 3}" cy="${y - 4}" rx="4" ry="1.6" fill="#FFF" opacity=".6"/>`;
+
+  /* ---------- en spilleautomat med skærm: et gammelt skab i mahogni med messingramme om et magisk glas ---------- */
   function cabinet(c, x, i){
     const W = 250, top = 290, base = 900, cx = x + W / 2, hi = hiOf(c.id);
     let o = `<g class="ak-cab" data-cab="${c.id}" tabindex="0" role="button" aria-label="${c.name}"><g class="anim">`;
-    o += `<ellipse cx="${cx}" cy="${base + 6}" rx="${W / 2 + 20}" ry="16" fill="#000" opacity=".35"/>`;
-    o += `<path d="M ${x} ${base} V ${top + 60} Q ${x} ${top} ${x + 20} ${top} H ${x + W - 20} Q ${x + W} ${top} ${x + W} ${top + 60} V ${base} Z" fill="${c.body}" stroke="${E}" stroke-width="5" stroke-linejoin="round"/>`;
-    o += `<path d="M ${x + 10} ${base} V ${top + 64} Q ${x + 10} ${top + 12} ${x + 26} ${top + 12}" stroke="${c.trim}" stroke-width="3" fill="none" opacity=".55"/>`;
-    o += `<path d="M ${x + W - 22} ${base - 3} V ${top + 58} Q ${x + W - 22} ${top + 14} ${x + W - 34} ${top + 6} Q ${x + W - 4} ${top + 10} ${x + W - 3} ${top + 60} V ${base - 3} Z" fill="#000" opacity=".22"/>`;
-    o += `<rect x="${x + 16}" y="${top + 16}" width="${W - 32}" height="66" rx="10" fill="#140C2A" stroke="${c.trim}" stroke-width="3"/>`;
-    o += `<text class="ak-neon" x="${cx}" y="${top + 50}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="${c.name.length > 13 ? 22 : 25}" fill="${c.glow}" style="--glow:${c.glow}">${c.name}</text>`;
-    o += `<text x="${cx}" y="${top + 72}" text-anchor="middle" font-family="${FONT_C}" font-weight="600" font-size="14" fill="#F2EEDC" opacity=".85">${hi ? `Rekord: ${hi}` : c.sub}</text>`;
-    o += `<rect x="${x + 22}" y="${top + 100}" width="${W - 44}" height="168" rx="12" fill="#0A0614" stroke="${E}" stroke-width="4"/>`;
-    o += `<g transform="translate(${x + 30} ${top + 108}) scale(${((W - 60) / 160).toFixed(3)} ${(152 / 120).toFixed(3)})"><g clip-path="url(#akScr)">${c.screen()}</g></g>`;
-    o += `<rect x="${x + 30}" y="${top + 108}" width="${W - 60}" height="152" rx="6" fill="url(#akGlass)"/>`;
-    o += `<rect x="${x + 30}" y="${top + 236}" width="${W - 60}" height="24" fill="#0A0614" opacity=".72"/>`;
-    o += `<text class="ak-blink" x="${cx}" y="${top + 252}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFF6D0" style="animation-delay:${i * .37}s">TRYK FOR AT SPILLE</text>`;
-    o += `<path d="M ${x - 8} ${top + 330} L ${x + 8} ${top + 288} H ${x + W - 8} L ${x + W + 8} ${top + 330} Z" fill="#2A1E52" stroke="${E}" stroke-width="4" stroke-linejoin="round"/>`;
-    o += `<path d="M ${x + 56} ${top + 312} V ${top + 294}" stroke="#1A1238" stroke-width="6" stroke-linecap="round"/><circle cx="${x + 56}" cy="${top + 292}" r="10" fill="#E0457A" stroke="${E}" stroke-width="2"/><ellipse cx="${x + 56}" cy="${top + 314}" rx="18" ry="6" fill="#140C2A"/>`;
-    o += [['#FFD36E', 130], ['#7FD8FF', 166], ['#9BE36A', 202]].map(([bc, bx]) => `<ellipse cx="${x + bx}" cy="${top + 312}" rx="13" ry="7" fill="#140C2A"/><ellipse cx="${x + bx}" cy="${top + 309}" rx="11" ry="6" fill="${bc}" stroke="${E}" stroke-width="1.5"/>`).join('');
-    o += `<rect x="${cx - 26}" y="${top + 380}" width="52" height="70" rx="8" fill="#140C2A" stroke="${E}" stroke-width="3"/><rect x="${cx - 4}" y="${top + 392}" width="8" height="24" rx="3" fill="${c.glow}" class="ak-coin"/><text x="${cx}" y="${top + 440}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="11" fill="${c.glow}">GRATIS</text>`;
-    o += `<path d="M ${x + 24} ${top + 480} h ${W - 48}" stroke="${c.trim}" stroke-width="4" stroke-linecap="round" opacity=".5"/><path d="M ${x + 24} ${top + 500} h ${W - 48}" stroke="${c.trim}" stroke-width="2" stroke-linecap="round" opacity=".35"/>`;
-    o += `<rect x="${x - 20}" y="${top - 20}" width="${W + 40}" height="${base - top + 40}" fill="#FFF" fill-opacity="0"/>`;
+    o += `<ellipse cx="${cx}" cy="${base + 6}" rx="${W / 2 + 20}" ry="16" fill="#000" opacity=".4"/>`;
+    /* ben: drejede træben med messingsko */
+    o += [x + 22, x + W - 22].map(lx => `<path d="M ${lx - 12} ${base - 40} H ${lx + 12} L ${lx + 8} ${base - 6} H ${lx - 8} Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="3"/><rect x="${lx - 11}" y="${base - 10}" width="22" height="12" rx="3" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/>`).join('');
+    /* skabet og den buede top med udskæringer og en messingstjerne */
+    o += `<path d="M ${x} ${base - 40} V ${top + 40} H ${x + W} V ${base - 40} Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="5" stroke-linejoin="round"/>`;
+    o += `<path d="M ${x - 12} ${top + 44} H ${x + W + 12} V ${top + 30} Q ${x + W - 6} ${top + 22} ${x + W - 30} ${top + 16} Q ${cx + 40} ${top - 4} ${cx} ${top - 34} Q ${cx - 40} ${top - 4} ${x + 30} ${top + 16} Q ${x + 6} ${top + 22} ${x - 12} ${top + 30} Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="5" stroke-linejoin="round"/>`;
+    o += `<path d="M ${x + 34} ${top + 30} Q ${cx - 30} ${top + 8} ${cx} ${top - 16} Q ${cx + 30} ${top + 8} ${x + W - 34} ${top + 30}" stroke="#C9962E" stroke-width="3" fill="none" opacity=".75"/>`;
+    o += `<g transform="translate(${cx} ${top - 44})"><path d="M 0 -18 L 5 -6 L 18 -5 L 8 4 L 11 17 L 0 10 L -11 17 L -8 4 L -18 -5 L -5 -6 Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="2" stroke-linejoin="round" class="ak-twinkle"/></g>`;
+    o += `<path d="M ${x + W - 16} ${base - 44} V ${top + 48} H ${x + W - 4} V ${base - 44} Z" fill="#000" opacity=".25"/>`;
+    /* messingskilt med navnet */
+    o += brassPlate(x + 18, top + 52, W - 36, 50, c.name, c.name.length > 13 ? 21 : 24);
+    /* glasset i en tyk messingramme */
+    o += `<rect x="${x + 18}" y="${top + 112}" width="${W - 36}" height="176" rx="18" fill="url(#akBrass)" stroke="${WD}" stroke-width="4"/>`;
+    o += `<rect x="${x + 30}" y="${top + 124}" width="${W - 60}" height="152" rx="10" fill="#0A0614" stroke="${WD}" stroke-width="3"/>`;
+    o += `<g transform="translate(${x + 30} ${top + 124}) scale(${((W - 60) / 160).toFixed(3)} ${(152 / 120).toFixed(3)})"><g clip-path="url(#akScr)">${c.screen()}</g></g>`;
+    o += `<rect x="${x + 30}" y="${top + 124}" width="${W - 60}" height="152" rx="10" fill="url(#akSepia)"/><rect x="${x + 30}" y="${top + 124}" width="${W - 60}" height="152" rx="10" fill="url(#akGlass)"/>`;
+    o += rivets([[x + 26, top + 120], [x + W - 26, top + 120], [x + 26, top + 280], [x + W - 26, top + 280]]);
+    o += `<text class="ak-blink" x="${cx}" y="${top + 268}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="14" fill="#FFE9A8" style="animation-delay:${i * .37}s">TRYK FOR AT SPILLE</text>`;
+    /* hylden med et messinghåndtag og to glasknapper */
+    o += `<path d="M ${x - 10} ${top + 336} L ${x + 6} ${top + 298} H ${x + W - 6} L ${x + W + 10} ${top + 336} Z" fill="url(#akWoodH)" stroke="${WD}" stroke-width="4" stroke-linejoin="round"/><path d="M ${x - 10} ${top + 336} H ${x + W + 10}" stroke="#C9962E" stroke-width="3"/>`;
+    o += `<ellipse cx="${x + 62}" cy="${top + 322}" rx="20" ry="7" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/><path d="M ${x + 62} ${top + 320} L ${x + 72} ${top + 290}" stroke="#C9962E" stroke-width="7" stroke-linecap="round"/><path d="M ${x + 62} ${top + 320} L ${x + 72} ${top + 290}" stroke="${WD}" stroke-width="1.5"/><circle cx="${x + 73}" cy="${top + 286}" r="11" fill="#7A2A1A" stroke="${WD}" stroke-width="2"/><circle cx="${x + 69}" cy="${top + 282}" r="3" fill="#FFF" opacity=".5"/>`;
+    o += knob(x + 140, top + 318, c.glow) + knob(x + 188, top + 318, '#E0457A');
+    /* nederste fyldning med udskæring og en mønt-plade */
+    o += `<rect x="${x + 22}" y="${top + 362}" width="${W - 44}" height="${base - top - 420}" rx="8" fill="none" stroke="${WD}" stroke-width="3" opacity=".7"/><rect x="${x + 30}" y="${top + 370}" width="${W - 60}" height="${base - top - 436}" rx="6" fill="none" stroke="#C9962E" stroke-width="2" opacity=".45"/>`;
+    o += `<rect x="${cx - 34}" y="${top + 392}" width="68" height="84" rx="8" fill="url(#akBrass)" stroke="${WD}" stroke-width="3"/><rect x="${cx - 4}" y="${top + 404}" width="8" height="26" rx="3" fill="${WD}"/><rect x="${cx - 2}" y="${top + 408}" width="4" height="18" rx="2" fill="${c.glow}" class="ak-coin"/>`;
+    o += `<text x="${cx}" y="${top + 456}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="12" fill="#3A2008">${hi ? 'REKORD' : 'GRATIS'}</text>` + (hi ? `<text x="${cx}" y="${top + 470}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="13" fill="#3A2008">${hi}</text>` : '');
+    o += `<rect x="${x - 20}" y="${top - 70}" width="${W + 40}" height="${base - top + 90}" fill="#FFF" fill-opacity="0"/>`;
     return o + `</g></g>`;
   }
 
-  /* ---------- Bank en gnom: et bord i hoftehøjde med ni huller i en skrå plade, en høj bagplade og en blød hammer ---------- */
+  /* ---------- Bank en gnom: et gammelt træbord med ni messingkantede huller, en høj bagplade og en hammer med læderhoved ---------- */
   const GNOME_HEAD = (s = 1, mood = 'sur') => `<g transform="scale(${s})"><path d="M -22 4 C -24 -26 24 -26 22 4 Z" fill="#F2C8A0" stroke="${E}" stroke-width="2.5"/>`
     + `<path d="M -24 -14 L 0 -58 L 24 -14 Z" fill="#E0457A" stroke="${E}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="0" cy="-58" r="5" fill="#FFF6D0" stroke="${E}" stroke-width="1.5"/>`
     + `<path d="M -26 -14 Q 0 -8 26 -14" stroke="#B5305A" stroke-width="5" fill="none" stroke-linecap="round"/>`
     + (mood === 'sur' ? `<path d="M -13 -7 l 8 4 M 13 -7 l -8 4" stroke="${E}" stroke-width="3" stroke-linecap="round"/><circle cx="-8" cy="-2" r="2.4" fill="${E}"/><circle cx="8" cy="-2" r="2.4" fill="${E}"/>` : `<path d="M -12 -4 l 6 6 M -6 -4 l -6 6 M 6 -4 l 6 6 M 12 -4 l -6 6" stroke="${E}" stroke-width="2.4" stroke-linecap="round"/>`)
     + `<ellipse cx="0" cy="5" rx="5" ry="4" fill="#E8A888"/><path d="M -18 6 C -14 26 14 26 18 6 C 10 12 -10 12 -18 6 Z" fill="#FFFFFF" stroke="${E}" stroke-width="2"/>`
     + (mood === 'sur' ? `<path d="M -7 11 q 7 -4 14 0" stroke="${E}" stroke-width="2.2" fill="none" stroke-linecap="round"/>` : `<ellipse cx="0" cy="12" rx="4" ry="3" fill="${E}"/>`) + `</g>`;
+  /* et mekanisk tælleværk: hvide tal på sorte ruller i en messingramme */
+  const drum = (x, y, txt, n, fs = 22) => { const w = fs * .78; let o = `<rect x="${x - 6}" y="${y - fs - 4}" width="${n * w + 12}" height="${fs + 16}" rx="5" fill="url(#akBrass)" stroke="${WD}" stroke-width="2.5"/>`;
+    [...String(txt).padStart(n, ' ')].forEach((ch, k) => { o += `<rect x="${x + k * w + 1}" y="${y - fs + 1}" width="${w - 2}" height="${fs + 6}" rx="2" fill="#16100C"/><rect x="${x + k * w + 1}" y="${y - fs + 1}" width="${w - 2}" height="${(fs + 6) / 2}" rx="2" fill="#FFF" opacity=".08"/><text x="${x + k * w + w / 2}" y="${y + 1}" text-anchor="middle" font-family="'Courier New',monospace" font-weight="700" font-size="${fs}" fill="#F2EEDC">${ch.trim()}</text>`; });
+    return o; };
   function gnomMachine(){
-    const g = '#3E8A4A', gt = '#9BE36A', hi = hiOf('gnom');
+    const hi = hiOf('gnom');
     let o = `<g class="ak-cab" data-cab="gnom" tabindex="0" role="button" aria-label="Bank en gnom"><g class="anim">`;
-    o += `<ellipse cx="240" cy="906" rx="210" ry="18" fill="#000" opacity=".35"/>`;
-    /* bagpladen med neon-navn, en malet gnom og et lysdisplay */
-    o += `<path d="M 104 566 V 318 Q 104 292 130 292 H 350 Q 376 292 376 318 V 566 Z" fill="#2E6A3A" stroke="${E}" stroke-width="5"/>`;
-    o += `<rect x="122" y="306" width="236" height="64" rx="12" fill="#140C2A" stroke="${gt}" stroke-width="3"/><text class="ak-neon" x="240" y="350" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="28" fill="${gt}" style="--glow:${gt}">Bank en gnom</text>`;
-    o += `<g transform="translate(240 470)">${GNOME_HEAD(1.25)}</g><g transform="translate(300 448) rotate(26)"><rect x="-5" y="-4" width="10" height="56" rx="4" fill="#8A5A3C" stroke="${E}" stroke-width="2"/><rect x="-22" y="-26" width="44" height="26" rx="10" fill="#E0457A" stroke="${E}" stroke-width="2.5"/></g>`;
-    o += `<rect x="150" y="510" width="180" height="40" rx="6" fill="#140C2A" stroke="${E}" stroke-width="3"/><text x="240" y="538" text-anchor="middle" font-family="'Courier New',monospace" font-weight="700" font-size="22" fill="#FF5A5A" class="ak-led">${hi ? `REKORD ${String(hi).padStart(3, '0')}` : 'GRATIS'}</text>`;
-    /* den skrå spilleplade med ni huller */
-    o += `<path d="M 60 650 L 104 566 H 376 L 420 650 Z" fill="#3A7A44" stroke="${E}" stroke-width="5" stroke-linejoin="round"/><path d="M 74 642 L 112 574 H 368 L 406 642 Z" fill="#2E6A3A"/>`;
+    o += `<ellipse cx="240" cy="906" rx="210" ry="18" fill="#000" opacity=".4"/>`;
+    /* bagpladen: en buet træplade med lyspærer, et emaljeskilt og en malet gnom */
+    o += `<path d="M 104 566 V 330 Q 104 300 134 296 Q 240 250 346 296 Q 376 300 376 330 V 566 Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="5"/>`;
+    o += bulbs([[122, 330], [150, 300], [186, 284], [222, 276], [258, 276], [294, 284], [330, 300], [358, 330]]);
+    o += `<rect x="124" y="312" width="232" height="58" rx="10" fill="#F4E6C8" stroke="${WD}" stroke-width="3"/><rect x="130" y="318" width="220" height="46" rx="7" fill="none" stroke="#7A2A1A" stroke-width="2"/>`
+      + `<text x="240" y="352" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="27" fill="#7A2A1A">Bank en gnom</text>`;
+    o += `<g transform="translate(240 470)">${GNOME_HEAD(1.25)}</g><g transform="translate(300 448) rotate(26)"><rect x="-5" y="-4" width="10" height="56" rx="4" fill="#8A5A3C" stroke="${E}" stroke-width="2"/><rect x="-22" y="-26" width="44" height="26" rx="8" fill="#8E3A22" stroke="${E}" stroke-width="2.5"/><path d="M -22 -13 h 44" stroke="${WD}" stroke-width="1.5" stroke-dasharray="3 3"/></g>`;
+    o += hi ? drum(166, 542, String(hi).padStart(3, '0'), 3, 24) + `<text x="300" y="540" font-family="${FONT_C}" font-weight="700" font-size="14" fill="#F2D27A">REKORD</text>` : brassPlate(160, 512, 160, 38, 'GRATIS', 20);
+    /* den skrå spilleplade med ni huller med messingkant */
+    o += `<path d="M 60 650 L 104 566 H 376 L 420 650 Z" fill="url(#akWoodH)" stroke="${WD}" stroke-width="5" stroke-linejoin="round"/><path d="M 74 642 L 112 574 H 368 L 406 642 Z" fill="#5A3018" opacity=".55"/>`;
     const rows = [[588, 0.62], [612, 0.8], [636, 1]];
     rows.forEach(([y, k], r) => [-1, 0, 1].forEach(c => { const x = 240 + c * 92 * (0.72 + k * 0.28);
-      o += `<ellipse cx="${x}" cy="${y}" rx="${30 * k}" ry="${9 * k}" fill="#0E2414" stroke="#1E4A2A" stroke-width="2"/>`;
+      o += `<ellipse cx="${x}" cy="${y}" rx="${31 * k}" ry="${10 * k}" fill="url(#akBrass)" stroke="${WD}" stroke-width="1.5"/><ellipse cx="${x}" cy="${y}" rx="${26 * k}" ry="${7.5 * k}" fill="#120A06"/>`;
       if ((r === 0 && c === 1) || (r === 2 && c === -1)) o += `<g transform="translate(${x} ${y - 2}) scale(${0.85 * k})"><g clip-path="url(#akHole)">${GNOME_HEAD(1)}</g></g>`; }));
-    /* bordet */
-    o += `<path d="M 60 650 H 420 V 892 Q 420 900 412 900 H 68 Q 60 900 60 892 Z" fill="${g}" stroke="${E}" stroke-width="5"/>`;
-    o += `<path d="M 72 662 H 408" stroke="${gt}" stroke-width="3" opacity=".6"/><rect x="190" y="760" width="100" height="70" rx="10" fill="#140C2A" stroke="${E}" stroke-width="3"/><text x="240" y="790" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="14" fill="${gt}">BANK</text><text x="240" y="812" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="14" fill="${gt}">GNOMEN!</text>`;
-    o += [100, 380].map(x => `<rect x="${x - 10}" y="680" width="20" height="200" rx="6" fill="#2E6A3A" opacity=".6"/>`).join('');
-    /* den bløde hammer ligger på kanten med en snor */
-    o += `<path d="M 420 700 C 452 720 448 780 424 800" stroke="#2A1E52" stroke-width="3" fill="none"/><g transform="translate(396 628) rotate(-24)"><rect x="-5" y="-4" width="10" height="70" rx="4" fill="#8A5A3C" stroke="${E}" stroke-width="2"/><rect x="-26" y="-30" width="52" height="30" rx="12" fill="#E0457A" stroke="${E}" stroke-width="3"/><path d="M -18 -20 h 36" stroke="#FF8FB0" stroke-width="3" stroke-linecap="round"/></g>`;
-    o += `<rect x="40" y="280" width="410" height="640" fill="#FFF" fill-opacity="0"/>`;
+    /* bordet med fyldinger og drejede ben */
+    o += `<path d="M 60 650 H 420 V 860 H 60 Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="5"/><path d="M 60 652 H 420" stroke="#C9962E" stroke-width="4"/>`;
+    o += [[78, 670, 136, 170], [266, 670, 136, 170]].map(([px, py, pw, ph]) => `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="6" fill="none" stroke="${WD}" stroke-width="3" opacity=".6"/><rect x="${px + 8}" y="${py + 8}" width="${pw - 16}" height="${ph - 16}" rx="4" fill="none" stroke="#C9962E" stroke-width="1.5" opacity=".45"/>`).join('');
+    o += brassPlate(186, 726, 108, 60, '', 14) + `<text x="240" y="752" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="14" fill="#3A2008">BANK</text><text x="240" y="772" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="14" fill="#3A2008">GNOMEN!</text>`;
+    o += [80, 400].map(lx => `<path d="M ${lx - 12} 860 H ${lx + 12} L ${lx + 8} 894 H ${lx - 8} Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="3"/><rect x="${lx - 11}" y="890" width="22" height="12" rx="3" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/>`).join('');
+    /* hammeren med læderhoved ligger på kanten i en snor */
+    o += `<path d="M 420 700 C 452 720 448 780 424 800" stroke="#5A3A20" stroke-width="3" fill="none"/><g transform="translate(396 628) rotate(-24)"><rect x="-5" y="-4" width="10" height="70" rx="4" fill="#8A5A3C" stroke="${E}" stroke-width="2"/><rect x="-26" y="-30" width="52" height="30" rx="10" fill="#8E3A22" stroke="${E}" stroke-width="3"/><path d="M -26 -15 h 52" stroke="${WD}" stroke-width="1.5" stroke-dasharray="3 3"/><rect x="-28" y="-32" width="8" height="34" rx="3" fill="url(#akBrass)" stroke="${WD}" stroke-width="1.5"/><rect x="20" y="-32" width="8" height="34" rx="3" fill="url(#akBrass)" stroke="${WD}" stroke-width="1.5"/></g>`;
+    o += `<rect x="40" y="250" width="410" height="670" fill="#FFF" fill-opacity="0"/>`;
     return o + `</g></g>`;
   }
 
-  /* ---------- Gribemaskinen: glaskasse med bamser, en klo i en skinne, kontrolpanel og præmieluge ---------- */
+  /* ---------- Gribemaskinen: glaskasse i messingramme på et træskab, med lyspærer, klo i en skinne og præmieluge ---------- */
   const PLUSH = (c, s = 1, kind = 0) => `<g transform="scale(${s})"><circle cx="0" cy="0" r="22" fill="${c}" stroke="${E}" stroke-width="2.5"/>`
     + (kind === 1 ? `<path d="M -16 -14 L -10 -32 L -2 -18 M 16 -14 L 10 -32 L 2 -18" fill="${c}" stroke="${E}" stroke-width="2.5" stroke-linejoin="round"/>` : `<circle cx="-16" cy="-16" r="8" fill="${c}" stroke="${E}" stroke-width="2.5"/><circle cx="16" cy="-16" r="8" fill="${c}" stroke="${E}" stroke-width="2.5"/>`)
     + `<circle cx="-7" cy="-3" r="2.8" fill="${E}"/><circle cx="7" cy="-3" r="2.8" fill="${E}"/><ellipse cx="0" cy="6" rx="6" ry="4" fill="#FFF" opacity=".7"/><circle cx="0" cy="4" r="2" fill="${E}"/></g>`;
   function clawMachine(){
-    const o0 = '#C0602A', ot = '#FFD36E';
     let o = `<g class="ak-cab" data-cab="gribe" tabindex="0" role="button" aria-label="Gribemaskinen"><g class="anim">`;
-    o += `<ellipse cx="1300" cy="906" rx="230" ry="18" fill="#000" opacity=".35"/>`;
-    /* toppen med lyspærer og navnet */
-    o += `<rect x="1096" y="228" width="408" height="78" rx="16" fill="${o0}" stroke="${E}" stroke-width="5"/><rect x="1114" y="242" width="372" height="50" rx="10" fill="#140C2A"/>`;
-    o += `<text class="ak-neon" x="1300" y="278" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="30" fill="${ot}" style="--glow:${ot}">Gribemaskinen</text>`;
-    o += Array.from({ length: 12 }, (_, i) => `<circle class="ak-bulb" cx="${1110 + i * 34.5}" cy="236" r="5" fill="#FFF3C0" style="animation-delay:${(i % 3) * .3}s"/>`).join('');
-    /* glaskassen */
-    o += `<rect x="1106" y="304" width="388" height="390" fill="#2A1A3A" stroke="${E}" stroke-width="5"/><rect x="1112" y="310" width="376" height="378" fill="#3A2648"/>`;
-    o += `<path d="M 1112 326 H 1488" stroke="#8A8AA8" stroke-width="8"/><path d="M 1112 326 H 1488" stroke="#C8C4D8" stroke-width="3"/>`;
-    o += `<path d="M 1300 326 V 450" stroke="#C8C4D8" stroke-width="2.5"/><rect x="1286" y="318" width="28" height="16" rx="4" fill="#6A6480" stroke="${E}" stroke-width="2"/>`;
-    o += `<g transform="translate(1300 452)"><rect x="-14" y="-6" width="28" height="16" rx="4" fill="#8A8AA8" stroke="${E}" stroke-width="2"/><path d="M -10 10 C -26 26 -24 44 -12 54 M 10 10 C 26 26 24 44 12 54 M 0 10 V 50" stroke="#C8C4D8" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
-    /* præmieskakten til venstre, med plexiglas */
-    o += `<rect x="1116" y="590" width="92" height="98" fill="#140C2A" opacity=".55"/><path d="M 1208 590 V 688" stroke="#DDEFFF" stroke-width="4" opacity=".7"/><path d="M 1116 590 H 1208" stroke="#DDEFFF" stroke-width="3" opacity=".7"/>`;
-    /* bunken af bamser */
-    const pl = [[1240, 672, '#FF8FC7', 0], [1286, 668, '#7FD8FF', 1], [1334, 672, '#9BE36A', 0], [1380, 668, '#FFD36E', 0], [1428, 672, '#C79BFF', 1], [1466, 666, '#FF8A3D', 0],
-                [1262, 634, '#FFD36E', 1], [1310, 630, '#E0457A', 0], [1358, 632, '#7FD8FF', 0], [1404, 630, '#9BE36A', 1], [1448, 634, '#FF8FC7', 0], [1334, 596, '#C79BFF', 0], [1390, 598, '#FFFFFF', 1]];
+    o += `<ellipse cx="1300" cy="906" rx="230" ry="18" fill="#000" opacity=".4"/>`;
+    /* toppen: buet træhoved med lyspærer og et messingskilt */
+    o += `<path d="M 1092 306 V 256 Q 1092 232 1116 230 Q 1300 196 1484 230 Q 1508 232 1508 256 V 306 Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="5"/>`;
+    o += bulbs(Array.from({ length: 11 }, (_, i) => { const t = i / 10, X = 1112 + t * 376; return [X, 242 - Math.sin(t * Math.PI) * 30]; }), 1);
+    o += brassPlate(1150, 254, 300, 44, 'Gribemaskinen', 27);
+    /* glaskassen i messingstolper */
+    o += `<rect x="1106" y="304" width="388" height="390" fill="#2A1A2A" stroke="${WD}" stroke-width="5"/><rect x="1112" y="310" width="376" height="378" fill="#3A2638"/>`;
+    o += `<path d="M 1112 326 H 1488" stroke="#8A6420" stroke-width="8"/><path d="M 1112 326 H 1488" stroke="#F2D27A" stroke-width="3"/>`;
+    o += `<path d="M 1300 326 V 450" stroke="#C9962E" stroke-width="2.5"/><rect x="1286" y="318" width="28" height="16" rx="4" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/>`;
+    o += `<g transform="translate(1300 452)"><rect x="-14" y="-6" width="28" height="16" rx="4" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/><path d="M -10 10 C -26 26 -24 44 -12 54 M 10 10 C 26 26 24 44 12 54 M 0 10 V 50" stroke="#C9962E" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
+    o += `<rect x="1116" y="590" width="92" height="98" fill="#140C0A" opacity=".55"/><path d="M 1208 590 V 688" stroke="#F2E6C8" stroke-width="4" opacity=".6"/><path d="M 1116 590 H 1208" stroke="#F2E6C8" stroke-width="3" opacity=".6"/>`;
+    const pl = [[1240, 672], [1286, 668], [1334, 672], [1380, 668], [1428, 672], [1466, 666], [1262, 634], [1310, 630], [1358, 632], [1404, 630], [1448, 634], [1334, 596], [1390, 598]];
     pl.forEach(([x, y], i) => { o += `<g transform="translate(${x} ${y - 6}) rotate(${(i * 37) % 40 - 20})">${plush(BAMSER[i % BAMSER.length].k, 0.78)}</g>`; });
-    /* glasset glimter */
-    o += `<path d="M 1130 310 L 1210 310 L 1130 470 Z M 1400 310 L 1440 310 L 1300 688 L 1270 688 Z" fill="#FFF" opacity=".07"/><path d="M 1106 304 V 694 M 1494 304 V 694" stroke="${o0}" stroke-width="10"/>`;
-    /* underskabet med kontrolpanel og præmieluge */
-    o += `<path d="M 1086 694 H 1514 L 1504 724 H 1096 Z" fill="#2A1E52" stroke="${E}" stroke-width="4" stroke-linejoin="round"/>`;
-    o += `<path d="M 1300 704 V 690" stroke="${E}" stroke-width="6" stroke-linecap="round"/><circle cx="1300" cy="688" r="10" fill="#E0457A" stroke="${E}" stroke-width="2"/><ellipse cx="1300" cy="706" rx="18" ry="5" fill="#140C2A"/>`;
-    o += `<ellipse cx="1400" cy="708" rx="24" ry="9" fill="#140C2A"/><ellipse cx="1400" cy="703" rx="21" ry="8" fill="#FFD36E" stroke="${E}" stroke-width="2"/>`;
-    o += `<path d="M 1100 724 H 1500 V 892 Q 1500 900 1492 900 H 1108 Q 1100 900 1100 892 Z" fill="${o0}" stroke="${E}" stroke-width="5"/>`;
-    o += `<rect x="1120" y="748" width="100" height="88" rx="8" fill="#140C2A" stroke="${E}" stroke-width="3"/><path d="M 1126 762 H 1214" stroke="#3A2E5A" stroke-width="3"/><text x="1170" y="856" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="13" fill="${ot}">PRÆMIE</text>`;
-    o += `<rect x="1250" y="756" width="230" height="66" rx="10" fill="#140C2A" stroke="${E}" stroke-width="3"/><text x="1365" y="784" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="17" fill="${ot}">1 ★ PR. FORSØG</text><text x="1365" y="806" text-anchor="middle" font-family="${FONT_C}" font-weight="600" font-size="13" fill="#F2EEDC">Præmien kommer på værelset</text>`;
-    o += `<rect x="1076" y="216" width="448" height="704" fill="#FFF" fill-opacity="0"/>`;
+    o += `<rect x="1112" y="310" width="376" height="378" fill="url(#akSepia)"/><path d="M 1130 310 L 1210 310 L 1130 470 Z M 1400 310 L 1440 310 L 1300 688 L 1270 688 Z" fill="#FFF" opacity=".07"/>`;
+    o += [1106, 1494].map(px => `<rect x="${px - 9}" y="300" width="18" height="398" rx="4" fill="url(#akBrass)" stroke="${WD}" stroke-width="2.5"/>`).join('') + rivets([[1106, 320], [1494, 320], [1106, 680], [1494, 680]]);
+    /* kontrolhylden og underskabet */
+    o += `<path d="M 1086 694 H 1514 L 1504 726 H 1096 Z" fill="url(#akWoodH)" stroke="${WD}" stroke-width="4" stroke-linejoin="round"/><path d="M 1096 726 H 1504" stroke="#C9962E" stroke-width="3"/>`;
+    o += knob(1260, 704, '#2E9C8A') + knob(1316, 704, '#2E9C8A') + `<circle cx="1420" cy="706" r="17" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/><circle cx="1420" cy="703" r="12" fill="#B0202E" stroke="${WD}" stroke-width="1.5"/><circle cx="1416" cy="699" r="3.5" fill="#FFF" opacity=".55"/>`;
+    o += `<path d="M 1100 726 H 1500 V 860 H 1100 Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="5"/>`;
+    o += `<rect x="1120" y="744" width="100" height="92" rx="8" fill="url(#akBrass)" stroke="${WD}" stroke-width="3"/><rect x="1130" y="754" width="80" height="62" rx="5" fill="#140C0A"/><text x="1170" y="831" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="12" fill="#3A2008">PRÆMIE</text>`;
+    o += brassPlate(1248, 752, 234, 70, '', 16) + `<text x="1365" y="782" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="17" fill="#3A2008">1 ★ PR. FORSØG</text><text x="1365" y="804" text-anchor="middle" font-family="${FONT_C}" font-weight="600" font-size="13" fill="#3A2008">Præmien kommer på værelset</text>`;
+    o += [1124, 1476].map(lx => `<path d="M ${lx - 12} 860 H ${lx + 12} L ${lx + 8} 894 H ${lx - 8} Z" fill="url(#akWoodV)" stroke="${WD}" stroke-width="3"/><rect x="${lx - 11}" y="890" width="22" height="12" rx="3" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/>`).join('');
+    o += `<rect x="1076" y="196" width="448" height="724" fill="#FFF" fill-opacity="0"/>`;
     return o + `</g></g>`;
   }
 
-  /* ---------- selve hallen ---------- */
+  /* ---------- selve hallen: en gammel spillehal med tapet, træpaneler, plankegulv og gaslamper ---------- */
   function scene(){
     let o = `<svg class="scene" id="akSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet"><defs>`
-      + `<linearGradient id="akWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C1240"/><stop offset="1" stop-color="#2E1E5A"/></linearGradient>`
+      + `<linearGradient id="akBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7E2A0"/><stop offset=".45" stop-color="#D9A848"/><stop offset="1" stop-color="#8A6420"/></linearGradient>`
+      + `<linearGradient id="akWoodV" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A2E16"/><stop offset=".5" stop-color="#7A4224"/><stop offset="1" stop-color="#4A2412"/></linearGradient>`
+      + `<linearGradient id="akWoodH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8A5030"/><stop offset="1" stop-color="#5A2E16"/></linearGradient>`
+      + `<linearGradient id="akFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2010"/><stop offset="1" stop-color="#6A3C20"/></linearGradient>`
       + `<linearGradient id="akGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF" stop-opacity=".22"/><stop offset=".35" stop-color="#FFF" stop-opacity="0"/><stop offset="1" stop-color="#FFF" stop-opacity=".06"/></linearGradient>`
-      + `<radialGradient id="akLamp" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#FFE9A8" stop-opacity=".45"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>`
-      + `<radialGradient id="akNeonGlow"><stop offset="0" stop-color="#FF5FB0" stop-opacity=".5"/><stop offset="1" stop-color="#FF5FB0" stop-opacity="0"/></radialGradient>`
+      + `<radialGradient id="akSepia" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#5A3A1A" stop-opacity=".08"/><stop offset="1" stop-color="#2A1408" stop-opacity=".6"/></radialGradient>`
+      + `<radialGradient id="akLamp" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#FFD98A" stop-opacity=".5"/><stop offset="1" stop-color="#FFD98A" stop-opacity="0"/></radialGradient>`
+      + `<radialGradient id="akGlow"><stop offset="0" stop-color="#FFC870" stop-opacity=".45"/><stop offset="1" stop-color="#FFC870" stop-opacity="0"/></radialGradient>`
       + `<clipPath id="akScr"><rect width="160" height="120" rx="5"/></clipPath><clipPath id="akHole"><rect x="-60" y="-120" width="120" height="124"/></clipPath>`
-      + `<pattern id="akStars" width="90" height="90" patternUnits="userSpaceOnUse"><path d="M 20 18 l 2 5 l 5 1 l -4 3 l 1 5 l -4 -3 l -4 3 l 1 -5 l -4 -3 l 5 -1 Z" fill="#3E2E78"/><circle cx="66" cy="62" r="3" fill="#3E2E78"/><circle cx="54" cy="24" r="1.6" fill="#4C3A8A"/></pattern>`
+      + `<pattern id="akDamask" width="120" height="140" patternUnits="userSpaceOnUse"><rect width="120" height="140" fill="#3E1420"/>`
+      + `<g fill="#5A2230" stroke="#6E3038" stroke-width="1"><path d="M 60 14 C 74 34 92 40 92 62 C 92 82 72 88 60 104 C 48 88 28 82 28 62 C 28 40 46 34 60 14 Z"/><path d="M 60 40 C 66 50 74 54 74 62 C 74 72 66 76 60 84 C 54 76 46 72 46 62 C 46 54 54 50 60 40 Z" fill="#4A1A26"/>`
+      + `<path d="M 0 84 C 8 96 18 100 18 112 C 18 124 8 128 0 140 M 120 84 C 112 96 102 100 102 112 C 102 124 112 128 120 140" fill="none"/></g><circle cx="60" cy="62" r="4" fill="#8A6420" opacity=".6"/><circle cx="0" cy="0" r="3" fill="#8A6420" opacity=".5"/><circle cx="120" cy="0" r="3" fill="#8A6420" opacity=".5"/></pattern>`
       + `</defs>`;
-    o += `<rect x="-1700" y="-200" width="5000" height="1400" fill="url(#akWall)"/><rect x="-1700" y="-200" width="5000" height="1000" fill="url(#akStars)"/>`;
-    o += `<rect x="-1700" y="600" width="5000" height="70" fill="#3A2448"/><path d="M -1700 600 H 3300" stroke="#5A3A68" stroke-width="6"/>`;
-    o += `<rect x="-1700" y="670" width="5000" height="600" fill="#22163E"/>`;
-    for (let r = 0; r < 7; r++){
-      const y0 = 670 + r * r * 9 + r * 26, y1 = 670 + (r + 1) * (r + 1) * 9 + (r + 1) * 26;
-      for (let c = -12; c < 13; c++){
-        if ((r + c) % 2) continue;
-        const xa = 800 + c * (110 + r * 22), xb = 800 + (c + 1) * (110 + r * 22), xc = 800 + (c + 1) * (110 + (r + 1) * 22), xd = 800 + c * (110 + (r + 1) * 22);
-        o += `<path d="M ${xa} ${y0} L ${xb} ${y0} L ${xc} ${y1} L ${xd} ${y1} Z" fill="#33215A"/>`;
-      }
-    }
-    o += `<ellipse cx="800" cy="130" rx="420" ry="120" fill="url(#akNeonGlow)"/>`;
-    o += `<g class="ak-sign"><rect x="520" y="70" width="560" height="120" rx="26" fill="#140C2A" stroke="#FF5FB0" stroke-width="6"/><rect x="534" y="84" width="532" height="92" rx="18" fill="none" stroke="#7FD8FF" stroke-width="2" opacity=".6"/>`
-      + `<text class="ak-neon" x="800" y="152" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="66" letter-spacing="8" fill="#FFB8DC" style="--glow:#FF5FB0">ARKADEN</text>`
-      + `<path d="M 560 110 l 4 8 l 9 1 l -7 6 l 2 9 l -8 -5 l -8 5 l 2 -9 l -7 -6 l 9 -1 Z M 1040 110 l 4 8 l 9 1 l -7 6 l 2 9 l -8 -5 l -8 5 l 2 -9 l -7 -6 l 9 -1 Z" fill="#FFE27A" class="ak-twinkle"/></g>`;
-    [240, 1300].forEach(lx => { const ly = 200;
-      o += `<path d="M ${lx} -20 V ${ly - 40}" stroke="#140C2A" stroke-width="3"/><path d="M ${lx - 34} ${ly - 10} Q ${lx} ${ly - 54} ${lx + 34} ${ly - 10} Z" fill="#5A3A68" stroke="${E}" stroke-width="3"/><ellipse cx="${lx}" cy="${ly - 8}" rx="16" ry="6" fill="#FFE9A8"/><path d="M ${lx - 170} ${ly + 700} L ${lx - 30} ${ly - 8} L ${lx + 30} ${ly - 8} L ${lx + 170} ${ly + 700} Z" fill="url(#akLamp)" opacity=".45"/>`; });
+    /* tapet, et loftslist og træpaneler forneden */
+    o += `<rect x="-1700" y="-200" width="5000" height="800" fill="url(#akDamask)"/><rect x="-1700" y="-200" width="5000" height="800" fill="#1A0A10" opacity=".35"/>`;
+    o += `<rect x="-1700" y="-200" width="5000" height="226" fill="#2A140C"/><path d="M -1700 26 H 3300" stroke="#C9962E" stroke-width="4"/><path d="M -1700 34 H 3300" stroke="#5A2E16" stroke-width="8"/>`;
+    o += `<rect x="-1700" y="560" width="5000" height="150" fill="url(#akWoodH)"/><path d="M -1700 560 H 3300" stroke="#C9962E" stroke-width="5"/><path d="M -1700 568 H 3300" stroke="#2A160C" stroke-width="3"/>`;
+    for (let px = -1640; px < 3300; px += 170) o += `<rect x="${px}" y="584" width="140" height="106" rx="4" fill="none" stroke="#2A160C" stroke-width="3" opacity=".55"/><rect x="${px + 8}" y="592" width="124" height="90" rx="3" fill="none" stroke="#A8743E" stroke-width="1.5" opacity=".35"/>`;
+    /* plankegulv i perspektiv */
+    o += `<rect x="-1700" y="708" width="5000" height="600" fill="url(#akFloor)"/><path d="M -1700 708 H 3300" stroke="#2A160C" stroke-width="5"/>`;
+    for (let k = -30; k <= 30; k++){ const xb = 800 + k * 150, xt = 800 + k * 60; o += `<path d="M ${xt} 708 L ${xb} 1300" stroke="#2A160C" stroke-width="2.5" opacity=".55"/>`; }
+    [736, 774, 830, 910, 1020].forEach((y, r) => { for (let k = -30; k <= 30; k++){ if ((k + r) % 3) continue; const t = (y - 708) / 592, xa = 800 + k * (60 + 90 * t), xb2 = 800 + (k + 1) * (60 + 90 * t); o += `<path d="M ${xa} ${y} L ${xb2} ${y}" stroke="#2A160C" stroke-width="2" opacity=".5"/>`; } });
+    /* skiltet: en træplade med messingkant, guldbogstaver og lyspærer hele vejen rundt */
+    o += `<ellipse cx="800" cy="130" rx="420" ry="130" fill="url(#akGlow)"/>`;
+    o += `<g class="ak-sign"><rect x="512" y="62" width="576" height="136" rx="22" fill="url(#akWoodV)" stroke="${WD}" stroke-width="6"/><rect x="530" y="80" width="540" height="100" rx="14" fill="#2A140C" stroke="url(#akBrass)" stroke-width="6"/>`
+      + bulbs([...Array.from({ length: 13 }, (_, i) => [536 + i * 44, 70]), ...Array.from({ length: 13 }, (_, i) => [536 + i * 44, 190]), [520, 130], [1080, 130]])
+      + `<text x="800" y="154" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="64" letter-spacing="8" fill="#1A0A04" transform="translate(0 4)">ARKADEN</text>`
+      + `<text x="800" y="154" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="64" letter-spacing="8" fill="url(#akBrass)" stroke="#5A3A10" stroke-width="2">ARKADEN</text>`
+      + `<path d="M 566 112 l 4 8 l 9 1 l -7 6 l 2 9 l -8 -5 l -8 5 l 2 -9 l -7 -6 l 9 -1 Z M 1034 112 l 4 8 l 9 1 l -7 6 l 2 9 l -8 -5 l -8 5 l 2 -9 l -7 -6 l 9 -1 Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="1" class="ak-twinkle"/></g>`;
+    /* to små plakater i guldrammer */
+    const poster = (x, y, l1, l2, c) => `<rect x="${x}" y="${y}" width="150" height="190" rx="4" fill="url(#akBrass)" stroke="${WD}" stroke-width="3"/><rect x="${x + 10}" y="${y + 10}" width="130" height="170" fill="#F2E2BC"/><rect x="${x + 16}" y="${y + 16}" width="118" height="158" fill="none" stroke="${c}" stroke-width="2"/>`
+      + `<path d="M ${x + 75} ${y + 40} l 8 16 l 18 2 l -13 12 l 4 18 l -17 -9 l -17 9 l 4 -18 l -13 -12 l 18 -2 Z" fill="${c}" stroke="${WD}" stroke-width="1.5"/>`
+      + `<text x="${x + 75}" y="${y + 128}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="21" fill="${c}">${l1}</text><text x="${x + 75}" y="${y + 154}" text-anchor="middle" font-family="${FONT_C}" font-weight="600" font-size="15" fill="#5A3A20">${l2}</text>`;
+    o += poster(-200, 250, 'Prøv lykken!', 'Hver dag', '#7A2A1A') + poster(1650, 250, 'Magiske spil', 'siden 1823', '#2E5A6A');
+    /* gaslamper i loftet med varmt lys */
+    [240, 1300].forEach((lx, i) => { const ly = 220;
+      o += `<path d="M ${lx} 30 V ${ly - 46}" stroke="#2A160C" stroke-width="3"/><path d="M ${lx - 26} ${ly - 46} H ${lx + 26} L ${lx + 18} ${ly - 34} H ${lx - 18} Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/>`
+        + `<path d="M ${lx - 18} ${ly - 34} L ${lx - 22} ${ly - 4} H ${lx + 22} L ${lx + 18} ${ly - 34} Z" fill="#FFE9A8" opacity=".85" stroke="${WD}" stroke-width="2"/><path d="M ${lx} ${ly - 24} q -6 8 0 16 q 6 -8 0 -16" fill="#FFB347"/>`
+        + `<path d="M ${lx - 24} ${ly - 4} H ${lx + 24} L ${lx + 16} ${ly + 6} H ${lx - 16} Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/><circle cx="${lx}" cy="${ly - 18}" r="44" fill="url(#akGlow)"/>`
+        + (true ? `<path d="M ${lx - 170} ${ly + 690} L ${lx - 26} ${ly + 6} L ${lx + 26} ${ly + 6} L ${lx + 170} ${ly + 690} Z" fill="url(#akLamp)" opacity=".4"/>` : ''); });
     o += gnomMachine() + cabinet(CABS[1], 478, 1) + cabinet(CABS[2], 778, 2) + clawMachine();
     return o + `</svg>`;
   }
@@ -165,7 +203,7 @@ const Arkade = (() => {
   function show(){
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
     showScreen('#arkade'); playMusic('arkade'); busy = false;
-    const box = $('#arkadeBody'); box.innerHTML = '';
+    const box = $('#arkadeBody'); box.innerHTML = ''; box.classList.remove('ak-wood');
     box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
     const svg = $('#akSvg');
@@ -185,9 +223,12 @@ const Arkade = (() => {
   function openGame(id){
     const game = GAMES[id], c = CABS.find(x => x.id === id);
     const box = $('#arkadeBody'); box.innerHTML = '';
-    const stage = el('div', { class:'ak-stage', id:'akStage' });
+    /* skærmspillene sidder i et gammelt træskab: lærredet ses gennem et glas i en messingramme */
+    const scr = c.kind === 'screen';
+    box.classList.toggle('ak-wood', scr);
+    const stage = el('div', { class:'ak-stage' + (scr ? ' scr' : ''), id:'akStage' });
     const stopBtn = el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); show(); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Stop' });
-    box.append(stage, ...placeUi([ stopBtn ], [ el('span', { class:'ak-pill', id:'akInfo', hidden: true }), el('span', { class:'ak-pill ak-score' }, [ el('span', { class:'lab' }, 'Point'), el('span', { id:'akScore' }, '0') ]), audioBtns() ]));
+    box.append(stage, ...(scr ? [el('div', { class:'ak-bezel', 'aria-hidden':'true' })] : []), ...placeUi([ stopBtn ], [ el('span', { class:'ak-pill', id:'akInfo', hidden: true }), el('span', { class:'ak-pill ak-score' }, [ el('span', { class:'lab' }, 'Point'), el('span', { id:'akScore' }, '0') ]), audioBtns() ]));
     updateAudioBtns();
     /* gribemaskinen giver en bamse, ikke point */
     if (game.noScore){ const sp = box.querySelector('.ak-score'); if (sp) sp.hidden = true; }

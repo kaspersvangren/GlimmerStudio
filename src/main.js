@@ -21,10 +21,9 @@ function logoTap(){ logoTaps++; clearTimeout(logoTimer); logoTimer = setTimeout(
 $('#backBtn').onclick = () => {
   sfx.undo();
   if (gameDress){ gameDress = null; $('#editor').classList.remove('in-game'); showScreen('#game'); renderTheme(); return; }
-  if (firstDress){ firstDress = false; if (cur) cur.t = Date.now(); saveAll(); goTo(showTown); return; }   /* den nye heks er færdig: ud i byen */
   saveAll(); goTo(showHome);
 };
-$('#doneBtn').onclick = () => { sfx.magic(); gameDress = null; $('#editor').classList.remove('in-game'); finishDress(); };
+$('#doneBtn').onclick = () => { if (firstDress){ sfx.magic(); firstDress = false; firstDressUi(false); if (cur) cur.t = Date.now(); saveAll(); goTo(showTown); return; } sfx.magic(); gameDress = null; $('#editor').classList.remove('in-game'); finishDress(); };
 $('#undoBtn').onclick = () => { if (!history.length) return; cur.st = fixState(JSON.parse(history.pop())); sfx.undo(); updateUndo(); saveSoon(); renderStage(); renderPanel(); };
 $('#randBtn').onclick = () => {
   pushHistory(); const nm = cur.st.pet.name;

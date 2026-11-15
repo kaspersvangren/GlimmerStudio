@@ -29,7 +29,13 @@ async function startGame(){
 
 /* ---------- tre gemte spil ---------- */
 const SLOT_DATA = ['glimmerstudiet.dukker.v1', 'glimmerstudiet.fremskridt.v1', 'glimmerstudiet.gemtstjerne', 'glimmerstudiet.oekser', 'glimmerstudiet.arkade', 'glimmerstudiet.bamser'];
-let firstDress = false;         /* sat, når en ny heks skal laves lige efter introen: tilbage-knappen går så ud i byen */
+let firstDress = false;
+/* den første heks: ingen tilbage-knap, men en tydelig stor "Jeg er færdig!" i stedet */
+function firstDressUi(on){
+  $('#backBtn').hidden = on; $('#doneBtn').hidden = !on; $('#randBtn').hidden = false;
+  $('#editor').classList.toggle('first-dress', on);
+  const d = $('#doneBtn'); if (d){ const t = [...d.childNodes].find(n => n.nodeType === 3); if (t) t.textContent = on ? 'Jeg er færdig!' : 'Færdig!'; }
+}         /* sat, når en ny heks skal laves lige efter introen: tilbage-knappen går så ud i byen */
 function slotInfo(n){
   const figs = store.get(KEY, [], n), p = store.get(KEY_PROG, null, n) || {};
   const list = Array.isArray(figs) ? figs.slice().sort((a, b) => (b.t || 0) - (a.t || 0)) : [];
@@ -145,9 +151,11 @@ function introCover(){
   <rect x="22" y="22" width="356" height="396" rx="10" fill="none" stroke="${G}" stroke-width="5"/><rect x="34" y="34" width="332" height="372" rx="6" fill="none" stroke="${G}" stroke-width="1.5" stroke-dasharray="2 6"/>
   <g transform="translate(22 22)">${corner}</g><g transform="translate(378 22) scale(-1 1)">${corner}</g><g transform="translate(22 418) scale(1 -1)">${corner}</g><g transform="translate(378 418) scale(-1 -1)">${corner}</g>
   <path d="M 200 70 L 214 106 L 252 108 L 222 132 L 232 170 L 200 148 L 168 170 L 178 132 L 148 108 L 186 106 Z" fill="${G}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
-  <text x="200" y="250" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="58" fill="${G}" stroke="${INK}" stroke-width="1.2">Magiske</text>
-  <text x="200" y="318" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="58" fill="${G}" stroke="${INK}" stroke-width="1.2">Mig</text>
-  <path d="M 110 350 Q 200 380 290 350" stroke="${G}" stroke-width="3" fill="none"/><circle cx="200" cy="366" r="6" fill="${G}"/></svg>`;
+  <defs><linearGradient id="icT" x1="0" y1="0" x2="0" y2="1"><stop offset=".1" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFE27A"/><stop offset="1" stop-color="#F2A93B"/></linearGradient></defs>
+  <g font-family="Fredoka, 'Baloo 2', sans-serif" font-weight="700" text-anchor="middle" letter-spacing="1">
+  <text x="200" y="256" font-size="70" fill="#1A0A30" stroke="#1A0A30" stroke-width="14" stroke-linejoin="round" transform="translate(0 5)">Magiske</text><text x="200" y="256" font-size="70" fill="url(#icT)" stroke="#2A1440" stroke-width="10" stroke-linejoin="round" paint-order="stroke">Magiske</text>
+  <text x="200" y="334" font-size="78" fill="#1A0A30" stroke="#1A0A30" stroke-width="14" stroke-linejoin="round" transform="translate(0 5)">Mig</text><text x="200" y="334" font-size="78" fill="url(#icT)" stroke="#2A1440" stroke-width="10" stroke-linejoin="round" paint-order="stroke">Mig</text></g>
+  <path d="M 110 362 Q 200 392 290 362" stroke="${G}" stroke-width="3" fill="none"/><circle cx="200" cy="378" r="6" fill="${G}"/></svg>`;
 }
 function introPage(i, side, name){
   if (side === 'l') return el('div', { class:'pg-art', html: introArt(INTRO_PAGES[i].art) });
@@ -198,7 +206,7 @@ function showIntro(){
   }
   function finish(){
     sfx.pick();
-    goTo(() => { firstDress = true; const f = newFigure(); f.name = name; saveAll(); $('#nameInput').value = name; $('#backLabel').textContent = 'Ud i byen'; });
+    goTo(() => { firstDress = true; const f = newFigure(); f.name = name; saveAll(); $('#nameInput').value = name; firstDressUi(true); });
   }
   next.addEventListener('click', turn);
   R.addEventListener('click', e => { if (e.target.closest('input')) return; turn(); });
