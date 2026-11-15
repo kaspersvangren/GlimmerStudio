@@ -2019,7 +2019,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.24.0';
+const VERSION = 'v0.24.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -4839,7 +4839,7 @@ const Kost = (() => {
     const good = Math.random() < .5 ? 0 : 1;
     return mates.map((m, i) => { const g = i === good, j = () => Math.random() * .08;
       return { st: m.st, lane: LANES[i], li: i, x: 0, y: 520, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0, els: new Map(),
-        off: g ? 120 : -160, hit: g ? .74 + j() : .5 + j(), tryLoop: g ? .6 + j() : .35 + j(), aim: g ? .72 + j() : .45 + j(), wob: Math.random() * 6 }; });
+        off: g ? -40 : -240, hit: g ? .74 + j() : .5 + j(), tryLoop: g ? .6 + j() : .35 + j(), aim: g ? .72 + j() : .45 + j(), wob: Math.random() * 6 }; });
   }
 
   /* ---------- skærmen ---------- */
@@ -4870,6 +4870,9 @@ const Kost = (() => {
     const E = S.course.end, lanesG = scene.querySelector('.kf-lanes'), far = LANES[0];
     lanesG.prepend(mk('g', { class:'kf-finish kf-bobfin' }, `<path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#FFFFFF" stroke-width="16" opacity=".8"/><path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#2A2340" stroke-width="16" stroke-dasharray="16 16" opacity=".8"/>`));
     LANES.forEach((L, i) => scene.querySelector('.kf-trackB.l' + i).append(mk('g', {}, laneGate(E + L.dx, L))));
+    /* to næsten usynlige prikker i hver ende af banen, så lagene har samme størrelse hele vejen (ellers skal hele laget
+       tegnes forfra, hver gang noget langt væk bliver vist eller skjult) */
+    for (const L of scene.querySelectorAll('.kf-L-track,.kf-L-front')) L.append(mk('g', { 'pointer-events':'none' }, `<rect x="-2600" y="0" width="2" height="2" fill="#FFF" opacity=".01"/><rect x="${S.course.end + 4200}" y="0" width="2" height="2" fill="#FFF" opacity=".01"/>`));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
     S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
     /* kort tryk = flyv op, hold fingeren nede = loop */
@@ -4991,7 +4994,9 @@ const Kost = (() => {
     const x0 = S.x;
     if (S.boost > 0) moveBoost(S, dt);
     else {
-      S.x += S.v * dt;
+      /* medvind: er man langt bagud, får man lidt ekstra fart (højst 12 %), så man kan nå at hente dem */
+      const lead = Math.max(...S.rivals.map(rv => rv.x)) - S.x, tail = lead > 250 ? Math.min(.12, (lead - 250) / 2500) : 0;
+      S.x += S.v * (1 + tail) * dt;
       S.vy = Math.min(VMAXF, S.vy + GRAV * dt); S.y += S.vy * dt;
       if (S.y > BOT){ S.y = BOT; S.vy = -480; S.v = Math.max(V0 * .8, S.v - 40); tone(160, 0.12, 'sine', 0.06, 0, 0.7); }
       if (S.y < TOP){ S.y = TOP; S.vy = Math.max(0, S.vy); }
@@ -5010,7 +5015,7 @@ const Kost = (() => {
     if (rv.loop){ moveLoop(rv, dt); return; }
     if (rv.boost > 0){ moveBoost(rv, dt); if (!rv.finT && rv.x >= S.course.end) rv.finT = S.t; return; }
     const x0 = rv.x;
-    const band = 1 + clamp((S.x + rv.off - rv.x) / 2500, -.22, .22);   /* gummibånd: de bliver i nærheden, men dygtighed tæller stadig */
+    const band = 1 + clamp((S.x + rv.off - rv.x) / 2500, -.15, .15);   /* gummibånd: de bliver i nærheden (den dygtige lige bag én), men dygtighed tæller stadig */
     rv.x += rv.v * band * dt; rv.v += (V0 - rv.v) * Math.min(1, dt * .35);
     const r = S.course.rings.find(q => !rv.seen.has(q) && q.x > rv.x - 5 && (!q.dbl || q.dbl === 'lo'));
     if (r && (!rv.plan || rv.plan.r !== r)){
@@ -6156,28 +6161,68 @@ const Arkade = (() => {
     { k:'bjoern', name:'bamse-bjørn', c:'#B5743A', c2:'#E8C8A0' }, { k:'kat', name:'kattebamse', c:'#A8A4C0', c2:'#F2EEFF' },
     { k:'kanin', name:'kaninbamse', c:'#F7F4FF', c2:'#FFC8DC' }, { k:'drage', name:'dragebamse', c:'#7AC86A', c2:'#F2E2A0' },
     { k:'enhjoerning', name:'enhjørningebamse', c:'#FFFFFF', c2:'#FF9FD0' }, { k:'ugle', name:'uglebamse', c:'#9C6A48', c2:'#F2E2C0' },
-    { k:'froe', name:'frøbamse', c:'#5AB85A', c2:'#C8F0A0' }, { k:'spoegelse', name:'spøgelsesbamse', c:'#F2EEFF', c2:'#C8C4E8' } ];
-  function plush(k, s = 1){
-    const b = BAMSER.find(x => x.k === k) || BAMSER[0], c = b.c, c2 = b.c2, st = `stroke="${E}" stroke-width="2.5"`;
+    { k:'froe', name:'frøbamse', c:'#5AB85A', c2:'#C8F0A0' }, { k:'spoegelse', name:'spøgelsesbamse', c:'#F2EEFF', c2:'#C8C4E8' },
+    /* fantasy-væsner */
+    { k:'ork', name:'orkebamse', c:'#7AAA4A', c2:'#C8D890' }, { k:'kentaur', name:'kentaurbamse', c:'#A8703A', c2:'#E8C8A0', ch:'#F2C8A0', hair:'#5A3A1A' },
+    { k:'grif', name:'griffenbamse', c:'#D8A84A', c2:'#F2E2B0', ch:'#F7F4FF' }, { k:'trold', name:'troldebamse', c:'#8A9A6A', c2:'#D8C8A0', hair:'#E07A2A' },
+    { k:'foeniks', name:'føniksbamse', c:'#FF7A2A', c2:'#FFD27A' }, { k:'havfrue', name:'havfruebamse', c:'#3FC7B4', c2:'#A8F0E4', ch:'#F7D2B8', hair:'#B05AE0' },
+    { k:'pegasus', name:'pegasusbamse', c:'#FFFFFF', c2:'#C8E8FF', hair:'#7AB8F0' }, { k:'yeti', name:'yetibamse', c:'#F2F6FF', c2:'#9AB8E8' },
+    { k:'minotaur', name:'minotaurbamse', c:'#8A5A3A', c2:'#D8B890' }, { k:'kraken', name:'krakenbamse', c:'#9A5AD8', c2:'#E0C0FF' },
+    { k:'ilddrage', name:'ilddragebamse', c:'#E0503A', c2:'#FFD27A', base:'drage', wing:'#B8302A' }, { k:'isdrage', name:'isdragebamse', c:'#7AC8F0', c2:'#E8F8FF', base:'drage', wing:'#4A98D0' } ];
+  function plush(k0, s = 1){
+    const b = BAMSER.find(x => x.k === k0) || BAMSER[0], k = b.base || b.k, c = b.c, c2 = b.c2, ch = b.ch || c, st = `stroke="${E}" stroke-width="2.5"`, sj = `${st} stroke-linejoin="round"`;
     let o = `<g transform="scale(${s})">`;
     if (k === 'spoegelse') return o + `<path d="M -26 34 V -6 C -26 -40 26 -40 26 -6 V 34 Q 17 26 9 34 Q 0 26 -9 34 Q -17 26 -26 34 Z" fill="${c}" ${st}/><ellipse cx="-9" cy="-6" rx="4" ry="6" fill="${E}"/><ellipse cx="9" cy="-6" rx="4" ry="6" fill="${E}"/><ellipse cx="0" cy="8" rx="5" ry="4" fill="${E}"/><circle cx="-16" cy="4" r="4" fill="#FFB8D0" opacity=".7"/><circle cx="16" cy="4" r="4" fill="#FFB8D0" opacity=".7"/></g>`;
-    /* krop med mave og fødder */
-    o += `<ellipse cx="0" cy="16" rx="24" ry="19" fill="${c}" ${st}/><ellipse cx="0" cy="19" rx="13" ry="11" fill="${c2}"/><ellipse cx="-14" cy="32" rx="9" ry="5" fill="${c}" ${st}/><ellipse cx="14" cy="32" rx="9" ry="5" fill="${c}" ${st}/>`;
-    if (k === 'drage') o += `<path d="M -20 6 L -40 -8 L -34 10 Z M 20 6 L 40 -8 L 34 10 Z" fill="#5AA84A" ${st} stroke-linejoin="round"/><path d="M 20 24 Q 38 30 34 14" stroke="${E}" stroke-width="2.5" fill="${c}"/>`;
-    /* ører eller lignende bag hovedet */
+    /* det, der sidder bag kroppen: vinger og haler */
+    if (k === 'drage') o += `<path d="M -20 6 L -40 -8 L -34 10 Z M 20 6 L 40 -8 L 34 10 Z" fill="${b.wing || '#5AA84A'}" ${sj}/>`;
+    if (k === 'grif') o += `<path d="M -18 4 C -44 -6 -46 18 -30 22 C -36 14 -30 8 -18 12 Z M 18 4 C 44 -6 46 18 30 22 C 36 14 30 8 18 12 Z" fill="#9A6A3A" ${sj}/>`;
+    if (k === 'pegasus') o += `<path d="M -18 6 C -40 -14 -48 6 -34 16 C -40 8 -30 2 -18 12 Z M 18 6 C 40 -14 48 6 34 16 C 40 8 30 2 18 12 Z" fill="#E8F4FF" ${sj}/><path d="M -36 4 l 8 4 M -40 10 l 8 2 M 36 4 l -8 4 M 40 10 l -8 2" stroke="${E}" stroke-width="1.4"/>`;
+    if (k === 'foeniks') o += `<path d="M -18 6 C -40 -10 -44 14 -28 18 Z M 18 6 C 40 -10 44 14 28 18 Z" fill="#E0402A" ${sj}/><path d="M 16 26 C 36 30 42 22 38 10 C 34 20 28 22 22 20 Z" fill="#FFD27A" ${sj}/>`;
+    if (k === 'kentaur') o += `<path d="M 20 20 C 38 22 40 34 32 42 C 30 34 26 28 18 28 Z" fill="${b.hair}" ${sj}/>`;
+    if (k === 'trold') o += `<path d="M 20 26 Q 36 30 32 40 Q 30 34 22 32" stroke="${E}" stroke-width="2" fill="${c}"/><circle cx="33" cy="40" r="4" fill="${b.hair}" ${st}/>`;
+    /* krop med mave og fødder (havfruen har en fiskehale, kraken arme) */
+    o += `<ellipse cx="0" cy="16" rx="24" ry="19" fill="${c}" ${st}/><ellipse cx="0" cy="19" rx="13" ry="11" fill="${c2}"/>`;
+    if (k === 'havfrue') o += `<path d="M -6 30 C -24 34 -26 44 -20 46 C -14 40 -6 38 0 36 C 6 38 14 40 20 46 C 26 44 24 34 6 30 Z" fill="${c}" ${sj}/><path d="M -10 14 q 4 3 8 0 M 2 14 q 4 3 8 0 M -4 22 q 4 3 8 0" stroke="${E}" stroke-width="1.2" fill="none" opacity=".45"/>`;
+    else if (k === 'kraken') o += `<path d="M -20 26 q -10 8 -4 14 q 4 2 6 -4 M -8 32 q -4 10 2 12 q 4 0 2 -6 M 8 32 q 4 10 -2 12 q -4 0 -2 -6 M 20 26 q 10 8 4 14 q -4 2 -6 -4" stroke="${E}" stroke-width="2.5" fill="${c}" stroke-linecap="round"/><circle cx="-8" cy="20" r="2" fill="${c}"/><circle cx="0" cy="24" r="2" fill="${c}"/><circle cx="8" cy="20" r="2" fill="${c}"/>`;
+    else o += `<ellipse cx="-14" cy="32" rx="9" ry="5" fill="${c}" ${st}/><ellipse cx="14" cy="32" rx="9" ry="5" fill="${c}" ${st}/>`;
+    if (k === 'drage') o += `<path d="M 20 24 Q 38 30 34 14" stroke="${E}" stroke-width="2.5" fill="${c}"/>`;
+    if (k === 'yeti') o += `<path d="M -24 10 l -5 3 l 5 2 M -24 20 l -5 3 l 5 2 M 24 10 l 5 3 l -5 2 M 24 20 l 5 3 l -5 2" stroke="${E}" stroke-width="2" fill="${c}" stroke-linejoin="round"/>`;
+    /* ører, horn og hår bag hovedet */
     if (k === 'bjoern') o += `<circle cx="-16" cy="-30" r="8" fill="${c}" ${st}/><circle cx="16" cy="-30" r="8" fill="${c}" ${st}/><circle cx="-16" cy="-30" r="4" fill="${c2}"/><circle cx="16" cy="-30" r="4" fill="${c2}"/>`;
-    if (k === 'kat') o += `<path d="M -20 -22 L -16 -42 L -4 -30 Z M 20 -22 L 16 -42 L 4 -30 Z" fill="${c}" ${st} stroke-linejoin="round"/>`;
+    if (k === 'kat') o += `<path d="M -20 -22 L -16 -42 L -4 -30 Z M 20 -22 L 16 -42 L 4 -30 Z" fill="${c}" ${sj}/>`;
     if (k === 'kanin') o += `<ellipse cx="-9" cy="-44" rx="6" ry="17" fill="${c}" ${st}/><ellipse cx="9" cy="-44" rx="6" ry="17" fill="${c}" ${st}/><ellipse cx="-9" cy="-44" rx="3" ry="11" fill="${c2}"/><ellipse cx="9" cy="-44" rx="3" ry="11" fill="${c2}"/>`;
-    if (k === 'ugle') o += `<path d="M -20 -20 L -18 -40 L -6 -28 Z M 20 -20 L 18 -40 L 6 -28 Z" fill="${c}" ${st} stroke-linejoin="round"/>`;
-    if (k === 'drage') o += `<path d="M -10 -32 l -4 -12 l 8 6 Z M 10 -32 l 4 -12 l -8 6 Z" fill="#F2E2A0" ${st}/>`;
+    if (k === 'ugle') o += `<path d="M -20 -20 L -18 -40 L -6 -28 Z M 20 -20 L 18 -40 L 6 -28 Z" fill="${c}" ${sj}/>`;
+    if (k === 'drage') o += `<path d="M -10 -32 l -4 -12 l 8 6 Z M 10 -32 l 4 -12 l -8 6 Z" fill="${c2}" ${st}/>`;
     if (k === 'enhjoerning') o += `<path d="M -16 -30 C -26 -20 -24 -8 -20 0 C -14 -12 -10 -22 -4 -30 Z" fill="${c2}" ${st}/><path d="M -4 -34 L 0 -54 L 4 -34 Z" fill="#F2C14E" ${st}/><path d="M -14 -28 l -4 -10 l 8 4 Z M 14 -28 l 4 -10 l -8 4 Z" fill="${c}" ${st}/>`;
+    if (k === 'ork') o += `<path d="M -19 -18 L -40 -26 L -22 -6 Z M 19 -18 L 40 -26 L 22 -6 Z" fill="${c}" ${sj}/><path d="M -22 -16 L -33 -22 M 22 -16 L 33 -22" stroke="${c2}" stroke-width="2.5"/>`;
+    if (k === 'trold') o += `<path d="M -10 -34 l -6 -12 l 8 4 l 2 -12 l 6 10 l 6 -10 l 0 12 l 8 -4 l -6 12 Z" fill="${b.hair}" ${sj}/><circle cx="-22" cy="-14" r="6" fill="${c}" ${st}/><circle cx="22" cy="-14" r="6" fill="${c}" ${st}/>`;
+    if (k === 'kentaur' || k === 'pegasus') o += `<path d="M -18 -26 L -16 -42 L -6 -32 Z M 18 -26 L 16 -42 L 6 -32 Z" fill="${k === 'pegasus' ? c : '#A8703A'}" ${sj}/>`;
+    if (k === 'havfrue') o += `<path d="M -22 -18 C -30 0 -28 14 -20 20 C -18 8 -16 -2 -12 -12 Z M 22 -18 C 30 0 28 14 20 20 C 18 8 16 -2 12 -12 Z" fill="${b.hair}" ${sj}/>`;
+    if (k === 'yeti') o += `<path d="M -14 -32 q -6 -10 -2 -16 q 2 8 8 10 Z M 14 -32 q 6 -10 2 -16 q -2 8 -8 10 Z" fill="#F2E2C0" ${sj}/>`;
+    if (k === 'minotaur') o += `<path d="M -16 -28 C -30 -30 -36 -42 -30 -50 C -28 -42 -22 -38 -10 -36 Z M 16 -28 C 30 -30 36 -42 30 -50 C 28 -42 22 -38 10 -36 Z" fill="#F2E8D0" ${sj}/><ellipse cx="-22" cy="-18" rx="8" ry="4" fill="${c}" ${st} transform="rotate(-20 -22 -18)"/><ellipse cx="22" cy="-18" rx="8" ry="4" fill="${c}" ${st} transform="rotate(20 22 -18)"/>`;
+    if (k === 'grif') o += `<path d="M -14 -30 l -4 -12 l 8 6 Z M 14 -30 l 4 -12 l -8 6 Z" fill="${ch}" ${st}/>`;
+    if (k === 'foeniks') o += `<path d="M -8 -34 C -12 -46 -6 -50 -4 -58 C 0 -50 2 -44 0 -36 C 4 -44 8 -46 10 -52 C 12 -44 10 -38 6 -32 Z" fill="#FFB02E" ${sj}/><path d="M -3 -36 C -4 -42 -2 -46 -1 -50 C 1 -46 2 -42 1 -36 Z" fill="#FFF0A0"/>`;
     /* hovedet */
-    o += k === 'froe' ? `<ellipse cx="0" cy="-12" rx="25" ry="17" fill="${c}" ${st}/><circle cx="-11" cy="-28" r="9" fill="${c}" ${st}/><circle cx="11" cy="-28" r="9" fill="${c}" ${st}/><circle cx="-11" cy="-28" r="4" fill="${E}"/><circle cx="11" cy="-28" r="4" fill="${E}"/><path d="M -14 -8 Q 0 2 14 -8" stroke="${E}" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="-16" cy="-10" r="4" fill="#FFB8D0" opacity=".7"/><circle cx="16" cy="-10" r="4" fill="#FFB8D0" opacity=".7"/>`
-      : `<circle cx="0" cy="-14" r="22" fill="${c}" ${st}/>`;
+    if (k === 'froe') o += `<ellipse cx="0" cy="-12" rx="25" ry="17" fill="${c}" ${st}/><circle cx="-11" cy="-28" r="9" fill="${c}" ${st}/><circle cx="11" cy="-28" r="9" fill="${c}" ${st}/><circle cx="-11" cy="-28" r="4" fill="${E}"/><circle cx="11" cy="-28" r="4" fill="${E}"/><path d="M -14 -8 Q 0 2 14 -8" stroke="${E}" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="-16" cy="-10" r="4" fill="#FFB8D0" opacity=".7"/><circle cx="16" cy="-10" r="4" fill="#FFB8D0" opacity=".7"/>`;
+    else if (k === 'yeti') o += `<path d="M -22 -14 l -4 -4 l 4 -4 l -2 -6 l 6 -2 l 2 -6 l 6 2 l 4 -4 l 4 4 l 6 -2 l 2 6 l 6 2 l -2 6 l 4 4 l -4 4 l 4 4 l -4 5 l 2 5 l -6 2 l -4 5 l -6 -2 l -6 3 l -6 -3 l -6 2 l -4 -5 l -6 -2 l 2 -5 l -4 -5 Z" fill="${c}" ${sj}/><ellipse cx="0" cy="-12" rx="13" ry="11" fill="${c2}"/>`;
+    else o += `<circle cx="0" cy="-14" r="22" fill="${ch}" ${st}/>`;
+    if (k === 'kentaur') o += `<path d="M -22 -12 C -24 -34 -6 -40 6 -36 C 16 -34 24 -24 22 -12 C 16 -24 6 -28 -6 -26 C -14 -24 -18 -18 -22 -12 Z" fill="${b.hair}" ${sj}/>`;
+    if (k === 'havfrue') o += `<path d="M -22 -12 C -24 -36 22 -40 22 -12 C 14 -26 -2 -28 -22 -12 Z" fill="${b.hair}" ${sj}/><circle cx="12" cy="-30" r="4" fill="#FF8FC7" ${st}/>`;
+    if (k === 'pegasus') o += `<path d="M -8 -34 C -2 -42 10 -40 14 -32 C 8 -34 2 -32 -2 -28 Z" fill="${b.hair}" ${sj}/>`;
+    if (k === 'kraken') o += `<circle cx="-12" cy="-26" r="3" fill="${c2}"/><circle cx="10" cy="-30" r="2.4" fill="${c2}"/><circle cx="14" cy="-22" r="2" fill="${c2}"/>`;
+    /* ansigtet */
     if (k === 'ugle') o += `<circle cx="-9" cy="-16" r="9" fill="${c2}" ${st}/><circle cx="9" cy="-16" r="9" fill="${c2}" ${st}/><circle cx="-9" cy="-16" r="4" fill="${E}"/><circle cx="9" cy="-16" r="4" fill="${E}"/><path d="M -4 -6 L 4 -6 L 0 2 Z" fill="#F2A040" ${st}/>`;
-    else if (k !== 'froe') o += `<circle cx="-8" cy="-16" r="3.4" fill="${E}"/><circle cx="8" cy="-16" r="3.4" fill="${E}"/><circle cx="-7" cy="-17" r="1.1" fill="#FFF"/><circle cx="9" cy="-17" r="1.1" fill="#FFF"/>`
-      + `<ellipse cx="0" cy="-6" rx="${k === 'bjoern' || k === 'drage' ? 8 : 5}" ry="${k === 'bjoern' || k === 'drage' ? 6 : 4}" fill="${k === 'bjoern' ? c2 : k === 'drage' ? '#9BE36A' : 'none'}"/><path d="M -3 -8 L 3 -8 L 0 -5 Z" fill="${k === 'kanin' || k === 'kat' ? '#FF8FB0' : E}"/><path d="M 0 -5 q -4 4 -7 1 M 0 -5 q 4 4 7 1" stroke="${E}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
-      + `<circle cx="-15" cy="-8" r="4" fill="#FFB8D0" opacity=".65"/><circle cx="15" cy="-8" r="4" fill="#FFB8D0" opacity=".65"/>`;
+    else if (k !== 'froe'){
+      const beak = k === 'grif' || k === 'foeniks', snout = k === 'bjoern' || k === 'drage' || k === 'minotaur';
+      o += `<circle cx="-8" cy="-16" r="3.4" fill="${E}"/><circle cx="8" cy="-16" r="3.4" fill="${E}"/><circle cx="-7" cy="-17" r="1.1" fill="#FFF"/><circle cx="9" cy="-17" r="1.1" fill="#FFF"/>`;
+      if (k === 'ork' || k === 'trold' || k === 'minotaur') o += `<path d="M -13 -23 l 9 3 M 13 -23 l -9 3" stroke="${E}" stroke-width="2.6" stroke-linecap="round"/>`;
+      if (beak) o += `<path d="M -6 -9 L 6 -9 L 0 2 Z" fill="#F2A040" ${sj}/>`;
+      else if (k === 'trold') o += `<ellipse cx="0" cy="-7" rx="7" ry="6" fill="${c2}" ${st}/><path d="M -6 1 q 6 4 12 0" stroke="${E}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      else o += `<ellipse cx="0" cy="-6" rx="${snout ? 8 : 5}" ry="${snout ? 6 : 4}" fill="${k === 'bjoern' || k === 'minotaur' ? c2 : k === 'drage' ? lt(c, .25) : 'none'}"/><path d="M -3 -8 L 3 -8 L 0 -5 Z" fill="${k === 'kanin' || k === 'kat' ? '#FF8FB0' : E}"/><path d="M 0 -5 q -4 4 -7 1 M 0 -5 q 4 4 7 1" stroke="${E}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      if (k === 'ork') o += `<path d="M -7 -3 l 2 -6 l 2 6 Z M 3 -3 l 2 -6 l 2 6 Z" fill="#FFFFF0" stroke="${E}" stroke-width="1.2" stroke-linejoin="round"/>`;
+      if (k === 'minotaur') o += `<circle cx="0" cy="-1" r="4" fill="none" stroke="#F2C14E" stroke-width="2"/>`;
+      o += `<circle cx="-15" cy="-8" r="4" fill="#FFB8D0" opacity=".65"/><circle cx="15" cy="-8" r="4" fill="#FFB8D0" opacity=".65"/>`;
+    }
     if (k === 'kat') o += `<path d="M -20 -8 h -10 M -20 -4 h -10 M 20 -8 h 10 M 20 -4 h 10" stroke="${E}" stroke-width="1.4"/>`;
     /* en lille syning, så de ligner tøjdyr */
     o += `<path d="M 0 2 V 30" stroke="${E}" stroke-width="1.2" stroke-dasharray="3 3" opacity=".35"/>`;
@@ -6794,7 +6839,8 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     const walls = [wall((CHUTE_X + WALL_R) / 2, FLOOR + 30, WALL_R - CHUTE_X, 60), wall(WALL_L - 30, 300, 60, 1200), wall(WALL_R + 30, 300, 60, 1200),
       wall(CHUTE_X + 3, (CHUTE_TOP + FLOOR + 60) / 2, 10, FLOOR + 60 - CHUTE_TOP)];
     /* bamserne: et hoved og en mave, ligesom tegningen, så kloen kan få fat under hovedet */
-    const kinds = Arkade.BAMSER.map(b => b.k), plushes = [];
+    /* dem, man ikke har endnu, ligger der dobbelt så mange af */
+    const mine = new Set(Arkade.myPlush()), kinds = Arkade.BAMSER.flatMap(b => mine.has(b.k) ? [b.k] : [b.k, b.k]), plushes = [];
     /* en bunke: bred nederst, højest på midten */
     [[676, 15, 470, 1350], [596, 9, 590, 1230], [516, 4, 720, 1100]].forEach(([y0, n, x0, x1]) => { for (let i = 0; i < n; i++){
       const x = x0 + i * (x1 - x0) / (n - 1) + (Math.random() - .5) * 36, y = y0 + (Math.random() - .5) * 20;
