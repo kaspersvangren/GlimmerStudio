@@ -16,7 +16,7 @@ const DBG = (() => {
       const scr = document.querySelector('#' + screen);
       row('maaling', { sek: +(sum / 1000).toFixed(1), fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), hak50: frames.filter(x => x > 50).length, hak100: frames.filter(x => x > 100).length,
         lange: longN, langeMs: Math.round(longMs), elementer: scr ? scr.getElementsByTagName('*').length : 0, animationer: scr ? scr.querySelectorAll('animate,animateTransform,animateMotion').length : 0,
-        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), animStop: ab, ...counts }, screen);
+        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), gpu: typeof GPU !== 'undefined' && GPU.on, animStop: ab, ...counts }, screen);
     }
     frames = []; longN = 0; longMs = 0; counts = {};
   }

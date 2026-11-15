@@ -721,7 +721,7 @@ function camFit(){
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); return; }
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); gpuSync(); return; }
   CAM.vh = vh; CAM.vw = Math.min(CAM_X[1] - CAM_X[0], vh * W / H);
   camApply();
 }
@@ -730,6 +730,7 @@ function camApply(){
   CAM.cx = Math.max(CAM_X[0] + hw, Math.min(CAM_X[1] - hw, CAM.cx));
   CAM.cy = Math.max(CAM_Y[0] + hh, Math.min(CAM_Y[1] - hh, CAM.cy));
   svg.setAttribute('viewBox', `${(CAM.cx - hw).toFixed(1)} ${(CAM.cy - hh).toFixed(1)} ${CAM.vw.toFixed(1)} ${CAM.vh.toFixed(1)}`);
+  gpuSync();
 }
 const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
 function camFollow(now, dt){
