@@ -333,7 +333,7 @@ const Kost = (() => {
     const good = Math.random() < .5 ? 0 : 1;
     return mates.map((m, i) => { const g = i === good, j = () => Math.random() * .08;
       return { st: m.st, lane: LANES[i], li: i, x: 0, y: 520, vy: 0, v: V0, ang: 0, loop: null, boost: 0, plan: null, seen: new Set(), finT: 0, els: new Map(),
-        off: g ? 120 : -160, hit: g ? .74 + j() : .5 + j(), tryLoop: g ? .6 + j() : .35 + j(), aim: g ? .72 + j() : .45 + j(), wob: Math.random() * 6 }; });
+        off: g ? -40 : -240, hit: g ? .74 + j() : .5 + j(), tryLoop: g ? .6 + j() : .35 + j(), aim: g ? .72 + j() : .45 + j(), wob: Math.random() * 6 }; });
   }
 
   /* ---------- skærmen ---------- */
@@ -364,6 +364,9 @@ const Kost = (() => {
     const E = S.course.end, lanesG = scene.querySelector('.kf-lanes'), far = LANES[0];
     lanesG.prepend(mk('g', { class:'kf-finish kf-bobfin' }, `<path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#FFFFFF" stroke-width="16" opacity=".8"/><path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#2A2340" stroke-width="16" stroke-dasharray="16 16" opacity=".8"/>`));
     LANES.forEach((L, i) => scene.querySelector('.kf-trackB.l' + i).append(mk('g', {}, laneGate(E + L.dx, L))));
+    /* to næsten usynlige prikker i hver ende af banen, så lagene har samme størrelse hele vejen (ellers skal hele laget
+       tegnes forfra, hver gang noget langt væk bliver vist eller skjult) */
+    for (const L of scene.querySelectorAll('.kf-L-track,.kf-L-front')) L.append(mk('g', { 'pointer-events':'none' }, `<rect x="-2600" y="0" width="2" height="2" fill="#FFF" opacity=".01"/><rect x="${S.course.end + 4200}" y="0" width="2" height="2" fill="#FFF" opacity=".01"/>`));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
     S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
     /* kort tryk = flyv op, hold fingeren nede = loop */
@@ -485,7 +488,9 @@ const Kost = (() => {
     const x0 = S.x;
     if (S.boost > 0) moveBoost(S, dt);
     else {
-      S.x += S.v * dt;
+      /* medvind: er man langt bagud, får man lidt ekstra fart (højst 12 %), så man kan nå at hente dem */
+      const lead = Math.max(...S.rivals.map(rv => rv.x)) - S.x, tail = lead > 250 ? Math.min(.12, (lead - 250) / 2500) : 0;
+      S.x += S.v * (1 + tail) * dt;
       S.vy = Math.min(VMAXF, S.vy + GRAV * dt); S.y += S.vy * dt;
       if (S.y > BOT){ S.y = BOT; S.vy = -480; S.v = Math.max(V0 * .8, S.v - 40); tone(160, 0.12, 'sine', 0.06, 0, 0.7); }
       if (S.y < TOP){ S.y = TOP; S.vy = Math.max(0, S.vy); }
@@ -504,7 +509,7 @@ const Kost = (() => {
     if (rv.loop){ moveLoop(rv, dt); return; }
     if (rv.boost > 0){ moveBoost(rv, dt); if (!rv.finT && rv.x >= S.course.end) rv.finT = S.t; return; }
     const x0 = rv.x;
-    const band = 1 + clamp((S.x + rv.off - rv.x) / 2500, -.22, .22);   /* gummibånd: de bliver i nærheden, men dygtighed tæller stadig */
+    const band = 1 + clamp((S.x + rv.off - rv.x) / 2500, -.15, .15);   /* gummibånd: de bliver i nærheden (den dygtige lige bag én), men dygtighed tæller stadig */
     rv.x += rv.v * band * dt; rv.v += (V0 - rv.v) * Math.min(1, dt * .35);
     const r = S.course.rings.find(q => !rv.seen.has(q) && q.x > rv.x - 5 && (!q.dbl || q.dbl === 'lo'));
     if (r && (!rv.plan || rv.plan.r !== r)){

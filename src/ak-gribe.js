@@ -80,7 +80,8 @@
     const walls = [wall((CHUTE_X + WALL_R) / 2, FLOOR + 30, WALL_R - CHUTE_X, 60), wall(WALL_L - 30, 300, 60, 1200), wall(WALL_R + 30, 300, 60, 1200),
       wall(CHUTE_X + 3, (CHUTE_TOP + FLOOR + 60) / 2, 10, FLOOR + 60 - CHUTE_TOP)];
     /* bamserne: et hoved og en mave, ligesom tegningen, så kloen kan få fat under hovedet */
-    const kinds = Arkade.BAMSER.map(b => b.k), plushes = [];
+    /* dem, man ikke har endnu, ligger der dobbelt så mange af */
+    const mine = new Set(Arkade.myPlush()), kinds = Arkade.BAMSER.flatMap(b => mine.has(b.k) ? [b.k] : [b.k, b.k]), plushes = [];
     /* en bunke: bred nederst, højest på midten */
     [[676, 15, 470, 1350], [596, 9, 590, 1230], [516, 4, 720, 1100]].forEach(([y0, n, x0, x1]) => { for (let i = 0; i < n; i++){
       const x = x0 + i * (x1 - x0) / (n - 1) + (Math.random() - .5) * 36, y = y0 + (Math.random() - .5) * 20;
