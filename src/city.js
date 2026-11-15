@@ -721,44 +721,15 @@ function camFit(){
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); smilCull(true); return; }
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); return; }
   CAM.vh = vh; CAM.vw = Math.min(CAM_X[1] - CAM_X[0], vh * W / H);
-  camApply(); smilCull(true);
+  camApply();
 }
 function camApply(){
   const hw = CAM.vw / 2, hh = CAM.vh / 2, svg = $('#townSvg'); if (!svg) return;
   CAM.cx = Math.max(CAM_X[0] + hw, Math.min(CAM_X[1] - hw, CAM.cx));
   CAM.cy = Math.max(CAM_Y[0] + hh, Math.min(CAM_Y[1] - hh, CAM.cy));
   svg.setAttribute('viewBox', `${(CAM.cx - hw).toFixed(1)} ${(CAM.cy - hh).toFixed(1)} ${CAM.vw.toFixed(1)} ${CAM.vh.toFixed(1)}`);
-  smilCull();
-}
-/* animationer uden for kameraets udsnit tages midlertidigt ud: de ses ikke, men koster i hvert billede.
-   En pladsholder holder deres plads, og sat ind igen fortsætter de i samme takt, fordi tiden regnes fra kortets start. */
-const SMILC = { list: [], x: 1e9, y: 1e9 };
-function smilIndex(svg){
-  SMILC.list = []; SMILC.x = SMILC.y = 1e9;
-  const ctm = svg.getScreenCTM(); if (!ctm) return;
-  const inv = ctm.inverse(), toMap = r => { const a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv); return [a.x, a.y, b.x, b.y]; };
-  const motionBox = new Map();
-  const boxOfMotion = m => { if (motionBox.has(m)) return motionBox.get(m); const g = m.parentElement, tmp = sv('path', { d: m.getAttribute('path') || '', fill: 'none' }); g.parentNode.insertBefore(tmp, g);
-    const b = toMap(tmp.getBoundingClientRect()), gb = toMap(g.getBoundingClientRect()), w = (gb[2] - gb[0]) / 2 + 10, h = (gb[3] - gb[1]) / 2 + 10; tmp.remove();
-    const r = [b[0] - w, b[1] - h, b[2] + w, b[3] + h]; motionBox.set(m, r); return r; };
-  svg.querySelectorAll('animate,animateTransform,animateMotion').forEach(a => {
-    /* lange flyveture over himlen og alt der startes af tryk eller kode, kører altid */
-    if (parseFloat(a.getAttribute('dur')) >= 20 || a.closest('#chars,#bubbles,#hiddenStars') || /[a-z]/i.test((a.getAttribute('begin') || '0s').replace(/m?s/g, ''))) return;
-    let box = null;
-    for (let e = a.parentElement; e && e !== svg; e = e.parentElement){ const m = e.querySelector(':scope > animateMotion'); if (m){ box = boxOfMotion(m); break; } }
-    if (!box) box = toMap(a.parentElement.getBoundingClientRect());
-    SMILC.list.push({ a, ph: document.createComment(''), box, on: true });
-  });
-}
-function smilCull(force){
-  if (!SMILC.list.length || !SMILC.list[0].a.ownerDocument) return;
-  if (!force && Math.abs(CAM.cx - SMILC.x) < 30 && Math.abs(CAM.cy - SMILC.y) < 30) return;
-  SMILC.x = CAM.cx; SMILC.y = CAM.cy;
-  const M = 120, [x0, x1, y0] = camView(), y1 = y0 + (CAM.on ? CAM.vh : CH);
-  for (const o of SMILC.list){ const b = o.box, vis = b[2] > x0 - M && b[0] < x1 + M && b[3] > y0 - M && b[1] < y1 + M;
-    if (vis === o.on) continue; o.on = vis; if (vis) o.ph.replaceWith(o.a); else o.a.replaceWith(o.ph); }
 }
 const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
 function camFollow(now, dt){
@@ -821,7 +792,7 @@ function showTown(){
   placeHiddenStar();
   $('#townLogo').addEventListener('click', logoTap);
   const svg = $('#townSvg');
-  SMILC.list = []; camWire($('#street')); camFit(); growTaps(svg); smilIndex(svg); smilCull(true);
+  camWire($('#street')); camFit(); growTaps(svg);
   svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
   svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
   updateAudioBtns();
