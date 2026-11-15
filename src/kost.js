@@ -431,14 +431,20 @@ const Kost = (() => {
   function passRing(f, r){
     if (f.seen.has(r)) return; f.seen.add(r); f.passN = (f.passN || 0) + 1;
     if (f.boost <= 0) f.v = Math.min(V0 * 1.38, f.v + 55);
-    if (f !== S){ const e = f.els && f.els.get(r); if (e) e.forEach(x => x.classList.add('ok')); return; }
-    S.rings++; r.back.classList.add('ok'); r.front.classList.add('ok');
+    /* ringene selv røres ikke (en ændring i ringlaget får telefonen til at blinke hele laget) — i stedet en puls i effektlaget */
+    if (f !== S) return;
+    S.rings++; pulse(r);
     tone(880 + (S.rings % 5) * 60, 0.12, 'triangle', 0.05); tone(1320, 0.1, 'triangle', 0.035, 0.06);
     spark(r.x, r.y, r.dbl ? '#C79BFF' : '#FFE27A', 7);
   }
   function missRing(f, r, d){
     f.seen.add(r);
     if (d < 140){ f.v = Math.max(V0 * .8, f.v - 60); if (f === S){ S.vy = S.y < r.y ? -260 : 260; tone(200, 0.1, 'square', 0.03, 0, 0.8); } }
+  }
+  function pulse(r){
+    if (calm) return; const fx = $('#kfScene .kf-fx'); if (!fx) return;
+    const s = mk('g', { transform:`translate(${r.x} ${r.y})` }, `<ellipse class="kf-pulse" rx="40" ry="118" fill="none" stroke="${r.dbl ? '#E4CCFF' : '#FFF0B0'}" stroke-width="10"/>`);
+    fx.append(s); setTimeout(() => s.remove(), 600);
   }
   function spark(x, y, col, n){
     if (calm) return; const fx = $('#kfScene .kf-fx'); if (!fx) return;
