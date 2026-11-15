@@ -251,7 +251,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
     const sheets = gpuAtlas(svg, gs.pieces, gs.extra, sc), blobs = [];
     for (const sh of sheets){ blobs.push(await gpuRasterSheet(sh)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
     const all = gs.pieces.concat(gs.extra), sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
-    const fixP = it => { if (it.p != null){ it.p = it.p < 0 ? gs.pieces.length + (-it.p - 1) : it.p; return; } it.c.forEach(fixP); };
+    const fixP = it => { if (it.d) return; if (it.p != null){ it.p = it.p < 0 ? gs.pieces.length + (-it.p - 1) : it.p; return; } it.c.forEach(fixP); };
     gs.items.forEach(fixP);
     return { nAll: sAll.length, sheets: blobs, roots: gs.roots.map(r => aidx.get(r)),
       pieces: all.map(pc => ({ sheet: pc.sheet, ax: pc.ax, ay: pc.ay, aw: pc.aw, ah: pc.ah, x: pc.x, y: pc.y, w: pc.w, h: pc.h, blend: pc.blend || null })), items: gs.items };

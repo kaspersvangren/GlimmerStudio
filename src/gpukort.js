@@ -12,6 +12,48 @@ const SMIL_SEL = 'animate,animateTransform,animateMotion,set';
 const smilKids = el => [...el.children].filter(c => /^(animate|animateTransform|animateMotion|set)$/.test(c.tagName));
 const secs = v => { if (!v) return 0; const m = String(v).trim().match(/^(-?[\d.]+)\s*(ms|s|min)?$/); if (!m) return NaN; const n = parseFloat(m[1]); return m[2] === 'ms' ? n / 1000 : m[2] === 'min' ? n * 60 : n; };
 
+/* en stiplet streg, hvor stiplerne løber (fx åen): tegnes på et lærred fra koden, når den kun har almindelige farver */
+/* en lineær farveovergang som streg (fx vandfaldet) kan genskabes på lærredet */
+function gpuGrad(el, v){
+  const m = /^url\(["']?#([^"')]+)["']?\)$/.exec(v || ''); if (!m) return null;
+  const g = el.ownerSVGElement && el.ownerSVGElement.querySelector('#' + CSS.escape(m[1]));
+  if (!g || g.tagName !== 'linearGradient' || g.getAttribute('gradientTransform') || g.getAttribute('href') || g.getAttribute('xlink:href') || (g.getAttribute('spreadMethod') || 'pad') !== 'pad') return null;
+  const user = g.getAttribute('gradientUnits') === 'userSpaceOnUse', b = el.getBBox();
+  const num = (n, d, w, o) => { const t = g.getAttribute(n); const pct = t != null && /%$/.test(t); if (user && pct) return NaN; const f = t == null ? d : pct ? parseFloat(t) / 100 : parseFloat(t); return user ? f : o + f * w; };
+  const c = [num('x1', 0, b.width, b.x), num('y1', 0, b.height, b.y), num('x2', user ? NaN : 1, b.width, b.x), num('y2', 0, b.height, b.y)];
+  if (c.some(isNaN)) return null;
+  const stops = [...g.querySelectorAll('stop')].map(st => { const cs = getComputedStyle(st), o = st.getAttribute('offset') || '0', off = /%$/.test(o) ? parseFloat(o) / 100 : parseFloat(o);
+    const col = cs.stopColor.match(/[\d.]+/g).map(Number), a = (col[3] ?? 1) * (+cs.stopOpacity);
+    return [Math.max(0, Math.min(1, off || 0)), `rgba(${col[0]},${col[1]},${col[2]},${a})`]; });
+  return stops.length ? { c, stops } : null;
+}
+function gpuDashOk(el){
+  if (!/^(path|line|polyline)$/.test(el.tagName) || el.querySelector(':not(animate):not(animateTransform):not(animateMotion)')) return false;
+  const cs = getComputedStyle(el), plain = v => v === 'none' || /^(rgb|#)/.test(v);
+  if ((!plain(cs.stroke) && !gpuGrad(el, cs.stroke)) || cs.stroke === 'none' || !plain(cs.fill) || cs.strokeDasharray === 'none' || /%/.test(cs.strokeDasharray)) return false;
+  if (el.getAttribute('marker-start') || el.getAttribute('marker-end') || el.getAttribute('marker-mid') || el.getAttribute('vector-effect')) return false;
+  const a = smilKids(el).find(a => a.getAttribute('attributeName') === 'stroke-dashoffset');
+  return !!a && !!dashVals(a);
+}
+function dashVals(a){
+  const raw = (a.getAttribute('values') || [a.getAttribute('from'), a.getAttribute('to')].filter(v => v != null).join(';')).split(';').map(s => s.trim()).filter(s => s !== '');
+  const vals = raw.map(Number); if (!vals.length || vals.some(isNaN)) return null;
+  const disc = a.getAttribute('calcMode') === 'discrete', kt = a.getAttribute('keyTimes');
+  const offs = kt ? kt.split(';').map(Number) : vals.map((_, i) => vals.length > 1 ? i / (vals.length - (disc ? 0 : 1)) : 0);
+  if (offs.length !== vals.length) return null;
+  return { vals, offs, disc, dur: secs(a.getAttribute('dur')), begin: secs(a.getAttribute('begin') || '0') };
+}
+function gpuDashSpec(el){
+  const cs = getComputedStyle(el), a = smilKids(el).find(a => a.getAttribute('attributeName') === 'stroke-dashoffset');
+  const pts = () => (el.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+  const path = el.tagName === 'path' ? el.getAttribute('d') : el.tagName === 'line' ? `M${+el.getAttribute('x1') || 0} ${+el.getAttribute('y1') || 0}L${+el.getAttribute('x2') || 0} ${+el.getAttribute('y2') || 0}`
+    : (q => 'M' + q.reduce((s, v, i) => s + (i % 2 ? ',' : i ? ' L' : '') + v, ''))(pts());
+  const b = el.getBBox(), sw = parseFloat(cs.strokeWidth) || 1, pad = sw + 4;
+  return { d: Object.assign({ path, x: Math.floor(b.x - pad), y: Math.floor(b.y - pad), w: Math.ceil(b.width + 2 * pad), h: Math.ceil(b.height + 2 * pad),
+    stroke: cs.stroke, grad: /^url/.test(cs.stroke) ? gpuGrad(el, cs.stroke) : null, so: +cs.strokeOpacity, fill: cs.fill, fo: +cs.fillOpacity, sw, cap: cs.strokeLinecap, join: cs.strokeLinejoin, miter: parseFloat(cs.strokeMiterlimit) || 4,
+    dash: cs.strokeDasharray.split(/[\s,]+/).map(parseFloat).filter(v => !isNaN(v)), off0: parseFloat(el.getAttribute('stroke-dashoffset')) || 0 }, dashVals(a)) };
+}
+
 /* kan dette element og alt dets indhold flyttes til grafikchippen? */
 function gpuConvertible(root){
   const NO = /filter|mask|clip-path/;
@@ -28,6 +70,7 @@ function gpuConvertible(root){
     else if (at === 'opacity'){ }
     else if (/^(cx|cy|r)$/.test(at) && p.tagName === 'circle'){ }
     else if (/^(cx|cy|rx|ry)$/.test(at) && p.tagName === 'ellipse'){ }
+    else if (at === 'stroke-dashoffset' && gpuDashOk(p)){ }
     else return false;
     /* animerede elementer og deres forfædre op til roden må ikke selv have filter, maske eller klip */
     for (let x = p; x; x = x === root ? null : x.parentElement) for (const n of x.getAttributeNames()) if (NO.test(n)) return false;
@@ -87,7 +130,7 @@ function gpuNodeSpec(el, rootMatrix, pieces, NS){
   if (op) wraps.push(o >= 0 && o < 1 ? { a: smilKeyframes(op, el), o } : { a: smilKeyframes(op, el) });
   else if (o >= 0 && o < 1) wraps.push({ o });
   const isLeaf = !/^(g|a|svg|switch)$/.test(el.tagName);
-  if (isLeaf){ kids.push(gpuPiece([el], el, pieces, true)); }
+  if (isLeaf){ kids.push(anims.some(a => a.getAttribute('attributeName') === 'stroke-dashoffset') ? gpuDashSpec(el) : gpuPiece([el], el, pieces, true)); }
   else {
     let run = [];
     const flush = () => { if (run.length){ const p = gpuPiece(run, el, pieces, false); if (p) kids.push(p); run = []; } };
@@ -168,13 +211,18 @@ async function gpuMount(svg, gen, rec, st){
   const bg = new Image(); bg.decoding = 'async'; bg.src = BAKE.url; bg.className = 'gpu-bg'; cam.append(box(bg, rec.x0, rec.y0, rec.W, rec.H));
   const piece = i => { const pc = g.pieces[i], cv = document.createElement('canvas'); cv.width = pc.aw; cv.height = pc.ah;
     cv.getContext('2d').drawImage(sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, 0, 0, pc.aw, pc.ah); cv.className = 'gpu-p'; cv.dataset.i = i; if (pc.blend) cv.style.mixBlendMode = pc.blend; return box(cv, pc.x, pc.y, pc.w, pc.h); };
+  /* stiplede streger: et lærred i skærmens opløsning, som uret tegner om */
+  const res = Math.max(1, Math.min(3, (CAM.on ? CAM.k : ((svg.getScreenCTM() || {}).a || 1)) * (window.devicePixelRatio || 1)));
+  const dashCv = d => { const cv = document.createElement('canvas'); cv.width = Math.ceil(d.w * res); cv.height = Math.ceil(d.h * res); cv.className = 'gpu-p';
+    DRIVE.dash.push({ cv, ctx: cv.getContext('2d'), d, path: new Path2D(d.path), res, vis: true }); return box(cv, d.x, d.y, d.w, d.h); };
+  DRIVE.dash = [];
   const node = spec => { const outer = document.createElement('div'); outer.className = 'gpu-n'; let cur = outer, first = true;
     for (const w of spec.w){ const d = first ? outer : document.createElement('div'); if (!first){ d.className = 'gpu-n'; cur.append(d); } first = false;
       if (w.m) d.style.transform = `matrix(${w.m.join(',')})`;
       if (w.o != null) d.style.opacity = w.o;
       if (w.a){ try { d.animate(w.a.kf, { duration: w.a.dur, delay: w.a.delay, iterations: Infinity, easing: 'linear' }); } catch (e){} }
       cur = d; }
-    for (const k of spec.c) cur.append(k.p != null ? piece(k.p) : node(k));
+    for (const k of spec.c) cur.append(k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k));
     return outer; };
   for (const it of g.items) cam.append(it.p != null ? piece(it.p) : node(it));
   sheets.forEach(s => s.close && s.close());
@@ -203,7 +251,7 @@ function gpuReset(){ if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.pare
    SVG'ens eget animationssystem (SMIL) koster dog meget på telefonen, selv for få animationer.
    Her læses hver animation én gang, fjernes, og værdierne sættes i stedet fra koden ca. 30 gange i sekundet.
    Står noget uden for skærmen, springes det over. */
-const DRIVE = { jobs: 0 };
+const DRIVE = { jobs: 0, dash: [] };
 function driveJob(a){
   const t = a.tagName, at = a.getAttribute('attributeName'), el = a.parentElement;
   if (t === 'set' || !el) return null;
@@ -246,25 +294,38 @@ function smilDrive(svg){
     g.jobs.push(j); a.remove();
   }
   const list = [...groups.values()]; DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
-  if (!list.length) return;
+  const dash = DRIVE.dash;
+  if (!list.length && !dash.length) return;
   /* hvor ligger hver ting (med god margen til bevægelsen)? */
   const m = svg.getScreenCTM(); if (m){ const inv = m.inverse(), pt = svg.createSVGPoint();
     for (const g of list){ const r = g.el.getBoundingClientRect(); const c = [[r.left, r.top], [r.right, r.bottom]].map(([x, y]) => { pt.x = x; pt.y = y; return pt.matrixTransform(inv); });
       g.box = [c[0].x - 160, c[0].y - 160, c[1].x + 160, c[1].y + 160]; } }
-  const T0 = performance.now(); let last = 0;
+  /* lærrederne tegnes kun, når de er på skærmen */
+  if (dash.length && window.IntersectionObserver){ const io = new IntersectionObserver(es => es.forEach(e => { const o = dash.find(o => o.cv === e.target); if (o) o.vis = e.isIntersecting; }), { rootMargin: '80px' });
+    dash.forEach(o => io.observe(o.cv)); }
+  const town = document.getElementById('town'), T0 = performance.now(); let last = 0;
   const tick = now => {
     if (!svg.isConnected) return;
-    if (svg.animationsPaused() || now - last < 31){ requestAnimationFrame(tick); return; }
-    last = now; const s = (now - T0) / 1000, [vx0, vx1, vy0] = camView(), vy1 = vy0 + (CAM.on ? CAM.vh : CH);
-    for (const g of list){
-      const b = g.box; if (b && (b[2] < vx0 || b[0] > vx1 || b[3] < vy0 || b[1] > vy1)) continue;
-      let tr = null, mo = '';
-      for (const j of g.jobs){ const u = s - j.begin; if (u < 0) continue; const k = (u % j.dur) / j.dur, v = j.val(k);
-        if (j.kind === 'attr'){ if (g.last[j.at] !== v){ g.last[j.at] = v; g.el.setAttribute(j.at, v); } }
-        else if (j.kind === 'transform') tr = j.sum ? (tr ?? g.tbase) + ' ' + v : v;
-        else mo = v + ' '; }
-      if (tr !== null || mo){ const v = mo + (tr ?? g.tbase); if (g.last.transform !== v){ g.last.transform = v; g.el.setAttribute('transform', v); } }
-    }
+    if ((town && town.hidden) || now - last < 31){ requestAnimationFrame(tick); return; }
+    last = now; const s = (now - T0) / 1000;
+    for (const o of dash) if (o.vis || o.last == null){ const d = o.d, u = s - d.begin; let v;
+      if (u < 0) v = null; else { const k = (u % d.dur) / d.dur; let i = 0; while (i < d.offs.length - 1 && k >= d.offs[i + 1]) i++;
+        v = d.disc || i >= d.vals.length - 1 ? d.vals[i] : d.vals[i] + (d.vals[i + 1] - d.vals[i]) * (k - d.offs[i]) / ((d.offs[i + 1] - d.offs[i]) || 1); }
+      if (v === o.last && o.last != null) continue; o.last = v; const c = o.ctx;
+      c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, o.cv.width, o.cv.height); c.setTransform(o.res, 0, 0, o.res, -d.x * o.res, -d.y * o.res);
+      if (d.fill !== 'none'){ c.globalAlpha = d.fo; c.fillStyle = d.fill; c.fill(o.path); }
+      c.globalAlpha = d.so; c.strokeStyle = d.grad ? (o.grad = o.grad || (gr => { const G = c.createLinearGradient(...gr.c); gr.stops.forEach(([f, col]) => G.addColorStop(f, col)); return G; })(d.grad)) : d.stroke; c.lineWidth = d.sw; c.lineCap = d.cap; c.lineJoin = d.join; c.miterLimit = d.miter;
+      c.setLineDash(d.dash.length % 2 ? d.dash.concat(d.dash) : d.dash); c.lineDashOffset = v == null ? d.off0 : v; c.stroke(o.path); }
+    if (!svg.animationsPaused()){ const [vx0, vx1, vy0] = camView(), vy1 = vy0 + (CAM.on ? CAM.vh : CH);
+      for (const g of list){
+        const b = g.box; if (b && (b[2] < vx0 || b[0] > vx1 || b[3] < vy0 || b[1] > vy1)) continue;
+        let tr = null, mo = '';
+        for (const j of g.jobs){ const u = s - j.begin; if (u < 0) continue; const k = (u % j.dur) / j.dur, v = j.val(k);
+          if (j.kind === 'attr'){ if (g.last[j.at] !== v){ g.last[j.at] = v; g.el.setAttribute(j.at, v); } }
+          else if (j.kind === 'transform') tr = j.sum ? (tr ?? g.tbase) + ' ' + v : v;
+          else mo = v + ' '; }
+        if (tr !== null || mo){ const v = mo + (tr ?? g.tbase); if (g.last.transform !== v){ g.last.transform = v; g.el.setAttribute('transform', v); } }
+      } }
     requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);

@@ -738,7 +738,7 @@ function camApply(){
   /* hele skærmpixels, så laget ikke bliver uskarpt */
   const d = window.devicePixelRatio || 1, px = v => Math.round(v * d) / d;
   const t = `translate3d(${px(CAM.ox - (CAM.cx - hw - CAM_X[0]) * CAM.k)}px,${px(CAM.oy - (CAM.cy - hh - CAM_Y[0]) * CAM.k)}px,0)`;
-  if (t !== CAM.t){ CAM.t = t; w.style.transform = t; }
+  if (t !== CAM.t){ CAM.t = t; w.style.transform = t; DBG.count('kamera'); }
   gpuSync();
 }
 const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
