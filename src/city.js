@@ -771,7 +771,7 @@ function showTown(){
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;
   const box = $('#townBody'); box.innerHTML = '';
-  box.append(el('div', { class:'map', id:'street', html: Kort.svg({ game: true }) }),
+  box.append(el('div', { class:'map', id:'street', html: (BAKE.src = Kort.svg({ game: true })) }),
     el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
   $('#street').style.background = SKY[CM.time][0];
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
