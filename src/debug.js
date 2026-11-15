@@ -5,7 +5,7 @@ const DBG = (() => {
   const URL = 'https://kargzxpaaganyfnpyvmb.supabase.co/rest/v1/spil_log';
   const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthcmd6eHBhYWdhbnlmbnB5dm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTY2NTEsImV4cCI6MjEwMDg5MjY1MX0.V3bb0XVkHvuQEqDqhn1nRprIa2ooA4Se6AYR5J32r54';
   const STORE = 'glimmerstudiet.debug';
-  let on = false, session = '', queue = [], frames = [], last = 0, raf = 0, longN = 0, longMs = 0, counts = {}, screen = '', sampleT = 0, flushT = 0, badge = null, obs = null, taps = [];
+  let ab = false, abN = 0, on = false, session = '', queue = [], frames = [], last = 0, raf = 0, longN = 0, longMs = 0, counts = {}, screen = '', sampleT = 0, flushT = 0, badge = null, obs = null, taps = [];
   const curScreen = () => { for (const s of SCREENS){ const e = document.querySelector(s); if (e && !e.hidden) return s.slice(1); } return '?'; };
   function row(kind, data, scr){ if (!on) return; queue.push({ session, version: VERSION, kind, screen: scr || curScreen(), data }); if (queue.length > 200) queue.splice(0, queue.length - 200); }
   function count(k, n = 1){ if (on) counts[k] = (counts[k] || 0) + n; }
@@ -16,7 +16,7 @@ const DBG = (() => {
       const scr = document.querySelector('#' + screen);
       row('maaling', { sek: +(sum / 1000).toFixed(1), fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), hak50: frames.filter(x => x > 50).length, hak100: frames.filter(x => x > 100).length,
         lange: longN, langeMs: Math.round(longMs), elementer: scr ? scr.getElementsByTagName('*').length : 0, animationer: scr ? scr.querySelectorAll('animate,animateTransform,animateMotion').length : 0,
-        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), ...counts }, screen);
+        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), animStop: ab, ...counts }, screen);
     }
     frames = []; longN = 0; longMs = 0; counts = {};
   }
@@ -25,7 +25,11 @@ const DBG = (() => {
     if (last) frames.push(t - last); last = t;
     const s = curScreen();
     if (s !== screen){ if (screen) sample(); row('skaerm', { fra: screen, til: s }); screen = s; sampleT = t; }
-    if (t - sampleT > 5000){ sample(); sampleT = t; }
+    if (t - sampleT > 5000){ sample(); sampleT = t;
+      /* forsøg på kortet: hvert andet måleinterval står animationerne stille, så vi kan se, hvad de koster */
+      const tv = document.querySelector('#townSvg');
+      if (tv && screen === 'town'){ abN++; const stop = abN % 2 === 1; if (stop) tv.pauseAnimations(); else tv.unpauseAnimations(); ab = stop; }
+      else ab = false; }
     if (t - flushT > 30000){ flush(); flushT = t; }
     if (badge && frames.length && frames.length % 15 === 0){ const k = frames.slice(-30), avg = k.reduce((a, b) => a + b, 0) / k.length; badge.textContent = `LOG ${Math.round(1000 / avg)} fps`; }
     raf = requestAnimationFrame(loop);
