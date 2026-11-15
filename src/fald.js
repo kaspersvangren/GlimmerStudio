@@ -196,6 +196,10 @@ const Fald = (() => {
     return o + `</g>`;
   }
   const bubbleArt = gold => `<circle r="60" fill="${gold ? '#FFE9A0' : '#BFE8FF'}" fill-opacity=".3" stroke="${gold ? '#FFE27A' : '#DFF4FF'}" stroke-width="6"/><circle r="60" fill="none" stroke="#FF8FC7" stroke-width="2.5" opacity=".7" stroke-dasharray="40 50"/>${starP(0, 4, gold ? 36 : 30, gold ? '#FFC02E' : '#FFE27A')}<path d="M -30 -32 Q -16 -46 2 -46" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  /* tordenskyen: en mørk, sur sky med lyn. Rammer den hende, slår den en stjerne løs */
+  const stormArt = () => { let o = ''; [[-90, 10, 120, 80], [70, 0, 130, 90], [-10, -50, 140, 95], [0, 40, 170, 80]].forEach(([x, y, rx, ry], i) => { o += `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${i % 2 ? '#4A3E6E' : '#3A3058'}" stroke="#1E1838" stroke-width="5"/>`; });
+    o += `<path d="M -70 -30 q 18 -14 36 0 M 34 -30 q 18 -14 36 0" stroke="#1E1838" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="-50" cy="0" rx="12" ry="15" fill="#FFF6D0"/><ellipse cx="52" cy="0" rx="12" ry="15" fill="#FFF6D0"/><circle cx="-46" cy="4" r="7" fill="#1E1838"/><circle cx="48" cy="4" r="7" fill="#1E1838"/><path d="M -26 52 q 26 -18 52 0" stroke="#1E1838" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+    return o + `<g class="fs-bolt"><path d="M -110 70 L -130 130 L -104 126 L -124 190" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M 120 76 L 100 140 L 128 136 L 106 200" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>`; };
   const cloudArt = (k, seed) => { const r = rng(seed); let o = ''; for (let i = 0; i < 7; i++){ const a = r() * Math.PI * 2, d = r() * 220 * k; o += `<ellipse cx="${(Math.cos(a) * d).toFixed(0)}" cy="${(Math.sin(a) * d * .7).toFixed(0)}" rx="${(150 + r() * 130) * k}" ry="${(100 + r() * 80) * k}" fill="${i % 2 ? '#E8E2FA' : '#D6CCF2'}"/>`; } return o; };
 
   /* ---------- skærmen ---------- */
@@ -243,7 +247,7 @@ const Fald = (() => {
     S = { hero, run: 'card', t: 0, auto: !!window.FALD_AUTO, bubbles: 0, bubN: 0, gold: 0,
       hx: SCX, hy: SCY + 40, tx: SCX, ty: SCY + 40, tilt: 0, objs: [], motes: [], spawn: [],
       x: Math.cos(a0) * d0, y: Math.sin(a0) * d0, th: Math.atan2(-Math.cos(a0), Math.sin(a0)) * 180 / Math.PI + (Math.random() < .5 ? 1 : -1) * (70 + Math.random() * 50),
-      h: H0, v: 9, sink: 3.8, turnV: 0, wind: { x: Math.cos(wa) * wind, y: Math.sin(wa) * wind, s: wind, a: wa }, ctl: { L: false, R: false, F: false }, keys: {}, ptrs: new Map(), soft: false };
+      h: H0, v: 9, sink: 3.8, turnV: 0, wind: { x: Math.cos(wa) * wind, y: Math.sin(wa) * wind, s: wind, a: wa }, ctl: { pl: 0, pr: 0, L: false, R: false }, keys: {}, ptrs: new Map(), soft: false };
     makeSpawns();
     /* jorden læses ind, mens kortet og turen op vises */
     S.jord = null; const S0 = S; FaldJord.build(POND_DEF, groundSvg(), m => { S0.jord = m; });
@@ -253,10 +257,10 @@ const Fald = (() => {
     const scene = el('div', { class:'scene-wrap', id:'fsScene' });
     const count = el('span', { class:'starpill kf-count fs-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
     const alt = el('div', { class:'fs-alt', 'aria-hidden':'true' }, [ el('div', { class:'fs-alt-bar' }, [ el('span', { class:'fs-alt-dot' }) ]), el('span', { class:'fs-alt-n' }, '0 m') ]);
-    const pad = (k, label, icon) => el('div', { class:'fs-pad ' + k, 'aria-hidden':'true' }, [ el('span', { class:'fs-pad-ic', html: icon }), el('span', { class:'fs-pad-t' }, label) ]);
-    const TOG = '<svg viewBox="0 0 60 60"><path d="M 30 4 V 22" stroke="#F2EEFF" stroke-width="4"/><path d="M 14 26 Q 30 16 46 26 Q 50 46 30 54 Q 10 46 14 26 Z" fill="#E0457A" stroke="#FFFFFF" stroke-width="4"/><path d="M 22 32 Q 30 28 38 32" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round"/></svg>';
-    const FAST = '<svg viewBox="0 0 60 60"><path d="M 16 40 L 30 24 L 44 40" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M 16 28 L 30 12 L 44 28" stroke="#FFE27A" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const pads = el('div', { class:'fs-pads', hidden: true }, [ pad('l', 'Venstre', TOG), pad('f', 'Fart', FAST), pad('r', 'Højre', TOG), el('p', { class:'fs-both' }, 'Begge sider = brems') ]);
+    /* skærmens styreliner: et håndtag i hver side, der kan trækkes ned og skubbes op */
+    const GRIP = '<svg viewBox="0 0 60 70"><path d="M 30 0 V 18" stroke="#F2EEFF" stroke-width="4"/><path d="M 14 22 Q 30 12 46 22 Q 52 48 30 66 Q 8 48 14 22 Z" fill="#E0457A" stroke="#FFFFFF" stroke-width="4"/><path d="M 21 30 Q 30 25 39 30 Q 41 46 30 54 Q 19 46 21 30 Z" fill="#7A1A3A" opacity=".55"/></svg>';
+    const tog = (k, label) => el('div', { class:'fs-tog ' + k, 'aria-hidden':'true' }, [ el('div', { class:'fs-tog-track' }, [ el('span', { class:'fs-tog-mid' }), el('div', { class:'fs-tog-grip', html: GRIP }) ]), el('span', { class:'fs-tog-t' }, label) ]);
+    const pads = el('div', { class:'fs-pads', hidden: true }, [ tog('l', 'Venstre'), tog('r', 'Højre'), el('p', { class:'fs-togtip' }, 'Træk et håndtag ned for at dreje · begge ned = brems · begge op = fart') ]);
     const windEl = el('div', { class:'fs-wind', hidden: true, 'aria-hidden':'true', html: `<svg viewBox="0 0 40 40"><g class="fs-warr"><path d="M 6 20 H 30 M 22 12 L 32 20 L 22 28" stroke="#FFFFFF" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span>Vind</span>` });
     box.append(scene, alt, pads, windEl, ...placeUi([ backBtn('Gangen', () => { stop(); showSchool(); }) ], [ count, starPill() ]));
     bindInput(scene);
@@ -321,7 +325,16 @@ const Fald = (() => {
     let px = SCX, py = SCY, n = 0;
     for (let t = 1.4; t < FREE_T - TA - .2; t += .95){
       px = clamp(px + (Math.random() * 2 - 1) * 380, BX0 + 70, BX1 - 70); py = clamp(py + (Math.random() * 2 - 1) * 280, BY0 + 70, BY1 - 70);
-      S.spawn.push({ t, kind:'bub', x: px, y: py, gold: ++n % 6 === 0 });
+      /* boblen kommer svævende fra et andet sted og finder først sin plads til sidst (så man ikke kan se det på forhånd) */
+      S.spawn.push({ t, kind:'bub', x: px, y: py, gold: ++n % 6 === 0, ox: (Math.random() * 2 - 1) * 300, oy: (Math.random() * 2 - 1) * 200 });
+    }
+    /* tre-fire tordenskyer undervejs, et stykke fra boblerne omkring samme tid */
+    const bubs = S.spawn.filter(o => o.kind === 'bub');
+    for (let t = 4.2; t < FREE_T - TA - .6; t += 3.4 + Math.random() * 1.6){
+      let best = null;
+      for (let k = 0; k < 30; k++){ const x = BX0 + 120 + Math.random() * (BX1 - BX0 - 240), y = BY0 + 100 + Math.random() * (BY1 - BY0 - 200);
+        const dmin = Math.min(...bubs.filter(b => Math.abs(b.t - t) < 1.4).map(b => Math.hypot(b.x - x, b.y - y)), 1e9); if (!best || dmin > best.d) best = { x, y, d: dmin }; }
+      S.spawn.push({ t, kind:'storm', x: best.x, y: best.y, ox: (Math.random() * 2 - 1) * 120, oy: (Math.random() * 2 - 1) * 80 });
     }
     for (let t = 2.2; t < FREE_T - TA; t += 2.6 + Math.random() * 1.2) S.spawn.push({ t, kind:'cloud', x: 200 + Math.random() * 1200, y: 150 + Math.random() * 700, k: .6 + Math.random() * .5, seed: 1 + Math.floor(Math.random() * 50) });
     S.spawn.sort((a, b) => a.t - b.t);
@@ -343,11 +356,12 @@ const Fald = (() => {
     S.t += dt;
     /* nye ting dukker op langt nede */
     while (S.spawn.length && S.spawn[0].t <= S.t){ const o = S.spawn.shift(); o.z = 1;
-      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow"><circle r="84" fill="url(#fsbglow)"/>${bubbleArt(o.gold)}</g>` : cloudArt(o.k, o.seed));
-      if (o.kind === 'bub'){ o.ring = mk('g', { class: 'fs-ring' + (S.firstBub ? ' first' : ''), transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>` + (S.firstBub ? `<g class="fs-point"><path d="M 0 -150 V -92 M -20 -112 L 0 -90 L 20 -112" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''));
+      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow"><circle r="84" fill="url(#fsbglow)"/>${bubbleArt(o.gold)}</g>` : o.kind === 'storm' ? stormArt() : cloudArt(o.k, o.seed));
+      if (o.kind === 'bub' && S.firstBub){ o.ring = mk('g', { class: 'fs-ring' + (S.firstBub ? ' first' : ''), transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>` + (S.firstBub ? `<g class="fs-point"><path d="M 0 -150 V -92 M -20 -112 L 0 -90 L 20 -112" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''));
         S.firstBub = false; $('#fsScene .fs-rings').append(o.ring); }
       $('#fsScene .fs-below').append(o.el); S.objs.push(o); }
-    if (S.auto){ const nb = S.objs.filter(o => o.kind === 'bub' && o.z > 0 && !o.got).sort((a, b) => a.z - b.z)[0]; if (nb){ S.tx = nb.x; S.ty = nb.y; } }
+    if (S.auto){ const nb = S.objs.filter(o => o.kind === 'bub' && o.z > 0 && !o.got).sort((a, b) => a.z - b.z)[0]; if (nb){ S.tx = nb.x; S.ty = nb.y; }
+      const st = S.objs.find(o => o.kind === 'storm' && o.z > 0 && o.z < .35 && Math.hypot(o.x - S.tx, o.y - S.ty) < 260); if (st){ const a = Math.atan2(S.ty - st.y, S.tx - st.x); S.tx = st.x + Math.cos(a) * 300; S.ty = st.y + Math.sin(a) * 300; } }
     /* piletasterne flyver hende direkte, også skråt med to taster */
     const kx = (S.keys.ArrowRight ? 1 : 0) - (S.keys.ArrowLeft ? 1 : 0), ky = (S.keys.ArrowDown ? 1 : 0) - (S.keys.ArrowUp ? 1 : 0);
     if (kx || ky){ const l = Math.hypot(kx, ky), sp = 820 * dt / l; S.tx = S.hx + kx * sp * 6; S.ty = S.hy + ky * sp * 6; }
@@ -362,6 +376,7 @@ const Fald = (() => {
         if (o.kind === 'bub' && Math.hypot(o.x - S.hx, o.y - S.hy) < 130){ o.got = true; const v = o.gold ? 3 : 1; S.bubbles += v; sfx.coin(); if (o.gold) sfx.magic(); spark(o.x, o.y, o.gold ? '#FFC02E' : '#FFE27A'); plus(o.x, o.y, v);
           const n = $('#faldBody .fs-count .n'); if (n){ n.textContent = S.bubbles; const c = n.closest('.fs-count'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); } o.el.remove(); o.dead = true; }
         if (o.kind === 'cloud' && Math.hypot(o.x - S.hx, o.y - S.hy) < 300 * o.k) puff();
+        if (o.kind === 'storm' && Math.hypot(o.x - S.hx, o.y - S.hy) < 170) zap(o);
       }
       if (o.z < -.16){ o.el.remove(); o.dead = true; }
     }
@@ -380,8 +395,17 @@ const Fald = (() => {
       if (o.kind === 'bub'){
         /* boblen bliver på sit sted og vokser, mens den stiger op mod hende */
         const k = 1 - Math.max(0, o.z), s = o.z > 0 ? .42 + .58 * k * k : 1 + (-o.z) * 4, op = o.z > .85 ? .35 + .65 * (1 - o.z) / .15 : o.z < 0 ? Math.max(0, 1 + o.z / .16) : 1;
-        o.el.setAttribute('transform', `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
-        if (o.ring){ o.ring.setAttribute('opacity', (.45 + .55 * k).toFixed(2)); o.ring.classList.toggle('hot', o.z < .3); }
+        const dz = Math.pow(Math.max(0, o.z), 1.5), x = o.x + (o.ox || 0) * dz, y = o.y + (o.oy || 0) * dz;
+        o.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
+        /* ringen, der viser hvor boblen ender, kommer først det sidste stykke (undtagen ved den første boble) */
+        if (!o.ring && o.z > 0 && o.z < .5 && !o.got){ o.ring = mk('g', { class: 'fs-ring', transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>`); $('#fsScene .fs-rings').append(o.ring); o.lateRing = true; }
+        if (o.ring){ o.ring.setAttribute('opacity', (o.lateRing ? Math.min(1, (.5 - o.z) / .25) * (.45 + .55 * k) : .45 + .55 * k).toFixed(2)); o.ring.classList.toggle('hot', o.z < .3); }
+        continue; }
+      if (o.kind === 'storm'){
+        const k = 1 - Math.max(0, o.z), s = o.z > 0 ? .3 + .7 * k * k : 1 + (-o.z) * 3, op = o.z > .85 ? (1 - o.z) / .15 : o.z < 0 ? Math.max(0, 1 + o.z / .16) : 1;
+        const dz = Math.pow(Math.max(0, o.z), 1.5), x = o.x + o.ox * dz, y = o.y + o.oy * dz;
+        o.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
+        o.el.classList.toggle('near', o.z < .4 && o.z > 0);
         continue; }
       const p = proj(o, o.z), op = o.z > .8 ? (1 - o.z) / .2 : o.z < 0 ? Math.max(0, 1 + o.z / .16) * .5 : 1;
       o.el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${p.s.toFixed(3)})`); o.el.setAttribute('opacity', (op * .8).toFixed(2)); }
@@ -452,35 +476,38 @@ const Fald = (() => {
   }
 
   /* ---------- under skærmen ---------- */
+  /* håndtagene: pl/pr går fra -1 (skubbet helt op) over 0 (hvile) til 1 (trukket helt ned) */
   function ctl(){
-    const k = S.keys, z = [...S.ptrs.values()];
-    S.ctl.L = z.includes('L') || !!k.ArrowLeft || !!k.ArrowDown;
-    S.ctl.R = z.includes('R') || !!k.ArrowRight || !!k.ArrowDown;
-    S.ctl.F = z.includes('F') || !!k.ArrowUp;
+    const k = S.keys; let pl = 0, pr = 0;
+    for (const p of S.ptrs.values()){ if (p.side === 'L') pl = p.v; else if (p.side === 'R') pr = p.v; }
+    if (k.ArrowLeft) pl = Math.max(pl, 1); if (k.ArrowRight) pr = Math.max(pr, 1);
+    if (k.ArrowDown){ pl = Math.max(pl, 1); pr = Math.max(pr, 1); }
+    if (k.ArrowUp){ if (!k.ArrowLeft) pl = Math.min(pl, -1); if (!k.ArrowRight) pr = Math.min(pr, -1); }
+    S.ctl = { pl, pr };
     if (S.auto) autopilot();
+    S.ctl.L = S.ctl.pl > .3; S.ctl.R = S.ctl.pr > .3;
   }
   function autopilot(){
     const d = Math.hypot(S.x, S.y), want = Math.atan2(-S.x, S.y) * 180 / Math.PI, glide = S.h * (9 / 3.8);
     let diff = ((want - S.th) % 360 + 540) % 360 - 180;
     /* for højt oppe: cirkel; ellers sigt mod målet; brems til sidst */
-    const L = diff < -8, R = diff > 8;
-    S.ctl = glide > d + 45 ? { L: false, R: true, F: false } : { L, R, F: false };
-    if (S.h < 5) S.ctl = { L: true, R: true, F: false };
+    S.ctl = glide > d + 45 ? { pl: 0, pr: 1 } : { pl: diff < -8 ? 1 : 0, pr: diff > 8 ? 1 : 0 };
+    if (S.h < 5) S.ctl = { pl: 1, pr: 1 };
   }
   function stepCanopy(dt){
     S.t += dt; ctl();
-    const { L, R, F } = S.ctl, brake = L && R;
-    let vt = 9, st = 3.8;
-    if (brake){ vt = 4.2; st = 2.6; } else if (F){ vt = 14; st = 6.2; }
-    const turn = brake ? 0 : L ? -1 : R ? 1 : 0;
-    if (turn) st += 1.3;
-    S.turnV += (turn * 80 - S.turnV) * Math.min(1, dt * 4);
+    /* et håndtag ned: drej den vej; det andet op samtidig: skarpere. Begge ned: brems. Begge op: hurtigere */
+    const { pl, pr } = S.ctl, brake = Math.max(0, Math.min(pl, pr)), fast = Math.max(0, Math.min(-pl, -pr));
+    const turn = clamp(pr - pl, -2, 2), at = Math.abs(turn);
+    const vt = 9 - 4.8 * brake + 5 * fast, st = 3.8 - 1.2 * brake + 2.4 * fast + 1.3 * Math.min(1, at) + .5 * Math.max(0, at - 1);
+    const rate = Math.sign(turn) * (80 * Math.min(1, at) + 45 * Math.max(0, at - 1));
+    S.turnV += (rate - S.turnV) * Math.min(1, dt * 4);
     S.th += S.turnV * dt;
     S.v += (vt - S.v) * Math.min(1, dt * 1.8); S.sink += (st - S.sink) * Math.min(1, dt * 1.8);
     const rad = S.th * Math.PI / 180;
     S.x += (Math.sin(rad) * S.v + S.wind.x) * dt; S.y += (-Math.cos(rad) * S.v + S.wind.y) * dt; S.h -= S.sink * dt;
     for (const f of S.floaters) { f.a += .5 * dt; f.x += Math.sin(S.t * .7 + f.a) * .3 * dt + S.wind.x * dt; f.y += S.wind.y * dt; }
-    if (S.h < 6) S.soft = brake;
+    if (S.h < 6) S.soft = brake > .6;
     if (S.h <= 0){ S.h = 0; land(); }
   }
   function drawCanopy(){
@@ -491,8 +518,7 @@ const Fald = (() => {
     sc.querySelector('.fs-crot').setAttribute('transform', `rotate(${S.th.toFixed(1)})`);
     sc.querySelector('.fs-crot').classList.toggle('pl', S.ctl.L); sc.querySelector('.fs-crot').classList.toggle('pr', S.ctl.R);
     drawShadow(); drawFloaters();
-    for (const [k, on] of [['l', S.ctl.L], ['r', S.ctl.R], ['f', S.ctl.F && !(S.ctl.L && S.ctl.R)]]){ const p = $('#faldBody .fs-pad.' + k); if (p) p.classList.toggle('on', on); }
-    const b = $('#faldBody .fs-both'); if (b) b.classList.toggle('on', S.ctl.L && S.ctl.R);
+    for (const [k, v] of [['l', S.ctl.pl], ['r', S.ctl.pr]]){ const g = $('#faldBody .fs-tog.' + k); if (!g) continue; const vv = Math.round(v * 20) / 20; if (g._v !== vv){ g._v = vv; g.style.setProperty('--v', vv); g.classList.toggle('on', Math.abs(vv) > .2); } }
     setAlt(Math.round(ALT1 * S.h / H0 / 10) * 10, ALT1 / ALT0 * S.h / H0);
     /* en pil i kanten, når målet er uden for skærmen */
     const tx = SCX - S.x * S.ppm, ty = SCY - S.y * S.ppm, pin = sc.querySelector('.fs-pin'), V = visBox(sc), m = 70, off = tx < V.x0 + 20 || tx > V.x1 - 20 || ty < V.y0 + 20 || ty > V.y1 - 20;
@@ -554,7 +580,9 @@ const Fald = (() => {
 
   /* ---------- styring ---------- */
   function bindInput(scene){
-    const zone = e => { const b = scene.getBoundingClientRect(), f = (e.clientX - b.left) / b.width; return f < .38 ? 'L' : f > .62 ? 'R' : 'F'; };
+    const zone = e => { const b = scene.getBoundingClientRect(), f = (e.clientX - b.left) / b.width; return f < .5 ? 'L' : 'R'; };
+    /* et håndtag følger fingeren op og ned fra der, hvor den satte sig */
+    const pull = e => { const p = S.ptrs.get(e.pointerId); if (!p) return; const b = scene.getBoundingClientRect(); p.v = clamp((e.clientY - p.y0) / (b.height * .2), -1, 1); };
     /* frit fald: hold fingeren et vilkårligt sted og træk — hun flytter sig samme vej som fingeren */
     const last = new Map();
     const drag = e => { const svg = scene.querySelector('svg'); if (!svg) return; const p = svgPoint(svg, e), q = last.get(e.pointerId); last.set(e.pointerId, p); if (!q) return; S.tx += (p.x - q.x) * 1.5; S.ty += (p.y - q.y) * 1.5; };
@@ -563,9 +591,9 @@ const Fald = (() => {
       if (S.run === 'intro'){ skipIntro(); return; }
       try { scene.setPointerCapture(e.pointerId); } catch (er) {}
       if (S.run === 'free'){ S.tx = S.hx; S.ty = S.hy; last.delete(e.pointerId); drag(e); }
-      S.ptrs.set(e.pointerId, zone(e));
+      S.ptrs.set(e.pointerId, { side: zone(e), y0: e.clientY, v: 0 });
     });
-    scene.addEventListener('pointermove', e => { if (!S) return; if (S.run === 'free' && S.ptrs.has(e.pointerId)) drag(e); if (S.ptrs.has(e.pointerId)) S.ptrs.set(e.pointerId, zone(e)); });
+    scene.addEventListener('pointermove', e => { if (!S || !S.ptrs.has(e.pointerId)) return; if (S.run === 'free') drag(e); else pull(e); });
     for (const ev of ['pointerup', 'pointercancel']) scene.addEventListener(ev, e => { last.delete(e.pointerId); if (S) S.ptrs.delete(e.pointerId); });
     if (!keyOn){ keyOn = true;
       document.addEventListener('keydown', e => { if (!S || $('#fald').hidden) return; if (e.key.startsWith('Arrow')){ e.preventDefault(); S.keys[e.key] = true; } if (e.key === ' ') skipIntro(); });
@@ -596,6 +624,16 @@ const Fald = (() => {
   function big(t){ const b = el('div', { class:'kf-big fs-big' }, t); $('#faldBody').append(b); b.classList.add('pop'); setTimeout(() => b.remove(), S && S.auto ? 50 : 1500); }
   function flash(){ const f = el('div', { class:'fs-flash', 'aria-hidden':'true' }); $('#faldBody').append(f); sfx.whoosh(); setTimeout(() => f.remove(), 900); }
   function plus(x, y, v){ const fx = $('#fsScene .fs-fx'); if (!fx) return; const e = mk('g', { transform: `translate(${x.toFixed(0)} ${(y - 70).toFixed(0)})` }, `<g class="fs-plus"><text x="0" y="0" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="64" fill="${v > 1 ? '#FFC02E' : '#FFF6D0'}" stroke="#3A1F60" stroke-width="8" paint-order="stroke">+${v}</text></g>`); fx.append(e); setTimeout(() => e.remove(), 1100); }
+  /* tordenskyen ramte: en stjerne ryger, hvis hun har nogen */
+  function zap(o){
+    const sc = $('#fsScene'); if (sc){ sc.classList.remove('fs-shake'); void sc.offsetWidth; sc.classList.add('fs-shake'); }
+    tone(90, 0.35, 'sawtooth', 0.06, 0, .5); S.tilt += S.hx > o.x ? 30 : -30;
+    if (S.bubbles > 0){
+      S.bubbles--; const n = $('#faldBody .fs-count .n'); if (n) n.textContent = S.bubbles;
+      const fx = $('#fsScene .fs-fx'); if (fx){ const a = S.hx > o.x ? 1 : -1, e = mk('g', { transform: `translate(${S.hx.toFixed(0)} ${S.hy.toFixed(0)})` }, `<g class="fs-lost" style="--dx:${a * 260}px">${starP(0, 0, 34, '#FFE27A')}</g>`); fx.append(e); setTimeout(() => e.remove(), 1300); }
+      sfx.nope(); big('Av! En stjerne røg');
+    } else big('Puha!');
+  }
   function puff(){ const f = el('div', { class:'fs-flash puff', 'aria-hidden':'true' }); $('#faldBody').append(f); tone(260, 0.2, 'sine', 0.03, 0, 1.4); setTimeout(() => f.remove(), 700); }
   function spark(x, y, col){ const fx = $('#fsScene .fs-fx'); if (!fx || calm) return; for (let i = 0; i < 7; i++){ const a = i / 7 * Math.PI * 2, e = mk('g', { transform: `translate(${x.toFixed(0)} ${y.toFixed(0)})` }, `<g class="kf-burst" style="--dx:${(Math.cos(a) * 80).toFixed(0)}px;--dy:${(Math.sin(a) * 80).toFixed(0)}px">${star4(0, 0, 12, col)}</g>`); fx.append(e); setTimeout(() => e.remove(), 1400); } }
 

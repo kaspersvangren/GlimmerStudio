@@ -674,24 +674,33 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @supports (height:1lvh){ @media (orientation:landscape){ .playbtn{left:calc(50% + min(30lvh,300px) + 6vw);bottom:22lvh;width:clamp(100px,17lvh,150px)} } }
 
 /* ---------- faldskærm ---------- */
-.fs-alt{position:absolute;z-index:6;left:max(16px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-62%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.fs-alt{position:absolute;z-index:6;left:max(16px,env(safe-area-inset-left,0px));top:40%;transform:translateY(-62%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .fs-alt-bar{position:relative;width:12px;height:clamp(110px,38vh,300px);border-radius:6px;background:linear-gradient(#7FD8FF,#5E8F52);box-shadow:0 0 0 3px rgba(20,16,46,.55)}
 .fs-alt-dot{position:absolute;left:50%;top:100%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#E0457A;border:3px solid #FFFFFF;box-shadow:0 2px 5px rgba(0,0,0,.5)}
 .fs-alt-n{font-family:var(--display);font-weight:700;font-size:clamp(12px,2.6vh,17px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50;white-space:nowrap}
-.fs-pads{position:absolute;inset:auto 0 0 0;z-index:6;height:clamp(84px,26vh,170px);pointer-events:none}
-.fs-pad{position:absolute;bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.72;transition:transform .12s,opacity .12s}
-.fs-pad.l{left:max(18px,env(safe-area-inset-left,0px))}
-.fs-pad.r{right:max(18px,env(safe-area-inset-right,0px))}
-.fs-pad.f{left:50%;transform:translateX(-50%)}
-.fs-pad-ic{width:clamp(54px,15vh,96px);height:clamp(54px,15vh,96px);border-radius:50%;background:rgba(42,35,80,.72);border:3px solid rgba(255,255,255,.8);display:grid;place-items:center}
-.fs-pad-ic svg{width:70%;height:70%}
-.fs-pad-t{font-family:var(--display);font-weight:700;font-size:clamp(11px,2.4vh,16px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50}
-.fs-pad.on{opacity:1}
-.fs-pad.l.on,.fs-pad.r.on{transform:translateY(6px) scale(1.06)}
-.fs-pad.f.on{transform:translateX(-50%) scale(1.08)}
-.fs-pad.on .fs-pad-ic{background:#6B3FA0;box-shadow:0 0 18px #FFE27A}
-.fs-both{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + clamp(78px,21vh,128px));margin:0;font-family:var(--display);font-weight:700;font-size:clamp(11px,2.3vh,15px);color:#E8E0FF;opacity:.7;white-space:nowrap;text-shadow:0 2px 0 #2A1F50}
-.fs-both.on{opacity:1;color:#FFE27A}
+.fs-pads{position:absolute;inset:auto 0 0 0;z-index:6;height:clamp(120px,46vh,300px);pointer-events:none}
+/* styrehåndtagene: en line ned fra skærmen, med et håndtag der følger fingeren (--v fra -1 op til 1 ned) */
+.fs-tog{position:absolute;bottom:max(10px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.8;transition:opacity .12s}
+.fs-tog.l{left:max(18px,env(safe-area-inset-left,0px))}
+.fs-tog.r{right:max(18px,env(safe-area-inset-right,0px))}
+.fs-tog-track{position:relative;width:clamp(56px,15vh,96px);height:clamp(100px,36vh,230px)}
+.fs-tog-track::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;border-radius:3px;background:linear-gradient(rgba(242,238,255,.15),rgba(242,238,255,.7))}
+.fs-tog-mid{position:absolute;left:18%;right:18%;top:50%;height:3px;margin-top:-1.5px;border-radius:2px;background:rgba(255,246,216,.45)}
+.fs-tog-grip{position:absolute;left:0;right:0;top:50%;height:clamp(56px,16vh,100px);margin-top:calc(clamp(56px,16vh,100px) / -2);transform:translateY(calc(var(--v,0) * clamp(24px,10vh,64px)));transition:transform .05s linear;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+.fs-tog-grip svg{width:100%;height:100%}
+.fs-tog-t{font-family:var(--display);font-weight:700;font-size:clamp(11px,2.4vh,16px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50}
+.fs-tog.on{opacity:1}
+.fs-togtip{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));margin:0;max-width:52vw;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(11px,2.3vh,15px);color:#E8E0FF;opacity:.85;text-shadow:0 2px 0 #2A1F50;animation:fstip 7s ease-in forwards}
+@keyframes fstip{0%,75%{opacity:.85}100%{opacity:0}}
+/* tordenskyen og stjernen der ryger */
+.fs-storm.near .fs-bolt{animation:fsbolt .35s steps(2) infinite}
+.fs-storm .fs-bolt{opacity:0}
+@keyframes fsbolt{0%{opacity:1}100%{opacity:0}}
+.fs-lost{animation:fslost 1.2s ease-out forwards}
+@keyframes fslost{0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}100%{transform:translate(var(--dx),-320px) rotate(540deg) scale(.6);opacity:0}}
+#fsScene.fs-shake{animation:fsshake .4s ease-out}
+@keyframes fsshake{0%,100%{transform:none}20%{transform:translate(-12px,6px)}40%{transform:translate(10px,-6px)}60%{transform:translate(-6px,4px)}80%{transform:translate(4px,-2px)}}
+@media (prefers-reduced-motion: reduce){ .fs-storm.near .fs-bolt,#fsScene.fs-shake{animation:none} }
 .fs-wind{position:absolute;z-index:6;left:50%;transform:translateX(-50%);top:max(14px,env(safe-area-inset-top,0px));display:flex;align-items:center;gap:6px;padding:4px 12px 4px 6px;border-radius:20px;background:rgba(42,35,80,.7);font-family:var(--display);font-weight:700;color:#FFF6D8;font-size:clamp(12px,2.6vh,16px);pointer-events:none}
 .fs-wind svg{width:28px;height:28px}
 .fs-skip{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:max(16px,env(safe-area-inset-bottom,0px));font-family:var(--display);font-weight:700;font-size:clamp(12px,2.6vh,16px);color:#E8E0FF;opacity:.75;pointer-events:none;text-shadow:0 2px 0 #2A1F50}
