@@ -189,6 +189,8 @@ const Arkade = (() => {
     const stopBtn = el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); show(); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Stop' });
     box.append(stage, ...placeUi([ stopBtn ], [ el('span', { class:'ak-pill', id:'akInfo', hidden: true }), el('span', { class:'ak-pill ak-score' }, [ el('span', { class:'lab' }, 'Point'), el('span', { id:'akScore' }, '0') ]), audioBtns() ]));
     updateAudioBtns();
+    /* gribemaskinen giver en bamse, ikke point */
+    if (game.noScore){ const sp = box.querySelector('.ak-score'); if (sp) sp.hidden = true; }
     const gen = {};
     cur = { id, game, gen, score: 0 };
     const api = {

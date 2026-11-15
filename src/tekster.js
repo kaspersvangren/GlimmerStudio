@@ -30,7 +30,7 @@ const TXT = {
   broend: {
     spoerg: "Ønske? Tryk igen for at smide en stjerne i!",
     ingen: "Smid en stjerne i for at ønske!",
-    opfyldt: "Tillykke! Din økse er gået i opfyldelse!",
+    opfyldt: "Tillykke! Din økse er gået i opfyldelse! Det blev en {navn}.",
     foerste: "Den er leveret til dit værelse.",
     flere: "En til? Er {n} økser nok?",
     udsolgt: "Nu er brønden UDSOLGT!",

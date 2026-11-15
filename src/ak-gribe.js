@@ -28,14 +28,40 @@
     o += `<g class="gr-back"></g><g class="gr-pile"></g><g class="gr-claw"></g>`;
     /* glasset glimter */
     o += `<path d="M 240 40 L 380 40 L 240 300 Z M 1060 40 L 1140 40 L 860 744 L 790 744 Z" fill="#FFF" opacity=".06" pointer-events="none"/>`;
-    /* kontrolpanelet */
-    o += `<path d="M 160 770 H 1440 V 1030 H 160 Z" fill="#2A1E52" stroke="${E}" stroke-width="6"/><path d="M 170 778 H 1430" stroke="#5A4A8A" stroke-width="4"/>`;
-    o += `<g class="gr-door"><rect x="220" y="800" width="180" height="170" rx="14" fill="#140C2A" stroke="${E}" stroke-width="4"/><path d="M 228 816 H 392" stroke="#3A2E5A" stroke-width="4"/><g class="gr-won"></g></g>`;
-    const btn = (id, x, r, col, label) => `<g class="gr-btn" data-b="${id}" style="cursor:pointer"><ellipse cx="${x}" cy="${890 + 12}" rx="${r}" ry="${r * .55}" fill="#140C2A"/><g class="gr-cap"><ellipse cx="${x}" cy="890" rx="${r}" ry="${r * .55}" fill="${col}" stroke="${E}" stroke-width="5"/><ellipse cx="${x - r * .25}" cy="${890 - r * .18}" rx="${r * .4}" ry="${r * .16}" fill="#FFF" opacity=".35"/>${label}</g><rect x="${x - r - 20}" y="${890 - r}" width="${2 * r + 40}" height="${2 * r}" fill="#FFF" fill-opacity="0"/></g>`;
-    o += btn('v', 560, 74, '#7FD8FF', `<path d="M 586 870 L 530 890 L 586 910 Z" fill="${E}"/>`);
-    o += btn('h', 760, 74, '#7FD8FF', `<path d="M 734 870 L 790 890 L 734 910 Z" fill="${E}"/>`);
-    o += btn('grib', 1160, 108, '#E0457A', `<text x="1160" y="902" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="40" fill="#FFF6D0" stroke="${E}" stroke-width="2" paint-order="stroke">GRIB</text>`);
-    o += `<text x="660" y="990" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#B9AEDB">Hold pilene nede</text>`;
+    /* kontrolpanelet: et gammelt messing- og mahognipanel, som var maskinen bygget i 1800-tallet */
+    const BR = '#C9973E', BRd = '#6E4B17', BRl = '#F2D58A';
+    o += `<defs><linearGradient id="grWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6A2F1C"/><stop offset=".5" stop-color="#4A1E12"/><stop offset="1" stop-color="#2E110A"/></linearGradient>`
+      + `<linearGradient id="grBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BRl}"/><stop offset=".45" stop-color="${BR}"/><stop offset="1" stop-color="${BRd}"/></linearGradient>`
+      + `<radialGradient id="grBezel" cx=".4" cy=".3" r=".75"><stop offset="0" stop-color="${BRl}"/><stop offset=".55" stop-color="${BR}"/><stop offset="1" stop-color="${BRd}"/></radialGradient>`
+      + `<radialGradient id="grTeal" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#C8FFF4"/><stop offset=".35" stop-color="#3FC7B4"/><stop offset="1" stop-color="#0B4A4A"/></radialGradient>`
+      + `<radialGradient id="grRuby" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFD0DC"/><stop offset=".35" stop-color="#E0305A"/><stop offset="1" stop-color="#5A0820"/></radialGradient></defs>`;
+    o += `<path d="M 160 770 H 1440 V 1030 H 160 Z" fill="url(#grWood)" stroke="${E}" stroke-width="6"/>`;
+    /* træets årer */
+    for (let k = 0; k < 7; k++){ const y = 800 + k * 32; o += `<path d="M 170 ${y} C 420 ${y - 8} 700 ${y + 10} 980 ${y - 4} S 1330 ${y + 6} 1430 ${y}" stroke="#2A0E06" stroke-width="2" fill="none" opacity=".35"/>`; }
+    /* messinglisten foroven med nitter */
+    o += `<rect x="160" y="770" width="1280" height="20" fill="url(#grBrass)" stroke="${BRd}" stroke-width="2"/>`;
+    for (let x = 190; x < 1440; x += 70) o += `<circle cx="${x}" cy="780" r="4" fill="${BRl}" stroke="${BRd}" stroke-width="1.5"/>`;
+    /* tandhjul som pynt */
+    const gear = (cx, cy, r, n, rot) => { let d = ''; for (let k = 0; k < n * 2; k++){ const a = (k / (n * 2)) * Math.PI * 2 + rot, rr = k % 2 ? r : r * 1.18; d += (k ? 'L' : 'M') + ` ${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)} `; }
+      return `<path d="${d}Z" fill="url(#grBrass)" stroke="${BRd}" stroke-width="3"/><circle cx="${cx}" cy="${cy}" r="${(r * .45).toFixed(1)}" fill="#3A1A0C" stroke="${BRd}" stroke-width="3"/><circle cx="${cx}" cy="${cy}" r="${(r * .16).toFixed(1)}" fill="${BRl}"/>`; };
+    o += gear(930, 860, 34, 10, .2) + gear(985, 905, 22, 8, .5) + gear(1400, 990, 26, 9, 0);
+    o += `<g class="gr-door"><rect x="220" y="800" width="180" height="170" rx="14" fill="#140C2A" stroke="url(#grBrass)" stroke-width="8"/><path d="M 228 816 H 392" stroke="#3A2E5A" stroke-width="4"/><g class="gr-won"></g></g>`;
+    /* knapperne: en messingring med en kuppel af farvet glas; man trykker kuplen ned */
+    const btn = (id, x, r, glass, label) => `<g class="gr-btn" data-b="${id}" style="cursor:pointer">`
+      + `<ellipse cx="${x}" cy="${890 + 16}" rx="${r + 16}" ry="${(r + 16) * .55}" fill="#1A0804" opacity=".6"/>`
+      + `<ellipse cx="${x}" cy="${890 + 8}" rx="${r + 14}" ry="${(r + 14) * .55}" fill="url(#grBezel)" stroke="${BRd}" stroke-width="3"/>`
+      + Array.from({ length: 8 }, (_, k) => { const a = k / 8 * Math.PI * 2; return `<circle cx="${(x + Math.cos(a) * (r + 7)).toFixed(1)}" cy="${(898 + Math.sin(a) * (r + 7) * .55).toFixed(1)}" r="3" fill="${BRl}" stroke="${BRd}" stroke-width="1"/>`; }).join('')
+      + `<ellipse cx="${x}" cy="${890 + 10}" rx="${r}" ry="${r * .55}" fill="#120604"/>`
+      + `<g class="gr-cap"><ellipse cx="${x}" cy="${890 + 8}" rx="${r - 4}" ry="${(r - 4) * .55}" fill="${BRd}"/><ellipse cx="${x}" cy="890" rx="${r - 6}" ry="${(r - 6) * .55}" fill="url(#${glass})" stroke="${BRd}" stroke-width="3"/>`
+      + `<ellipse cx="${x - r * .28}" cy="${890 - r * .2}" rx="${r * .3}" ry="${r * .11}" fill="#FFF" opacity=".55"/>${label}</g>`
+      + `<rect x="${x - r - 20}" y="${890 - r}" width="${2 * r + 40}" height="${2 * r}" fill="#FFF" fill-opacity="0"/></g>`;
+    const plate = (x, y, w, txt, fs) => `<rect x="${x - w / 2}" y="${y - 22}" width="${w}" height="40" rx="6" fill="url(#grBrass)" stroke="${BRd}" stroke-width="3"/><circle cx="${x - w / 2 + 12}" cy="${y - 2}" r="3.5" fill="${BRd}"/><circle cx="${x + w / 2 - 12}" cy="${y - 2}" r="3.5" fill="${BRd}"/>`
+      + `<text x="${x}" y="${y + 7}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="${fs}" fill="#3A2208" letter-spacing="1">${txt}</text>`;
+    const arrow = (x, d) => `<path d="M ${x + d * 22} 872 L ${x - d * 26} 890 L ${x + d * 22} 908 Z" fill="#06302C" opacity=".8"/><path d="M ${x + d * 22} 872 L ${x - d * 26} 890 L ${x + d * 22} 908 Z" fill="none" stroke="#9FF4E4" stroke-width="2" opacity=".5"/>`;
+    o += btn('v', 560, 70, 'grTeal', arrow(560, 1));
+    o += btn('h', 760, 70, 'grTeal', arrow(760, -1));
+    o += btn('grib', 1180, 100, 'grRuby', `<path d="M 1180 856 l 9 18 l 20 3 l -15 14 l 4 20 l -18 -10 l -18 10 l 4 -20 l -15 -14 l 20 -3 Z" fill="#FFE9A8" opacity=".85"/>`);
+    o += plate(660, 968, 300, 'Hold pilene nede', 24);
     return o + `</svg>`;
   }
 
@@ -225,7 +251,7 @@
       + [-1, 1].map(d => `<circle cx="${d * PIV}" cy="${HH / 2 - 2}" r="5.5" fill="#6A6480" stroke="${E}" stroke-width="2"/>`).join('') + `</g>`;
     S.svg.querySelector('.gr-claw').innerHTML = o;
   }
-  Arkade.GAMES.gribe = { start, stop, test: {
+  Arkade.GAMES.gribe = { start, stop, noScore: true, test: {
     aimAt: () => { if (!S) return null; const p = S.plushes.filter(q => !q.gone).sort((a, b) => a.position.y - b.position.y)[0]; return p && p.position.x; },
     setGrip: g => { if (S) S.grip = g; },
     state: () => S && { x: S.tx, phase: S.phase, open: 1 - S.close, grip: S.grip, carried: S.carried, won: !!S.wonP, len: S.cable.length } } };

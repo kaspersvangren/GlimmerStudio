@@ -430,7 +430,7 @@ function cobweb(x, y, f){
 const AXE_SPOTS = [[1420,770,-5],[1460,772,6],[1380,772,-8],[1500,770,9],[1340,774,-4],[1540,774,-10],[1400,744,78],[1474,742,-74],[1440,726,22],[1512,722,-32],[1372,720,64],[1468,702,42]];
 function axePile(n){
   let o = `<g data-hit="oekser"><ellipse cx="1440" cy="780" rx="${50 + n * 7}" ry="14" fill="#1A1238" opacity=".2"/>`;
-  AXE_SPOTS.slice(0, n).forEach(([x, y, r]) => { o += `<g transform="translate(${x} ${y - 52}) rotate(${r}) scale(1.9)">${axeSvg(1)}</g>`; });
+  AXE_SPOTS.slice(0, n).forEach(([x, y, r], i) => { o += `<g transform="translate(${x} ${y - 52}) rotate(${r}) scale(1.9)">${axeSvg(1, i)}</g>`; });
   return o + `<rect x="1310" y="600" width="260" height="190" fill="#FFF" fill-opacity="0"/></g>`;
 }
 const BED_PLUSH = [[300, 642], [356, 646], [412, 642], [468, 646], [276, 690], [334, 694], [392, 690], [450, 694], [508, 690], [250, 646], [500, 640], [222, 692]];

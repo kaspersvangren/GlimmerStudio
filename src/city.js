@@ -404,6 +404,7 @@ const ROUTES = {
   arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994]]),
   bro:    R_BRO,
   drage:  R_HUS.slice(0, -1).concat([[300,798], [200,796], [160,740], [146,640], [150,520], [166,412]]),
+  broend: [HUB, [800,708]],
   baenkV: [HUB, [700,620], [690,574]],
   baenkH: [HUB, [900,640], [910,574]],
 };
@@ -592,7 +593,14 @@ function tapThing(t){
     h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
     return walkRoute(h, routeTo(heroAt, 'drage'), 0.3, () => { heroAt = 'drage'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); dragonTalk(t); });
   }
-  if (kind === 'broend') return wellWish(t);
+  if (kind === 'broend'){
+    /* hun går hen til brønden først, ligesom ved dragen */
+    if (wellBusy || walking) return;
+    if (heroAt === 'broend' || calm) return wellWish(t);
+    const h = LIFE.hero, pet = LIFE.pet; walking = true; sfx.pick();
+    h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
+    return walkRoute(h, routeTo(heroAt, 'broend'), 0.3, () => { heroAt = 'broend'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); wellWish(t); });
+  }
   if (kind === 'trold'){ sfx.roar(); jump('.tapjump'); return sayT(pick(TXT.trold), 2200); }
   if (kind === 'krage'){ sfx.chirp(); jump('.tapjump'); return sayT(pick(TXT.krage), 2000); }
   if (kind === 'and'){ sfx.quack(); jump('.tapjump'); return sayT(pick(TXT.and)); }
@@ -646,13 +654,13 @@ function wellWish(t){
     if (k < 1) requestAnimationFrame(fall); else { st.remove(); sfx.splash(); setTimeout(axeUp, 400); } };
   requestAnimationFrame(fall);
   const axeUp = () => {
-    const ax = sv('g', { 'pointer-events':'none' }, axeSvg(1.4)); fx.append(ax); const t1 = performance.now(); sfx.twinkle();
+    const ax = sv('g', { 'pointer-events':'none' }, axeSvg(1.4, n)); fx.append(ax); const t1 = performance.now(); sfx.twinkle();
     const rise = now3 => { const k = Math.min(1, (now3 - t1) / 1100), e = 1 - Math.pow(1 - k, 3);
       ax.setAttribute('transform', `translate(800,${(616 - e * 190).toFixed(1)}) rotate(${(e * 360).toFixed(0)})`); ax.setAttribute('opacity', k < .85 ? 1 : (1 - (k - .85) / .15).toFixed(2));
       if (k < 1) requestAnimationFrame(rise); else ax.remove(); };
     requestAnimationFrame(rise);
     const m = n + 1; store.set(KEY_AXE, m);
-    bubble(TXT.broend.opfyldt, pos, 3000, true);
+    bubble(TXT.broend.opfyldt.replace('{navn}', AXE_KINDS[n % AXE_KINDS.length].name), pos, 3000, true);
     setTimeout(() => {
       if (m === 1) bubble(TXT.broend.foerste, pos, 2600);
       else if (m >= AXE_MAX){ bubble(TXT.broend.udsolgt, pos, 2800, true); t.insertAdjacentHTML('beforeend', wellSoldSign()); }
@@ -662,8 +670,30 @@ function wellWish(t){
   };
 }
 const wellSoldSign = () => `<g transform="translate(0 -18) rotate(-6)"><rect x="-44" y="-12" width="88" height="24" rx="4" fill="#E0457A" stroke="#7A1A3A" stroke-width="2"/><text x="0" y="6" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFFFFF" letter-spacing="1">UDSOLGT</text></g>`;
-/* en økse: skaft af træ og et blankt hoved; tegnet med skaftets midte i 0,0 */
-const axeSvg = (k = 1) => `<g transform="scale(${k})"><path d="M 0 30 V -30" stroke="#8A5A3C" stroke-width="5" stroke-linecap="round"/><path d="M 0 30 V -30" stroke="#B5743A" stroke-width="2" stroke-linecap="round" opacity=".6"/><path d="M 1 -30 C 12 -34 20 -28 22 -18 C 22 -10 18 -6 14 -6 C 10 -12 6 -16 1 -16 Z" fill="#C8C4D8" stroke="#3A3450" stroke-width="2" stroke-linejoin="round"/><path d="M 16 -26 C 20 -20 20 -14 17 -9" stroke="#FFFFFF" stroke-width="2" fill="none" opacity=".8"/><rect x="-3" y="-34" width="6" height="22" rx="2" fill="#6A6480" stroke="#3A3450" stroke-width="1.5"/></g>`;
+/* de 12 økser fra Øksebrønden: hver gang en ny slags. Tegnet med skaftets midte i 0,0 (hovedet foroven til højre) */
+const AXE_KINDS = (() => {
+  const E = '#3A3450';
+  const stick = (c = '#8A5A3C', hl = '#B5743A', y0 = 30, y1 = -30) => `<path d="M 0 ${y0} V ${y1}" stroke="${c}" stroke-width="5" stroke-linecap="round"/><path d="M 0 ${y0} V ${y1}" stroke="${hl}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
+  const blade = (fill, line = E, shine = '#FFFFFF') => `<path d="M 1 -30 C 12 -34 20 -28 22 -18 C 22 -10 18 -6 14 -6 C 10 -12 6 -16 1 -16 Z" fill="${fill}" stroke="${line}" stroke-width="2" stroke-linejoin="round"/><path d="M 16 -26 C 20 -20 20 -14 17 -9" stroke="${shine}" stroke-width="2" fill="none" opacity=".8"/>`;
+  const eye = (c = '#6A6480') => `<rect x="-3" y="-34" width="6" height="22" rx="2" fill="${c}" stroke="${E}" stroke-width="1.5"/>`;
+  const mirror = svg => `<g transform="scale(-1 1)">${svg}</g>`;
+  return [
+    { name: 'skovhuggerøkse', svg: stick() + blade('#C8C4D8') + eye() },
+    { name: 'guldøkse', svg: stick('#7A3A1C', '#C9773A') + blade('#F2C14E', '#8A5A12', '#FFF6C0') + eye('#C9973E') + `<circle cx="0" cy="-23" r="2.4" fill="#E0457A"/>` },
+    { name: 'dobbeltøkse', svg: stick('#5A3A28', '#8A5A3C') + blade('#B9C4D6') + mirror(blade('#B9C4D6')) + eye() },
+    { name: 'krystaløkse', svg: stick('#7A5AA8', '#B49AE0') + `<path d="M 2 -32 L 14 -36 L 24 -22 L 16 -6 L 4 -14 Z" fill="#FF9AD0" stroke="#8A2A6A" stroke-width="2" stroke-linejoin="round"/><path d="M 14 -36 L 12 -20 L 24 -22 M 12 -20 L 16 -6 M 12 -20 L 4 -14" stroke="#FFF" stroke-width="1.2" opacity=".7" fill="none"/>` + eye('#B49AE0') },
+    { name: 'isøkse', svg: stick('#5A7A9A', '#9ACBEF') + blade('#BFEFFF', '#2A6A9A') + `<path d="M 6 -6 l -1 6 M 11 -8 l 0 7 M 16 -6 l 1 5" stroke="#BFEFFF" stroke-width="2" stroke-linecap="round"/>` + eye('#7AB8DF') },
+    { name: 'ildøkse', svg: stick('#3A2A2A', '#6A4A3A') + blade('#E0402A', '#6A1408', '#FFD27A') + `<path d="M 14 -31 q 6 -6 3 -13 q 9 5 6 15 Z M 20 -27 q 5 -3 4 -9 q 6 5 2 11 Z" fill="#FFB02E" opacity=".95"/>` + eye('#3A2A2A') },
+    { name: 'lille håndøkse', svg: stick('#8A5A3C', '#B5743A', 18, -22) + `<g transform="translate(0 6) scale(.75)">${blade('#C8C4D8')}${eye()}</g>` },
+    { name: 'vikingeøkse', svg: stick('#6A4A2A', '#9A7A4A') + `<path d="M 1 -32 C 14 -32 24 -24 24 -8 C 24 0 20 4 14 2 C 14 -8 8 -14 1 -16 Z" fill="#AEB4C2" stroke="${E}" stroke-width="2" stroke-linejoin="round"/><path d="M 20 -26 C 23 -18 23 -8 20 -2" stroke="#FFF" stroke-width="2" fill="none" opacity=".75"/>` + `<path d="M -1 8 l 0 6 M -1 16 l 0 6" stroke="#3A2A1A" stroke-width="5"/>` + eye() },
+    { name: 'stridsøkse', svg: stick('#3A2E5A', '#6A5A9A') + blade('#9AA4BA') + mirror(`<path d="M 1 -28 L 12 -26 L 12 -18 L 1 -18 Z" fill="#9AA4BA" stroke="${E}" stroke-width="2"/>`) + eye('#3A2E5A') + `<circle cx="0" cy="-23" r="3.6" fill="#62E0CB" stroke="${E}" stroke-width="1.2"/><circle cx="-1" cy="-24" r="1.2" fill="#FFF"/>` },
+    { name: 'slikøkse', svg: `<path d="M 0 30 V -30" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/><path d="M -2 26 l 4 -6 M -2 16 l 4 -6 M -2 6 l 4 -6 M -2 -4 l 4 -6 M -2 -14 l 4 -6" stroke="#E0457A" stroke-width="2.4" stroke-linecap="round"/>` + blade('#FF8FC7', '#A02A6A', '#FFFFFF') + `<circle cx="11" cy="-22" r="2" fill="#FFF"/><circle cx="16" cy="-14" r="1.6" fill="#9BE36A"/><circle cx="8" cy="-17" r="1.4" fill="#FFE27A"/>` + eye('#FFFFFF') },
+    { name: 'stjerneøkse', svg: stick('#2A2A5A', '#5A5AA8') + blade('#7B5CFF', '#2A1A6A', '#D8CCFF') + `<path d="M 12 -26 l 1.6 3.4 l 3.7 .5 l -2.7 2.6 l .7 3.7 l -3.3 -1.8 l -3.3 1.8 l .7 -3.7 l -2.7 -2.6 l 3.7 -.5 Z" fill="#FFE27A"/>` + eye('#5A5AA8') },
+    { name: 'alfeøkse', svg: stick('#5A7A3A', '#9BC86A') + `<path d="M 1 -32 C 16 -38 26 -26 22 -12 C 18 -4 10 -6 6 -10 C 10 -16 6 -24 1 -24 Z" fill="#9BE36A" stroke="#2A5A1A" stroke-width="2" stroke-linejoin="round"/><path d="M 4 -27 C 12 -26 18 -20 18 -10" stroke="#2A5A1A" stroke-width="1.4" fill="none"/>` + `<path d="M 0 30 q -6 -4 -4 -10" stroke="#9BC86A" stroke-width="2" fill="none"/><circle cx="-4" cy="20" r="2" fill="#FF8FC7"/>` + eye('#6A9A3A') },
+  ];
+})();
+/* en økse; nr. vælger slagsen (0-11) */
+const axeSvg = (k = 1, nr = 0) => `<g transform="scale(${k})">${AXE_KINDS[((nr % AXE_KINDS.length) + AXE_KINDS.length) % AXE_KINDS.length].svg}</g>`;
 
 function flyBird(t){
   if (t.classList.contains('away')) return;
