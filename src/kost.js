@@ -274,7 +274,13 @@ const Kost = (() => {
       ['mid', .35, layer(MID, 'kf-mid')],
       ['cloud', .6, `<g class="kf-cloud">${cloudTile()}<g transform="translate(${TW} 0)">${cloudTile()}</g></g>`],
       ['ev2', 0, `<g class="kf-ev2"></g>`],
-      ['track', 1, `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g>`],
+      /* banerne: de stillestående ringe i ét lag, klassekammeraterne (der bevæger sig hele tiden) i hver sit lille lag
+         imellem, og det der vipper (bobler og mållinjer) i sit eget lag. Så skal de store lag med ringe aldrig tegnes om */
+      ...LANES.flatMap((L, i) => [
+        ['lane' + i, 1, (i ? `<g class="kf-lane" style="opacity:${LANES[i - 1].op}"><g class="kf-trackF l${i - 1}"></g></g>` : '<g class="kf-lanes"></g>') + `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g></g>`],
+        ['riv' + i, 1, `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-rivals l${i}"></g></g>`] ]),
+      ['track', 1, `<g class="kf-lane" style="opacity:${LANES[LANES.length - 1].op}"><g class="kf-trackF l${LANES.length - 1}"></g></g><g class="kf-world"></g>`],
+      ['bob', 1, `<g class="kf-bobs">${LANES.map((L, i) => `<g class="kf-bobl l${i}" style="opacity:${L.op}"></g>`).join('')}</g>`],
       ['me', 0, `<g class="kf-me"></g>`],
       ['front', 1, `<g class="kf-front"></g>`],
       ['near', 1.25, layer(NEAR, 'kf-near')],
@@ -354,19 +360,20 @@ const Kost = (() => {
     /* banen bygges én gang som elementer i verden */
     const world = scene.querySelector('.kf-world'), front = scene.querySelector('.kf-front');
     for (const r of S.course.rings){ const [b, f] = ringEls(r); r.back = b; r.front = f; world.append(b); front.append(f); }
-    for (const b of S.course.bubbles){ b.el = bubbleEl(b); world.append(b.el); }
+    const bobs = scene.querySelector('.kf-bobs');
+    for (const b of S.course.bubbles){ b.el = bubbleEl(b); bobs.append(b.el); }
     S.rivals.forEach(rv => { const tb = scene.querySelector('.kf-trackB.l' + rv.li), tf = scene.querySelector('.kf-trackF.l' + rv.li), col = lt(rv.st.robe.a, .25);
       for (const r of S.course.rings){ const [b, f] = ringEls({ x: r.x + rv.lane.dx, y: r.y, dbl: r.dbl }, rv.lane.k, y => laneY(rv.lane, y), col); tb.append(b); tf.append(f); rv.els.set(r, [b, f]); } });
-    world.append(mk('g', {}, gate(S.course.end)));
-    world.append(mk('g', {}, floatGate(130, 150, 820, 1, false)));
-    LANES.forEach((L, i) => scene.querySelector('.kf-trackB.l' + i).append(mk('g', {}, laneGate(130 + L.dx, L))));
+    bobs.append(mk('g', {}, gate(S.course.end)));
+    bobs.append(mk('g', {}, floatGate(130, 150, 820, 1, false)));
+    LANES.forEach((L, i) => scene.querySelector('.kf-bobl.l' + i).append(mk('g', {}, laneGate(130 + L.dx, L))));
     /* målstregen går skråt gennem alle tre baner, så man kan se, hvem der krydser først */
-    const E = S.course.end, lanesG = scene.querySelector('.kf-lanes'), far = LANES[0];
+    const E = S.course.end, lanesG = scene.querySelector('.kf-bobl.l0'), far = LANES[0];
     lanesG.prepend(mk('g', { class:'kf-finish kf-bobfin' }, `<path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#FFFFFF" stroke-width="16" opacity=".8"/><path d="M ${E} 820 L ${E + far.dx} ${laneY(far, 790)}" stroke="#2A2340" stroke-width="16" stroke-dasharray="16 16" opacity=".8"/>`));
-    LANES.forEach((L, i) => scene.querySelector('.kf-trackB.l' + i).append(mk('g', {}, laneGate(E + L.dx, L))));
+    LANES.forEach((L, i) => scene.querySelector('.kf-bobl.l' + i).append(mk('g', {}, laneGate(E + L.dx, L))));
     /* to næsten usynlige prikker i hver ende af banen, så lagene har samme størrelse hele vejen (ellers skal hele laget
        tegnes forfra, hver gang noget langt væk bliver vist eller skjult) */
-    for (const L of scene.querySelectorAll('.kf-L-track,.kf-L-front')) L.append(mk('g', { 'pointer-events':'none' }, `<rect x="-2600" y="0" width="2" height="2" fill="#FFF" opacity=".01"/><rect x="${S.course.end + 4200}" y="0" width="2" height="2" fill="#FFF" opacity=".01"/>`));
+    for (const L of scene.querySelectorAll('.kf-L[data-k="1"]')) L.append(mk('g', { 'pointer-events':'none' }, `<rect x="-2600" y="0" width="2" height="2" fill="#FFF" opacity=".01"/><rect x="${S.course.end + 4200}" y="0" width="2" height="2" fill="#FFF" opacity=".01"/>`));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
     S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
     /* kort tryk = flyv op, hold fingeren nede = loop */
@@ -545,9 +552,9 @@ const Kost = (() => {
     for (const L of S.lay.els){
       const u = L.n ? -((cam * L.k) % (L.n * TW) + L.n * TW) % (L.n * TW) - 800 : -cam * L.k, px = Math.round(u * S.lay.a * S.lay.d) / S.lay.d, t = `translate3d(${px}px,0,0)`;
       if (t !== L.last){ L.last = t; L.e.style.transform = t; } }
-    /* det, der er langt uden for skærmen, tegnes ikke (kasserne måles på skærmen én gang og regnes om til banens x) */
+    /* boblerne, der er langt uden for skærmen, skjules, så deres vippen ikke kører (kasserne måles én gang på skærmen) */
     if (!S.cull){ const W = sc.getBoundingClientRect(), a = S.lay.a;
-      S.cull = [...sc.querySelectorAll('.kf-world > *, .kf-front > *, .kf-trackB > *, .kf-trackF > *')].map(g => { const b = g.getBoundingClientRect(); if (!b.width && !b.height) return null;
+      S.cull = [...sc.querySelectorAll('.kf-bobs > .kf-bub')].map(g => { const b = g.getBoundingClientRect(); if (!b.width && !b.height) return null;
         const x0 = (b.left - W.left) / a - (W.width / a - 1600) / 2 + cam, x1 = (b.right - W.left) / a - (W.width / a - 1600) / 2 + cam; return { g, x0, x1, on: true }; }).filter(Boolean); }
     for (const c of S.cull){ const on = c.x1 > cam - 900 && c.x0 < cam + 2600; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
     S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);

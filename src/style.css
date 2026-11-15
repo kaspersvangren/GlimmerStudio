@@ -618,7 +618,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-me.boost,.kf-rider.boost{filter:drop-shadow(0 0 14px #C79BFF) drop-shadow(0 0 30px #FFE27A)}
 .kf-trail{opacity:0;transition:opacity .3s}
 .kf-rider.boost .kf-trail{opacity:1}
-.kf-ring.ok{opacity:.35;transition:opacity .6s}
+/* (uden overgang: en ring, der skifter, tegnes om én gang i stedet for i hvert billede i et halvt sekund) */
+.kf-ring.ok{opacity:.35}
 .kf-bob{animation:float 2.6s ease-in-out infinite}
 .kf-bub.pop{transform-box:fill-box;transform-origin:50% 50%;animation:kfpop .4s ease-out forwards}
 @keyframes kfpop{0%{transform:scale(1);opacity:1}100%{transform:scale(1.8);opacity:0}}
