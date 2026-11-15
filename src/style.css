@@ -829,3 +829,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .book-cell span{font-size:clamp(8px,1.6vh,11px);font-weight:700;color:#E6F6EE;text-align:center;line-height:1.05;overflow-wrap:anywhere;opacity:.55}
 .book-cell.known span{opacity:1}
 .book-bottle svg{width:clamp(22px,6vh,40px);height:auto;display:block}
+
+/* fejlsøgnings-mærket, når loggen er slået til */
+.dbg-badge{position:fixed;left:calc(6px + env(safe-area-inset-left,0px));bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:9999;pointer-events:none;font:700 11px/1 system-ui,sans-serif;color:#FFF;background:rgba(200,30,60,.85);padding:4px 7px;border-radius:8px;letter-spacing:.04em}

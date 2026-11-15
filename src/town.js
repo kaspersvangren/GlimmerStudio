@@ -20,7 +20,7 @@ function musicTick(){
   if (!AC || !MUSIC.track) return;
   const tr = TRACKS[MUSIC.track] || TRACKS[MUSIC_SYNTH[MUSIC.track]] || TRACKS.byen, eighth = 60 / tr.bpm / 2;
   /* er telefonen kommet bagud (travl skærm), springer melodien frem i stedet for at spille de forsinkede toner i klump */
-  if (MUSIC.nextT < AC.currentTime - 0.05){ const miss = Math.ceil((AC.currentTime - MUSIC.nextT) / eighth); MUSIC.step += miss; MUSIC.nextT += miss * eighth; }
+  if (MUSIC.nextT < AC.currentTime - 0.05){ const miss = Math.ceil((AC.currentTime - MUSIC.nextT) / eighth); MUSIC.step += miss; MUSIC.nextT += miss * eighth; DBG.count('musikBagud'); }
   while (MUSIC.nextT < AC.currentTime + 0.6){
     const st = MUSIC.step, bar = Math.floor(st / 8) % 4, pos = st % 8, ch = tr.chords[bar], t = MUSIC.nextT;
     if (pos % 4 === 0) mNote(mtof(ch[0] - 24), t, eighth * 3.2, 'triangle', 0.09);
@@ -151,7 +151,7 @@ function showTitle(){
       /* knappen griber fingeren, så trykket tæller, selvom skærmen hopper (fx når telefonens bjælker dukker op) */
       pointerdown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} },
       pointerup: () => startPlay(), click: () => startPlay() } }),
-    el('p', { class:'ver' }, GAME_NAME + ' ' + VERSION),
+    el('p', { class:'ver', on:{ click: () => DBG.tap() } }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);
   smilOpacityToCss($('#titleBody'));
