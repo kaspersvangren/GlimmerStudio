@@ -625,6 +625,10 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* ================= kosteflyvning ================= */
 #kfScene{touch-action:none;background:#141A4E}
 #kfScene svg{touch-action:none}
+/* flyvetimens lag ligger oven på hinanden og flyttes hver for sig af grafikchippen */
+#kfScene > .kf-L{position:absolute;inset:0;overflow:visible;will-change:transform}
+#kfScene > .kf-L-bg,#kfScene > .kf-L-ev2,#kfScene > .kf-L-me,#kfScene > .kf-L-mood{will-change:auto}
+#kfScene > .kf-L-mood{pointer-events:none}
 .kf-rival{opacity:.82}
 .kf-me.boost,.kf-rider.boost{filter:drop-shadow(0 0 14px #C79BFF) drop-shadow(0 0 30px #FFE27A)}
 .kf-trail{opacity:0;transition:opacity .3s}
@@ -689,24 +693,33 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @supports (height:1lvh){ @media (orientation:landscape){ .playbtn{left:calc(50% + min(30lvh,300px) + 6vw);bottom:22lvh;width:clamp(100px,17lvh,150px)} } }
 
 /* ---------- faldskærm ---------- */
-.fs-alt{position:absolute;z-index:6;left:max(16px,env(safe-area-inset-left,0px));top:50%;transform:translateY(-62%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.fs-alt{position:absolute;z-index:6;left:max(16px,env(safe-area-inset-left,0px));top:40%;transform:translateY(-62%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .fs-alt-bar{position:relative;width:12px;height:clamp(110px,38vh,300px);border-radius:6px;background:linear-gradient(#7FD8FF,#5E8F52);box-shadow:0 0 0 3px rgba(20,16,46,.55)}
 .fs-alt-dot{position:absolute;left:50%;top:100%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#E0457A;border:3px solid #FFFFFF;box-shadow:0 2px 5px rgba(0,0,0,.5)}
 .fs-alt-n{font-family:var(--display);font-weight:700;font-size:clamp(12px,2.6vh,17px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50;white-space:nowrap}
-.fs-pads{position:absolute;inset:auto 0 0 0;z-index:6;height:clamp(84px,26vh,170px);pointer-events:none}
-.fs-pad{position:absolute;bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.72;transition:transform .12s,opacity .12s}
-.fs-pad.l{left:max(18px,env(safe-area-inset-left,0px))}
-.fs-pad.r{right:max(18px,env(safe-area-inset-right,0px))}
-.fs-pad.f{left:50%;transform:translateX(-50%)}
-.fs-pad-ic{width:clamp(54px,15vh,96px);height:clamp(54px,15vh,96px);border-radius:50%;background:rgba(42,35,80,.72);border:3px solid rgba(255,255,255,.8);display:grid;place-items:center}
-.fs-pad-ic svg{width:70%;height:70%}
-.fs-pad-t{font-family:var(--display);font-weight:700;font-size:clamp(11px,2.4vh,16px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50}
-.fs-pad.on{opacity:1}
-.fs-pad.l.on,.fs-pad.r.on{transform:translateY(6px) scale(1.06)}
-.fs-pad.f.on{transform:translateX(-50%) scale(1.08)}
-.fs-pad.on .fs-pad-ic{background:#6B3FA0;box-shadow:0 0 18px #FFE27A}
-.fs-both{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom,0px)) + clamp(78px,21vh,128px));margin:0;font-family:var(--display);font-weight:700;font-size:clamp(11px,2.3vh,15px);color:#E8E0FF;opacity:.7;white-space:nowrap;text-shadow:0 2px 0 #2A1F50}
-.fs-both.on{opacity:1;color:#FFE27A}
+.fs-pads{position:absolute;inset:auto 0 0 0;z-index:6;height:clamp(120px,46vh,300px);pointer-events:none}
+/* styrehåndtagene: en line ned fra skærmen, med et håndtag der følger fingeren (--v fra -1 op til 1 ned) */
+.fs-tog{position:absolute;bottom:max(10px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.8;transition:opacity .12s}
+.fs-tog.l{left:max(18px,env(safe-area-inset-left,0px))}
+.fs-tog.r{right:max(18px,env(safe-area-inset-right,0px))}
+.fs-tog-track{position:relative;width:clamp(56px,15vh,96px);height:clamp(100px,36vh,230px)}
+.fs-tog-track::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;border-radius:3px;background:linear-gradient(rgba(242,238,255,.15),rgba(242,238,255,.7))}
+.fs-tog-mid{position:absolute;left:18%;right:18%;top:50%;height:3px;margin-top:-1.5px;border-radius:2px;background:rgba(255,246,216,.45)}
+.fs-tog-grip{position:absolute;left:0;right:0;top:50%;height:clamp(56px,16vh,100px);margin-top:calc(clamp(56px,16vh,100px) / -2);transform:translateY(calc(var(--v,0) * clamp(24px,10vh,64px)));transition:transform .05s linear;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+.fs-tog-grip svg{width:100%;height:100%}
+.fs-tog-t{font-family:var(--display);font-weight:700;font-size:clamp(11px,2.4vh,16px);color:#FFF6D8;text-shadow:0 2px 0 #2A1F50}
+.fs-tog.on{opacity:1}
+.fs-togtip{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));margin:0;max-width:52vw;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(11px,2.3vh,15px);color:#E8E0FF;opacity:.85;text-shadow:0 2px 0 #2A1F50;animation:fstip 7s ease-in forwards}
+@keyframes fstip{0%,75%{opacity:.85}100%{opacity:0}}
+/* tordenskyen og stjernen der ryger */
+.fs-storm.near .fs-bolt{animation:fsbolt .35s steps(2) infinite}
+.fs-storm .fs-bolt{opacity:0}
+@keyframes fsbolt{0%{opacity:1}100%{opacity:0}}
+.fs-lost{animation:fslost 1.2s ease-out forwards}
+@keyframes fslost{0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}100%{transform:translate(var(--dx),-320px) rotate(540deg) scale(.6);opacity:0}}
+#fsScene.fs-shake{animation:fsshake .4s ease-out}
+@keyframes fsshake{0%,100%{transform:none}20%{transform:translate(-12px,6px)}40%{transform:translate(10px,-6px)}60%{transform:translate(-6px,4px)}80%{transform:translate(4px,-2px)}}
+@media (prefers-reduced-motion: reduce){ .fs-storm.near .fs-bolt,#fsScene.fs-shake{animation:none} }
 .fs-wind{position:absolute;z-index:6;left:50%;transform:translateX(-50%);top:max(14px,env(safe-area-inset-top,0px));display:flex;align-items:center;gap:6px;padding:4px 12px 4px 6px;border-radius:20px;background:rgba(42,35,80,.7);font-family:var(--display);font-weight:700;color:#FFF6D8;font-size:clamp(12px,2.6vh,16px);pointer-events:none}
 .fs-wind svg{width:28px;height:28px}
 .fs-skip{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:max(16px,env(safe-area-inset-bottom,0px));font-family:var(--display);font-weight:700;font-size:clamp(12px,2.6vh,16px);color:#E8E0FF;opacity:.75;pointer-events:none;text-shadow:0 2px 0 #2A1F50}
@@ -2006,7 +2019,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.23.1';
+const VERSION = 'v0.24.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -3145,7 +3158,7 @@ function cobweb(x, y, f){
 const AXE_SPOTS = [[1420,770,-5],[1460,772,6],[1380,772,-8],[1500,770,9],[1340,774,-4],[1540,774,-10],[1400,744,78],[1474,742,-74],[1440,726,22],[1512,722,-32],[1372,720,64],[1468,702,42]];
 function axePile(n){
   let o = `<g data-hit="oekser"><ellipse cx="1440" cy="780" rx="${50 + n * 7}" ry="14" fill="#1A1238" opacity=".2"/>`;
-  AXE_SPOTS.slice(0, n).forEach(([x, y, r]) => { o += `<g transform="translate(${x} ${y - 52}) rotate(${r}) scale(1.9)">${axeSvg(1)}</g>`; });
+  AXE_SPOTS.slice(0, n).forEach(([x, y, r], i) => { o += `<g transform="translate(${x} ${y - 52}) rotate(${r}) scale(1.9)">${axeSvg(1, i)}</g>`; });
   return o + `<rect x="1310" y="600" width="260" height="190" fill="#FFF" fill-opacity="0"/></g>`;
 }
 const BED_PLUSH = [[300, 642], [356, 646], [412, 642], [468, 646], [276, 690], [334, 694], [392, 690], [450, 694], [508, 690], [250, 646], [500, 640], [222, 692]];
@@ -4494,12 +4507,12 @@ function lessonDone(){
 /* ================= Kosteflyvning =================
    Hele faget ligger i sin egen lukkede kasse (Kost), så ingen navne herinde kan ramme andre filer.
    Tryk = flyv op, tyngdekraften trækker ned. Ringene giver fart; to ringe over hinanden giver et loop,
-   og loopet giver et boost, der selv styrer gennem de næste fem ringe. To klassekammerater flyver
+   og loopet giver et boost, der selv styrer gennem de næste fire ringe. To klassekammerater flyver
    samme bane i baggrunden, og pladsen giver guld, sølv eller bronze. */
 const Kost = (() => {
   const PX = 430, TOP = 140, BOT = 860;
   const GRAV = 1900, FLAP = -620, VMAXF = 780, V0 = 490;
-  const BOOST_N = 3, LOOP_R = 150, LOOP_T = .95, HOLD_MS = 260, BOOST_V = 2.3;
+  const BOOST_N = 4, LOOP_R = 150, LOOP_T = .95, HOLD_MS = 260, BOOST_V = 2.3;
   /* klassekammeraterne har hver sin bane bagved, med de samme ringe i mindre størrelse og i deres egen farve */
   /* banerne står i lige store trin bagud: samme forskydning fra din bane til den midterste som fra den midterste til den bagerste */
   /* lige stor luft mellem ringenes kanter: forskydningen er luften plus de to ringes halve bredder */
@@ -4753,23 +4766,31 @@ const Kost = (() => {
   ];
   /* hvert lag: stykkerne efter hinanden og det første igen til sidst, så det kan køre i ring */
   const layer = (arr, cls) => `<g class="${cls}">${arr.map((f, i) => `<g transform="translate(${i * TW} 0)">${f()}</g>`).join('')}<g transform="translate(${arr.length * TW} 0)">${arr[0]()}</g></g>`;
-  function sceneSvg(){
-    let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="kf-svg"><defs>`
-      + `<linearGradient id="kfSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141A4E"/><stop offset=".55" stop-color="#3E2E88"/><stop offset="1" stop-color="#B0608E"/></linearGradient></defs>`;
-    o += `<rect x="-1700" y="-700" width="5000" height="700" fill="#141A4E"/><rect x="-1700" y="0" width="5000" height="1000" fill="url(#kfSky)"/><rect x="-1700" y="1000" width="5000" height="700" fill="#14102E"/>`;
+  /* scenens lag. I spillet ligger hvert lag i sin egen SVG, som kameraet flytter med CSS (grafikchippen),
+     så telefonen ikke skal tegne hele scenen om i hvert billede. Til Tegnebordet sættes de sammen til én SVG. */
+  function scenePieces(){
+    const defs = `<linearGradient id="kfSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141A4E"/><stop offset=".55" stop-color="#3E2E88"/><stop offset="1" stop-color="#B0608E"/></linearGradient>`;
+    let bg = `<rect x="-1700" y="-700" width="5000" height="700" fill="#141A4E"/><rect x="-1700" y="0" width="5000" height="1000" fill="url(#kfSky)"/><rect x="-1700" y="1000" width="5000" height="700" fill="#14102E"/>`;
     const r = rng(5);
-    for (let i = 0; i < 70; i++) o += `<circle cx="${(-700 + r() * 3000).toFixed(0)}" cy="${(r() * 520).toFixed(0)}" r="${(1 + r() * 2.2).toFixed(1)}" fill="#FFFFFF" opacity="${(.4 + r() * .6).toFixed(2)}"/>`;
-    o += `<g transform="translate(1320 150)"><circle r="120" fill="#FFF6D8" opacity=".12"/><circle r="62" fill="#FFF6D8"/><circle cx="24" cy="-14" r="56" fill="#3A2E7A" opacity=".9"/></g>`;
-    o += `<g class="kf-ev"></g>`;
-    o += layer(FAR, 'kf-far') + layer(MID, 'kf-mid');
-    o += `<g class="kf-cloud">${cloudTile()}<g transform="translate(${TW} 0)">${cloudTile()}</g></g>`;
-    o += `<g class="kf-ev2"></g>`;
-    o += `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g><g class="kf-me"></g><g class="kf-front"></g>`;
-    o += layer(NEAR, 'kf-near');
-    o += `<g class="kf-fx"></g>`;
-    o += placeMood([], { vign: .6, dx: 200, dw: 1200 });
-    return o + `</svg>`;
+    for (let i = 0; i < 70; i++) bg += `<circle cx="${(-700 + r() * 3000).toFixed(0)}" cy="${(r() * 520).toFixed(0)}" r="${(1 + r() * 2.2).toFixed(1)}" fill="#FFFFFF" opacity="${(.4 + r() * .6).toFixed(2)}"/>`;
+    bg += `<g transform="translate(1320 150)"><circle r="120" fill="#FFF6D8" opacity=".12"/><circle r="62" fill="#FFF6D8"/><circle cx="24" cy="-14" r="56" fill="#3A2E7A" opacity=".9"/></g>`;
+    return [
+      ['bg', 0, bg + `<g class="kf-ev"></g>`],
+      ['far', .12, layer(FAR, 'kf-far')],
+      ['mid', .35, layer(MID, 'kf-mid')],
+      ['cloud', .6, `<g class="kf-cloud">${cloudTile()}<g transform="translate(${TW} 0)">${cloudTile()}</g></g>`],
+      ['ev2', 0, `<g class="kf-ev2"></g>`],
+      ['track', 1, `<g class="kf-lanes">${LANES.map((L, i) => `<g class="kf-lane" style="opacity:${L.op}"><g class="kf-trackB l${i}"></g><g class="kf-rivals l${i}"></g><g class="kf-trackF l${i}"></g></g>`).join('')}</g><g class="kf-world"></g>`],
+      ['me', 0, `<g class="kf-me"></g>`],
+      ['front', 1, `<g class="kf-front"></g>`],
+      ['near', 1.25, layer(NEAR, 'kf-near')],
+      ['fx', 1, `<g class="kf-fx"></g>`],
+      ['mood', 0, placeMood([], { vign: .6, dx: 200, dw: 1200 })],
+    ].map(([id, k, body], i) => ({ id, k, body: i ? body : `<defs>${defs}</defs>` + body }));
   }
+  const SVG0 = cls => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="${cls}">`;
+  function sceneSvg(){ return SVG0('kf-svg') + scenePieces().map(p => p.body).join('') + `</svg>`; }
+  function sceneLayers(){ return scenePieces().map(p => SVG0(`kf-svg kf-L kf-L-${p.id}`).replace('<svg ', `<svg data-k="${p.k}" `) + p.body + `</svg>`).join(''); }
 
   /* ---------- små ting der sker i baggrunden en gang imellem ---------- */
   const EVENTS = ['fyrvaerkeri', 'fyrvaerkeri', 'flagermus', 'stjerneskud', 'lanterne', 'heks'];
@@ -4831,7 +4852,7 @@ const Kost = (() => {
     S.rivals = makeRivals(mates);
     S.ringsAll = S.course.rings.length;
     const box = $('#broomBody'); box.innerHTML = '';
-    const scene = el('div', { class:'scene-wrap', id:'kfScene', html: scopeIds(sceneSvg(), 'kf') });
+    const scene = el('div', { class:'scene-wrap', id:'kfScene', html: scopeIds(sceneLayers(), 'kf') });
     const track = el('div', { class:'kf-track', 'aria-hidden':'true' }, [ el('div', { class:'kf-line' }), el('span', { class:'kf-flag' }, '🏁'),
       el('span', { class:'kf-dot r0', style:`background:${S.mates[0].st.robe.a}` }), el('span', { class:'kf-dot r1', style:`background:${S.mates[1].st.robe.a}` }), el('span', { class:'kf-dot me', style:`background:${hero.robe.a}` }) ]);
     const count = el('span', { class:'starpill kf-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
@@ -4888,7 +4909,7 @@ const Kost = (() => {
 
   /* ---------- loop og boost ----------
      Man kan altid loope. Starter loopet lige i den nederste af to ringe over hinanden, går det op gennem
-     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste tre ringe (fem ringe i alt).
+     den øverste og ned igen, og så kommer et boost, der selv styrer gennem de næste fire ringe (seks ringe i alt).
      Det er tilgivende: er man nogenlunde ud for den nederste ring, bliver man trukket ind i den. */
   /* det par, man er ud for: også hvis man lige er fløjet gennem den nederste ring, før loopet nåede at starte */
   const pairAt = f => S.course.rings.find(r => r.dbl === 'lo' && !f.seen.has(r.pair) && r.x - f.x < 180 && r.x - f.x > -230 && Math.abs(r.y - f.y) < 170);
@@ -4897,7 +4918,9 @@ const Kost = (() => {
     if (f.loop || f.boost > 0) return false;
     const hit = pairAt(f) || null;
     /* rammer man tæt nok på, bliver man trukket ind i den nederste ring, før loopet begynder */
-    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, pre: 0, t: 0, cam: hit.x - PX, hit, px: hit.x - 0.01 } : { x0: f.x, y0: f.y, t: 0, cam: f.x - PX, hit: null, px: f.x - 0.01 };
+    /* loopet begynder der, hvor man er, og glider over i en cirkel gennem ringene (ingen spring) */
+    f.loop = hit ? { x0: hit.x, y0: hit.y, sx: f.x, sy: f.y, t: 0, cam: hit.x - PX, hit, px: f.x } : { x0: f.x, y0: f.y, sx: f.x, sy: f.y, t: 0, cam: f.x - PX, hit: null, px: f.x - 0.01 };
+    if (hit && !f.seen.has(hit)){ passRing(f, hit); (f.loop.got = new Set()).add(hit); }
     return true;
   }
   function tryLoop(){ if (!S || S.run !== 'fly') return; if (startLoop(S)){ S.vy = 0; S.loop.hit ? sfx.magic() : tone(500, 0.3, 'sine', 0.04, 0, 1.8); } }
@@ -4930,9 +4953,10 @@ const Kost = (() => {
   /* fælles for figuren og klassekammeraterne: loop, boost og ringene man flyver igennem */
   function moveLoop(f, dt){
     const L = f.loop;
-    if (L.pre !== undefined && L.pre < 1){ L.pre = Math.min(1, L.pre + dt / .22); const e = L.pre * (2 - L.pre); f.x = L.sx + (L.x0 - L.sx) * e; f.y = L.sy + (L.y0 - L.sy) * e; f.ang = 0; if (f === S) S.cam = f.x - PX; return; }
-    L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, cy = L.y0 - LOOP_R;
-    f.x = L.x0 + LOOP_R * Math.cos(a); f.y = cy + LOOP_R * Math.sin(a); f.ang = Math.atan2(-Math.cos(a), Math.sin(a)) * 180 / Math.PI;
+    L.t += dt / LOOP_T; const t = Math.min(1, L.t), a = Math.PI / 2 - 2 * Math.PI * t, c = Math.cos(a), sn = Math.sin(a);
+    /* cirklen fra der, hvor loopet begyndte, glider over i cirklen gennem ringene i løbet af den første tredjedel */
+    const u = Math.min(1, t / .38), b = u * u * (3 - 2 * u);
+    f.x = (L.sx + (L.x0 - L.sx) * b) + LOOP_R * c; f.y = (L.sy + (L.y0 - L.sy) * b) - LOOP_R + LOOP_R * sn; f.ang = Math.atan2(-c, sn) * 180 / Math.PI;
     /* ringe tæller, hvis loopet faktisk går igennem dem, uanset om man blev trukket ind eller ej */
     for (const r of S.course.rings){ if (f.seen.has(r) || Math.abs(r.x - L.x0) > LOOP_R + 5) continue;
       if ((L.px - r.x) * (f.x - r.x) <= 0 && L.px !== f.x && Math.abs(f.y - r.y) < 100){ passRing(f, r); (L.got = L.got || new Set()).add(r); } }
@@ -4963,7 +4987,7 @@ const Kost = (() => {
     if (S.run === 'fly' || S.run === 'done') S.t += dt;
     if (S.run === 'fly' && S.t > S.evT){ spawnEvent(pick(EVENTS)); S.evT = S.t + 4 + Math.random() * 5; }
     for (const rv of S.rivals) if (S.run === 'fly' || S.run === 'done') rivalStep(rv, dt);
-    if (S.loop){ moveLoop(S, dt); if (S.loop){ if (S.loop.pre === undefined || S.loop.pre >= 1) S.cam = S.loop.cam; } else S.cam = S.x - PX; return; }
+    if (S.loop){ moveLoop(S, dt); if (S.loop) S.cam += (S.loop.cam - S.cam) * Math.min(1, dt * 7); else S.cam = S.x - PX; return; }
     const x0 = S.x;
     if (S.boost > 0) moveBoost(S, dt);
     else {
@@ -5014,15 +5038,19 @@ const Kost = (() => {
   function draw(){
     const sc = $('#kfScene'); if (!sc || !S) return;
     const cam = S.cam;
-    const par = (sel, k) => { const g = sc.querySelector(sel); if (g) g.setAttribute('transform', `translate(${(-((cam * k) % 3200 + 3200) % 3200 - 800).toFixed(1)} 0)`); };
-    const parN = (sel, k, n) => { const g = sc.querySelector(sel); if (g) g.setAttribute('transform', `translate(${(-((cam * k) % (n * TW) + n * TW) % (n * TW) - 800).toFixed(1)} 0)`); };
-    parN('.kf-far', .12, FAR.length); parN('.kf-mid', .35, MID.length); par('.kf-cloud', .6); parN('.kf-near', 1.25, NEAR.length);
-    sc.querySelector('.kf-world').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-front').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-fx').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    sc.querySelector('.kf-lanes').setAttribute('transform', `translate(${(-cam).toFixed(1)} 0)`);
-    if (!S.cull){ S.cull = [...sc.querySelectorAll('.kf-world > *, .kf-front > *, .kf-trackB > *, .kf-trackF > *')].map(g => { try { const b = g.getBBox(); return { g, x0: b.x, x1: b.x + b.width, on: true }; } catch (e){ return null; } }).filter(Boolean); }
-    for (const c of S.cull){ const on = c.x1 > cam - 700 && c.x0 < cam + 2400; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
+    /* kameraet flytter lagene med CSS (hele skærmpixels); de bageste langsommere, så der er dybde */
+    if (!S.lay || S.lay.w !== sc.clientWidth || S.lay.h !== sc.clientHeight){
+      const m = sc.querySelector('.kf-L').getScreenCTM();
+      S.lay = { w: sc.clientWidth, h: sc.clientHeight, a: m ? m.a : 1, d: window.devicePixelRatio || 1, els: [...sc.querySelectorAll('.kf-L')].filter(e => +e.dataset.k).map(e => ({ e, k: +e.dataset.k, n: e.querySelector('.kf-far') ? FAR.length : e.querySelector('.kf-mid') ? MID.length : e.querySelector('.kf-near') ? NEAR.length : e.querySelector('.kf-cloud') ? 1 : 0, last: '' })) };
+      if (S.cull) S.cull.forEach(c => { c.g.style.display = ''; }); S.cull = null; }
+    for (const L of S.lay.els){
+      const u = L.n ? -((cam * L.k) % (L.n * TW) + L.n * TW) % (L.n * TW) - 800 : -cam * L.k, px = Math.round(u * S.lay.a * S.lay.d) / S.lay.d, t = `translate3d(${px}px,0,0)`;
+      if (t !== L.last){ L.last = t; L.e.style.transform = t; } }
+    /* det, der er langt uden for skærmen, tegnes ikke (kasserne måles på skærmen én gang og regnes om til banens x) */
+    if (!S.cull){ const W = sc.getBoundingClientRect(), a = S.lay.a;
+      S.cull = [...sc.querySelectorAll('.kf-world > *, .kf-front > *, .kf-trackB > *, .kf-trackF > *')].map(g => { const b = g.getBoundingClientRect(); if (!b.width && !b.height) return null;
+        const x0 = (b.left - W.left) / a - (W.width / a - 1600) / 2 + cam, x1 = (b.right - W.left) / a - (W.width / a - 1600) / 2 + cam; return { g, x0, x1, on: true }; }).filter(Boolean); }
+    for (const c of S.cull){ const on = c.x1 > cam - 900 && c.x0 < cam + 2600; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
     S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
     S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
     /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */
@@ -5431,6 +5459,10 @@ const Fald = (() => {
     return o + `</g>`;
   }
   const bubbleArt = gold => `<circle r="60" fill="${gold ? '#FFE9A0' : '#BFE8FF'}" fill-opacity=".3" stroke="${gold ? '#FFE27A' : '#DFF4FF'}" stroke-width="6"/><circle r="60" fill="none" stroke="#FF8FC7" stroke-width="2.5" opacity=".7" stroke-dasharray="40 50"/>${starP(0, 4, gold ? 36 : 30, gold ? '#FFC02E' : '#FFE27A')}<path d="M -30 -32 Q -16 -46 2 -46" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  /* tordenskyen: en mørk, sur sky med lyn. Rammer den hende, slår den en stjerne løs */
+  const stormArt = () => { let o = ''; [[-90, 10, 120, 80], [70, 0, 130, 90], [-10, -50, 140, 95], [0, 40, 170, 80]].forEach(([x, y, rx, ry], i) => { o += `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${i % 2 ? '#4A3E6E' : '#3A3058'}" stroke="#1E1838" stroke-width="5"/>`; });
+    o += `<path d="M -70 -30 q 18 -14 36 0 M 34 -30 q 18 -14 36 0" stroke="#1E1838" stroke-width="9" fill="none" stroke-linecap="round"/><ellipse cx="-50" cy="0" rx="12" ry="15" fill="#FFF6D0"/><ellipse cx="52" cy="0" rx="12" ry="15" fill="#FFF6D0"/><circle cx="-46" cy="4" r="7" fill="#1E1838"/><circle cx="48" cy="4" r="7" fill="#1E1838"/><path d="M -26 52 q 26 -18 52 0" stroke="#1E1838" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+    return o + `<g class="fs-bolt"><path d="M -110 70 L -130 130 L -104 126 L -124 190" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M 120 76 L 100 140 L 128 136 L 106 200" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linejoin="round" stroke-linecap="round"/></g>`; };
   const cloudArt = (k, seed) => { const r = rng(seed); let o = ''; for (let i = 0; i < 7; i++){ const a = r() * Math.PI * 2, d = r() * 220 * k; o += `<ellipse cx="${(Math.cos(a) * d).toFixed(0)}" cy="${(Math.sin(a) * d * .7).toFixed(0)}" rx="${(150 + r() * 130) * k}" ry="${(100 + r() * 80) * k}" fill="${i % 2 ? '#E8E2FA' : '#D6CCF2'}"/>`; } return o; };
 
   /* ---------- skærmen ---------- */
@@ -5478,7 +5510,7 @@ const Fald = (() => {
     S = { hero, run: 'card', t: 0, auto: !!window.FALD_AUTO, bubbles: 0, bubN: 0, gold: 0,
       hx: SCX, hy: SCY + 40, tx: SCX, ty: SCY + 40, tilt: 0, objs: [], motes: [], spawn: [],
       x: Math.cos(a0) * d0, y: Math.sin(a0) * d0, th: Math.atan2(-Math.cos(a0), Math.sin(a0)) * 180 / Math.PI + (Math.random() < .5 ? 1 : -1) * (70 + Math.random() * 50),
-      h: H0, v: 9, sink: 3.8, turnV: 0, wind: { x: Math.cos(wa) * wind, y: Math.sin(wa) * wind, s: wind, a: wa }, ctl: { L: false, R: false, F: false }, keys: {}, ptrs: new Map(), soft: false };
+      h: H0, v: 9, sink: 3.8, turnV: 0, wind: { x: Math.cos(wa) * wind, y: Math.sin(wa) * wind, s: wind, a: wa }, ctl: { pl: 0, pr: 0, L: false, R: false }, keys: {}, ptrs: new Map(), soft: false };
     makeSpawns();
     /* jorden læses ind, mens kortet og turen op vises */
     S.jord = null; const S0 = S; FaldJord.build(POND_DEF, groundSvg(), m => { S0.jord = m; });
@@ -5488,10 +5520,10 @@ const Fald = (() => {
     const scene = el('div', { class:'scene-wrap', id:'fsScene' });
     const count = el('span', { class:'starpill kf-count fs-count', html: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="#7FD8FF" stroke-width="2.4"/><path d="M12 6l1.8 4 4.2.4-3.2 2.8 1 4.2L12 15.2 8.2 17.4l1-4.2L6 10.4l4.2-.4z" fill="#FFC02E"/></svg><span class="n">0</span>` });
     const alt = el('div', { class:'fs-alt', 'aria-hidden':'true' }, [ el('div', { class:'fs-alt-bar' }, [ el('span', { class:'fs-alt-dot' }) ]), el('span', { class:'fs-alt-n' }, '0 m') ]);
-    const pad = (k, label, icon) => el('div', { class:'fs-pad ' + k, 'aria-hidden':'true' }, [ el('span', { class:'fs-pad-ic', html: icon }), el('span', { class:'fs-pad-t' }, label) ]);
-    const TOG = '<svg viewBox="0 0 60 60"><path d="M 30 4 V 22" stroke="#F2EEFF" stroke-width="4"/><path d="M 14 26 Q 30 16 46 26 Q 50 46 30 54 Q 10 46 14 26 Z" fill="#E0457A" stroke="#FFFFFF" stroke-width="4"/><path d="M 22 32 Q 30 28 38 32" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round"/></svg>';
-    const FAST = '<svg viewBox="0 0 60 60"><path d="M 16 40 L 30 24 L 44 40" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M 16 28 L 30 12 L 44 28" stroke="#FFE27A" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const pads = el('div', { class:'fs-pads', hidden: true }, [ pad('l', 'Venstre', TOG), pad('f', 'Fart', FAST), pad('r', 'Højre', TOG), el('p', { class:'fs-both' }, 'Begge sider = brems') ]);
+    /* skærmens styreliner: et håndtag i hver side, der kan trækkes ned og skubbes op */
+    const GRIP = '<svg viewBox="0 0 60 70"><path d="M 30 0 V 18" stroke="#F2EEFF" stroke-width="4"/><path d="M 14 22 Q 30 12 46 22 Q 52 48 30 66 Q 8 48 14 22 Z" fill="#E0457A" stroke="#FFFFFF" stroke-width="4"/><path d="M 21 30 Q 30 25 39 30 Q 41 46 30 54 Q 19 46 21 30 Z" fill="#7A1A3A" opacity=".55"/></svg>';
+    const tog = (k, label) => el('div', { class:'fs-tog ' + k, 'aria-hidden':'true' }, [ el('div', { class:'fs-tog-track' }, [ el('span', { class:'fs-tog-mid' }), el('div', { class:'fs-tog-grip', html: GRIP }) ]), el('span', { class:'fs-tog-t' }, label) ]);
+    const pads = el('div', { class:'fs-pads', hidden: true }, [ tog('l', 'Venstre'), tog('r', 'Højre'), el('p', { class:'fs-togtip' }, 'Træk et håndtag ned for at dreje · begge ned = brems · begge op = fart') ]);
     const windEl = el('div', { class:'fs-wind', hidden: true, 'aria-hidden':'true', html: `<svg viewBox="0 0 40 40"><g class="fs-warr"><path d="M 6 20 H 30 M 22 12 L 32 20 L 22 28" stroke="#FFFFFF" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span>Vind</span>` });
     box.append(scene, alt, pads, windEl, ...placeUi([ backBtn('Gangen', () => { stop(); showSchool(); }) ], [ count, starPill() ]));
     bindInput(scene);
@@ -5556,7 +5588,16 @@ const Fald = (() => {
     let px = SCX, py = SCY, n = 0;
     for (let t = 1.4; t < FREE_T - TA - .2; t += .95){
       px = clamp(px + (Math.random() * 2 - 1) * 380, BX0 + 70, BX1 - 70); py = clamp(py + (Math.random() * 2 - 1) * 280, BY0 + 70, BY1 - 70);
-      S.spawn.push({ t, kind:'bub', x: px, y: py, gold: ++n % 6 === 0 });
+      /* boblen kommer svævende fra et andet sted og finder først sin plads til sidst (så man ikke kan se det på forhånd) */
+      S.spawn.push({ t, kind:'bub', x: px, y: py, gold: ++n % 6 === 0, ox: (Math.random() * 2 - 1) * 300, oy: (Math.random() * 2 - 1) * 200 });
+    }
+    /* tre-fire tordenskyer undervejs, et stykke fra boblerne omkring samme tid */
+    const bubs = S.spawn.filter(o => o.kind === 'bub');
+    for (let t = 4.2; t < FREE_T - TA - .6; t += 3.4 + Math.random() * 1.6){
+      let best = null;
+      for (let k = 0; k < 30; k++){ const x = BX0 + 120 + Math.random() * (BX1 - BX0 - 240), y = BY0 + 100 + Math.random() * (BY1 - BY0 - 200);
+        const dmin = Math.min(...bubs.filter(b => Math.abs(b.t - t) < 1.4).map(b => Math.hypot(b.x - x, b.y - y)), 1e9); if (!best || dmin > best.d) best = { x, y, d: dmin }; }
+      S.spawn.push({ t, kind:'storm', x: best.x, y: best.y, ox: (Math.random() * 2 - 1) * 120, oy: (Math.random() * 2 - 1) * 80 });
     }
     for (let t = 2.2; t < FREE_T - TA; t += 2.6 + Math.random() * 1.2) S.spawn.push({ t, kind:'cloud', x: 200 + Math.random() * 1200, y: 150 + Math.random() * 700, k: .6 + Math.random() * .5, seed: 1 + Math.floor(Math.random() * 50) });
     S.spawn.sort((a, b) => a.t - b.t);
@@ -5578,11 +5619,12 @@ const Fald = (() => {
     S.t += dt;
     /* nye ting dukker op langt nede */
     while (S.spawn.length && S.spawn[0].t <= S.t){ const o = S.spawn.shift(); o.z = 1;
-      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow"><circle r="84" fill="url(#fsbglow)"/>${bubbleArt(o.gold)}</g>` : cloudArt(o.k, o.seed));
-      if (o.kind === 'bub'){ o.ring = mk('g', { class: 'fs-ring' + (S.firstBub ? ' first' : ''), transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>` + (S.firstBub ? `<g class="fs-point"><path d="M 0 -150 V -92 M -20 -112 L 0 -90 L 20 -112" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''));
+      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow"><circle r="84" fill="url(#fsbglow)"/>${bubbleArt(o.gold)}</g>` : o.kind === 'storm' ? stormArt() : cloudArt(o.k, o.seed));
+      if (o.kind === 'bub' && S.firstBub){ o.ring = mk('g', { class: 'fs-ring' + (S.firstBub ? ' first' : ''), transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>` + (S.firstBub ? `<g class="fs-point"><path d="M 0 -150 V -92 M -20 -112 L 0 -90 L 20 -112" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''));
         S.firstBub = false; $('#fsScene .fs-rings').append(o.ring); }
       $('#fsScene .fs-below').append(o.el); S.objs.push(o); }
-    if (S.auto){ const nb = S.objs.filter(o => o.kind === 'bub' && o.z > 0 && !o.got).sort((a, b) => a.z - b.z)[0]; if (nb){ S.tx = nb.x; S.ty = nb.y; } }
+    if (S.auto){ const nb = S.objs.filter(o => o.kind === 'bub' && o.z > 0 && !o.got).sort((a, b) => a.z - b.z)[0]; if (nb){ S.tx = nb.x; S.ty = nb.y; }
+      const st = S.objs.find(o => o.kind === 'storm' && o.z > 0 && o.z < .35 && Math.hypot(o.x - S.tx, o.y - S.ty) < 260); if (st){ const a = Math.atan2(S.ty - st.y, S.tx - st.x); S.tx = st.x + Math.cos(a) * 300; S.ty = st.y + Math.sin(a) * 300; } }
     /* piletasterne flyver hende direkte, også skråt med to taster */
     const kx = (S.keys.ArrowRight ? 1 : 0) - (S.keys.ArrowLeft ? 1 : 0), ky = (S.keys.ArrowDown ? 1 : 0) - (S.keys.ArrowUp ? 1 : 0);
     if (kx || ky){ const l = Math.hypot(kx, ky), sp = 820 * dt / l; S.tx = S.hx + kx * sp * 6; S.ty = S.hy + ky * sp * 6; }
@@ -5597,6 +5639,7 @@ const Fald = (() => {
         if (o.kind === 'bub' && Math.hypot(o.x - S.hx, o.y - S.hy) < 130){ o.got = true; const v = o.gold ? 3 : 1; S.bubbles += v; sfx.coin(); if (o.gold) sfx.magic(); spark(o.x, o.y, o.gold ? '#FFC02E' : '#FFE27A'); plus(o.x, o.y, v);
           const n = $('#faldBody .fs-count .n'); if (n){ n.textContent = S.bubbles; const c = n.closest('.fs-count'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); } o.el.remove(); o.dead = true; }
         if (o.kind === 'cloud' && Math.hypot(o.x - S.hx, o.y - S.hy) < 300 * o.k) puff();
+        if (o.kind === 'storm' && Math.hypot(o.x - S.hx, o.y - S.hy) < 170) zap(o);
       }
       if (o.z < -.16){ o.el.remove(); o.dead = true; }
     }
@@ -5615,8 +5658,17 @@ const Fald = (() => {
       if (o.kind === 'bub'){
         /* boblen bliver på sit sted og vokser, mens den stiger op mod hende */
         const k = 1 - Math.max(0, o.z), s = o.z > 0 ? .42 + .58 * k * k : 1 + (-o.z) * 4, op = o.z > .85 ? .35 + .65 * (1 - o.z) / .15 : o.z < 0 ? Math.max(0, 1 + o.z / .16) : 1;
-        o.el.setAttribute('transform', `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
-        if (o.ring){ o.ring.setAttribute('opacity', (.45 + .55 * k).toFixed(2)); o.ring.classList.toggle('hot', o.z < .3); }
+        const dz = Math.pow(Math.max(0, o.z), 1.5), x = o.x + (o.ox || 0) * dz, y = o.y + (o.oy || 0) * dz;
+        o.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
+        /* ringen, der viser hvor boblen ender, kommer først det sidste stykke (undtagen ved den første boble) */
+        if (!o.ring && o.z > 0 && o.z < .5 && !o.got){ o.ring = mk('g', { class: 'fs-ring', transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>`); $('#fsScene .fs-rings').append(o.ring); o.lateRing = true; }
+        if (o.ring){ o.ring.setAttribute('opacity', (o.lateRing ? Math.min(1, (.5 - o.z) / .25) * (.45 + .55 * k) : .45 + .55 * k).toFixed(2)); o.ring.classList.toggle('hot', o.z < .3); }
+        continue; }
+      if (o.kind === 'storm'){
+        const k = 1 - Math.max(0, o.z), s = o.z > 0 ? .3 + .7 * k * k : 1 + (-o.z) * 3, op = o.z > .85 ? (1 - o.z) / .15 : o.z < 0 ? Math.max(0, 1 + o.z / .16) : 1;
+        const dz = Math.pow(Math.max(0, o.z), 1.5), x = o.x + o.ox * dz, y = o.y + o.oy * dz;
+        o.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)})`); o.el.setAttribute('opacity', op.toFixed(2));
+        o.el.classList.toggle('near', o.z < .4 && o.z > 0);
         continue; }
       const p = proj(o, o.z), op = o.z > .8 ? (1 - o.z) / .2 : o.z < 0 ? Math.max(0, 1 + o.z / .16) * .5 : 1;
       o.el.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${p.s.toFixed(3)})`); o.el.setAttribute('opacity', (op * .8).toFixed(2)); }
@@ -5687,35 +5739,38 @@ const Fald = (() => {
   }
 
   /* ---------- under skærmen ---------- */
+  /* håndtagene: pl/pr går fra -1 (skubbet helt op) over 0 (hvile) til 1 (trukket helt ned) */
   function ctl(){
-    const k = S.keys, z = [...S.ptrs.values()];
-    S.ctl.L = z.includes('L') || !!k.ArrowLeft || !!k.ArrowDown;
-    S.ctl.R = z.includes('R') || !!k.ArrowRight || !!k.ArrowDown;
-    S.ctl.F = z.includes('F') || !!k.ArrowUp;
+    const k = S.keys; let pl = 0, pr = 0;
+    for (const p of S.ptrs.values()){ if (p.side === 'L') pl = p.v; else if (p.side === 'R') pr = p.v; }
+    if (k.ArrowLeft) pl = Math.max(pl, 1); if (k.ArrowRight) pr = Math.max(pr, 1);
+    if (k.ArrowDown){ pl = Math.max(pl, 1); pr = Math.max(pr, 1); }
+    if (k.ArrowUp){ if (!k.ArrowLeft) pl = Math.min(pl, -1); if (!k.ArrowRight) pr = Math.min(pr, -1); }
+    S.ctl = { pl, pr };
     if (S.auto) autopilot();
+    S.ctl.L = S.ctl.pl > .3; S.ctl.R = S.ctl.pr > .3;
   }
   function autopilot(){
     const d = Math.hypot(S.x, S.y), want = Math.atan2(-S.x, S.y) * 180 / Math.PI, glide = S.h * (9 / 3.8);
     let diff = ((want - S.th) % 360 + 540) % 360 - 180;
     /* for højt oppe: cirkel; ellers sigt mod målet; brems til sidst */
-    const L = diff < -8, R = diff > 8;
-    S.ctl = glide > d + 45 ? { L: false, R: true, F: false } : { L, R, F: false };
-    if (S.h < 5) S.ctl = { L: true, R: true, F: false };
+    S.ctl = glide > d + 45 ? { pl: 0, pr: 1 } : { pl: diff < -8 ? 1 : 0, pr: diff > 8 ? 1 : 0 };
+    if (S.h < 5) S.ctl = { pl: 1, pr: 1 };
   }
   function stepCanopy(dt){
     S.t += dt; ctl();
-    const { L, R, F } = S.ctl, brake = L && R;
-    let vt = 9, st = 3.8;
-    if (brake){ vt = 4.2; st = 2.6; } else if (F){ vt = 14; st = 6.2; }
-    const turn = brake ? 0 : L ? -1 : R ? 1 : 0;
-    if (turn) st += 1.3;
-    S.turnV += (turn * 80 - S.turnV) * Math.min(1, dt * 4);
+    /* et håndtag ned: drej den vej; det andet op samtidig: skarpere. Begge ned: brems. Begge op: hurtigere */
+    const { pl, pr } = S.ctl, brake = Math.max(0, Math.min(pl, pr)), fast = Math.max(0, Math.min(-pl, -pr));
+    const turn = clamp(pr - pl, -2, 2), at = Math.abs(turn);
+    const vt = 9 - 4.8 * brake + 5 * fast, st = 3.8 - 1.2 * brake + 2.4 * fast + 1.3 * Math.min(1, at) + .5 * Math.max(0, at - 1);
+    const rate = Math.sign(turn) * (80 * Math.min(1, at) + 45 * Math.max(0, at - 1));
+    S.turnV += (rate - S.turnV) * Math.min(1, dt * 4);
     S.th += S.turnV * dt;
     S.v += (vt - S.v) * Math.min(1, dt * 1.8); S.sink += (st - S.sink) * Math.min(1, dt * 1.8);
     const rad = S.th * Math.PI / 180;
     S.x += (Math.sin(rad) * S.v + S.wind.x) * dt; S.y += (-Math.cos(rad) * S.v + S.wind.y) * dt; S.h -= S.sink * dt;
     for (const f of S.floaters) { f.a += .5 * dt; f.x += Math.sin(S.t * .7 + f.a) * .3 * dt + S.wind.x * dt; f.y += S.wind.y * dt; }
-    if (S.h < 6) S.soft = brake;
+    if (S.h < 6) S.soft = brake > .6;
     if (S.h <= 0){ S.h = 0; land(); }
   }
   function drawCanopy(){
@@ -5726,8 +5781,7 @@ const Fald = (() => {
     sc.querySelector('.fs-crot').setAttribute('transform', `rotate(${S.th.toFixed(1)})`);
     sc.querySelector('.fs-crot').classList.toggle('pl', S.ctl.L); sc.querySelector('.fs-crot').classList.toggle('pr', S.ctl.R);
     drawShadow(); drawFloaters();
-    for (const [k, on] of [['l', S.ctl.L], ['r', S.ctl.R], ['f', S.ctl.F && !(S.ctl.L && S.ctl.R)]]){ const p = $('#faldBody .fs-pad.' + k); if (p) p.classList.toggle('on', on); }
-    const b = $('#faldBody .fs-both'); if (b) b.classList.toggle('on', S.ctl.L && S.ctl.R);
+    for (const [k, v] of [['l', S.ctl.pl], ['r', S.ctl.pr]]){ const g = $('#faldBody .fs-tog.' + k); if (!g) continue; const vv = Math.round(v * 20) / 20; if (g._v !== vv){ g._v = vv; g.style.setProperty('--v', vv); g.classList.toggle('on', Math.abs(vv) > .2); } }
     setAlt(Math.round(ALT1 * S.h / H0 / 10) * 10, ALT1 / ALT0 * S.h / H0);
     /* en pil i kanten, når målet er uden for skærmen */
     const tx = SCX - S.x * S.ppm, ty = SCY - S.y * S.ppm, pin = sc.querySelector('.fs-pin'), V = visBox(sc), m = 70, off = tx < V.x0 + 20 || tx > V.x1 - 20 || ty < V.y0 + 20 || ty > V.y1 - 20;
@@ -5789,7 +5843,9 @@ const Fald = (() => {
 
   /* ---------- styring ---------- */
   function bindInput(scene){
-    const zone = e => { const b = scene.getBoundingClientRect(), f = (e.clientX - b.left) / b.width; return f < .38 ? 'L' : f > .62 ? 'R' : 'F'; };
+    const zone = e => { const b = scene.getBoundingClientRect(), f = (e.clientX - b.left) / b.width; return f < .5 ? 'L' : 'R'; };
+    /* et håndtag følger fingeren op og ned fra der, hvor den satte sig */
+    const pull = e => { const p = S.ptrs.get(e.pointerId); if (!p) return; const b = scene.getBoundingClientRect(); p.v = clamp((e.clientY - p.y0) / (b.height * .2), -1, 1); };
     /* frit fald: hold fingeren et vilkårligt sted og træk — hun flytter sig samme vej som fingeren */
     const last = new Map();
     const drag = e => { const svg = scene.querySelector('svg'); if (!svg) return; const p = svgPoint(svg, e), q = last.get(e.pointerId); last.set(e.pointerId, p); if (!q) return; S.tx += (p.x - q.x) * 1.5; S.ty += (p.y - q.y) * 1.5; };
@@ -5798,9 +5854,9 @@ const Fald = (() => {
       if (S.run === 'intro'){ skipIntro(); return; }
       try { scene.setPointerCapture(e.pointerId); } catch (er) {}
       if (S.run === 'free'){ S.tx = S.hx; S.ty = S.hy; last.delete(e.pointerId); drag(e); }
-      S.ptrs.set(e.pointerId, zone(e));
+      S.ptrs.set(e.pointerId, { side: zone(e), y0: e.clientY, v: 0 });
     });
-    scene.addEventListener('pointermove', e => { if (!S) return; if (S.run === 'free' && S.ptrs.has(e.pointerId)) drag(e); if (S.ptrs.has(e.pointerId)) S.ptrs.set(e.pointerId, zone(e)); });
+    scene.addEventListener('pointermove', e => { if (!S || !S.ptrs.has(e.pointerId)) return; if (S.run === 'free') drag(e); else pull(e); });
     for (const ev of ['pointerup', 'pointercancel']) scene.addEventListener(ev, e => { last.delete(e.pointerId); if (S) S.ptrs.delete(e.pointerId); });
     if (!keyOn){ keyOn = true;
       document.addEventListener('keydown', e => { if (!S || $('#fald').hidden) return; if (e.key.startsWith('Arrow')){ e.preventDefault(); S.keys[e.key] = true; } if (e.key === ' ') skipIntro(); });
@@ -5831,6 +5887,16 @@ const Fald = (() => {
   function big(t){ const b = el('div', { class:'kf-big fs-big' }, t); $('#faldBody').append(b); b.classList.add('pop'); setTimeout(() => b.remove(), S && S.auto ? 50 : 1500); }
   function flash(){ const f = el('div', { class:'fs-flash', 'aria-hidden':'true' }); $('#faldBody').append(f); sfx.whoosh(); setTimeout(() => f.remove(), 900); }
   function plus(x, y, v){ const fx = $('#fsScene .fs-fx'); if (!fx) return; const e = mk('g', { transform: `translate(${x.toFixed(0)} ${(y - 70).toFixed(0)})` }, `<g class="fs-plus"><text x="0" y="0" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="700" font-size="64" fill="${v > 1 ? '#FFC02E' : '#FFF6D0'}" stroke="#3A1F60" stroke-width="8" paint-order="stroke">+${v}</text></g>`); fx.append(e); setTimeout(() => e.remove(), 1100); }
+  /* tordenskyen ramte: en stjerne ryger, hvis hun har nogen */
+  function zap(o){
+    const sc = $('#fsScene'); if (sc){ sc.classList.remove('fs-shake'); void sc.offsetWidth; sc.classList.add('fs-shake'); }
+    tone(90, 0.35, 'sawtooth', 0.06, 0, .5); S.tilt += S.hx > o.x ? 30 : -30;
+    if (S.bubbles > 0){
+      S.bubbles--; const n = $('#faldBody .fs-count .n'); if (n) n.textContent = S.bubbles;
+      const fx = $('#fsScene .fs-fx'); if (fx){ const a = S.hx > o.x ? 1 : -1, e = mk('g', { transform: `translate(${S.hx.toFixed(0)} ${S.hy.toFixed(0)})` }, `<g class="fs-lost" style="--dx:${a * 260}px">${starP(0, 0, 34, '#FFE27A')}</g>`); fx.append(e); setTimeout(() => e.remove(), 1300); }
+      sfx.nope(); big('Av! En stjerne røg');
+    } else big('Puha!');
+  }
   function puff(){ const f = el('div', { class:'fs-flash puff', 'aria-hidden':'true' }); $('#faldBody').append(f); tone(260, 0.2, 'sine', 0.03, 0, 1.4); setTimeout(() => f.remove(), 700); }
   function spark(x, y, col){ const fx = $('#fsScene .fs-fx'); if (!fx || calm) return; for (let i = 0; i < 7; i++){ const a = i / 7 * Math.PI * 2, e = mk('g', { transform: `translate(${x.toFixed(0)} ${y.toFixed(0)})` }, `<g class="kf-burst" style="--dx:${(Math.cos(a) * 80).toFixed(0)}px;--dy:${(Math.sin(a) * 80).toFixed(0)}px">${star4(0, 0, 12, col)}</g>`); fx.append(e); setTimeout(() => e.remove(), 1400); } }
 
@@ -6058,6 +6124,8 @@ const Arkade = (() => {
     const stopBtn = el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); show(); } }, html: ic('<path d="M15 5l-7 7 7 7"/>') + 'Stop' });
     box.append(stage, ...placeUi([ stopBtn ], [ el('span', { class:'ak-pill', id:'akInfo', hidden: true }), el('span', { class:'ak-pill ak-score' }, [ el('span', { class:'lab' }, 'Point'), el('span', { id:'akScore' }, '0') ]), audioBtns() ]));
     updateAudioBtns();
+    /* gribemaskinen giver en bamse, ikke point */
+    if (game.noScore){ const sp = box.querySelector('.ak-score'); if (sp) sp.hidden = true; }
     const gen = {};
     cur = { id, game, gen, score: 0 };
     const api = {
@@ -6674,14 +6742,40 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     o += `<g class="gr-back"></g><g class="gr-pile"></g><g class="gr-claw"></g>`;
     /* glasset glimter */
     o += `<path d="M 240 40 L 380 40 L 240 300 Z M 1060 40 L 1140 40 L 860 744 L 790 744 Z" fill="#FFF" opacity=".06" pointer-events="none"/>`;
-    /* kontrolpanelet */
-    o += `<path d="M 160 770 H 1440 V 1030 H 160 Z" fill="#2A1E52" stroke="${E}" stroke-width="6"/><path d="M 170 778 H 1430" stroke="#5A4A8A" stroke-width="4"/>`;
-    o += `<g class="gr-door"><rect x="220" y="800" width="180" height="170" rx="14" fill="#140C2A" stroke="${E}" stroke-width="4"/><path d="M 228 816 H 392" stroke="#3A2E5A" stroke-width="4"/><g class="gr-won"></g></g>`;
-    const btn = (id, x, r, col, label) => `<g class="gr-btn" data-b="${id}" style="cursor:pointer"><ellipse cx="${x}" cy="${890 + 12}" rx="${r}" ry="${r * .55}" fill="#140C2A"/><g class="gr-cap"><ellipse cx="${x}" cy="890" rx="${r}" ry="${r * .55}" fill="${col}" stroke="${E}" stroke-width="5"/><ellipse cx="${x - r * .25}" cy="${890 - r * .18}" rx="${r * .4}" ry="${r * .16}" fill="#FFF" opacity=".35"/>${label}</g><rect x="${x - r - 20}" y="${890 - r}" width="${2 * r + 40}" height="${2 * r}" fill="#FFF" fill-opacity="0"/></g>`;
-    o += btn('v', 560, 74, '#7FD8FF', `<path d="M 586 870 L 530 890 L 586 910 Z" fill="${E}"/>`);
-    o += btn('h', 760, 74, '#7FD8FF', `<path d="M 734 870 L 790 890 L 734 910 Z" fill="${E}"/>`);
-    o += btn('grib', 1160, 108, '#E0457A', `<text x="1160" y="902" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="40" fill="#FFF6D0" stroke="${E}" stroke-width="2" paint-order="stroke">GRIB</text>`);
-    o += `<text x="660" y="990" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="22" fill="#B9AEDB">Hold pilene nede</text>`;
+    /* kontrolpanelet: et gammelt messing- og mahognipanel, som var maskinen bygget i 1800-tallet */
+    const BR = '#C9973E', BRd = '#6E4B17', BRl = '#F2D58A';
+    o += `<defs><linearGradient id="grWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6A2F1C"/><stop offset=".5" stop-color="#4A1E12"/><stop offset="1" stop-color="#2E110A"/></linearGradient>`
+      + `<linearGradient id="grBrass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BRl}"/><stop offset=".45" stop-color="${BR}"/><stop offset="1" stop-color="${BRd}"/></linearGradient>`
+      + `<radialGradient id="grBezel" cx=".4" cy=".3" r=".75"><stop offset="0" stop-color="${BRl}"/><stop offset=".55" stop-color="${BR}"/><stop offset="1" stop-color="${BRd}"/></radialGradient>`
+      + `<radialGradient id="grTeal" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#C8FFF4"/><stop offset=".35" stop-color="#3FC7B4"/><stop offset="1" stop-color="#0B4A4A"/></radialGradient>`
+      + `<radialGradient id="grRuby" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFD0DC"/><stop offset=".35" stop-color="#E0305A"/><stop offset="1" stop-color="#5A0820"/></radialGradient></defs>`;
+    o += `<path d="M 160 770 H 1440 V 1030 H 160 Z" fill="url(#grWood)" stroke="${E}" stroke-width="6"/>`;
+    /* træets årer */
+    for (let k = 0; k < 7; k++){ const y = 800 + k * 32; o += `<path d="M 170 ${y} C 420 ${y - 8} 700 ${y + 10} 980 ${y - 4} S 1330 ${y + 6} 1430 ${y}" stroke="#2A0E06" stroke-width="2" fill="none" opacity=".35"/>`; }
+    /* messinglisten foroven med nitter */
+    o += `<rect x="160" y="770" width="1280" height="20" fill="url(#grBrass)" stroke="${BRd}" stroke-width="2"/>`;
+    for (let x = 190; x < 1440; x += 70) o += `<circle cx="${x}" cy="780" r="4" fill="${BRl}" stroke="${BRd}" stroke-width="1.5"/>`;
+    /* tandhjul som pynt */
+    const gear = (cx, cy, r, n, rot) => { let d = ''; for (let k = 0; k < n * 2; k++){ const a = (k / (n * 2)) * Math.PI * 2 + rot, rr = k % 2 ? r : r * 1.18; d += (k ? 'L' : 'M') + ` ${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)} `; }
+      return `<path d="${d}Z" fill="url(#grBrass)" stroke="${BRd}" stroke-width="3"/><circle cx="${cx}" cy="${cy}" r="${(r * .45).toFixed(1)}" fill="#3A1A0C" stroke="${BRd}" stroke-width="3"/><circle cx="${cx}" cy="${cy}" r="${(r * .16).toFixed(1)}" fill="${BRl}"/>`; };
+    o += gear(930, 860, 34, 10, .2) + gear(985, 905, 22, 8, .5) + gear(1400, 990, 26, 9, 0);
+    o += `<g class="gr-door"><rect x="220" y="800" width="180" height="170" rx="14" fill="#140C2A" stroke="url(#grBrass)" stroke-width="8"/><path d="M 228 816 H 392" stroke="#3A2E5A" stroke-width="4"/><g class="gr-won"></g></g>`;
+    /* knapperne: en messingring med en kuppel af farvet glas; man trykker kuplen ned */
+    const btn = (id, x, r, glass, label) => `<g class="gr-btn" data-b="${id}" style="cursor:pointer">`
+      + `<ellipse cx="${x}" cy="${890 + 16}" rx="${r + 16}" ry="${(r + 16) * .55}" fill="#1A0804" opacity=".6"/>`
+      + `<ellipse cx="${x}" cy="${890 + 8}" rx="${r + 14}" ry="${(r + 14) * .55}" fill="url(#grBezel)" stroke="${BRd}" stroke-width="3"/>`
+      + Array.from({ length: 8 }, (_, k) => { const a = k / 8 * Math.PI * 2; return `<circle cx="${(x + Math.cos(a) * (r + 7)).toFixed(1)}" cy="${(898 + Math.sin(a) * (r + 7) * .55).toFixed(1)}" r="3" fill="${BRl}" stroke="${BRd}" stroke-width="1"/>`; }).join('')
+      + `<ellipse cx="${x}" cy="${890 + 10}" rx="${r}" ry="${r * .55}" fill="#120604"/>`
+      + `<g class="gr-cap"><ellipse cx="${x}" cy="${890 + 8}" rx="${r - 4}" ry="${(r - 4) * .55}" fill="${BRd}"/><ellipse cx="${x}" cy="890" rx="${r - 6}" ry="${(r - 6) * .55}" fill="url(#${glass})" stroke="${BRd}" stroke-width="3"/>`
+      + `<ellipse cx="${x - r * .28}" cy="${890 - r * .2}" rx="${r * .3}" ry="${r * .11}" fill="#FFF" opacity=".55"/>${label}</g>`
+      + `<rect x="${x - r - 20}" y="${890 - r}" width="${2 * r + 40}" height="${2 * r}" fill="#FFF" fill-opacity="0"/></g>`;
+    const plate = (x, y, w, txt, fs) => `<rect x="${x - w / 2}" y="${y - 22}" width="${w}" height="40" rx="6" fill="url(#grBrass)" stroke="${BRd}" stroke-width="3"/><circle cx="${x - w / 2 + 12}" cy="${y - 2}" r="3.5" fill="${BRd}"/><circle cx="${x + w / 2 - 12}" cy="${y - 2}" r="3.5" fill="${BRd}"/>`
+      + `<text x="${x}" y="${y + 7}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="${fs}" fill="#3A2208" letter-spacing="1">${txt}</text>`;
+    const arrow = (x, d) => `<path d="M ${x + d * 22} 872 L ${x - d * 26} 890 L ${x + d * 22} 908 Z" fill="#06302C" opacity=".8"/><path d="M ${x + d * 22} 872 L ${x - d * 26} 890 L ${x + d * 22} 908 Z" fill="none" stroke="#9FF4E4" stroke-width="2" opacity=".5"/>`;
+    o += btn('v', 560, 70, 'grTeal', arrow(560, 1));
+    o += btn('h', 760, 70, 'grTeal', arrow(760, -1));
+    o += btn('grib', 1180, 100, 'grRuby', `<path d="M 1180 856 l 9 18 l 20 3 l -15 14 l 4 20 l -18 -10 l -18 10 l 4 -20 l -15 -14 l 20 -3 Z" fill="#FFE9A8" opacity=".85"/>`);
+    o += plate(660, 968, 300, 'Hold pilene nede', 24);
     return o + `</svg>`;
   }
 
@@ -6871,7 +6965,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
       + [-1, 1].map(d => `<circle cx="${d * PIV}" cy="${HH / 2 - 2}" r="5.5" fill="#6A6480" stroke="${E}" stroke-width="2"/>`).join('') + `</g>`;
     S.svg.querySelector('.gr-claw').innerHTML = o;
   }
-  Arkade.GAMES.gribe = { start, stop, test: {
+  Arkade.GAMES.gribe = { start, stop, noScore: true, test: {
     aimAt: () => { if (!S) return null; const p = S.plushes.filter(q => !q.gone).sort((a, b) => a.position.y - b.position.y)[0]; return p && p.position.x; },
     setGrip: g => { if (S) S.grip = g; },
     state: () => S && { x: S.tx, phase: S.phase, open: 1 - S.close, grip: S.grip, carried: S.carried, won: !!S.wonP, len: S.cable.length } } };
@@ -7507,7 +7601,7 @@ const TXT = {
   broend: {
     spoerg: "Ønske? Tryk igen for at smide en stjerne i!",
     ingen: "Smid en stjerne i for at ønske!",
-    opfyldt: "Tillykke! Din økse er gået i opfyldelse!",
+    opfyldt: "Tillykke! Din økse er gået i opfyldelse! Det blev en {navn}.",
     foerste: "Den er leveret til dit værelse.",
     flere: "En til? Er {n} økser nok?",
     udsolgt: "Nu er brønden UDSOLGT!",
@@ -8083,6 +8177,7 @@ const ROUTES = {
   arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994]]),
   bro:    R_BRO,
   drage:  R_HUS.slice(0, -1).concat([[300,798], [200,796], [160,740], [146,640], [150,520], [166,412]]),
+  broend: [HUB, [800,708]],
   baenkV: [HUB, [700,620], [690,574]],
   baenkH: [HUB, [900,640], [910,574]],
 };
@@ -8271,7 +8366,14 @@ function tapThing(t){
     h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
     return walkRoute(h, routeTo(heroAt, 'drage'), 0.3, () => { heroAt = 'drage'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); dragonTalk(t); });
   }
-  if (kind === 'broend') return wellWish(t);
+  if (kind === 'broend'){
+    /* hun går hen til brønden først, ligesom ved dragen */
+    if (wellBusy || walking) return;
+    if (heroAt === 'broend' || calm) return wellWish(t);
+    const h = LIFE.hero, pet = LIFE.pet; walking = true; sfx.pick();
+    h.img.setAttribute('href', SPR.walk); if (pet) pet.img.setAttribute('href', SPR.pwalk);
+    return walkRoute(h, routeTo(heroAt, 'broend'), 0.3, () => { heroAt = 'broend'; walking = false; h.img.setAttribute('href', SPR.idle); if (pet) pet.img.setAttribute('href', SPR.sit); wellWish(t); });
+  }
   if (kind === 'trold'){ sfx.roar(); jump('.tapjump'); return sayT(pick(TXT.trold), 2200); }
   if (kind === 'krage'){ sfx.chirp(); jump('.tapjump'); return sayT(pick(TXT.krage), 2000); }
   if (kind === 'and'){ sfx.quack(); jump('.tapjump'); return sayT(pick(TXT.and)); }
@@ -8325,13 +8427,13 @@ function wellWish(t){
     if (k < 1) requestAnimationFrame(fall); else { st.remove(); sfx.splash(); setTimeout(axeUp, 400); } };
   requestAnimationFrame(fall);
   const axeUp = () => {
-    const ax = sv('g', { 'pointer-events':'none' }, axeSvg(1.4)); fx.append(ax); const t1 = performance.now(); sfx.twinkle();
+    const ax = sv('g', { 'pointer-events':'none' }, axeSvg(1.4, n)); fx.append(ax); const t1 = performance.now(); sfx.twinkle();
     const rise = now3 => { const k = Math.min(1, (now3 - t1) / 1100), e = 1 - Math.pow(1 - k, 3);
       ax.setAttribute('transform', `translate(800,${(616 - e * 190).toFixed(1)}) rotate(${(e * 360).toFixed(0)})`); ax.setAttribute('opacity', k < .85 ? 1 : (1 - (k - .85) / .15).toFixed(2));
       if (k < 1) requestAnimationFrame(rise); else ax.remove(); };
     requestAnimationFrame(rise);
     const m = n + 1; store.set(KEY_AXE, m);
-    bubble(TXT.broend.opfyldt, pos, 3000, true);
+    bubble(TXT.broend.opfyldt.replace('{navn}', AXE_KINDS[n % AXE_KINDS.length].name), pos, 3000, true);
     setTimeout(() => {
       if (m === 1) bubble(TXT.broend.foerste, pos, 2600);
       else if (m >= AXE_MAX){ bubble(TXT.broend.udsolgt, pos, 2800, true); t.insertAdjacentHTML('beforeend', wellSoldSign()); }
@@ -8341,8 +8443,30 @@ function wellWish(t){
   };
 }
 const wellSoldSign = () => `<g transform="translate(0 -18) rotate(-6)"><rect x="-44" y="-12" width="88" height="24" rx="4" fill="#E0457A" stroke="#7A1A3A" stroke-width="2"/><text x="0" y="6" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFFFFF" letter-spacing="1">UDSOLGT</text></g>`;
-/* en økse: skaft af træ og et blankt hoved; tegnet med skaftets midte i 0,0 */
-const axeSvg = (k = 1) => `<g transform="scale(${k})"><path d="M 0 30 V -30" stroke="#8A5A3C" stroke-width="5" stroke-linecap="round"/><path d="M 0 30 V -30" stroke="#B5743A" stroke-width="2" stroke-linecap="round" opacity=".6"/><path d="M 1 -30 C 12 -34 20 -28 22 -18 C 22 -10 18 -6 14 -6 C 10 -12 6 -16 1 -16 Z" fill="#C8C4D8" stroke="#3A3450" stroke-width="2" stroke-linejoin="round"/><path d="M 16 -26 C 20 -20 20 -14 17 -9" stroke="#FFFFFF" stroke-width="2" fill="none" opacity=".8"/><rect x="-3" y="-34" width="6" height="22" rx="2" fill="#6A6480" stroke="#3A3450" stroke-width="1.5"/></g>`;
+/* de 12 økser fra Øksebrønden: hver gang en ny slags. Tegnet med skaftets midte i 0,0 (hovedet foroven til højre) */
+const AXE_KINDS = (() => {
+  const E = '#3A3450';
+  const stick = (c = '#8A5A3C', hl = '#B5743A', y0 = 30, y1 = -30) => `<path d="M 0 ${y0} V ${y1}" stroke="${c}" stroke-width="5" stroke-linecap="round"/><path d="M 0 ${y0} V ${y1}" stroke="${hl}" stroke-width="2" stroke-linecap="round" opacity=".6"/>`;
+  const blade = (fill, line = E, shine = '#FFFFFF') => `<path d="M 1 -30 C 12 -34 20 -28 22 -18 C 22 -10 18 -6 14 -6 C 10 -12 6 -16 1 -16 Z" fill="${fill}" stroke="${line}" stroke-width="2" stroke-linejoin="round"/><path d="M 16 -26 C 20 -20 20 -14 17 -9" stroke="${shine}" stroke-width="2" fill="none" opacity=".8"/>`;
+  const eye = (c = '#6A6480') => `<rect x="-3" y="-34" width="6" height="22" rx="2" fill="${c}" stroke="${E}" stroke-width="1.5"/>`;
+  const mirror = svg => `<g transform="scale(-1 1)">${svg}</g>`;
+  return [
+    { name: 'skovhuggerøkse', svg: stick() + blade('#C8C4D8') + eye() },
+    { name: 'guldøkse', svg: stick('#7A3A1C', '#C9773A') + blade('#F2C14E', '#8A5A12', '#FFF6C0') + eye('#C9973E') + `<circle cx="0" cy="-23" r="2.4" fill="#E0457A"/>` },
+    { name: 'dobbeltøkse', svg: stick('#5A3A28', '#8A5A3C') + blade('#B9C4D6') + mirror(blade('#B9C4D6')) + eye() },
+    { name: 'krystaløkse', svg: stick('#7A5AA8', '#B49AE0') + `<path d="M 2 -32 L 14 -36 L 24 -22 L 16 -6 L 4 -14 Z" fill="#FF9AD0" stroke="#8A2A6A" stroke-width="2" stroke-linejoin="round"/><path d="M 14 -36 L 12 -20 L 24 -22 M 12 -20 L 16 -6 M 12 -20 L 4 -14" stroke="#FFF" stroke-width="1.2" opacity=".7" fill="none"/>` + eye('#B49AE0') },
+    { name: 'isøkse', svg: stick('#5A7A9A', '#9ACBEF') + blade('#BFEFFF', '#2A6A9A') + `<path d="M 6 -6 l -1 6 M 11 -8 l 0 7 M 16 -6 l 1 5" stroke="#BFEFFF" stroke-width="2" stroke-linecap="round"/>` + eye('#7AB8DF') },
+    { name: 'ildøkse', svg: stick('#3A2A2A', '#6A4A3A') + blade('#E0402A', '#6A1408', '#FFD27A') + `<path d="M 14 -31 q 6 -6 3 -13 q 9 5 6 15 Z M 20 -27 q 5 -3 4 -9 q 6 5 2 11 Z" fill="#FFB02E" opacity=".95"/>` + eye('#3A2A2A') },
+    { name: 'lille håndøkse', svg: stick('#8A5A3C', '#B5743A', 18, -22) + `<g transform="translate(0 6) scale(.75)">${blade('#C8C4D8')}${eye()}</g>` },
+    { name: 'vikingeøkse', svg: stick('#6A4A2A', '#9A7A4A') + `<path d="M 1 -32 C 14 -32 24 -24 24 -8 C 24 0 20 4 14 2 C 14 -8 8 -14 1 -16 Z" fill="#AEB4C2" stroke="${E}" stroke-width="2" stroke-linejoin="round"/><path d="M 20 -26 C 23 -18 23 -8 20 -2" stroke="#FFF" stroke-width="2" fill="none" opacity=".75"/>` + `<path d="M -1 8 l 0 6 M -1 16 l 0 6" stroke="#3A2A1A" stroke-width="5"/>` + eye() },
+    { name: 'stridsøkse', svg: stick('#3A2E5A', '#6A5A9A') + blade('#9AA4BA') + mirror(`<path d="M 1 -28 L 12 -26 L 12 -18 L 1 -18 Z" fill="#9AA4BA" stroke="${E}" stroke-width="2"/>`) + eye('#3A2E5A') + `<circle cx="0" cy="-23" r="3.6" fill="#62E0CB" stroke="${E}" stroke-width="1.2"/><circle cx="-1" cy="-24" r="1.2" fill="#FFF"/>` },
+    { name: 'slikøkse', svg: `<path d="M 0 30 V -30" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/><path d="M -2 26 l 4 -6 M -2 16 l 4 -6 M -2 6 l 4 -6 M -2 -4 l 4 -6 M -2 -14 l 4 -6" stroke="#E0457A" stroke-width="2.4" stroke-linecap="round"/>` + blade('#FF8FC7', '#A02A6A', '#FFFFFF') + `<circle cx="11" cy="-22" r="2" fill="#FFF"/><circle cx="16" cy="-14" r="1.6" fill="#9BE36A"/><circle cx="8" cy="-17" r="1.4" fill="#FFE27A"/>` + eye('#FFFFFF') },
+    { name: 'stjerneøkse', svg: stick('#2A2A5A', '#5A5AA8') + blade('#7B5CFF', '#2A1A6A', '#D8CCFF') + `<path d="M 12 -26 l 1.6 3.4 l 3.7 .5 l -2.7 2.6 l .7 3.7 l -3.3 -1.8 l -3.3 1.8 l .7 -3.7 l -2.7 -2.6 l 3.7 -.5 Z" fill="#FFE27A"/>` + eye('#5A5AA8') },
+    { name: 'alfeøkse', svg: stick('#5A7A3A', '#9BC86A') + `<path d="M 1 -32 C 16 -38 26 -26 22 -12 C 18 -4 10 -6 6 -10 C 10 -16 6 -24 1 -24 Z" fill="#9BE36A" stroke="#2A5A1A" stroke-width="2" stroke-linejoin="round"/><path d="M 4 -27 C 12 -26 18 -20 18 -10" stroke="#2A5A1A" stroke-width="1.4" fill="none"/>` + `<path d="M 0 30 q -6 -4 -4 -10" stroke="#9BC86A" stroke-width="2" fill="none"/><circle cx="-4" cy="20" r="2" fill="#FF8FC7"/>` + eye('#6A9A3A') },
+  ];
+})();
+/* en økse; nr. vælger slagsen (0-11) */
+const axeSvg = (k = 1, nr = 0) => `<g transform="scale(${k})">${AXE_KINDS[((nr % AXE_KINDS.length) + AXE_KINDS.length) % AXE_KINDS.length].svg}</g>`;
 
 function flyBird(t){
   if (t.classList.contains('away')) return;
