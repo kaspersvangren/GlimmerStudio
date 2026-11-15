@@ -721,10 +721,12 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @media (prefers-reduced-motion: reduce){ .fs-arms,.fs-hairf{animation:none!important} .fs-flash{animation-duration:.01s} }
 .fs-big{font-size:clamp(30px,10vh,86px);padding:0 16px;top:9%}
 #fsScene,#fsScene > svg{touch-action:none}
+#fsScene > .fs-jord{position:absolute;inset:0;width:100%;height:100%;display:block}
+#fsScene > .fs-jord + svg{position:relative}
 .fs-ring.hot circle{stroke:#FFE27A;stroke-dasharray:none;fill-opacity:.2}
 .fs-ring.first .fs-point{animation:fspoint .7s ease-in-out infinite alternate}
 @keyframes fspoint{from{transform:translateY(-14px)}to{transform:translateY(6px)}}
-.fs-bglow{filter:drop-shadow(0 0 10px rgba(255,240,180,.9))}
+
 .fs-plus{animation:fsplus 1.05s ease-out forwards}
 @keyframes fsplus{0%{transform:translateY(0) scale(.6);opacity:0}20%{transform:translateY(-10px) scale(1.15);opacity:1}100%{transform:translateY(-90px) scale(1);opacity:0}}
 .fs-count.bump{animation:fsbump .35s ease-out}
@@ -1998,7 +2000,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.22.0';
+const VERSION = 'v0.23.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -5057,6 +5059,158 @@ const Kost = (() => {
   return { show, state: () => S, previewSvg, teacherSvg, riderSvg: (st, o) => riderArt(st, o), broomSvg, teacherUrl: () => svgUrl(renderDoll(TEACHER, { viewBox:'200 140 400 400', pet:false }).replace(/<\/svg>$/, GOGGLES + '</svg>')), TEACH, test: { step, tryLoop, layers: () => ({ far: layer(FAR, 'a'), mid: layer(MID, 'b'), near: layer(NEAR, 'c'), n: [FAR.length, MID.length, NEAR.length] }) } };
 })();
 
+/* ================= Faldskærmens jord på et lærred =================
+   Jorden er en stor tegning (8 × 8 km, flere tusinde figurer). Som SVG skulle telefonen tegne den hele forfra
+   i hvert billede, fordi den zoomer hele tiden. Her læses tegningen én gang og laves om til en liste af figurer
+   (med kasse, farver og deres egen højde over jorden), som tegnes på et lærred:
+   - kun det, der er på skærmen, og som er stort nok til at kunne ses
+   - ting med højde (trætoppe, tage, tårne, folk) tegnes som set fra et kamera i luften: jo tættere på kameraet,
+     jo større og jo hurtigere glider de forbi. Det giver dybde.
+   - de få ting, der bevæger sig (ildfluer, røg, vindposen), regnes med i hvert billede. */
+const FaldJord = (() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const num = (e, n, d = 0) => { const v = parseFloat(e.getAttribute(n)); return isNaN(v) ? d : v; };
+  const secs = v => { const m = /^(-?[\d.]+)\s*(ms|s)?$/.exec(String(v || '0').trim()); return m ? (m[2] === 'ms' ? +m[1] / 1000 : +m[1]) : 0; };
+
+  /* figurens form i dens egne koordinater */
+  function shape(e){
+    const p = new Path2D(), t = e.tagName;
+    if (t === 'rect'){ const x = num(e, 'x'), y = num(e, 'y'), w = num(e, 'width'), h = num(e, 'height'), rx = Math.min(num(e, 'rx', num(e, 'ry')), w / 2, h / 2);
+      if (rx > 0 && p.roundRect) p.roundRect(x, y, w, h, rx); else p.rect(x, y, w, h); }
+    else if (t === 'circle') p.arc(num(e, 'cx'), num(e, 'cy'), num(e, 'r'), 0, Math.PI * 2);
+    else if (t === 'ellipse') p.ellipse(num(e, 'cx'), num(e, 'cy'), num(e, 'rx'), num(e, 'ry'), 0, 0, Math.PI * 2);
+    else if (t === 'path') return new Path2D(e.getAttribute('d') || '');
+    else if (t === 'polygon' || t === 'polyline'){ const q = (e.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+      for (let i = 0; i + 1 < q.length; i += 2) i ? p.lineTo(q[i], q[i + 1]) : p.moveTo(q[i], q[i + 1]); if (t === 'polygon') p.closePath(); }
+    else if (t === 'line'){ p.moveTo(num(e, 'x1'), num(e, 'y1')); p.lineTo(num(e, 'x2'), num(e, 'y2')); }
+    else return null;
+    return p;
+  }
+  /* farveovergange (kun dem jorden bruger: radiale i figurens egen kasse) */
+  function gradOf(svg, v){
+    const m = /url\(["']?#([^"')]+)/.exec(v || ''); if (!m) return null;
+    const g = svg.querySelector('#' + CSS.escape(m[1])); if (!g) return null;
+    const stops = [...g.querySelectorAll('stop')].map(s => { const cs = getComputedStyle(s), c = cs.stopColor.match(/[\d.]+/g).map(Number);
+      return [parseFloat(s.getAttribute('offset')) || 0, `rgba(${c[0]},${c[1]},${c[2]},${(c[3] ?? 1) * +cs.stopOpacity})`]; });
+    return { radial: g.tagName === 'radialGradient', cx: num(g, 'cx', .5), cy: num(g, 'cy', .5), r: num(g, 'r', .5), x1: num(g, 'x1', 0), y1: num(g, 'y1', 0), x2: num(g, 'x2', 1), y2: num(g, 'y2', 0), stops };
+  }
+
+  /* læs tegningen: i bidder, så skærmen ikke fryser. Kalder done(model), når den er færdig */
+  function build(defs, inner, done){
+    const host = document.createElementNS(NS, 'svg');
+    host.setAttribute('width', '1'); host.setAttribute('height', '1');
+    host.style.cssText = 'position:absolute;left:-10px;top:-10px;width:1px;height:1px;overflow:hidden;visibility:hidden;pointer-events:none';
+    host.innerHTML = `<defs>${defs}</defs><g>${inner}</g>`;
+    document.body.append(host);
+    const root = host.lastChild, leaves = [...root.querySelectorAll('path,rect,circle,ellipse,polygon,polyline,line')], prims = [];
+    const opac = new Map(), opOf = g => { if (g === root || !g) return 1; if (opac.has(g)) return opac.get(g); const v = (+getComputedStyle(g).opacity) * opOf(g.parentElement); opac.set(g, v); return v; };
+    let i = 0;
+    const chunk = () => {
+      const until = performance.now() + 10;
+      for (; i < leaves.length && performance.now() < until; i++){
+        const e = leaves[i], cs = getComputedStyle(e); if (cs.display === 'none') continue;
+        const path = shape(e); if (!path) continue;
+        const sockR = e.closest('.fs-sockr');
+        let M = e.getCTM(); if (!M) continue;
+        let P = null; if (sockR){ P = { p: DOMMatrix.fromMatrix(sockR.parentElement.getCTM()), l: DOMMatrix.fromMatrix(sockR.getCTM()).inverse().multiply(DOMMatrix.fromMatrix(M)) }; }
+        const bb = e.getBBox(), cs4 = [[bb.x, bb.y], [bb.x + bb.width, bb.y], [bb.x, bb.y + bb.height], [bb.x + bb.width, bb.y + bb.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(M));
+        const sw = cs.stroke !== 'none' ? parseFloat(cs.strokeWidth) || 0 : 0, sc = Math.hypot(M.a, M.b), pad = sw * sc / 2;
+        const box = [Math.min(...cs4.map(q => q.x)) - pad, Math.min(...cs4.map(q => q.y)) - pad, Math.max(...cs4.map(q => q.x)) + pad, Math.max(...cs4.map(q => q.y)) + pad];
+        const zEl = e.closest('[data-z]'), an = e.querySelector('animate[attributeName="opacity"]');
+        prims.push({ path, m: DOMMatrix.fromMatrix(M), box, size: Math.max(box[2] - box[0], box[3] - box[1]), bb: [bb.x, bb.y, bb.width, bb.height],
+          z: zEl ? parseFloat(zEl.dataset.z) || 0 : 0, n: prims.length,
+          fill: cs.fill === 'none' ? null : /^url/.test(cs.fill) ? gradOf(host, cs.fill) : cs.fill, fo: +cs.fillOpacity,
+          stroke: cs.stroke === 'none' || !sw ? null : cs.stroke, so: +cs.strokeOpacity, sw, cap: cs.strokeLinecap, join: cs.strokeLinejoin,
+          dash: cs.strokeDasharray === 'none' ? null : cs.strokeDasharray.split(/[\s,]+/).map(parseFloat).filter(v => !isNaN(v)), doff: parseFloat(cs.strokeDashoffset) || 0,
+          op: an ? opOf(e.parentElement) : +cs.opacity * opOf(e.parentElement),
+          anim: an ? { vals: an.getAttribute('values').split(';').map(Number), dur: secs(an.getAttribute('dur')), begin: secs(an.getAttribute('begin')) } : null,
+          smoke: !!e.closest('.fs-smoke'), sock: P });
+      }
+      if (i < leaves.length){ setTimeout(chunk, 0); return; }
+      host.remove();
+      /* først alt på jorden, så det med højde (lavest først); ellers i tegningens rækkefølge */
+      prims.sort((a, b) => (a.z - b.z) || (a.n - b.n));
+      done({ prims });
+    };
+    chunk();
+  }
+
+  /* tegn. v: { ppm, cx, cy } (jordens zoom og midtpunkt, som i spillet), map: SVG-enheder -> lærredets pixels, t: tid i sek, sock: { a, k }
+     Højt oppe (i det frie fald) er der mange små ting på skærmen, men højden giver næsten ingen dybde, og billedet zoomer langsomt.
+     Så tegnes jorden på et lager-lærred en gang imellem, og ellers vises lageret bare lidt mere zoomet (det klarer grafikchippen). */
+  const C = { cv: null, ppm: 0, cx: 0, cy: 0, key: '', m: 0 };
+  function draw(ctx, model, v, map, t, sock, haze){
+    draw0(ctx, model, v, map, t, sock); if (haze > 0) hazeOn(ctx, map, haze);
+  }
+  /* disen over jorden (som SVG'ens: en elliptisk overgang i en kasse på 5000 × 2400 omkring billedet) */
+  function hazeOn(ctx, map, a){
+    ctx.setTransform(map.a * 5000, 0, 0, map.a * 2400, map.a * -1700 + map.e, map.a * -700 + map.f);
+    const G = ctx.createRadialGradient(.5, .5, 0, .5, .5, .75); G.addColorStop(0, 'rgba(200,184,240,.12)'); G.addColorStop(1, 'rgba(42,34,96,.75)');
+    ctx.globalAlpha = Math.min(1, a); ctx.fillStyle = G; ctx.fillRect(0, 0, 1, 1); ctx.globalAlpha = 1;
+  }
+  function draw0(ctx, model, v, map, t, sock){
+    const W = ctx.canvas.width, H = ctx.canvas.height, D = 720 / v.ppm;
+    if (model && D > 350){
+      const key = `${W}x${H}|${map.a}|${map.e}|${map.f}|${v.cx}|${v.cy}`, s = v.ppm / C.ppm;
+      if (C.model !== model || C.key !== key || !(s > .955 && s <= 1.0001)){
+        if (!C.cv) C.cv = document.createElement('canvas');
+        /* margen: lageret tegnes lidt for tæt på og skrumper ind mod det rigtige; det skal stadig dække hele skærmen */
+        const MARGIN = C.m = Math.ceil(.05 * Math.max(W, H)) + 2; C.cv.width = W + 2 * MARGIN; C.cv.height = H + 2 * MARGIN;
+        C.ppm = v.ppm * 1.04; C.key = key; C.model = model;
+        drawRaw(C.cv.getContext('2d', { alpha: false }), model, { ppm: C.ppm, cx: v.cx, cy: v.cy }, { a: map.a, e: map.e + MARGIN, f: map.f + MARGIN }, t, sock);
+      }
+      const k = v.ppm / C.ppm, px = map.a * 800 + map.e, py = map.a * 500 + map.f, MARGIN = C.m;
+      ctx.fillStyle = '#2A2350'; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillRect(0, 0, W, H);
+      ctx.setTransform(k, 0, 0, k, px - k * (px + MARGIN), py - k * (py + MARGIN)); ctx.globalAlpha = 1; ctx.drawImage(C.cv, 0, 0);
+      return;
+    }
+    C.model = null;
+    drawRaw(ctx, model, v, map, t, sock);
+  }
+  function drawRaw(ctx, model, v, map, t, sock){
+    const W = ctx.canvas.width, H = ctx.canvas.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.fillStyle = '#2A2350'; ctx.fillRect(0, 0, W, H);
+    if (!model) return;
+    const SCX = 800, SCY = 500, FOCAL = 720, D = FOCAL / v.ppm;
+    let lastZ = null, k = 0, ox = 0, oy = 0, vx0 = 0, vx1 = 0, vy0 = 0, vy1 = 0, minS = 0;
+    let fs = null, ss = null, lw = -1, lc = '', lj = '', ld = '';
+    for (const p of model.prims){
+      if (p.z !== lastZ){ lastZ = p.z;
+        /* kameraet ser lige ned: noget i højden z er tættere på og ses større */
+        if (p.z >= D - 1) break;
+        const ppz = FOCAL / (D - p.z);
+        k = map.a * ppz; ox = map.a * (SCX - v.cx * ppz) + map.e; oy = map.a * (SCY - v.cy * ppz) + map.f;
+        vx0 = -ox / k; vx1 = (W - ox) / k; vy0 = -oy / k; vy1 = (H - oy) / k; minS = .4 / k; }
+      const b = p.box; if (b[2] < vx0 || b[0] > vx1 || b[3] < vy0 || b[1] > vy1 || p.size < minS) continue;
+      let a = p.op;
+      if (p.anim){ const u = t - p.anim.begin; if (u < 0) continue; const q = (u % p.anim.dur) / p.anim.dur * (p.anim.vals.length - 1), j = Math.floor(q), f = q - j; a *= p.anim.vals[j] + ((p.anim.vals[j + 1] ?? p.anim.vals[j]) - p.anim.vals[j]) * f; }
+      if (a <= 0.004) continue;
+      let m = p.m;
+      if (p.sock && sock){ m = p.sock.p.rotate(sock.a).scale(sock.k, 1).multiply(p.sock.l); }
+      if (p.smoke){ const s = (Math.sin(t * Math.PI / 3) + 1) / 2; a *= .5 + .5 * s; m = new DOMMatrix([1, 0, 0, 1, .6 * s, -.8 * s]).multiply(m); }
+      ctx.setTransform(k * m.a, k * m.b, k * m.c, k * m.d, k * m.e + ox, k * m.f + oy);
+      if (p.fill){
+        ctx.globalAlpha = a * p.fo;
+        if (typeof p.fill === 'string'){ if (p.fill !== fs){ ctx.fillStyle = fs = p.fill; } ctx.fill(p.path); }
+        else { const g = p.fill, [bx, by, bw, bh] = p.bb; ctx.save(); ctx.clip(p.path); ctx.transform(bw, 0, 0, bh, bx, by);
+          const G = g.radial ? ctx.createRadialGradient(g.cx, g.cy, 0, g.cx, g.cy, g.r) : ctx.createLinearGradient(g.x1, g.y1, g.x2, g.y2); g.stops.forEach(([o, c]) => G.addColorStop(Math.min(1, Math.max(0, o)), c));
+          ctx.fillStyle = G; ctx.fillRect(0, 0, 1, 1); ctx.restore(); fs = null; }
+      }
+      if (p.stroke){
+        ctx.globalAlpha = a * p.so;
+        if (p.stroke !== ss) ctx.strokeStyle = ss = p.stroke;
+        if (p.sw !== lw) ctx.lineWidth = lw = p.sw;
+        if (p.cap !== lc) ctx.lineCap = lc = p.cap;
+        if (p.join !== lj) ctx.lineJoin = lj = p.join;
+        const dk = p.dash ? p.dash.join() : ''; if (dk !== ld){ ld = dk; ctx.setLineDash(p.dash || []); }
+        if (p.dash) ctx.lineDashOffset = p.doff;
+        ctx.stroke(p.path);
+      }
+    }
+  }
+  return { build, draw };
+})();
+
 /* ================= Faldskærm =================
    Hele faget ligger i sin egen lukkede kasse (Fald), ligesom kosteflyvningen, så ingen navne herinde kan ramme andre filer.
 
@@ -5092,18 +5246,19 @@ const Fald = (() => {
   let S = null, raf = 0, keyOn = false;
 
   /* ---------- tegninger ---------- */
-  const treeTop = (x, y, r, c) => `<circle cx="${(x + r * .3).toFixed(1)}" cy="${(y + r * .35).toFixed(1)}" r="${r.toFixed(1)}" fill="#0E1A12" opacity=".28"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" stroke="${fdk(c, .35)}" stroke-width="${(r * .12).toFixed(2)}"/><circle cx="${(x - r * .3).toFixed(1)}" cy="${(y - r * .3).toFixed(1)}" r="${(r * .45).toFixed(1)}" fill="${lt(c, .18)}" opacity=".6"/>`;
+  /* data-z: højden over jorden i meter. I spillet tegnes de ting i deres højde, så de glider forbi lidt hurtigere end jorden (dybde) */
+  const treeTop = (x, y, r, c) => `<circle cx="${(x + r * .3).toFixed(1)}" cy="${(y + r * .35).toFixed(1)}" r="${r.toFixed(1)}" fill="#0E1A12" opacity=".28"/><g data-z="${(r * .9).toFixed(1)}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" stroke="${fdk(c, .35)}" stroke-width="${(r * .12).toFixed(2)}"/><circle cx="${(x - r * .3).toFixed(1)}" cy="${(y - r * .3).toFixed(1)}" r="${(r * .45).toFixed(1)}" fill="${lt(c, .18)}" opacity=".6"/></g>`;
   /* et lille menneske set ovenfra: skuldre og hoved (i meter) */
   /* et menneske set ovenfra, i meter (lidt større end i virkeligheden, så de kan ses fra luften):
      skuldre, arme (vinkende arme strækkes op mod os), hoved med hår, og måske en spids hat set ovenfra */
   const personTop = (x, y, body, hair, a = 0, o = {}) => { const k = 5.2, bd = fdk(body, .4);
-    let g = `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(0)}) scale(${k})"><ellipse cx=".12" cy=".16" rx=".46" ry=".3" fill="#0E1A12" opacity=".3"/>`;
+    let g = `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(0)}) scale(${k})"><ellipse cx=".12" cy=".16" rx=".46" ry=".3" fill="#0E1A12" opacity=".3"/><g data-z="1.6">`;
     if (o.cape) g += `<path d="M -.36 0 Q -.4 .5 0 .62 Q .4 .5 .36 0 Z" fill="${o.cape}" stroke="${fdk(o.cape, .4)}" stroke-width=".04"/>`;
     g += o.wave ? `<path d="M -.34 -.04 L -.5 -.42 M .34 -.04 L .5 -.42" stroke="${body}" stroke-width=".14" stroke-linecap="round"/><circle cx="-.52" cy="-.46" r=".08" fill="#F1C9A6"/><circle cx=".52" cy="-.46" r=".08" fill="#F1C9A6"/>`
       : `<path d="M -.38 0 L -.44 .26 M .38 0 L .44 .26" stroke="${body}" stroke-width=".13" stroke-linecap="round"/>`;
     g += `<ellipse rx=".4" ry=".24" fill="${body}" stroke="${bd}" stroke-width=".04"/><circle cy="-.02" r=".19" fill="${hair}" stroke="${fdk(hair, .4)}" stroke-width=".035"/>`;
     if (o.hat) g += `<circle cy="-.02" r=".3" fill="${body}" stroke="${bd}" stroke-width=".035"/><path d="M -.15 -.02 L 0 -.17 L .15 -.02 L 0 .13 Z" fill="${lt(body, .15)}" stroke="${bd}" stroke-width=".03"/><circle cy="-.02" r=".04" fill="${lt(body, .4)}"/>`;
-    return g + `</g>`; };
+    return g + `</g></g>`; };
   /* små magiske ting på engen omkring målet (i meter) */
   function meadowMagic(){
     const r = rng(41); let o = '';
@@ -5139,7 +5294,10 @@ const Fald = (() => {
   function groundSvg(){
     const r = rng(7); let o = `<rect x="-4200" y="-4200" width="8400" height="8400" fill="#47703F"/>`;
     const FC = ['#557F48', '#628C50', '#7C9A55', '#93A05C', '#4C7543', '#6E9452', '#A39A5E', '#5A8A58'];
-    for (let i = 0; i < 200; i++){ const a = r() * Math.PI * 2, d = 290 + r() * 2900, x = Math.cos(a) * d, y = Math.sin(a) * d, w = 90 + r() * 170, h = 60 + r() * 150, rot = (r() * 40 - 20).toFixed(0);
+    /* markerne ligger side om side; de må kun lige røre hinanden i hjørnerne (og ikke ligge oven på byen og skolen) */
+    const fields = [], free = (x, y, rr) => fields.every(f => Math.hypot(f.x - x, f.y - y) > (f.rr + rr) * .78) && Math.hypot(x + 600, y + 430) > 330 + rr * .6 && Math.hypot(x - 240, y + 255) > 150 + rr * .6;
+    for (let i = 0, tries = 0; i < 200 && tries < 4000; tries++){ const a = r() * Math.PI * 2, d = 290 + r() * 2900, x = Math.cos(a) * d, y = Math.sin(a) * d, w = 90 + r() * 170, h = 60 + r() * 150, rot = (r() * 40 - 20).toFixed(0), rr = Math.hypot(w, h) / 2;
+      if (!free(x, y, rr)) continue; fields.push({ x, y, rr }); i++;
       o += `<rect x="${(x - w / 2).toFixed(0)}" y="${(y - h / 2).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}" fill="${FC[i % FC.length]}" transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})" stroke="#38582F" stroke-width="4"/>`;
       if (i % 4 !== 3){ let d = ''; const n = Math.floor(h / 14); for (let k = 1; k < n; k++) d += `M ${(x - w / 2 + 6).toFixed(0)} ${(y - h / 2 + k * 14).toFixed(0)} H ${(x + w / 2 - 6).toFixed(0)} `;
         o += `<path d="${d}" stroke="${fdk(FC[i % FC.length], .14)}" stroke-width="3" transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})" opacity=".55"/>`; } }
@@ -5154,14 +5312,16 @@ const Fald = (() => {
     o += ROADS.map(d => `<path d="${d}" stroke="#8E7E5E" stroke-width="10" fill="none" stroke-linecap="round"/><path d="${d}" stroke="#C9B88A" stroke-width="7" fill="none" stroke-linecap="round"/>`).join('');
     /* byen med tage i mange farver og gadelys */
     const ROOF = ['#B5432A', '#7A4E9A', '#3E5A8A', '#A86A3A', '#8A2A4A', '#5A6A8A'];
-    for (let i = 0; i < 90; i++){ const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 190, x = -600 + Math.cos(a) * d * 1.3, y = -430 + Math.sin(a) * d, w = 12 + r() * 10, h = 9 + r() * 6, c = ROOF[i % ROOF.length], rot = (r() * 30 - 15).toFixed(0);
-      o += `<g transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})"><rect x="${(x - w / 2 + 2).toFixed(1)}" y="${(y - h / 2 + 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="#0E1A12" opacity=".3"/><rect x="${(x - w / 2).toFixed(1)}" y="${(y - h / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${c}"/><rect x="${(x - w / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${(h / 2).toFixed(1)}" fill="${fdk(c, .2)}"/></g>`;
+    const houses = [];
+    for (let i = 0, tries = 0; i < 90 && tries < 900; tries++){ const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 190, x = -600 + Math.cos(a) * d * 1.3, y = -430 + Math.sin(a) * d, w = 12 + r() * 10, h = 9 + r() * 6, c = ROOF[i % ROOF.length], rot = (r() * 30 - 15).toFixed(0);
+      if (houses.some(q => Math.hypot(q.x - x, q.y - y) < (q.rr + Math.hypot(w, h) / 2) * .8)) continue; houses.push({ x, y, rr: Math.hypot(w, h) / 2 }); i++;
+      o += `<g transform="rotate(${rot} ${x.toFixed(0)} ${y.toFixed(0)})"><rect x="${(x - w / 2 + 2).toFixed(1)}" y="${(y - h / 2 + 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="#0E1A12" opacity=".3"/><g data-z="6"><rect x="${(x - w / 2).toFixed(1)}" y="${(y - h / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${c}"/><rect x="${(x - w / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${(h / 2).toFixed(1)}" fill="${fdk(c, .2)}"/></g></g>`;
       if (i % 4 === 0) o += `<circle cx="${(x + 10).toFixed(0)}" cy="${(y + 8).toFixed(0)}" r="3" fill="#FFE08A" opacity=".85"/><circle cx="${(x + 10).toFixed(0)}" cy="${(y + 8).toFixed(0)}" r="9" fill="#FFE08A" opacity=".15"/>`; }
     /* skolen ovenfra: mure om en gård, et tårn i hvert hjørne med spidst tag, og hovedbygningen */
     { const x = 170, y = -310, w = 140, h = 110, S2 = '#8C86B0';
-      o += `<rect x="${x + 5}" y="${y + 6}" width="${w}" height="${h}" fill="#0E1A12" opacity=".3"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${S2}" stroke="#4B4570" stroke-width="3"/><rect x="${x + 14}" y="${y + 14}" width="${w - 28}" height="${h - 28}" fill="#6A7A58"/>`;
-      o += `<rect x="${x + 44}" y="${y + 22}" width="52" height="40" fill="#5A2A78"/><path d="M ${x + 44} ${y + 42} H ${x + 96}" stroke="#3A1A50" stroke-width="3"/><path d="M ${x + 44} ${y + 22} L ${x + 70} ${y + 42} L ${x + 96} ${y + 22} M ${x + 44} ${y + 62} L ${x + 70} ${y + 42} L ${x + 96} ${y + 62}" stroke="#7A4A98" stroke-width="2" fill="none"/>`;
-      for (const [tx, ty] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) o += `<circle cx="${tx + 4}" cy="${ty + 5}" r="17" fill="#0E1A12" opacity=".3"/><circle cx="${tx}" cy="${ty}" r="17" fill="#5A2A78" stroke="#3A1A50" stroke-width="3"/>` + [0, 1, 2, 3, 4, 5].map(k => `<path d="M ${tx} ${ty} L ${(tx + Math.cos(k * Math.PI / 3) * 17).toFixed(1)} ${(ty + Math.sin(k * Math.PI / 3) * 17).toFixed(1)}" stroke="#7A4A98" stroke-width="1.5"/>`).join('') + `<circle cx="${tx}" cy="${ty}" r="3" fill="#F2C14E"/>`;
+      o += `<rect x="${x + 5}" y="${y + 6}" width="${w}" height="${h}" fill="#0E1A12" opacity=".3"/><g data-z="7"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${S2}" stroke="#4B4570" stroke-width="3"/><rect x="${x + 14}" y="${y + 14}" width="${w - 28}" height="${h - 28}" fill="#6A7A58"/></g><g data-z="9">`;
+      o += `<rect x="${x + 44}" y="${y + 22}" width="52" height="40" fill="#5A2A78"/><path d="M ${x + 44} ${y + 42} H ${x + 96}" stroke="#3A1A50" stroke-width="3"/><path d="M ${x + 44} ${y + 22} L ${x + 70} ${y + 42} L ${x + 96} ${y + 22} M ${x + 44} ${y + 62} L ${x + 70} ${y + 42} L ${x + 96} ${y + 62}" stroke="#7A4A98" stroke-width="2" fill="none"/></g>`;
+      for (const [tx, ty] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) o += `<circle cx="${tx + 4}" cy="${ty + 5}" r="17" fill="#0E1A12" opacity=".3"/><g data-z="13"><circle cx="${tx}" cy="${ty}" r="17" fill="#5A2A78" stroke="#3A1A50" stroke-width="3"/>` + [0, 1, 2, 3, 4, 5].map(k => `<path d="M ${tx} ${ty} L ${(tx + Math.cos(k * Math.PI / 3) * 17).toFixed(1)} ${(ty + Math.sin(k * Math.PI / 3) * 17).toFixed(1)}" stroke="#7A4A98" stroke-width="1.5"/>`).join('') + `<circle cx="${tx}" cy="${ty}" r="3" fill="#F2C14E"/></g>`;
       o += [[x + 30, y + 80], [x + 110, y + 82]].map(([lx, ly]) => `<circle cx="${lx}" cy="${ly}" r="10" fill="#FFE08A" opacity=".2"/><circle cx="${lx}" cy="${ly}" r="3" fill="#FFE08A"/>`).join(''); }
     /* engen omkring målet, en dam og træer */
     o += `<ellipse cx="0" cy="0" rx="110" ry="96" fill="#5E8F52"/><ellipse cx="0" cy="0" rx="92" ry="80" fill="#68995A"/>`;
@@ -5179,7 +5339,7 @@ const Fald = (() => {
     KIDS.forEach(([b, h, wave, hat], i) => { const a = -2.5 + i * .3, d = 29 + (i % 2) * 2.5; o += personTop(Math.cos(a) * d, Math.sin(a) * d, b, h, a * 57 + 90, { wave, hat }); });
     o += personTop(26, 9, '#2E4A7A', '#B5432A', 110, { cape: '#8A2A2A', wave: 1 });
     /* vindposen */
-    o += `<g class="fs-sock" transform="translate(30 -8)"><circle r=".35" fill="#2A2340"/><g class="fs-sockr"><path d="M 0 -.5 L 4 -.3 L 4 .3 L 0 .5 Z" fill="#FF8A3D" stroke="#A8442A" stroke-width=".12"/><path d="M 1.3 -.45 V .45 M 2.6 -.38 V .38" stroke="#FFFFFF" stroke-width=".35"/></g></g>`;
+    o += `<g class="fs-sock" data-z="3" transform="translate(30 -8)"><circle r=".35" fill="#2A2340"/><g class="fs-sockr"><path d="M 0 -.5 L 4 -.3 L 4 .3 L 0 .5 Z" fill="#FF8A3D" stroke="#A8442A" stroke-width=".12"/><path d="M 1.3 -.45 V .45 M 2.6 -.38 V .38" stroke="#FFFFFF" stroke-width=".35"/></g></g>`;
     return o;
   }
   /* figuren i frit fald, set ovenfra: maven nedad, arme og ben ude */
@@ -5252,14 +5412,18 @@ const Fald = (() => {
   const cloudArt = (k, seed) => { const r = rng(seed); let o = ''; for (let i = 0; i < 7; i++){ const a = r() * Math.PI * 2, d = r() * 220 * k; o += `<ellipse cx="${(Math.cos(a) * d).toFixed(0)}" cy="${(Math.sin(a) * d * .7).toFixed(0)}" rx="${(150 + r() * 130) * k}" ry="${(100 + r() * 80) * k}" fill="${i % 2 ? '#E8E2FA' : '#D6CCF2'}"/>`; } return o; };
 
   /* ---------- skærmen ---------- */
-  function sceneSvg(){
-    let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="fs-svg"><defs>`
-      + `<radialGradient id="pond" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#7FC8F0"/><stop offset="1" stop-color="#3E7EB8"/></radialGradient>`
+  const POND_DEF = `<radialGradient id="pond" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#7FC8F0"/><stop offset="1" stop-color="#3E7EB8"/></radialGradient>`;
+  /* live: i spillet tegnes jorden på et lærred under SVG'en (FaldJord); SVG'en har kun det ovenpå */
+  function sceneSvg(live){
+    let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" class="fs-svg"><defs>` + POND_DEF
+      /* bobernes glød: en blød ring i stedet for et filter (et filter skal regnes om, hver gang boblen vokser) */
+      + `<radialGradient id="bglow"><stop offset=".6" stop-color="#FFF0B4" stop-opacity=".75"/><stop offset=".74" stop-color="#FFF0B4" stop-opacity=".45"/><stop offset="1" stop-color="#FFF0B4" stop-opacity="0"/></radialGradient>`
       + `<radialGradient id="haze" cx=".5" cy=".5" r=".75"><stop offset="0" stop-color="#C8B8F0" stop-opacity=".12"/><stop offset="1" stop-color="#2A2260" stop-opacity=".75"/></radialGradient></defs>`;
-    o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#2A2350"/>`;
-    o += `<g class="fs-ground">${groundSvg()}</g>`;
+    if (!live) o += `<rect x="-1700" y="-700" width="5000" height="2400" fill="#2A2350"/>`;
+    o += `<g class="fs-ground">${live ? '' : groundSvg()}</g>`;
     o += `<g class="fs-gtop"><g class="fs-shadow" opacity=".3"></g></g><g class="fs-float"></g>`;
-    o += `<rect class="fs-haze" x="-1700" y="-700" width="5000" height="2400" fill="url(#haze)"/>`;
+    /* disen: i spillet tegnes den på lærredet lige over jorden (så skal SVG'en ikke tegnes om, hver gang den ændrer sig) */
+    if (!live) o += `<rect class="fs-haze" x="-1700" y="-700" width="5000" height="2400" fill="url(#haze)"/>`;
     o += `<g class="fs-rings"></g><g class="fs-below"></g><g class="fs-hero"></g><g class="fs-can"></g><g class="fs-above"></g><path class="fs-motes" d="" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".55" fill="none"/>`;
     o += `<g class="fs-pin"></g><g class="fs-fx"></g>`;
     o += placeMood([], { vign: .55, dx: 200, dw: 1200 });
@@ -5294,6 +5458,8 @@ const Fald = (() => {
       x: Math.cos(a0) * d0, y: Math.sin(a0) * d0, th: Math.atan2(-Math.cos(a0), Math.sin(a0)) * 180 / Math.PI + (Math.random() < .5 ? 1 : -1) * (70 + Math.random() * 50),
       h: H0, v: 9, sink: 3.8, turnV: 0, wind: { x: Math.cos(wa) * wind, y: Math.sin(wa) * wind, s: wind, a: wa }, ctl: { L: false, R: false, F: false }, keys: {}, ptrs: new Map(), soft: false };
     makeSpawns();
+    /* jorden læses ind, mens kortet og turen op vises */
+    S.jord = null; const S0 = S; FaldJord.build(POND_DEF, groundSvg(), m => { S0.jord = m; });
     /* svævende lanterner mellem hende og jorden: de stiger langsomt, og hun daler forbi dem */
     S.floaters = Array.from({ length: 16 }, (_, i) => ({ x: (Math.random() - .5) * 280, y: (Math.random() - .5) * 240, a: 20 + Math.random() * 110, c: ['#FFB347', '#FF8FC7', '#FFE27A', '#7FD8FF'][i % 4] }));
     const box = $('#faldBody'); box.innerHTML = '';
@@ -5376,7 +5542,8 @@ const Fald = (() => {
     for (let i = 0; i < 26; i++) S.motes.push({ x: Math.random() * 1600, y: Math.random() * 1000, z: Math.random() });
   }
   function freeStart(){
-    const sc = $('#fsScene'); sc.innerHTML = scopeIds(sceneSvg(), 'fs');
+    const sc = $('#fsScene'); sc.innerHTML = scopeIds(sceneSvg(true), 'fs');
+    jordMount(sc);
     sc.querySelector('.fs-hero').innerHTML = `<g class="fs-htilt"><g transform="scale(.8)">${heroTop(S.hero)}</g></g>`;
     $('#faldBody .fs-skip') && $('#faldBody .fs-skip').remove();
     flash();
@@ -5389,7 +5556,7 @@ const Fald = (() => {
     S.t += dt;
     /* nye ting dukker op langt nede */
     while (S.spawn.length && S.spawn[0].t <= S.t){ const o = S.spawn.shift(); o.z = 1;
-      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow">${bubbleArt(o.gold)}</g>` : cloudArt(o.k, o.seed));
+      o.el = mk('g', { class: 'fs-obj fs-' + o.kind }, o.kind === 'bub' ? `<g class="fs-bglow"><circle r="84" fill="url(#fsbglow)"/>${bubbleArt(o.gold)}</g>` : cloudArt(o.k, o.seed));
       if (o.kind === 'bub'){ o.ring = mk('g', { class: 'fs-ring' + (S.firstBub ? ' first' : ''), transform: `translate(${o.x.toFixed(0)} ${o.y.toFixed(0)})` }, `<circle r="66" fill="${o.gold ? '#FFE27A' : '#BFE8FF'}" fill-opacity=".08" stroke="${o.gold ? '#FFE27A' : '#FFFFFF'}" stroke-width="5" stroke-dasharray="14 12"/>` + (S.firstBub ? `<g class="fs-point"><path d="M 0 -150 V -92 M -20 -112 L 0 -90 L 20 -112" stroke="#FFE27A" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''));
         S.firstBub = false; $('#fsScene .fs-rings').append(o.ring); }
       $('#fsScene .fs-below').append(o.el); S.objs.push(o); }
@@ -5419,7 +5586,7 @@ const Fald = (() => {
     const sc = $('#fsScene'); if (!sc) return;
     const f = clamp(S.t / FREE_T, 0, 1);
     groundAt(.45 + f * 1.1, S.x, S.y);
-    sc.querySelector('.fs-haze').setAttribute('opacity', (.75 - f * .4).toFixed(2));
+    S.haze = .75 - f * .4;
     sc.querySelector('.fs-hero').setAttribute('transform', `translate(${S.hx.toFixed(1)} ${S.hy.toFixed(1)})`);
     sc.querySelector('.fs-htilt').setAttribute('transform', `rotate(${S.tilt.toFixed(1)})`);
     for (const o of S.objs){
@@ -5438,16 +5605,21 @@ const Fald = (() => {
   /* den del af tegningen, der faktisk kan ses på skærmen (den er bredere end 1600 på en telefon) */
   function visBox(sc){ const svg = sc.querySelector('svg'), r = sc.getBoundingClientRect(), m = svg && svg.getScreenCTM(); if (!m) return { x0: 0, x1: 1600, y0: 0, y1: 1000 };
     return { x0: (r.left - m.e) / m.a, x1: (r.right - m.e) / m.a, y0: (r.top - m.f) / m.d, y1: (r.bottom - m.f) / m.d }; }
-  function groundAt(ppm, cx, cy){ const g = $('#fsScene .fs-ground'); if (g){ g.setAttribute('transform', `translate(${SCX} ${SCY}) scale(${ppm.toFixed(4)}) translate(${(-cx).toFixed(2)} ${(-cy).toFixed(2)})`); cullGround(g, ppm, cx, cy); } S.ppm = ppm; }
-  /* kun det af jorden, der kan ses, tegnes: kasserne måles én gang i jordens egne koordinater */
-  function cullGround(g, k, cx, cy){
-    if (!g.__cull){ const sc = $('#fsScene'), m = g.getScreenCTM(); if (!m) return; const inv = m.inverse(), vb = visBox(sc);
-      g.__vb = vb; g.__cull = [...g.children].map(c => { const r = c.getBoundingClientRect(); if (!r.width && !r.height) return null; const p = new DOMPoint(r.left, r.top).matrixTransform(inv), q = new DOMPoint(r.right, r.bottom).matrixTransform(inv);
-        return { c, x0: Math.min(p.x, q.x), y0: Math.min(p.y, q.y), x1: Math.max(p.x, q.x), y1: Math.max(p.y, q.y), on: true }; }).filter(Boolean); }
-    const v = g.__vb, M = 200, x0 = (v.x0 - M - SCX) / k + cx, x1 = (v.x1 + M - SCX) / k + cx, y0 = (v.y0 - M - SCY) / k + cy, y1 = (v.y1 + M - SCY) / k + cy;
-    for (const e of g.__cull){ const on = e.x1 > x0 && e.x0 < x1 && e.y1 > y0 && e.y0 < y1; if (on !== e.on){ e.on = on; e.c.style.display = on ? '' : 'none'; } }
+  function groundAt(ppm, cx, cy){ S.ppm = ppm; S.gcx = cx; S.gcy = cy; }
+  /* lærredet til jorden: ligger under SVG'en og følger dens størrelse */
+  function jordMount(sc){
+    const cv = document.createElement('canvas'); cv.className = 'fs-jord'; sc.prepend(cv);
+    const fit = () => { const r = cv.getBoundingClientRect(), svg = sc.querySelector('svg'), m = svg && svg.getScreenCTM(); if (!r.width || !m) return;
+      const k = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.round(r.width * k); cv.height = Math.round(r.height * k);
+      S.jmap = { a: m.a * k, e: (m.e - r.left) * k, f: (m.f - r.top) * k }; S.jctx = cv.getContext('2d', { alpha: false }); drawJord(); };
+    S.jfit = fit; fit();
+    if (window.ResizeObserver){ const ro = new ResizeObserver(() => { if (!cv.isConnected){ ro.disconnect(); return; } fit(); }); ro.observe(cv); }
   }
-
+  function drawJord(){
+    if (!S.jctx || S.ppm == null) return;
+    const sock = { a: S.wind && S.wind.s ? S.wind.a * 180 / Math.PI : 100, k: S.wind && S.wind.s ? 1 : .55 };
+    FaldJord.draw(S.jctx, S.jord, { ppm: S.ppm, cx: S.gcx, cy: S.gcy }, S.jmap, performance.now() / 1000, sock, S.run === 'free' || S.run === 'open' ? S.haze || 0 : 0);
+  }
   /* ---------- skærmen folder sig ud ---------- */
   function openStart(){
     const sc = $('#fsScene');
@@ -5468,7 +5640,7 @@ const Fald = (() => {
     const sc = $('#fsScene'); if (!sc) return;
     const u = clamp(S.t / OPEN_T, 0, 1), e = ease(u), back = 1 + Math.sin(u * Math.PI) * .12;
     groundAt(S.op0 + (ppmAt(H0) - S.op0) * e, S.x, S.y);
-    sc.querySelector('.fs-haze').setAttribute('opacity', (.35 * (1 - e)).toFixed(2));
+    S.haze = .35 * (1 - e);
     const hx = S.ox + (SCX - S.ox) * e, hy = S.oy + (SCY - S.oy) * e;
     sc.querySelector('.fs-hero').setAttribute('transform', `translate(${hx.toFixed(1)} ${(hy + 40 * e).toFixed(1)}) scale(${(1 - .5 * e).toFixed(3)})`);
     sc.querySelector('.fs-hero').setAttribute('opacity', (1 - clamp((u - .45) / .3, 0, 1)).toFixed(2));
@@ -5622,6 +5794,7 @@ const Fald = (() => {
     const n = window.FALD_WARP || (S.auto ? 8 : 1);
     for (let i = 0; i < n; i++) step(dt);
     if (S.run === 'intro') drawIntro(S.t); else if (S.run === 'free') drawFree(); else if (S.run === 'open') drawOpen(); else if (S.run === 'canopy') drawCanopy(); else if (S.run === 'landed') drawLanded();
+    if (S.run !== 'intro') drawJord();
     if (S.run !== 'landed' || S.t < 1.3) raf = requestAnimationFrame(frame); else raf = 0;
   }
   function step(dt){
