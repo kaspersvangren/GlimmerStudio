@@ -11,10 +11,26 @@ const SND = (() => {
     let i; do { i = Math.floor(Math.random() * v.length); } while (i === last[key]);
     last[key] = i; return v[i];
   }
+  /* lydeffekter afspilles gennem Web Audio: en <audio> er på telefoner op til et kvart sekund om at gå i gang */
+  const SB = {};
+  function loadSfx(src){
+    if (SB[src]) return; const ac = audioCtx(); if (!ac) return;
+    SB[src] = 'henter';
+    fetch(src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
+      .then(b => { SB[src] = b; }).catch(() => { SB[src] = 'fejl'; });
+  }
+  function preload(){ try { Object.values(LYD_FILER || {}).flat().forEach(loadSfx); } catch (e){} }
+  document.addEventListener('pointerdown', preload, { once: true, capture: true });
   function play(key, fallback){
     if (!soundOn) return;
     const src = file(key);
     if (!src){ if (fallback) fallback(); return; }
+    const b = SB[src];
+    if (b && typeof b === 'object'){
+      try { const ac = audioCtx(), n = ac.createBufferSource(); n.buffer = b; n.connect(ac.destination); n.start(); return; } catch (e){}
+    }
+    loadSfx(src);
     const list = pool[src] || (pool[src] = []);
     let a = list.find(x => x.paused || x.ended);
     if (!a && list.length < MAXP){ a = new Audio(src); a.preload = 'auto'; list.push(a); }
