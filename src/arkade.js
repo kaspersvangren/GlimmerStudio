@@ -202,7 +202,7 @@ const Arkade = (() => {
   /* ---------- hallen som skærm ---------- */
   function show(){
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
-    showScreen('#arkade'); playMusic('arkade'); busy = false;
+    showScreen('#arkade'); playMusic('byen'); SND.ambience('stemning.arkade'); busy = false;   /* byens musik fortsætter, med summen fra hallen under */
     const box = $('#arkadeBody'); box.innerHTML = ''; box.classList.remove('ak-wood');
     box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
@@ -222,6 +222,7 @@ const Arkade = (() => {
   /* ---------- fælles ramme om et spil ---------- */
   function openGame(id){
     const game = GAMES[id], c = CABS.find(x => x.id === id);
+    SND.ambience(null);
     const box = $('#arkadeBody'); box.innerHTML = '';
     /* skærmspillene sidder i et gammelt træskab: lærredet ses gennem et glas i en messingramme */
     const scr = c.kind === 'screen';

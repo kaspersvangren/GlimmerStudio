@@ -51,30 +51,55 @@ const SND = (() => {
       return true;
     }
     const my = ++gen, ac = audioCtx(); if (!ac) return false;
-    const go = buf => {
+    getBuf(m, buf => {
       if (my !== gen) return;
-      node = ac.createBufferSource(); node.buffer = buf; node.loop = true;
-      if (m.loop){
-        const sr = buf.sampleRate, s = Math.round(m.loop[0]*sr), e = Math.round(Math.min(m.loop[1], buf.duration)*sr), f = Math.round((m.xf || 0)*sr);
-        /* overtoning: de sidste m.xf sekunder før slut blandes med stykket lige før start, så hoppet ikke kan høres */
-        if (f && s - f >= 0 && !buf._xf){
-          for (let c = 0; c < buf.numberOfChannels; c++){
-            const d = buf.getChannelData(c);
-            for (let i = 0; i < f; i++){ const t = i/f*Math.PI/2; d[e-f+i] = d[e-f+i]*Math.cos(t) + d[s-f+i]*Math.sin(t); }
-          }
-          buf._xf = 1;
-        }
-        node.loopStart = s/sr; node.loopEnd = e/sr;
-      }
+      node = loopNode(ac, buf, m);
       gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
       node.start(0);
-    };
-    if (BUF[m.src]) go(BUF[m.src]);
-    else fetch(m.src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
-      .then(b => { BUF[m.src] = b; go(b); })
-      .catch(() => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
+    }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
     return true;
+  }
+  function getBuf(m, ok, fail){
+    if (BUF[m.src]) return ok(BUF[m.src]);
+    const ac = audioCtx();
+    fetch(m.src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
+      .then(b => { BUF[m.src] = b; ok(b); }).catch(() => { if (fail) fail(); });
+  }
+  function loopNode(ac, buf, m){
+    const n = ac.createBufferSource(); n.buffer = buf; n.loop = true;
+    if (m.loop){
+      const sr = buf.sampleRate, s = Math.round(m.loop[0]*sr), e = Math.round(Math.min(m.loop[1], buf.duration)*sr), f = Math.round((m.xf || 0)*sr);
+      /* overtoning: de sidste m.xf sekunder før slut blandes med stykket lige før start, så hoppet ikke kan høres */
+      if (f && s - f >= 0 && !buf._xf){
+        for (let c = 0; c < buf.numberOfChannels; c++){
+          const d = buf.getChannelData(c);
+          for (let i = 0; i < f; i++){ const t = i/f*Math.PI/2; d[e-f+i] = d[e-f+i]*Math.cos(t) + d[s-f+i]*Math.sin(t); }
+        }
+        buf._xf = 1;
+      }
+      n.loopStart = s/sr; n.loopEnd = e/sr;
+    }
+    return n;
+  }
+  /* stemningslyd: et ekstra lag under musikken (fx summen i arkadehallen). Følger musik-knappen */
+  let amb = null, ambGain = null, ambOn = null, ambWant = null, ambGen = 0;
+  function ambience(name){ ambWant = name || null; ambRefresh(); }
+  function ambRefresh(){
+    const want = MUSIC.on ? ambWant : null;
+    if (want === ambOn) return;
+    ambGen++;
+    if (amb){ try { ambGain.gain.setTargetAtTime(0, amb.context.currentTime, 0.15); amb.stop(amb.context.currentTime + 0.8); } catch (e){} amb = null; ambGain = null; }
+    ambOn = want;
+    const m = want && typeof LYD_MUSIK === 'object' && LYD_MUSIK[want], ac = m && audioCtx();
+    if (!ac) return;
+    const my = ambGen;
+    getBuf(m, buf => {
+      if (my !== ambGen) return;
+      amb = loopNode(ac, buf, m); ambGain = ac.createGain();
+      ambGain.gain.setValueAtTime(0, ac.currentTime); ambGain.gain.linearRampToValueAtTime(m.vol || 0.5, ac.currentTime + 1.2);
+      amb.connect(ambGain); ambGain.connect(ac.destination); amb.start(0);
+    });
   }
   function stopSong(){
     gen++;
@@ -88,7 +113,7 @@ const SND = (() => {
   // en app der kommer tilbage fra baggrunden genoptager musikken
   document.addEventListener('visibilitychange', () => {
     if (song){ if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); }
-    if (node && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
+    if ((node || amb) && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
   });
-  return { play, music, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
+  return { play, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
 })();

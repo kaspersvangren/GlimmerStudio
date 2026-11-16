@@ -2158,7 +2158,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.23';
+const VERSION = 'v0.25.24';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -2224,6 +2224,7 @@ function smilOpacityToCss(root){
 }
 /* skjulte skærme får deres SVG-animationer sat på pause; ellers kører de videre usynligt og koster i hvert billede */
 function showScreen(id){
+  if (id !== '#arkade' && typeof SND === 'object') SND.ambience(null);
   if (typeof kbClose === 'function') kbClose();
   for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
     e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
@@ -6336,7 +6337,7 @@ const Arkade = (() => {
   /* ---------- hallen som skærm ---------- */
   function show(){
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
-    showScreen('#arkade'); playMusic('arkade'); busy = false;
+    showScreen('#arkade'); playMusic('byen'); SND.ambience('stemning.arkade'); busy = false;   /* byens musik fortsætter, med summen fra hallen under */
     const box = $('#arkadeBody'); box.innerHTML = ''; box.classList.remove('ak-wood');
     box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
@@ -6356,6 +6357,7 @@ const Arkade = (() => {
   /* ---------- fælles ramme om et spil ---------- */
   function openGame(id){
     const game = GAMES[id], c = CABS.find(x => x.id === id);
+    SND.ambience(null);
     const box = $('#arkadeBody'); box.innerHTML = '';
     /* skærmspillene sidder i et gammelt træskab: lærredet ses gennem et glas i en messingramme */
     const scr = c.kind === 'screen';
@@ -7947,7 +7949,7 @@ function playMusic(name){
   MUSIC.timer = setInterval(musicTick, 120); musicTick();
 }
 function stopMusic(){ SND.stopMusic(); clearInterval(MUSIC.timer); MUSIC.timer = null; if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch(e){} MUSIC.out = null; } }
-function setMusic(on){ MUSIC.on = on; store.set(KEY_MUSIC, on); const t = MUSIC.track; if (!on) stopMusic(); else if (t){ MUSIC.track = null; playMusic(t); } updateAudioBtns(); }
+function setMusic(on){ MUSIC.on = on; store.set(KEY_MUSIC, on); const t = MUSIC.track; if (!on) stopMusic(); else if (t){ MUSIC.track = null; playMusic(t); } SND.ambRefresh(); updateAudioBtns(); }
 function setSound(on){ soundOn = on; store.set(KEY_SOUND, on); updateAudioBtns(); }
 const NOTE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>';
 const SPEAK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
@@ -9726,7 +9728,7 @@ const LYD_MUSIK = {
   skjold: { src: 'lyd/orbital-ashes.mp3', loop: [71.6, 100.8465] },   // "Orbital Ashes". Loop A, valgt af Kasper
   kaelder: { src: 'lyd/wizard-crypt.mp3', loop: [65.4, 101.49313] },   // "Wizard Crypt Loop". Loop A, valgt af Kasper. Skolen og eliksirtimen
   kost: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // "Broomstick Dash". Loop D, valgt af Kasper (takt 24 → takt 8). Kosteflyvning
-  arkade: { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3 },   // "casino ambiance" (freesound), stemning i arkadehallen. 3 s overtoning
+  'stemning.arkade': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.5 },   // "casino ambiance" (freesound): summen i arkadehallen, under byens musik. 3 s overtoning
   fald: { src: 'lyd/cloud-glide.mp3', loop: [64, 138.03796], xf: 1 },   // "Cloud Glide Loop". Loop E, valgt af Kasper, 1 s overtoning. Faldskærm
 };
 
@@ -9783,30 +9785,55 @@ const SND = (() => {
       return true;
     }
     const my = ++gen, ac = audioCtx(); if (!ac) return false;
-    const go = buf => {
+    getBuf(m, buf => {
       if (my !== gen) return;
-      node = ac.createBufferSource(); node.buffer = buf; node.loop = true;
-      if (m.loop){
-        const sr = buf.sampleRate, s = Math.round(m.loop[0]*sr), e = Math.round(Math.min(m.loop[1], buf.duration)*sr), f = Math.round((m.xf || 0)*sr);
-        /* overtoning: de sidste m.xf sekunder før slut blandes med stykket lige før start, så hoppet ikke kan høres */
-        if (f && s - f >= 0 && !buf._xf){
-          for (let c = 0; c < buf.numberOfChannels; c++){
-            const d = buf.getChannelData(c);
-            for (let i = 0; i < f; i++){ const t = i/f*Math.PI/2; d[e-f+i] = d[e-f+i]*Math.cos(t) + d[s-f+i]*Math.sin(t); }
-          }
-          buf._xf = 1;
-        }
-        node.loopStart = s/sr; node.loopEnd = e/sr;
-      }
+      node = loopNode(ac, buf, m);
       gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
       node.start(0);
-    };
-    if (BUF[m.src]) go(BUF[m.src]);
-    else fetch(m.src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
-      .then(b => { BUF[m.src] = b; go(b); })
-      .catch(() => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
+    }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
     return true;
+  }
+  function getBuf(m, ok, fail){
+    if (BUF[m.src]) return ok(BUF[m.src]);
+    const ac = audioCtx();
+    fetch(m.src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
+      .then(b => { BUF[m.src] = b; ok(b); }).catch(() => { if (fail) fail(); });
+  }
+  function loopNode(ac, buf, m){
+    const n = ac.createBufferSource(); n.buffer = buf; n.loop = true;
+    if (m.loop){
+      const sr = buf.sampleRate, s = Math.round(m.loop[0]*sr), e = Math.round(Math.min(m.loop[1], buf.duration)*sr), f = Math.round((m.xf || 0)*sr);
+      /* overtoning: de sidste m.xf sekunder før slut blandes med stykket lige før start, så hoppet ikke kan høres */
+      if (f && s - f >= 0 && !buf._xf){
+        for (let c = 0; c < buf.numberOfChannels; c++){
+          const d = buf.getChannelData(c);
+          for (let i = 0; i < f; i++){ const t = i/f*Math.PI/2; d[e-f+i] = d[e-f+i]*Math.cos(t) + d[s-f+i]*Math.sin(t); }
+        }
+        buf._xf = 1;
+      }
+      n.loopStart = s/sr; n.loopEnd = e/sr;
+    }
+    return n;
+  }
+  /* stemningslyd: et ekstra lag under musikken (fx summen i arkadehallen). Følger musik-knappen */
+  let amb = null, ambGain = null, ambOn = null, ambWant = null, ambGen = 0;
+  function ambience(name){ ambWant = name || null; ambRefresh(); }
+  function ambRefresh(){
+    const want = MUSIC.on ? ambWant : null;
+    if (want === ambOn) return;
+    ambGen++;
+    if (amb){ try { ambGain.gain.setTargetAtTime(0, amb.context.currentTime, 0.15); amb.stop(amb.context.currentTime + 0.8); } catch (e){} amb = null; ambGain = null; }
+    ambOn = want;
+    const m = want && typeof LYD_MUSIK === 'object' && LYD_MUSIK[want], ac = m && audioCtx();
+    if (!ac) return;
+    const my = ambGen;
+    getBuf(m, buf => {
+      if (my !== ambGen) return;
+      amb = loopNode(ac, buf, m); ambGain = ac.createGain();
+      ambGain.gain.setValueAtTime(0, ac.currentTime); ambGain.gain.linearRampToValueAtTime(m.vol || 0.5, ac.currentTime + 1.2);
+      amb.connect(ambGain); ambGain.connect(ac.destination); amb.start(0);
+    });
   }
   function stopSong(){
     gen++;
@@ -9820,9 +9847,9 @@ const SND = (() => {
   // en app der kommer tilbage fra baggrunden genoptager musikken
   document.addEventListener('visibilitychange', () => {
     if (song){ if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); }
-    if (node && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
+    if ((node || amb) && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
   });
-  return { play, music, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
+  return { play, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
 })();
 
 /* Fejlsøgning: tryk 5 gange på versionsnummeret på forsiden for at slå loggen til eller fra.
