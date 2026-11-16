@@ -320,11 +320,11 @@ function markF(c){
     case 'hjerte': return heart(346, 337, 0.75, m);
     case 'stjerne': return starP(346, 336, 8, m);
     case 'glimmer': return twinkle(347, 334, 7, m) + twinkle(337, 342, 3.5, m) + twinkle(357, 343, 3, m) + twinkle(254, 336, 4, m);
-    case 'ar': { const S = mixC(c.skin, '#B84A5E', 0.35); return `<path d="M 338 332 L 358 354" stroke="${S}" stroke-width="3.2" stroke-linecap="round"/><path d="M 339 334 L 357 352" stroke="${lt(S,0.4)}" stroke-width="1" stroke-linecap="round"/>` + [[342,337],[348,343],[354,349]].map(([x,y]) => `<path d="M ${x-5} ${y+4} L ${x+5} ${y-4}" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`).join(''); }
+    case 'ar': { const S = mixC(c.skin, '#B84A5E', 0.35); return `<path d="M 334 328 L 352 346" stroke="${S}" stroke-width="3.2" stroke-linecap="round"/><path d="M 335 330 L 351 344" stroke="${lt(S,0.4)}" stroke-width="1" stroke-linecap="round"/>` + [[338,332],[343,337],[348,342]].map(([x,y]) => `<path d="M ${x-4} ${y+3.5} L ${x+4} ${y-3.5}" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`).join(''); }
     case 'plaster': return `<g transform="rotate(-28 348 336)"><rect x="330" y="329" width="36" height="14" rx="7" fill="${lt(m,0.55)}" stroke="${fdk(m,0.2)}" stroke-width="1.6"/><rect x="342" y="329" width="12" height="14" fill="${lt(m,0.25)}"/>${[[337,334],[337,339],[359,334],[359,339]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1" fill="${fdk(m,0.25)}"/>`).join('')}</g>`;
     case 'maane': return moon(348, 340, 7.5, m) + twinkle(338, 331, 3, m);
     case 'maling': return [[256,-1],[344,1]].map(([x,f]) => [0, 9].map(dy => `<path d="M ${x - 12*f} ${328+dy} Q ${x} ${324+dy} ${x + 12*f} ${330+dy}" stroke="${m}" stroke-width="4.5" fill="none" stroke-linecap="round" opacity=".9"/>`).join('')).join('');
-    case 'prik': return `<circle cx="318" cy="334" r="2.4" fill="${m}"/>`;
+    case 'prik': return `<circle cx="290" cy="338" r="2.3" fill="${m}"/>`;
     default: return '';
   }
 }
@@ -786,9 +786,7 @@ function waveArm(inner, ev, forever){
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
-  'boots:ballerina', 'acc:lanterne',
-  'lip:kysstor', 'mark:ar', 'mark:maane', 'mark:prik',
-  'pet:ugle', 'pet:froe',
+  'acc:lanterne', 'mark:ar', 'mark:prik', 'pet:ugle',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 
@@ -833,7 +831,7 @@ function figureSvg(st, c, hl, wave){
   const raised = () => `<g transform="${AXIS}">${armOpen(c, false, '', 'vink')}</g>`;
   let left;
   if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))), 'bog');
-  else if (A('lanterne')) left = HLW(hl === 'acc:lanterne', lanternF(A('lanterne'))) + armOpen(c, false);
+  else if (A('lanterne')) left = armFist(c, { behind: HLW(hl === 'acc:lanterne', lanternF(A('lanterne'))) });   /* hanken sidder i den knyttede hånd */
   else if (wave && ANIM) left = `<g transform="translate(-26 50)">${waveArm(raised(), null, true)}</g>`;
   else if (waveEv && ANIM) left = showDuring(armOpen(c, false), [[0, waveEv.a], [waveEv.b, IDLE.T]]) + showDuring(`<g transform="translate(-26 50)">${waveArm(raised(), waveEv, false)}</g>`, [[waveEv.a, waveEv.b]]);
   else left = armOpen(c, false);
