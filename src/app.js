@@ -79,6 +79,7 @@ function toggleSec(label, getVal, setVal){
 function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
   const grid = el('div', { class:'tiles' });
   for (const [id, a] of Object.entries(defs)){
+    if (isKladde(cat, id)) continue;
     const locked = !isFree(cat, id), fresh = !locked && isFresh(cat, id);
     if (fresh) grid.classList.add('has-fresh');
     const on = !!holder(cur.st)[id];
@@ -97,7 +98,8 @@ function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
 }
 
 /* ---------- fanernes indhold ---------- */
-const entries = obj => Object.entries(obj).map(([k,v]) => [k, typeof v === 'string' ? v : v.label]);
+const CAT_OF = new Map([[FRONT,'front'],[BACK,'back'],[ROBES,'robe'],[CAPES,'cape'],[HATS,'hat'],[BOOTS,'boots'],[PUPILS,'pupil'],[LIPSHAPES,'lip'],[MARKS,'mark']]);
+const entries = obj => Object.entries(obj).filter(([k]) => !isKladde(CAT_OF.get(obj), k)).map(([k,v]) => [k, typeof v === 'string' ? v : v.label]);
 const TAB_CONTENT = {
   hud: () => [ colorsSec('Hudfarve', SKIN, () => cur.st.skin, (st,v) => st.skin = v) ],
   oejne: () => [

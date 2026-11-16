@@ -99,7 +99,8 @@ const V = { 'acc-bog': 6,
   /* hver ting tegnes to gange: som på tabletten (skaberens spejl) og tæt på */
   for (const it of items){
     for (const [suf, vb, w] of [['t', it.vbT, 560], ['z', it.vbZ, 640]]){
-      const h = await p.evaluate(({ it, vb, w }) => {
+      /* en scene der ikke kan tegnes her (fx fordi den kræver et spil i gang), beholder sit gamle billede */
+      let h; try { h = await p.evaluate(({ it, vb, w }) => {
         const [, , vw, vh] = vb.split(' ').map(Number), hh = Math.round(w * vh / vw);
         let svg, bg = 'linear-gradient(#FFF3F8,#EBDDFF)';
         if (it.kind === 'rum'){ const r = Object.assign({}, ROOM_DEFAULT, { [it.slot]: it.item }); r.c = Object.assign({}, ROOM_DEFAULT.c); svg = roomSvg(r, { viewBox: vb }); }
@@ -118,7 +119,7 @@ const V = { 'acc-bog': 6,
         /* steder, der ellers sidder direkte i siden (fx byen), mangler xmlns og vises ikke som billede uden */
         if (!/^<svg[^>]*xmlns=/.test(svg)) svg = svg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ');        document.body.innerHTML = `<div id="shot" style="width:${w}px;height:${hh}px;background:${bg}"><img style="width:100%;height:100%;display:block" src="${svgUrl(svg)}"></div>`;
         document.body.style.margin = 0; return hh;
-      }, { it, vb, w });
+      }, { it, vb, w }); } catch (e){ console.log('springer over:', it.id, e.message.split('\n')[0]); continue; }
       await p.waitForTimeout(it.opts && it.opts.wave ? 500 : 80);
       await p.locator('#shot').screenshot({ path: path.join(IMG, `${it.id}-${suf}.jpg`), type: 'jpeg', quality: 82 });
     }

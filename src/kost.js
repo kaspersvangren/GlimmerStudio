@@ -138,8 +138,9 @@ const Kost = (() => {
       : fr === 'midt' ? `M ${cx - 30} ${cy - 8} C ${cx - 34} ${cy - 50} ${cx + 10} ${cy - 62} ${cx + 40} ${cy - 44} C ${cx + 52} ${cy - 34} ${cx + 56} ${cy - 18} ${cx + 52} ${cy - 4} C ${cx + 44} ${cy - 26} ${cx + 30} ${cy - 36} ${cx + 18} ${cy - 40} C ${cx + 6} ${cy - 32} ${cx - 8} ${cy - 26} ${cx - 18} ${cy - 10} Z`
       : `M ${cx - 30} ${cy - 8} C ${cx - 34} ${cy - 50} ${cx + 10} ${cy - 62} ${cx + 40} ${cy - 44} C ${cx + 54} ${cy - 34} ${cx + 58} ${cy - 20} ${cx + 54} ${cy - 6} C ${cx + 40} ${cy - 30} ${cx + 18} ${cy - 30} ${cx - 4} ${cy - 22} C ${cx - 10} ${cy - 18} ${cx - 16} ${cy - 14} ${cx - 18} ${cy - 10} Z`;
     o += `<path d="${fringe}" fill="${hA}" stroke="${hS}" stroke-width="3" stroke-linejoin="round"/><path d="M ${cx - 6} ${cy - 46} Q ${cx + 14} ${cy - 54} ${cx + 30} ${cy - 46}" stroke="${lt(hA, .45)}" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>`;
-    /* hatten: spidsen blæser bagud */
-    const ha = hat.a, hb = hat.b, hs = SH(ha), hx = cx + 6, hy = cy - 44 + (hat.id === 'kort' ? 18 : hat.id === 'hue' ? 12 : 0);
+    /* hatten: spidsen blæser bagud (nyere hatte tegnes som den nærmeste af de fire) */
+    const hid = { blomst:'spids', hoej:'kort', baret:'hue' }[hat.id] || hat.id;
+    const ha = hat.a, hb = hat.b, hs = SH(ha), hx = cx + 6, hy = cy - 44 + (hid === 'kort' ? 18 : hid === 'hue' ? 12 : 0);
     if (gear){
       /* hjelmen: en rund skal over issen og baghovedet i hattens farve, med en stribe, hageremme og briller skubbet op */
       o += `<path d="M ${cx - 52} ${cy + 18} C ${cx - 66} ${cy - 30} ${cx - 22} ${cy - 68} ${cx + 18} ${cy - 62} C ${cx + 46} ${cy - 58} ${cx + 60} ${cy - 36} ${cx + 58} ${cy - 16} Q ${cx + 30} ${cy - 30} ${cx + 4} ${cy - 22} Q ${cx - 14} ${cy - 14} ${cx - 16} ${cy + 10} L ${cx - 20} ${cy + 22} Q ${cx - 36} ${cy + 30} ${cx - 52} ${cy + 18} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/>`
@@ -148,14 +149,14 @@ const Kost = (() => {
         + `<path d="M ${cx - 16} ${cy - 50} Q ${cx} ${cy - 60} ${cx + 16} ${cy - 58}" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round" opacity=".45"/>`
         + `<path d="M ${cx - 20} ${cy + 14} Q ${cx - 4} ${cy + 44} ${cx + 26} ${cy + 44}" stroke="#2A2238" stroke-width="3.5" fill="none"/>`
         + `<g transform="rotate(-14 ${cx + 30} ${cy - 40})"><rect x="${cx + 12}" y="${cy - 50}" width="40" height="20" rx="9" fill="#2A2238"/><rect x="${cx + 16}" y="${cy - 46}" width="32" height="12" rx="6" fill="#7FD8FF" opacity=".9"/><path d="M ${cx + 22} ${cy - 42} h 8" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/></g>`;
-    } else if (hat.id === 'spids' || hat.id === 'knaek'){
-      const tip = hat.id === 'knaek' ? `C ${hx - 14} ${hy - 50} ${hx - 34} ${hy - 76} ${hx - 60} ${hy - 80} L ${hx - 92} ${hy - 62} L ${hx - 58} ${hy - 96} C ${hx - 30} ${hy - 90} ${hx - 2} ${hy - 62} ${hx + 26} ${hy - 8}` : `C ${hx - 18} ${hy - 50} ${hx - 50} ${hy - 90} ${hx - 104} ${hy - 96} C ${hx - 52} ${hy - 76} ${hx - 4} ${hy - 50} ${hx + 26} ${hy - 8}`;
+    } else if (hid === 'spids' || hid === 'knaek'){
+      const tip = hid === 'knaek' ? `C ${hx - 14} ${hy - 50} ${hx - 34} ${hy - 76} ${hx - 60} ${hy - 80} L ${hx - 92} ${hy - 62} L ${hx - 58} ${hy - 96} C ${hx - 30} ${hy - 90} ${hx - 2} ${hy - 62} ${hx + 26} ${hy - 8}` : `C ${hx - 18} ${hy - 50} ${hx - 50} ${hy - 90} ${hx - 104} ${hy - 96} C ${hx - 52} ${hy - 76} ${hx - 4} ${hy - 50} ${hx + 26} ${hy - 8}`;
       o += `<g class="kfr-hat"><path d="M ${hx - 30} ${hy - 4} ${tip} Z" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/><path d="M ${hx - 28} ${hy - 10} Q ${hx} ${hy - 22} ${hx + 26} ${hy - 12} L ${hx + 24} ${hy - 2} Q ${hx} ${hy - 12} ${hx - 28} ${hy} Z" fill="${hb}" stroke="${hs}" stroke-width="2"/></g>`;
       o += `<ellipse cx="${hx}" cy="${hy + 2}" rx="68" ry="15" transform="rotate(-8 ${hx} ${hy + 2})" fill="${ha}" stroke="${hs}" stroke-width="3"/><path d="M ${hx - 56} ${hy + 4} Q ${hx} ${hy + 14} ${hx + 60} ${hy - 6}" stroke="${lt(ha, .3)}" stroke-width="3" fill="none" opacity=".6"/>`;
-    } else if (hat.id === 'kort'){
+    } else if (hid === 'kort'){
       o += `<path d="M ${hx - 34} ${hy + 2} C ${hx - 36} ${hy - 40} ${hx - 10} ${hy - 50} ${hx + 10} ${hy - 48} C ${hx + 30} ${hy - 46} ${hx + 36} ${hy - 30} ${hx + 32} ${hy} Z" fill="${ha}" stroke="${hs}" stroke-width="3"/><path d="M ${hx - 34} ${hy - 8} Q ${hx} ${hy - 16} ${hx + 32} ${hy - 10} L ${hx + 32} ${hy} Q ${hx} ${hy - 6} ${hx - 34} ${hy + 2} Z" fill="${hb}"/>`
         + `<ellipse cx="${hx}" cy="${hy + 4}" rx="82" ry="16" transform="rotate(-8 ${hx} ${hy + 4})" fill="${ha}" stroke="${hs}" stroke-width="3"/>`;
-    } else if (hat.id === 'hue'){
+    } else if (hid === 'hue'){
       o += `<g class="kfr-hat"><path d="M ${hx - 34} ${hy + 6} C ${hx - 40} ${hy - 40} ${hx - 10} ${hy - 50} ${hx + 20} ${hy - 40} C ${hx - 20} ${hy - 50} ${hx - 70} ${hy - 30} ${hx - 96} ${hy + 6} C ${hx - 60} ${hy - 10} ${hx - 40} ${hy} ${hx - 34} ${hy + 6} Z M ${hx - 34} ${hy + 6} C ${hx - 10} ${hy - 10} ${hx + 30} ${hy - 6} ${hx + 44} ${hy} C ${hx + 40} ${hy - 30} ${hx + 30} ${hy - 40} ${hx + 20} ${hy - 40}" fill="${ha}" stroke="${hs}" stroke-width="3" stroke-linejoin="round"/><circle cx="${hx - 98}" cy="${hy + 10}" r="11" fill="${hb}" stroke="${SH(hb)}" stroke-width="2.5"/></g><path d="M ${hx - 36} ${hy + 4} Q ${hx} ${hy - 12} ${hx + 46} ${hy} L ${hx + 46} ${hy + 10} Q ${hx} ${hy - 2} ${hx - 36} ${hy + 14} Z" fill="${hb}" stroke="${SH(hb)}" stroke-width="2.5"/>`;
     }
     return o;
