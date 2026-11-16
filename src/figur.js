@@ -804,6 +804,7 @@ const FIG_DEFAULT = {
 };
 const DEFAULT_STATE = FIG_DEFAULT;
 
+let ONLY = null;
 function figureSvg(st, c, hl, wave){
   const acc = st.acc || {}, A = k => acc[k];
   const back = BACK[st.back] || BACK.langt, robe = ROBES[st.robe.id] || ROBES.stjerner, cape = CAPES[st.cape.id] || CAPES.ingen, hat = HATS[st.hat.id] || HATS.ingen;
@@ -813,12 +814,13 @@ function figureSvg(st, c, hl, wave){
   s += `<ellipse cx="300" cy="862" rx="160" ry="20" fill="${SHC}" opacity=".16"/>`;
   const sway = (inner) => spin(inner, 300, 404, [0,1.2,0,-1.2,0], 7);
   /* bagerst: kappen og det lange hår */
-  if (cape.back) s += HLW(hl === 'cape', sway(cape.back(c)));
+  if (cape.back && !ONLY) s += HLW(hl === 'cape', sway(cape.back(c)));
   const hoodOn = st.cape.id === 'haette' && !HATS[st.hat.id]?.draw;
-  if (!hoodOn) s += HLW(hl === 'back', sway(back.back(c)));
+  if (!hoodOn && !ONLY) s += HLW(hl === 'back', sway(back.back(c)));
   /* ben, støvler, kjole */
   s += legsF(c, robe.short);
   s += HLW(hl === 'boots', bootOne(c, -1, bootKind) + bootOne(c, 1, bootKind));
+  if (ONLY === 'boots') return s;   /* kun fodtøjet (fx når det kommer ud af en boble) */
   s += HLW(hl === 'robe', robeF(c, robe));
   if (A('baelte')) s += HLW(hl === 'acc:baelte', beltF(A('baelte')));
   if (A('lommeur')) s += HLW(hl === 'acc:lommeur', watchF(A('lommeur')));
@@ -880,6 +882,7 @@ function renderDoll(st, opts={}){
   IDLE = opts.greet && ANIM ? { T: 3, ev: [{ kind:'hop', a:0.1, b:0.8 }] } : opts.idle && ANIM ? makeIdle(false) : null;
   if (IDLE && opts.idle){ const a = 3 + Math.random() * (IDLE.T - 6); if (IDLE.ev.every(e => a + 0.8 < e.a - 0.4 || a > e.b + 0.4)) IDLE.ev.push({ kind:'hop', a, b:a+0.7 }); }
   const hl = opts.hl || '';
+  ONLY = opts.only || null;
   const vb = opts.viewBox || `0 0 ${W} ${H}`;
   const o = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"${opts.size ? ` width="${opts.size[0]}" height="${opts.size[1]}"` : ''}>`];
   o.push(`<defs>${grad('bgG', opts.bg1 || '#FFF3F8', opts.bg2 || '#EBDDFF')}</defs>`);

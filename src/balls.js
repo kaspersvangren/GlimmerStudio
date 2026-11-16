@@ -242,9 +242,12 @@ function revealItem(cat, id){
     info.apply(st, id);
     if (cat === 'boots') st.robe.id = 'kort';
     if (cat === 'hat' || cat === 'front') st.acc = {};
-    const vb = typeof info.vb === 'function' ? info.vb(id) : info.vb;
+    /* kortet viser tingen i en rund ramme: udsnittet gøres kvadratisk og så stort, at hele udsnittet er inden for cirklen */
+    const [vx, vy, vw, vh] = (typeof info.vb === 'function' ? info.vb(id) : info.vb).split(' ').map(Number);
+    const side = Math.max(vw, vh, Math.hypot(vw, vh) / 0.8), up = cat === 'hat' ? 60 : 0;   /* hattene rager op over deres udsnit */
+    const vb = `${(vx + vw/2 - side/2).toFixed(1)} ${(vy + vh/2 - side/2 - up).toFixed(1)} ${side.toFixed(1)} ${side.toFixed(1)}`;
     const hl = info.multi ? cat + ':' + id : cat;
-    img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true, hl } : { viewBox: vb, pet: false, hl });
+    img = dollImg(st, info.petOnly ? { viewBox: vb, petOnly: true, hl } : { viewBox: vb, pet: false, hl, only: cat === 'boots' ? 'boots' : null });
     catLabel = info.label; name = info.name(id);
     tryBtn = figures.length ? el('button', { class:'btn', type:'button', on:{ click: () => tryOn(cat) } }, 'Prøv den på') : null;
   }
