@@ -345,7 +345,7 @@ const Kost = (() => {
 
   /* ---------- skærmen ---------- */
   function show(){
-    showScreen('#broom'); playMusic('show');
+    showScreen('#broom'); playMusic('kost');
     const hero = heroState(), taken = [];
     const mates = [0, 1].map(i => { const own = i === 0 && Math.random() < 0.3 ? ownGuest(figures.length ? figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].id : null) : null; const g = own || randomGuest(taken); taken.push(g.name); return g; });
     S = { hero, mates, course: makeCourse(), x: 0, y: 520, vy: 0, v: V0, ang: 0, t: 0, run: 'wait', cam: -PX, evT: 3, seen: new Set(), me: true,

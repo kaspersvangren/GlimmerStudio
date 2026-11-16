@@ -29,7 +29,7 @@ function musicTick(){
     MUSIC.step++; MUSIC.nextT += eighth;
   }
 }
-const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show' };
+const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show', kost: 'show', fald: 'show' };
 function playMusic(name){
   if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
   stopMusic(); MUSIC.track = name;

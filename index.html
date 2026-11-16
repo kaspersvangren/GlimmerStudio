@@ -2158,7 +2158,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.14';
+const VERSION = 'v0.25.15';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -5029,7 +5029,7 @@ const Kost = (() => {
 
   /* ---------- skærmen ---------- */
   function show(){
-    showScreen('#broom'); playMusic('show');
+    showScreen('#broom'); playMusic('kost');
     const hero = heroState(), taken = [];
     const mates = [0, 1].map(i => { const own = i === 0 && Math.random() < 0.3 ? ownGuest(figures.length ? figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))[0].id : null) : null; const g = own || randomGuest(taken); taken.push(g.name); return g; });
     S = { hero, mates, course: makeCourse(), x: 0, y: 520, vy: 0, v: V0, ang: 0, t: 0, run: 'wait', cam: -PX, evT: 3, seen: new Set(), me: true,
@@ -5702,7 +5702,7 @@ const Fald = (() => {
   }
 
   function show(){
-    showScreen('#fald'); playMusic('show');
+    showScreen('#fald'); playMusic('fald');
     stop();
     const hero = heroState(), wind = (prog.jumps || 0) >= 2 ? 1.2 + Math.random() * 1.6 : 0, wa = Math.random() * Math.PI * 2;
     const a0 = Math.random() * Math.PI * 2, d0 = 105 + Math.random() * 30;
@@ -7933,7 +7933,7 @@ function musicTick(){
     MUSIC.step++; MUSIC.nextT += eighth;
   }
 }
-const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show' };
+const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show', kost: 'show', fald: 'show' };
 function playMusic(name){
   if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
   stopMusic(); MUSIC.track = name;
@@ -9705,13 +9705,14 @@ const LYD_FILER = {
   'gnom.slag': ['lyd/gnom-slag-1.mp3', 'lyd/gnom-slag-2.mp3', 'lyd/gnom-slag-3.mp3'],
   'gnom.av': ['lyd/gnom-av-1.mp3', 'lyd/gnom-av-2.mp3', 'lyd/gnom-av-3.mp3', 'lyd/gnom-av-4.mp3', 'lyd/gnom-av-5.mp3', 'lyd/gnom-av-6.mp3', 'lyd/gnom-av-7.mp3'],
 };
-// Musik: 'byen', 'kaelder', 'show', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
+// Musik: 'byen', 'kaelder', 'show', 'kost', 'fald', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
 // loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
 const LYD_MUSIK = {
   byen: { src: 'lyd/byen.mp3', loop: [73.57294, 133.61413] },   // Kaspers "Moonbeam Meadow". Loop B2, valgt af Kasper
   invader: { src: 'lyd/pixel-star-chase.mp3', loop: [26.7, 65.86335] },   // "Pixel Star Chase". Loop B, valgt af Kasper
   skjold: { src: 'lyd/orbital-ashes.mp3', loop: [71.6, 100.8465] },   // "Orbital Ashes". Loop A, valgt af Kasper
-  kaelder: { src: 'lyd/wizard-crypt.mp3', loop: [65.4, 101.49313] },   // "Wizard Crypt Loop". Loop A (forslag). Skolen og eliksirtimen
+  kaelder: { src: 'lyd/wizard-crypt.mp3', loop: [65.4, 101.49313] },   // "Wizard Crypt Loop". Loop A, valgt af Kasper. Skolen og eliksirtimen
+  fald: { src: 'lyd/cloud-glide.mp3', loop: [75.6, 149.44998] },   // "Cloud Glide Loop". Loop A (forslag). Faldskærm
 };
 
 // Lydlaget: hver lyd i spillet har en nøgle. Findes der en egen fil i LYD_FILER, spilles den; ellers den indbyggede.

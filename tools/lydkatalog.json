@@ -21,8 +21,22 @@
     "key": "show",
     "musik": true,
     "navn": "Show og fart",
-    "hvor": "Modeshow, kosteflyvning, faldskærm",
+    "hvor": "Modeshowet",
     "forslag": "Festlig og fremadrettet, gerne med messing og trommer. Omkring 120-130 slag i minuttet."
+   },
+   {
+    "key": "kost",
+    "musik": true,
+    "navn": "Kosteflyvning",
+    "hvor": "Kapflyvningen gennem ringene",
+    "forslag": "Hurtig, hoppende chiptune med fart og konkurrence, ca. 130-140 slag i minuttet."
+   },
+   {
+    "key": "fald",
+    "musik": true,
+    "navn": "Faldskærm",
+    "hvor": "Opstigningen, det frie fald og svæveturen ned",
+    "forslag": "Luftig og fri, lange toner og let trommespil, ca. 100-115 slag i minuttet."
    },
    {
     "key": "arkade",

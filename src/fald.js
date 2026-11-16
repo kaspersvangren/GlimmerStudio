@@ -242,7 +242,7 @@ const Fald = (() => {
   }
 
   function show(){
-    showScreen('#fald'); playMusic('show');
+    showScreen('#fald'); playMusic('fald');
     stop();
     const hero = heroState(), wind = (prog.jumps || 0) >= 2 ? 1.2 + Math.random() * 1.6 : 0, wa = Math.random() * Math.PI * 2;
     const a0 = Math.random() * Math.PI * 2, d0 = 105 + Math.random() * 30;
