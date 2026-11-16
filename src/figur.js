@@ -92,6 +92,16 @@ const BACK = {
   fletninger: { label:'Fletninger', lock:'kort', back: c => capBack(c), over: c => spin(braid(c, 222), 222, 380, [0,2,0,-1.6,0], 3.4) + spin(braid(c, 378), 378, 380, [0,-2,0,1.6,0], 3.4) },
   knolde: { label:'Knolde', lock:'ingen', back: c => '', top: c => bunAt(c, 232, 186, 38) + bunAt(c, 368, 186, 38) },
   kroeller: { label:'Krøller', lock:'krol', back: c => '' },
+  rottehaler: { label:'To hestehaler', lock:'ingen', back: c => { const one = `<path d="${PONY}" fill="${hairUrl(c,'pnG',c.hair)}" stroke="${c.hs}" stroke-width="3" stroke-linejoin="round"/>`
+      + clipG(PONY, `<path d="M 380 250 C 420 280 432 360 428 430 C 424 380 414 310 372 262 Z" fill="${c.hD}" opacity=".5"/><path d="M 412 224 C 440 260 444 320 438 380" stroke="${c.hL}" stroke-width="5" fill="none" opacity=".7" stroke-linecap="round"/>`)
+      + `<ellipse cx="372" cy="214" rx="12" ry="18" transform="rotate(-40 372 214)" fill="${c.tie}" stroke="${fdk(c.tie,0.4)}" stroke-width="2.5"/>`;
+      return hairFill(c,'pnG',220,500,c.hair) + spin(one, 372, 214, [0,-3,0,2.5,0], 2.8) + spin(MIR(one), 228, 214, [0,3,0,-2.5,0], 2.8); } },
+  sidefletning: { label:'Sidefletning', lock:'kort', back: c => capBack(c), over: c => spin(braid(c, 368), 368, 380, [0,-2,0,1.6,0], 3.4) },
+  topknold: { label:'Topknold', lock:'ingen', back: c => '', top: c => bunAt(c, 300, 166, 42) + `<path d="M 268 196 Q 300 206 332 196" stroke="${c.tie}" stroke-width="7" fill="none" stroke-linecap="round"/>` },
+  skulder: { label:'Skulderlangt hår', lock:'kort', back: c => {
+      const base = sd(c.hair,0.36), d = 'M 300 186 C 214 186 188 250 192 320 C 194 380 196 420 186 452 C 200 470 220 466 234 452 Q 300 470 366 452 C 380 466 400 470 414 452 C 404 420 406 380 408 320 C 412 250 386 186 300 186 Z';
+      return `<defs>${gradV('hsG',190,470,c.hD,c.tip !== c.hair ? sd(c.tip,0.3) : base)}</defs><path d="${d}" fill="url(#hsG)" stroke="${c.hs}" stroke-width="3" stroke-linejoin="round"/>`
+        + clipG(d, strandWedges(c, [[200,340,206,450],[400,340,394,450]]) + `<path d="M 196 420 Q 202 440 194 452 M 404 420 Q 398 440 406 452" stroke="${c.hL}" stroke-width="4" fill="none" opacity=".6" stroke-linecap="round"/>`); } },
 };
 
 /* ---- håret foran: ÉN form med én kontur (sidehår + isse + pandehårets kant), så der ingen samlinger er ved tindingen ----
@@ -150,6 +160,16 @@ const FRONT = {
     det: c => `<path d="M 300 196 L 300 222 M 290 226 C 264 238 248 258 242 282 M 310 226 C 336 238 352 258 358 282" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>` },
   pjusket: { label:'Pjusket', shine:true, edge:'L 358 266 L 346 256 L 336 276 L 320 252 L 306 274 L 292 252 L 278 274 L 264 254 L 252 278 L 242 264 L 240 290',
     det: c => `<path d="M 336 270 C 330 244 318 226 300 214 M 278 268 C 276 248 268 232 256 222" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>` },
+  gardin: { label:'Gardinpandehår', shine:false, edge:'C 358 266 342 244 316 234 C 308 246 304 256 300 264 C 296 256 292 246 284 234 C 258 244 242 266 240 290',
+    det: c => `<path d="M 300 196 L 300 262 M 314 238 C 330 246 346 262 354 280 M 286 238 C 270 246 254 262 246 280" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>` },
+  mini: { label:'Mini pandehår', shine:true, edge:'C 362 270 362 252 360 244 Q 300 254 240 244 C 238 252 238 270 240 290',
+    det: c => `<path d="M 262 246 L 263 222 M 284 250 L 284 216 M 306 250 L 306 214 M 330 248 L 329 218 M 350 246 L 348 226" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>` },
+  venstre: { label:'Sideskilning til venstre', shine:true, edge:'C 359 283 356 276 350 268 C 328 272 294 266 270 244 C 254 256 242 272 240 290',
+    det: c => `<path d="M 270 246 C 284 258 304 264 324 266 M 254 258 C 260 240 272 222 290 212" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/>` },
+  boelget: { label:'Bølget pandehår', shine:true, edge:'C 362 280 360 268 356 260 Q 346 278 332 264 Q 318 280 304 264 Q 290 280 276 264 Q 262 280 250 264 Q 242 272 240 290',
+    det: c => `<path d="M 332 262 C 330 240 322 222 310 212 M 276 262 C 276 240 270 226 260 216" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>` },
+  lang: { label:'Langt pandehår', shine:true, edge:'C 362 288 364 286 364 282 Q 300 296 236 282 C 236 286 238 288 240 290',
+    det: c => `<path d="M 254 284 L 256 236 M 278 288 L 279 228 M 302 289 L 302 226 M 326 288 L 325 228 M 348 284 L 346 236" stroke="${c.hD}" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>` },
   tilbage: { label:'Strøget tilbage', shine:false, edge:'C 352 248 330 230 300 228 C 270 230 248 248 240 290',
     det: c => `<path d="M 300 228 C 300 214 300 204 300 196 M 272 232 C 264 220 258 210 254 202 M 328 232 C 336 220 342 210 346 202 M 252 244 C 242 234 236 226 232 218 M 348 244 C 358 234 364 226 368 218" stroke="${c.hD}" stroke-width="2.6" fill="none" opacity=".5" stroke-linecap="round"/>` },
 };
@@ -772,6 +792,11 @@ const KLADDE = new Set([
   'cape:blomster', 'cape:stribet', 'cape:pelskant',
   'boots:sandaler', 'boots:krul', 'boots:spaende', 'boots:knap',
   'acc:lommeur',
+  'front:gardin', 'front:mini', 'front:venstre', 'front:boelget', 'front:lang',
+  'back:rottehaler', 'back:sidefletning', 'back:topknold', 'back:skulder',
+  'pet:ugle', 'pet:raev', 'pet:froe',
+  'petpat:hjerter', 'petpat:stjerner', 'petpat:prikker', 'petpat:plet', 'petpat:glimmer',
+  'petacc:hat', 'petacc:blomst', 'petacc:stjerne', 'petacc:toerklaede', 'petacc:butterfly', 'petacc:briller',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 

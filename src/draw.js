@@ -99,12 +99,20 @@ const PET_KINDS = {
   ingen: { label:'Intet dyr' },
   kat: { label:'Kat' }, hund: { label:'Hund' }, kanin: { label:'Kanin' },
   enhjoerning: { label:'Enhjørning' }, bjoern: { label:'Bjørn' }, drage: { label:'Drage' },
+  ugle: { label:'Ugle' }, raev: { label:'Ræv' }, froe: { label:'Frø' },
 };
-const PET_PATTERNS = { ingen:'Ensfarvet', pletter:'Pletter', striber:'Striber', sokker:'Sokker', oejeplet:'Plet om øjet' };
+const PET_PATTERNS = { ingen:'Ensfarvet', pletter:'Pletter', striber:'Striber', sokker:'Sokker', oejeplet:'Plet om øjet',
+  hjerter:'Hjerter', stjerner:'Stjerner', prikker:'Små prikker', plet:'Stor plet', glimmer:'Glimmer' };
 const PET_ACC = {
   halsbaand: { label:'Halsbånd', color:'#FF5FA8' }, sloejfe: { label:'Sløjfe', color:'#B79BFF' },
   krone: { label:'Krone', color:'#FF5FA8' }, vinger: { label:'Feevinger', color:'#7FD8FF' },
+  hat: { label:'Lille heksehat', color:'#7B4FD0' }, blomst: { label:'Blomst ved øret', color:'#FF8FC7' },
+  stjerne: { label:'Stjernespænde', color:'#FFC02E' }, toerklaede: { label:'Tørklæde', color:'#43A3D3' },
+  butterfly: { label:'Butterfly', color:'#E0457A' }, briller: { label:'Briller', color:'#B98516' },
 };
+/* dyrets ting, der sidder samme sted: kun én ad gangen */
+const PET_ACC_SLOTS = [ ['krone','hat'], ['sloejfe','blomst','stjerne'], ['halsbaand','toerklaede','butterfly'] ];
+function petAccConflicts(k){ const out = new Set(); for (const slot of PET_ACC_SLOTS) if (slot.includes(k)) slot.forEach(x => { if (x !== k) out.add(x); }); return [...out]; }
 const ellPath = (cx,cy,rx,ry) => `M ${cx-rx} ${cy} A ${rx} ${ry} 0 1 0 ${cx+rx} ${cy} A ${rx} ${ry} 0 1 0 ${cx-rx} ${cy} Z`;
 
 function petHelpers(P){
@@ -120,6 +128,11 @@ function petHelpers(P){
       if (P.pat==='pletter') s += spots.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${P.B}"/>`).join('');
       if (P.pat==='striber') s += stripes.map(d=>`<path d="${d}" fill="none" stroke="${P.B}" stroke-width="11" stroke-linecap="round"/>`).join('');
       if (P.pat==='oejeplet' && patch) s += `<ellipse cx="${patch[0]}" cy="${patch[1]}" rx="${patch[2]}" ry="${patch[3]}" fill="${P.B}"/>`;
+      if (P.pat==='hjerter') s += spots.map(([x,y,r])=>heart(x, y, r/7.5, P.B)).join('');
+      if (P.pat==='stjerner') s += spots.map(([x,y,r])=>starP(x, y, r*1.1, P.B)).join('');
+      if (P.pat==='prikker') s += spots.map(([x,y,r])=>[[0,0],[r*1.4,r*0.8],[-r*1.2,r*1.1],[r*0.3,-r*1.5]].map(([dx,dy])=>`<circle cx="${(x+dx).toFixed(1)}" cy="${(y+dy).toFixed(1)}" r="${(r*0.38).toFixed(1)}" fill="${P.B}"/>`).join('')).join('');
+      if (P.pat==='plet' && spots[0]) s += `<ellipse cx="${spots[0][0]}" cy="${spots[0][1]}" rx="${spots[0][2]*2.2}" ry="${spots[0][2]*1.8}" fill="${P.B}"/>`;
+      if (P.pat==='glimmer') s += spots.map(([x,y,r])=>twinkle(x, y, r*1.2, P.B) + `<circle cx="${x+r*1.3}" cy="${y-r}" r="${(r*0.25).toFixed(1)}" fill="${P.B}"/>`).join('');
       return s ? HLW(P.hl==='petpat', `<g clip-path="url(#${clipId})">${s}</g>`) : '';
     },
     sock: P.pat==='sokker',
@@ -315,7 +328,99 @@ const PET_SPECIES = {
     o += H.collar(...PET_SPECIES.drage.anchors.collar);
     o += PET_SPECIES.drage.head(P,H);
     return o; } },
+
+  /* ---------- UGLE: rund fjerbold, store øjne i lyse ansigtsskiver, små fjertoppe ---------- */
+  ugle: { anchors:{ crown:[0,-246], bow:[50,-226,18], bowCrown:[70,-236,20,0.5], collar:[0,-128,40], wings:[0,-96], eyes:[-30,30,-182,0.88] }, shadow:72, head:(P,H) => {
+    let o = H.mirror(H.path("M -56 -216 L -70 -262 L -30 -236 Z", P.A));
+    const head = ellPath(0,-182,76,62);
+    o += H.clip('phC', head) + H.path(head,'url(#petFur)');
+    o += H.pat('phC', [[50,-218,10],[-54,-210,8]], ["M -16 -240 L -12 -220","M 0 -244 L 0 -220","M 16 -240 L 12 -220"], [-30,-182,34,32]);
+    o += `<ellipse cx="-30" cy="-180" rx="34" ry="32" fill="${P.B}" opacity=".85"/><ellipse cx="30" cy="-180" rx="34" ry="32" fill="${P.B}" opacity=".85"/>`;
+    o += `<path d="M -4 -226 Q 0 -206 0 -196 Q 0 -206 4 -226" stroke="${P.L}" stroke-width="2" fill="none" opacity=".5"/>`;
+    o += H.eye(-30,-182,0.88,false,-1) + H.eye(30,-182,0.88,false,1) + H.blush(-58,-150) + H.blush(58,-150);
+    o += `<path d="M -9 -160 L 9 -160 L 0 -142 Z" fill="#F2A93B" stroke="#B9741A" stroke-width="2.5" stroke-linejoin="round"/>`;
+    return o; },
+    draw:(P,H) => {
+    const body = ellPath(0,-74,64,74);
+    let o = H.mirror(H.path("M -58 -112 C -86 -96, -88 -40, -66 -14 C -56 -44, -52 -80, -44 -110 Z", P.ASh));
+    o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
+    o += H.pat('pbC', [[-36,-100,10],[38,-60,11],[-30,-40,8]], ["M -60 -96 Q -36 -88 -28 -100","M -62 -66 Q -38 -58 -30 -70","M 60 -96 Q 36 -88 28 -100","M 62 -66 Q 38 -58 30 -70"]);
+    o += `<g clip-path="url(#pbC)"><ellipse cx="0" cy="-56" rx="40" ry="54" fill="${P.B}"/>` + [[-16,-90],[12,-82],[-6,-62],[18,-52],[-18,-40],[4,-30]].map(([x,y])=>`<path d="M ${x-7} ${y} q 7 8 14 0" stroke="${outline(P.B)}" stroke-width="2.5" fill="none" opacity=".55"/>`).join('') + `</g>`;
+    o += H.mirror(spin(H.path("M -62 -108 C -84 -88, -84 -48, -64 -26 C -56 -50, -54 -80, -58 -106 Z", P.A), -62, -108, [0,-6,0], 1.4));
+    for (const x of [-22,22]) o += `<path d="M ${x-10} -4 l -4 6 M ${x} -4 l 0 7 M ${x+10} -4 l 4 6" stroke="#B9741A" stroke-width="5" stroke-linecap="round"/><path d="M ${x-10} -4 l -4 6 M ${x} -4 l 0 7 M ${x+10} -4 l 4 6" stroke="#F2A93B" stroke-width="3" stroke-linecap="round"/><ellipse cx="${x}" cy="-6" rx="14" ry="6" fill="#F2A93B" stroke="#B9741A" stroke-width="2.5"/>`;
+    o += H.collar(...PET_SPECIES.ugle.anchors.collar);
+    o += PET_SPECIES.ugle.head(P,H);
+    return o; } },
+
+  /* ---------- RÆV: som katten, men med spids snude, store ører og en tyk hale med lys spids ---------- */
+  raev: { anchors:{ crown:[0,-262], bow:[50,-244,20], bowCrown:[72,-252,30,0.5], collar:[0,-132,30], wings:[0,-100], eyes:[-32,32,-204,0.92] }, shadow:70, head:(P,H) => {
+    let o = H.mirror(H.path("M -74 -214 L -66 -304 L -18 -252 Z", P.A) + `<path d="M -64 -230 L -60 -286 L -34 -254 Z" fill="${P.B}"/><path d="M -67 -296 L -66 -304 L -58 -294 Z" fill="${P.L}"/>`);
+    const head = "M 0 -262 C 46 -262, 76 -240, 82 -206 C 88 -180, 62 -150, 0 -128 C -62 -150, -88 -180, -82 -206 C -76 -240, -46 -262, 0 -262 Z";
+    o += H.clip('phC', head) + H.path(head,'url(#petFur)');
+    o += H.pat('phC', [[46,-234,12],[-56,-222,8]], ["M -16 -264 L -12 -236","M 0 -266 L 0 -232","M 16 -264 L 12 -236"], [-32,-204,30,28]);
+    o += `<g clip-path="url(#phC)"><path d="M -90 -196 C -64 -176, -30 -172, 0 -172 C 30 -172, 64 -176, 90 -196 L 90 -120 L -90 -120 Z" fill="${P.B}"/></g>` + H.path(head, 'none');
+    o += H.eye(-32,-204,0.92,false,-1) + H.eye(32,-204,0.92,false,1) + H.blush(-56,-174) + H.blush(56,-174);
+    o += `<ellipse cx="0" cy="-150" rx="10" ry="7" fill="${NOSE_DARK}"/><ellipse cx="-3" cy="-152" rx="3.5" ry="2" fill="#FFFFFF" opacity=".8"/><path d="M 0 -143 L 0 -138 M -9 -134 Q -4 -130 0 -138 Q 4 -130 9 -134" fill="none" stroke="#3A2440" stroke-width="2.6" stroke-linecap="round"/>`;
+    return o; },
+    draw:(P,H) => {
+    let o = spin(H.path("M 30 -30 C 100 -40, 132 -100, 104 -150 C 140 -110, 130 -20, 60 4 C 40 10, 20 6, 10 -4 Z", 'url(#petFur)')
+      + `<path d="M 104 -150 C 122 -128, 126 -104, 118 -86 C 108 -104, 100 -124, 104 -150 Z" fill="${P.B}" stroke="${P.L}" stroke-width="3.5" stroke-linejoin="round"/>`, 30, -30, [0,-4,0,3,0], 2.4);
+    o += H.ell(-34,-34,26,32,'url(#petFur)') + H.ell(34,-34,26,32,'url(#petFur)');
+    const body = "M -40 -8 C -58 -50, -50 -124, -24 -152 L 24 -152 C 50 -124, 58 -50, 40 -8 Q 0 2 -40 -8 Z";
+    o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
+    o += H.pat('pbC', [[-30,-110,10],[28,-62,12],[-24,-38,8]], ["M -60 -124 Q -36 -114 -24 -128","M -62 -94 Q -38 -84 -28 -96","M 60 -124 Q 36 -114 24 -128","M 62 -94 Q 38 -84 28 -96"]);
+    o += `<g clip-path="url(#pbC)"><ellipse cx="0" cy="-92" rx="22" ry="54" fill="${P.B}"/></g>`;
+    for (const x of [-13,13]){
+      o += H.path(`M ${x-11} -100 L ${x-11} -14 Q ${x-11} -2 ${x} -2 Q ${x+11} -2 ${x+11} -14 L ${x+11} -100`, 'url(#petFur)');
+      o += H.path(`M ${x-11} -30 L ${x-11} -14 Q ${x-11} -2 ${x} -2 Q ${x+11} -2 ${x+11} -14 L ${x+11} -30 Z`, H.sock ? P.B : P.L);
+    }
+    o += H.collar(...PET_SPECIES.raev.anchors.collar);
+    o += PET_SPECIES.raev.head(P,H);
+    return o; } },
+
+  /* ---------- FRØ: bred og flad, øjnene i to buler ovenpå, stort smil ---------- */
+  froe: { anchors:{ crown:[0,-196,0], bow:[70,-176,18], bowCrown:[78,-170,20,0.5], collar:[0,-96,46], wings:[0,-70], eyes:[-42,42,-190,0.72] }, shadow:96, head:(P,H) => {
+    let o = H.ell(-42,-186,30,28,'url(#petFur)') + H.ell(42,-186,30,28,'url(#petFur)');
+    const head = "M -86 -132 C -92 -176, -50 -184, 0 -180 C 50 -184, 92 -176, 86 -132 C 82 -104, 40 -94, 0 -94 C -40 -94, -82 -104, -86 -132 Z";
+    o += H.clip('phC', head) + H.path(head,'url(#petFur)');
+    o += H.pat('phC', [[0,-162,10],[-60,-150,8],[58,-146,7]], ["M -30 -178 L -26 -156","M 30 -178 L 26 -156"], [-42,-150,26,22]);
+    o += H.eye(-42,-190,0.72,false,-1) + H.eye(42,-190,0.72,false,1) + H.blush(-62,-122) + H.blush(62,-122);
+    o += `<circle cx="-8" cy="-146" r="2.6" fill="${P.L}"/><circle cx="8" cy="-146" r="2.6" fill="${P.L}"/>`;
+    o += `<path d="M -50 -128 Q 0 -96 50 -128" fill="none" stroke="#3A2440" stroke-width="3.2" stroke-linecap="round"/><path d="M -50 -128 l -4 -4 M 50 -128 l 4 -4" stroke="#3A2440" stroke-width="2.6" stroke-linecap="round"/>`;
+    return o; },
+    draw:(P,H) => {
+    let o = '';
+    for (const s of [-1,1]) o += H.path(`M ${30*s} -40 C ${80*s} -70, ${116*s} -40, ${100*s} -10 C ${90*s} 0, ${60*s} 0, ${40*s} -6 Z`, P.ASh) + [0,1,2].map(i => `<ellipse cx="${(80 + i*14)*s}" cy="-4" rx="9" ry="6" fill="${H.sock ? P.B : P.A}" stroke="${P.L}" stroke-width="2.5"/>`).join('');
+    const body = ellPath(0,-58,74,54);
+    o += H.clip('pbC', body) + H.path(body,'url(#petFur)');
+    o += H.pat('pbC', [[-44,-78,10],[40,-50,11],[10,-90,7]], ["M -64 -70 Q -44 -62 -36 -74","M 64 -70 Q 44 -62 36 -74"]);
+    o += `<g clip-path="url(#pbC)"><ellipse cx="0" cy="-30" rx="46" ry="36" fill="${P.B}"/></g>`;
+    for (const x of [-28,28]) o += H.path(`M ${x-10} -60 L ${x-10} -10 L ${x+10} -10 L ${x+10} -60`, 'url(#petFur)') + [-8,0,8].map(dx => `<ellipse cx="${x+dx}" cy="-6" rx="6" ry="5" fill="${H.sock ? P.B : P.A}" stroke="${P.L}" stroke-width="2.2"/>`).join('');
+    o += H.collar(...PET_SPECIES.froe.anchors.collar);
+    o += PET_SPECIES.froe.head(P,H);
+    return o; } },
 };
+/* øjnenes plads til brillerne for de første seks dyr */
+Object.assign(PET_SPECIES.kat.anchors, { eyes:[-32,32,-202,0.95] }); Object.assign(PET_SPECIES.hund.anchors, { eyes:[-30,30,-212,0.92] });
+Object.assign(PET_SPECIES.kanin.anchors, { eyes:[-28,28,-188,0.88] }); Object.assign(PET_SPECIES.enhjoerning.anchors, { eyes:[-58,-10,-206,0.9] });
+Object.assign(PET_SPECIES.bjoern.anchors, { eyes:[-30,30,-198,0.85] }); Object.assign(PET_SPECIES.drage.anchors, { eyes:[-30,30,-206,0.95] });
+/* dyrets nye pynt, tegnet ud fra artens ankerpunkter */
+function petExtras(an, acc, hl){
+  let o = '';
+  if (acc.toerklaede){ const c = acc.toerklaede, [x,y,hw,r=0] = an.collar;
+    o += HLW(hl==='petacc:toerklaede', `<g transform="rotate(${r} ${x} ${y})"><path d="M ${x-hw-4} ${y-4} Q ${x} ${y+14} ${x+hw+4} ${y-4} L ${x+hw*0.3} ${y+34} Q ${x} ${y+44} ${x-hw*0.3} ${y+34} Z" fill="${c}" stroke="${outline(c)}" stroke-width="3.5" stroke-linejoin="round"/>${[[-0.3,14],[0.25,22],[0,32]].map(([dx,dy]) => `<circle cx="${x+dx*hw}" cy="${y+dy}" r="3" fill="#FFFFFF" opacity=".85"/>`).join('')}</g>`); }
+  if (acc.butterfly){ const c = acc.butterfly, [x,y,,r=0] = an.collar;
+    o += HLW(hl==='petacc:butterfly', `<g transform="rotate(${r} ${x} ${y+10})"><path d="M ${x} ${y+10} L ${x-26} ${y-6} L ${x-26} ${y+26} Z M ${x} ${y+10} L ${x+26} ${y-6} L ${x+26} ${y+26} Z" fill="${c}" stroke="${outline(c)}" stroke-width="3.5" stroke-linejoin="round"/><circle cx="${x}" cy="${y+10}" r="8" fill="${shade(c)}" stroke="${outline(c)}" stroke-width="3"/></g>`); }
+  if (acc.hat){ const c = acc.hat, [x,y,r=-8] = an.crown;
+    o += HLW(hl==='petacc:hat', `<g transform="translate(${x},${y+4}) rotate(${r}) scale(0.8)"><ellipse cx="0" cy="0" rx="58" ry="13" fill="${c}" stroke="${outline(c)}" stroke-width="4"/><path d="M -34 -4 C -26 -40, -10 -70, 14 -88 C 22 -94, 34 -92, 40 -86 C 26 -80, 18 -70, 20 -56 C 20 -36, 26 -18, 34 -4 Z" fill="${c}" stroke="${outline(c)}" stroke-width="4" stroke-linejoin="round"/><path d="M -32 -10 Q 0 -2 32 -10 L 30 -20 Q 0 -12 -30 -20 Z" fill="#FFC02E" stroke="#C99A12" stroke-width="2.5"/></g>`); }
+  if (acc.blomst){ const c = acc.blomst, [x,y] = an.bow;
+    o += HLW(hl==='petacc:blomst', `<g transform="translate(${x},${y})">${[0,1,2,3,4].map(i => { const a = -Math.PI/2 + i*2*Math.PI/5; return `<circle cx="${(Math.cos(a)*15).toFixed(1)}" cy="${(Math.sin(a)*15).toFixed(1)}" r="12" fill="${c}" stroke="${outline(c)}" stroke-width="3"/>`; }).join('')}<circle r="9" fill="#FFE27A" stroke="#C99A12" stroke-width="2.5"/></g>`); }
+  if (acc.stjerne){ const c = acc.stjerne, [x,y] = an.bow;
+    o += HLW(hl==='petacc:stjerne', `<g transform="translate(${x},${y}) rotate(12)">${starP(0, 0, 22, outline(c))}${starP(0, 0, 18, c)}${starP(-4, -4, 6, '#FFFFFF', .7)}</g>`); }
+  if (acc.briller && an.eyes){ const c = acc.briller, [x1,x2,y,s] = an.eyes, r = 26*s, D = outline(c);
+    o += HLW(hl==='petacc:briller', `<circle cx="${x1}" cy="${y+2}" r="${r}" fill="#E8F6FF" fill-opacity=".15" stroke="${D}" stroke-width="7"/><circle cx="${x2}" cy="${y+2}" r="${r}" fill="#E8F6FF" fill-opacity=".15" stroke="${D}" stroke-width="7"/><circle cx="${x1}" cy="${y+2}" r="${r}" fill="none" stroke="${c}" stroke-width="3.5"/><circle cx="${x2}" cy="${y+2}" r="${r}" fill="none" stroke="${c}" stroke-width="3.5"/><path d="M ${x1+r} ${y} Q ${(x1+x2)/2} ${y-10} ${x2-r} ${y}" stroke="${D}" stroke-width="5" fill="none"/>`); }
+  return o;
+}
 
 const bob = (s, dy, dur, begin=0) => ANIM ? `<g><animateTransform attributeName="transform" type="translate" values="0 0;0 ${dy};0 0" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" dur="${dur}s" begin="${begin}s" repeatCount="indefinite"/>${s}</g>` : s;
 /* sløjfe og krone samtidig: sløjfen flytter ned ved øret, så den ikke ligger oven på kronen */
@@ -353,6 +458,7 @@ function quadWalk(kind, P, H, an, hl){
   let head = H.collar(...an.collar) + PET_SPECIES[kind].head(P, H);
   if (P.acc.sloejfe){ const b = P.acc.sloejfe, [x,y,r,bs=0.6] = bowAt(an, P.acc); head += HLW(hl==='petacc:sloejfe', `<g transform="translate(${x},${y}) rotate(${r}) scale(${bs})"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`); }
   if (P.acc.krone){ const g = P.acc.krone, [x,y,r=-8] = an.crown; head += HLW(hl==='petacc:krone', `<g transform="translate(${x},${y}) rotate(${r}) scale(0.7)"><path d="M -44 14 L -48 -26 L -24 -6 L 0 -38 L 24 -6 L 48 -26 L 44 14 Z" fill="#FFD54A" stroke="#C99A12" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="0" r="8" fill="${g}" stroke="${outline(g)}" stroke-width="2.5"/></g>`); }
+  head += petExtras(an, P.acc, hl);
   o += bob(`<g transform="translate(${q.hx},${q.hy}) scale(${q.hs}) translate(0,196)">${head}</g>`, -5, q.step, 0.1);
   /* gående figur forstørres, så hovedet er (næsten) lige så stort som når dyret sidder */
   return bob(`<g transform="scale(${QUAD_K})">${o}</g>`, -4, q.step);
@@ -360,7 +466,9 @@ function quadWalk(kind, P, H, an, hl){
 
 function petDraw(p, hl, mode){
   if (!p || !PET_SPECIES[p.kind]) return '';
-  const P = { A:p.a, ASh:shade(p.a), L:outline(p.a), B:p.b, C:p.c, CL:outline(p.c), pat:p.pattern, acc:p.acc||{}, hl, walk: mode === 'walk' };
+  const acc0 = p.acc || {}, acc = {};
+  for (const k of Object.keys(acc0)) if (!petAccConflicts(k).some(x => acc[x])) acc[k] = acc0[k];
+  const P = { A:p.a, ASh:shade(p.a), L:outline(p.a), B:p.b, C:p.c, CL:outline(p.c), pat:p.pattern, acc, hl, walk: mode === 'walk' };
   const sp = PET_SPECIES[p.kind], H = petHelpers(P), an = sp.anchors;
   let o = `<g transform="translate(${PET_X},${PET_Y}) scale(${PET_S})">`;
   o += `<defs><linearGradient id="petIris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${adj(p.eyes,-0.25)}"/><stop offset="0.6" stop-color="${p.eyes}"/><stop offset="1" stop-color="${adj(p.eyes,0.28)}"/></linearGradient>`
@@ -388,6 +496,7 @@ function petDraw(p, hl, mode){
     } }
   o += sp.draw(P, H);
   o += HLW(hl==='petacc:vinger', nearWing);
+  o += petExtras(an, P.acc, hl);
   if (P.acc.sloejfe){ const b = P.acc.sloejfe, [x,y,r,bs=0.6] = bowAt(an, P.acc);
     o += HLW(hl==='petacc:sloejfe', `<g transform="translate(${x},${y}) rotate(${r}) scale(${bs})"><path d="M 0 0 C -30 -34, -62 -30, -58 0 C -62 30, -30 34, 0 0 Z M 0 0 C 30 -34, 62 -30, 58 0 C 62 30, 30 34, 0 0 Z" fill="${b}" stroke="${outline(b)}" stroke-width="4" stroke-linejoin="round"/><rect x="-13" y="-16" width="26" height="32" rx="10" fill="${shade(b)}" stroke="${outline(b)}" stroke-width="4"/></g>`); }
   if (P.acc.krone){ const g = P.acc.krone, [x,y,r=-8] = an.crown;

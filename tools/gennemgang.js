@@ -64,6 +64,12 @@ const V = { 'acc-bog': 6,
     for (const k of Object.keys(LIPSHAPES)) add('mund-' + k, 'Ansigt', 'Mund: ' + LIPSHAPES[k], { mk: { lipShape: k } }, 'ansigt', '350 420 100 70');
     for (const k of Object.keys(MARKS)) add('maerke-' + k, 'Ansigt', 'Mærke: ' + MARKS[k], { mk: { mark: k, markColor: '#E0457A' } }, 'ansigt', '300 370 200 140');
     add('pose-ro', 'Stillinger', 'Hænderne i ro', { acc: {} }, null, '250 680 300 160');
+    /* kæledyr: kun de nye (kladderne) vises her; farver der passer til dyret */
+    const PETCOL = { ugle:['#A8794E','#F2E2C0','#F2A93B'], raev:['#E8843A','#FFF6E8','#3A2340'], froe:['#6BBF6A','#E6F5C8','#F2C14E'] };
+    const petIt = (id, title, pet) => out.push({ id, cat: 'Kæledyr', title, kind: 'pet', pet, vbT: '500 720 320 350', vbZ: '540 750 240 230' });
+    for (const k of Object.keys(PET_KINDS)) if (isKladde('pet', k)){ const [a, b, c] = PETCOL[k] || ['#FFC9E2','#FFFFFF','#B79BFF']; petIt('dyr-' + k, 'Dyr: ' + PET_KINDS[k].label, { kind: k, a, b, c, pattern: 'ingen', eyes: '#3D8BFF', acc: {} }); }
+    for (const k of Object.keys(PET_PATTERNS)) if (isKladde('petpat', k)) petIt('moenster-' + k, 'Mønster: ' + PET_PATTERNS[k], { kind: 'kat', a: '#FFC9E2', b: '#B79BFF', c: '#B79BFF', pattern: k, eyes: '#3D8BFF', acc: {} });
+    for (const k of Object.keys(PET_ACC)) if (isKladde('petacc', k)) petIt('dyracc-' + k, 'Dyretilbehør: ' + PET_ACC[k].label, { kind: 'kat', a: '#FFC9E2', b: '#FFFFFF', c: '#B79BFF', pattern: 'ingen', eyes: '#3D8BFF', acc: { [k]: PET_ACC[k].color } });
     /* værelset: hele rummet med tingen (som på tabletten) og tingen tæt på */
     for (const s of ROOM_SLOTS) for (const k of Object.keys(s.cat))
       out.push({ id: 'rum-' + s.id + '-' + k, cat: 'Værelset', title: s.label + ': ' + s.cat[k].label, kind: 'rum', slot: s.id, item: k, vbT: '0 0 1600 1000', vbZ: ROOM_VB[s.id] });
@@ -105,7 +111,8 @@ const V = { 'acc-bog': 6,
       let h; try { h = await p.evaluate(({ it, vb, w }) => {
         const [, , vw, vh] = vb.split(' ').map(Number), hh = Math.round(w * vh / vw);
         let svg, bg = 'linear-gradient(#FFF3F8,#EBDDFF)';
-        if (it.kind === 'rum'){ const r = Object.assign({}, ROOM_DEFAULT, { [it.slot]: it.item }); r.c = Object.assign({}, ROOM_DEFAULT.c); svg = roomSvg(r, { viewBox: vb }); }
+        if (it.kind === 'pet'){ const st = JSON.parse(JSON.stringify(DEFAULT_STATE)); st.pet = Object.assign({}, st.pet, it.pet); svg = renderDoll(st, { viewBox: vb, petOnly: true }); }
+        else if (it.kind === 'rum'){ const r = Object.assign({}, ROOM_DEFAULT, { [it.slot]: it.item }); r.c = Object.assign({}, ROOM_DEFAULT.c); svg = roomSvg(r, { viewBox: vb }); }
         else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
         else if (it.kind === 'sted'){
           if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); }

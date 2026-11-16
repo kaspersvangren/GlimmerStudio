@@ -87,7 +87,7 @@ function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
     grid.append(el('button', { class:'tile' + (on && getActive()===id ? ' active' : '') + (locked ? ' locked' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-pressed': String(on), 'aria-label': locked ? a.label + ' (låst)' : fresh ? a.label + ' (ny)' : a.label,
       on:{ click: () => { if (locked) return lockedTap(); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
         change(st => { const h = holder(st); if (on && getActive()===id){ delete h[id]; setActive(null); } else { if (!on){ h[id] = a.color;
-          if (cat === 'acc'){ const off = accConflicts(id).filter(x => h[x]); off.forEach(x => delete h[x]); if (off.length) toast(`${a.label} tog ${off.map(x => ACC[x].label.toLowerCase()).join(' og ')} af`); } }
+          if (cat === 'acc' || cat === 'petacc'){ const off = (cat === 'acc' ? accConflicts : petAccConflicts)(id).filter(x => h[x]); off.forEach(x => delete h[x]); if (off.length) toast(`${a.label} tog ${off.map(x => defs[x].label.toLowerCase()).join(' og ')} af`); } }
           setActive(id); } }); } } },
       [ pic(pv, vbOf(id)), el('span', {}, a.label), locked ? lockBadge() : null, fresh ? newTag() : null ]));
   }
@@ -98,7 +98,7 @@ function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
 }
 
 /* ---------- fanernes indhold ---------- */
-const CAT_OF = new Map([[FRONT,'front'],[BACK,'back'],[ROBES,'robe'],[CAPES,'cape'],[HATS,'hat'],[BOOTS,'boots'],[PUPILS,'pupil'],[LIPSHAPES,'lip'],[MARKS,'mark']]);
+const CAT_OF = new Map([[PET_KINDS,'pet'],[PET_PATTERNS,'petpat'],[FRONT,'front'],[BACK,'back'],[ROBES,'robe'],[CAPES,'cape'],[HATS,'hat'],[BOOTS,'boots'],[PUPILS,'pupil'],[LIPSHAPES,'lip'],[MARKS,'mark']]);
 const entries = obj => Object.entries(obj).filter(([k]) => !isKladde(CAT_OF.get(obj), k)).map(([k,v]) => [k, typeof v === 'string' ? v : v.label]);
 const TAB_CONTENT = {
   hud: () => [ colorsSec('Hudfarve', SKIN, () => cur.st.skin, (st,v) => st.skin = v) ],

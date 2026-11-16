@@ -13,7 +13,7 @@ const list = JSON.parse(json);
       const st = JSON.parse(JSON.stringify(DEFAULT_STATE));
       for (const [k, v] of Object.entries(it.p || {})) st[k] = (v && typeof v === 'object' && !Array.isArray(v) && k !== 'acc') ? Object.assign({}, st[k], v) : v;
       const vb = it.vb || '0 0 800 1100', [, , vw, vh] = vb.split(' ').map(Number);
-      return `<div style="display:inline-block;margin:4px;text-align:center;font:600 14px sans-serif;vertical-align:top"><div style="width:${W}px;height:${Math.round(W*vh/vw)}px;background:linear-gradient(#FFF3F8,#EBDDFF)">${renderDoll(st, { viewBox: vb, pet: false })}</div>${it.t || ''}</div>`;
+      return `<div style="display:inline-block;margin:4px;text-align:center;font:600 14px sans-serif;vertical-align:top"><div style="width:${W}px;height:${Math.round(W*vh/vw)}px;background:linear-gradient(#FFF3F8,#EBDDFF)">${renderDoll(st, it.po ? { viewBox: vb, petOnly: true } : { viewBox: vb, pet: false })}</div>${it.t || ''}</div>`;
     });
     document.body.innerHTML = `<div id="sheet" style="display:inline-block;background:#fff;padding:6px;max-width:1580px">${cells.join('')}</div>`; document.body.style.margin = 0;
     document.querySelectorAll('#sheet svg').forEach(s => { s.style.width = '100%'; s.style.height = '100%'; });
