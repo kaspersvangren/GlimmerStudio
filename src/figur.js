@@ -785,7 +785,9 @@ function waveArm(inner, ev, forever){
 /* ================= KLADDER =================
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
-const KLADDE = new Set([]);
+const KLADDE = new Set([
+  'rum:vaeg.prikker', 'rum:vaeg.hjerter', 'rum:vaeg.rombe', 'rum:vaeg.panel', 'rum:vaeg.mursten', 'rum:vindue.blonder', 'rum:vindue.rullegardin', 'rum:vindue.skodder', 'rum:vindue.blomsterkasse', 'rum:vindue.spids', 'rum:vindue.stjerne', 'rum:seng.jern', 'rum:seng.polstret', 'rum:seng.baad', 'rum:seng.blomst', 'rum:seng.slot', 'rum:seng.stjerne', 'rum:hylde.bamser', 'rum:hylde.ure', 'rum:hylde.kugler', 'rum:hylde.testel', 'rum:hylde.muslinger', 'rum:hylde.pokaler', 'rum:lampe.olie', 'rum:lampe.papir', 'rum:lampe.ildfluer', 'rum:lampe.planet', 'rum:lampe.kuppel', 'rum:lampe.sky', 'rum:gulv.hjerte', 'rum:gulv.persisk', 'rum:gulv.maane', 'rum:gulv.blomst', 'rum:gulv.pels', 'rum:gulv.ternet', 'rum:ting.ur', 'rum:ting.kiste', 'rum:ting.grammofon', 'rum:ting.teleskop', 'rum:ting.aeg', 'rum:ting.ovn', 'rum:dyreseng.kasse', 'rum:dyreseng.hule', 'rum:dyreseng.sofa', 'rum:dyreseng.hundehus', 'rum:dyreseng.skypude', 'rum:dyreseng.muslingeskal', 'rum:dyreseng.balje',
+]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 
 /* ================= SAMLING ================= */

@@ -381,6 +381,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .rb-fl .lockbub svg{width:100%;height:100%;display:block}
 .rb-sh{position:absolute;z-index:0;left:22%;right:22%;bottom:calc(1.15em + 6px);height:8px;border-radius:50%;background:radial-gradient(closest-side, rgba(70,40,30,.35), rgba(70,40,30,0));animation:rbshadow 3.2s ease-in-out infinite;animation-delay:var(--d)}
 .rb-thing .nm{font-size:clamp(11px,2.1vh,14px);font-weight:800;line-height:1.1;text-align:center;padding-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rb-items[style*="--cols:4"] .nm{font-size:clamp(10px,1.8vh,13px)}
 .rb-thing.sel .rb-sh{background:radial-gradient(closest-side, rgba(255,210,90,.95), rgba(255,180,60,0));height:14px;bottom:calc(1.15em + 3px);left:12%;right:12%}
 .rb-thing.sel .nm{color:#C2237A}
 .rb-thing.locked .nm{color:var(--ink-soft);font-weight:700}
@@ -389,8 +390,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 @keyframes rbshadow{0%,100%{transform:scaleX(1);opacity:1}50%{transform:scaleX(.8);opacity:.6}}
 .rb-close{position:absolute;top:-14px;right:-10px;width:clamp(40px,7vh,52px);height:clamp(40px,7vh,52px);border-radius:50%;border:4px solid #FFFFFF;background:#FF3D8F;color:#FFFFFF;display:grid;place-items:center;padding:8px;box-shadow:0 4px 0 #8A1550}
 .rb-close svg{width:100%;height:100%}
-.room-colors{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(4px,.9vh,7px);padding-top:clamp(4px,1vh,10px)}
-.room-colors .dot{width:clamp(22px,4.6vh,32px);height:clamp(22px,4.6vh,32px);border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #D9C9B0;padding:0}
+.room-colors{flex:none;display:flex;flex-wrap:nowrap;justify-content:center;gap:clamp(3px,.8vh,7px);padding-top:clamp(4px,1vh,10px)}
+.room-colors .dot{flex:0 1 clamp(17px,4.2vh,32px);min-width:12px;height:auto;aspect-ratio:1;border-radius:50%;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #D9C9B0;padding:0}
 .room-colors .dot.sel{box-shadow:0 0 0 3px #FF3D8F}
 @media (orientation:portrait){ .rbook{left:2vw!important;right:2vw!important;width:auto;top:auto;height:58vh} }
 @media (prefers-reduced-motion: reduce){ .scene .anim,.scene .book,.scene .bookglow,.scene .tw,.scene .petg,.scene .swingit,.rb-fl,.rb-sh{animation:none!important;transition:none!important} }
