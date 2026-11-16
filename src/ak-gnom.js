@@ -134,9 +134,12 @@
     mallet(p);
     /* find den gnom, man rammer: hovedet sidder over hullet */
     let best = -1, bd = 1e9;
-    S.holes.forEach((m, i) => { if (!m || m.state !== 'op' || (m.y || 0) < 0.35) return;
-      const k = m.h.k, hx = m.h.x, hy = m.h.y - 100 * k, dx = (p.x - hx) / (100 * k), dy = (p.y - hy) / (130 * k), d = dx * dx + dy * dy;
+    /* en gnom kan rammes, så længe den er tydeligt oppe, også mens den er på vej ned igen; målet følger gnomen */
+    S.holes.forEach((m, i) => { if (!m || m.state === 'ramt' || (m.y || 0) < 0.3) return;
+      const k = m.h.k, hx = m.h.x, hy = m.h.y - 100 * k + (1 - m.y) * 240 * k, dx = (p.x - hx) / (115 * k), dy = (p.y - hy) / (140 * k), d = dx * dx + dy * dy;
       if (d < 1 && d < bd){ bd = d; best = i; } });
+    /* et tryk på en gnom, der allerede er ramt, er ikke en forbier */
+    if (best < 0 && S.holes.some(m => m && m.state === 'ramt' && Math.abs(p.x - m.h.x) < 115 * m.h.k && Math.abs(p.y - (m.h.y - 100 * m.h.k)) < 140 * m.h.k)) return;
     if (best < 0){ SND.play('gnom.forbi', () => tone(140, 0.08, 'sine', 0.06, 0, 0.6)); return; }
     const m = S.holes[best]; m.state = 'ramt'; m.t = performance.now();
     m.g.querySelectorAll('.face-sur').forEach(e => { e.style.display = 'none'; });

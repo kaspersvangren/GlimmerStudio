@@ -206,9 +206,9 @@
       if (!SND.hold('gribe.motor', !!S.dir) && S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; tone(140, 0.05, 'sawtooth', 0.012, 0, 1); } }   /* motorlyden kører, så længe man holder en pil nede */
     }
     S.pt = (S.pt || 0) + dt;
-    if (ph === 'luk' && S.close >= 1 && S.pt > 1.05){ S.phase = 'op'; S.pt = 0; }
-    else if (ph === 'op' && S.cable.length <= L0 + 0.5){ S.phase = 'hjem'; S.pt = 0; if (S.carried) SND.play('gribe.greb', () => tone(420, 0.08, 'triangle', 0.04)); }
-    else if (ph === 'hjem' && Math.abs(S.tx - XMIN) < 1 && Math.abs(S.vx) < 5 && S.pt > 0.3){ S.phase = 'slip'; S.pt = 0; SND.play('gribe.slip', () => tone(500, 0.1, 'triangle', 0.04, 0, 0.6)); }
+    if (ph === 'luk' && S.close >= 1 && S.pt > 1.05){ S.phase = 'op'; S.pt = 0; SND.hold('gribe.ned', true); }   /* kablet ruller op igen: samme lyd som ned */
+    else if (ph === 'op' && S.cable.length <= L0 + 0.5){ S.phase = 'hjem'; S.pt = 0; SND.hold('gribe.ned', false); SND.hold('gribe.motor', true); if (S.carried) SND.play('gribe.greb', () => tone(420, 0.08, 'triangle', 0.04)); }
+    else if (ph === 'hjem' && Math.abs(S.tx - XMIN) < 1 && Math.abs(S.vx) < 5 && S.pt > 0.3){ S.phase = 'slip'; S.pt = 0; SND.hold('gribe.motor', false); SND.play('gribe.slip', () => tone(500, 0.1, 'triangle', 0.04, 0, 0.6)); }
     else if (ph === 'slip' && S.pt > 0.4){ S.phase = 'efter'; S.pt = 0; }
     else if (ph === 'efter' && (S.wonP || S.pt > (S.carried ? 2.2 : 0.6)) && !S.ended){ S.ended = true; if (!S.wonP) lost(); }
     S.acc += dt;
