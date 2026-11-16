@@ -2158,7 +2158,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.25';
+const VERSION = 'v0.25.26';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -9729,9 +9729,9 @@ const LYD_MUSIK = {
   skjold: { src: 'lyd/orbital-ashes.mp3', loop: [71.6, 100.8465] },   // "Orbital Ashes". Loop A, valgt af Kasper
   kaelder: { src: 'lyd/wizard-crypt.mp3', loop: [65.4, 101.49313] },   // "Wizard Crypt Loop". Loop A, valgt af Kasper. Skolen og eliksirtimen
   kost: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // "Broomstick Dash". Loop D, valgt af Kasper (takt 24 → takt 8). Kosteflyvning
-  arkade: { src: 'lyd/arcade-drift.mp3', loop: [36.624, 132.6604], xf: 0.5 },   // "Arcade Drift Loop". Loop A (forslag). Arkadehallen
-  gnom: { src: 'lyd/mole-pop.mp3', loop: [11.28151, 65.60459], xf: 0.01 },   // "Mole Pop Loop". Loop A (forslag). Bank en gnom
-  gribe: { src: 'lyd/moonbyte-drift.mp3', loop: [34.70464, 109.78056], xf: 0.01 },   // "Moonbyte Drift". Loop A (forslag). Gribemaskinen
+  arkade: { src: 'lyd/arcade-drift.mp3', loop: [37.612, 117.9774], xf: 0.5 },   // "Arcade Drift Loop". Loop C, valgt af Kasper. Arkadehallen
+  gnom: { src: 'lyd/mole-pop.mp3', loop: [11.28151, 65.60459], xf: 0.01 },   // "Mole Pop Loop". Loop A, valgt af Kasper. Bank en gnom
+  gribe: { src: 'lyd/moonbyte-drift.mp3', loop: [31.27969, 106.37303], xf: 0.01 },   // "Moonbyte Drift". Loop B, valgt af Kasper. Gribemaskinen
   'stemning.arkade': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.5 },   // "casino ambiance" (freesound): summen i arkadehallen, under hallens musik. 3 s overtoning
   fald: { src: 'lyd/cloud-glide.mp3', loop: [64, 138.03796], xf: 1 },   // "Cloud Glide Loop". Loop E, valgt af Kasper, 1 s overtoning. Faldskærm
 };
