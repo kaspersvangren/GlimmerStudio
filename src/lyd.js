@@ -38,7 +38,18 @@ const SND = (() => {
     const go = buf => {
       if (my !== gen) return;
       node = ac.createBufferSource(); node.buffer = buf; node.loop = true;
-      if (m.loop){ node.loopStart = m.loop[0]; node.loopEnd = Math.min(m.loop[1], buf.duration); }
+      if (m.loop){
+        const sr = buf.sampleRate, s = Math.round(m.loop[0]*sr), e = Math.round(Math.min(m.loop[1], buf.duration)*sr), f = Math.round((m.xf || 0)*sr);
+        /* overtoning: de sidste m.xf sekunder før slut blandes med stykket lige før start, så hoppet ikke kan høres */
+        if (f && s - f >= 0 && !buf._xf){
+          for (let c = 0; c < buf.numberOfChannels; c++){
+            const d = buf.getChannelData(c);
+            for (let i = 0; i < f; i++){ const t = i/f*Math.PI/2; d[e-f+i] = d[e-f+i]*Math.cos(t) + d[s-f+i]*Math.sin(t); }
+          }
+          buf._xf = 1;
+        }
+        node.loopStart = s/sr; node.loopEnd = e/sr;
+      }
       gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
       node.start(0);
     };
