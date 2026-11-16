@@ -16,7 +16,7 @@ const LYD_FILER = {
   'gribe.glider': false,
   'gribe.oev': 'lyd/gribe-oev.mp3',
   'gribe.vandt': 'lyd/gribe-vandt.mp3',
-  'boble.tryk': 'lyd/boble-tryk.mp3',   // tryk på boblen, før den popper (dybere og hurtigere end originalen)
+  'boble.tryk': 'lyd/boble-tryk.mp3',   // tryk på boblen, før den popper (variant B: 7 halvtoner dybere og hurtigere)
   'sfx.crack': 'lyd/boble-pop.mp3',   // boblen i boblebutikken popper
   'invader.skud': ['lyd/invader-skud-1.mp3', 'lyd/invader-skud-2.mp3', 'lyd/invader-skud-3.mp3', 'lyd/invader-skud-4.mp3', 'lyd/invader-skud-5.mp3', 'lyd/invader-skud-6.mp3'],
   'invader.ramt': 'lyd/invader-ramt.mp3',
