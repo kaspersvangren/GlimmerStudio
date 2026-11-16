@@ -18,7 +18,7 @@ for lag in range(int(MINL*10), fr - 60):
 best.sort(reverse=True); cand = []
 for sc, i, j in best:
     if j < fr - 30 and all(abs(j - b) > 60 or abs(i - a) > 60 for _, a, b in cand): cand.append((sc, i/10, j/10))
-    if len(cand) == N * 3: break
+    if len(cand) == N * 8: break
 # 2) tempo og anslags-kurve (fin opløsning)
 h2 = 64; n2 = 1024; w2 = np.hanning(n2); f2 = 1 + (len(x) - n2)//h2; fps = sr/h2
 Sp = np.array([np.log1p(np.abs(np.fft.rfft(x[k*h2:k*h2+n2]*w2))*10) for k in range(f2)], dtype=np.float32)
@@ -41,7 +41,11 @@ for sc, s, e in cand:
     si, ei = int(s*SR), int(e2*SR); w = M[si:si+4800]
     ei += max(range(-240, 241), key=lambda k: float(np.dot(w, M[ei+k:ei+k+4800])))
     res.append({'start': round(s, 5), 'end': round(ei/SR, 5), 'klang': round(sc, 3), 'anslag': round(oc, 3)})
-res.sort(key=lambda r: -(r['klang'] + r['anslag'])); res = res[:N]
+res.sort(key=lambda r: -(r['klang'] + r['anslag']))
+uniq = []
+for r in res:   # kun bud der er tydeligt forskellige: start eller slut mindst 3 s fra et bedre bud
+    if all(abs(r['start'] - u['start']) > 3 or abs(r['end'] - u['end']) > 3 for u in uniq): uniq.append(r)
+res = uniq[:N]
 for k, r in enumerate(res):
     si, ei = int(r['start']*SR), int(r['end']*SR)
     pre = X[ei-8*SR:ei].copy(); post = X[si:si+8*SR]; f = int(.006*SR); rr = np.linspace(0, 1, f)[:, None]
