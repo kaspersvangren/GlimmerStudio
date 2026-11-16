@@ -8,5 +8,5 @@ const LYD_FILER = {
 // Musik: 'byen', 'kaelder', 'show', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
 // loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
 const LYD_MUSIK = {
-  byen: { src: 'lyd/byen.mp3', loop: [73.57294, 133.28662] },   // Kaspers "Moonbeam Meadow". Loop B (23 takter)
+  byen: { src: 'lyd/byen.mp3', loop: [73.57294, 133.61413] },   // Kaspers "Moonbeam Meadow". Loop B2, valgt af Kasper
 };
