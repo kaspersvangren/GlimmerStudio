@@ -60,7 +60,7 @@
     for (let k = 1; k < 8; k++){ const xt = 240 + k * 140, xb = -40 + k * 210; o += `<path d="M ${xt} 236 L ${xb} 1040" stroke="${W}" stroke-width="3" opacity=".45"/>`; }
     o += `<path d="M 240 240 H 1360" stroke="#C9962E" stroke-width="6"/>`;
     HOLES.forEach((h, i) => { o += holeSvg(h, i); });
-    o += `<g class="g-fx" pointer-events="none"></g><g class="g-mallet" pointer-events="none" style="display:none"><g class="mm" style="transform-box:fill-box;transform-origin:50% 100%"><rect x="-10" y="0" width="20" height="150" rx="8" fill="#8A5A3C" stroke="${E}" stroke-width="4"/><rect x="-62" y="-60" width="124" height="66" rx="20" fill="#8E3A22" stroke="${E}" stroke-width="5"/><path d="M -62 -27 h 124" stroke="${W}" stroke-width="3" stroke-dasharray="7 7"/><rect x="-68" y="-64" width="16" height="74" rx="5" fill="url(#gbr)" stroke="${E}" stroke-width="3"/><rect x="52" y="-64" width="16" height="74" rx="5" fill="url(#gbr)" stroke="${E}" stroke-width="3"/></g></g>`;
+    o += `<g class="g-fx" pointer-events="none"></g><g class="g-mallet" pointer-events="none" style="display:none"><g class="mf"><g class="mm" style="transform-box:fill-box;transform-origin:100% 50%"><rect x="30" y="-10" width="156" height="20" rx="8" fill="#8A5A3C" stroke="${E}" stroke-width="4"/><rect x="-33" y="-62" width="66" height="124" rx="20" fill="#8E3A22" stroke="${E}" stroke-width="5"/><path d="M 0 -62 v 124" stroke="${W}" stroke-width="3" stroke-dasharray="7 7"/><rect x="-37" y="-68" width="74" height="16" rx="5" fill="url(#gbr)" stroke="${E}" stroke-width="3"/><rect x="-37" y="52" width="74" height="16" rx="5" fill="url(#gbr)" stroke="${E}" stroke-width="3"/></g></g></g>`;
     return o + `</svg>`;
   }
 
@@ -115,10 +115,12 @@
   }
   function mallet(p){
     const m = S.svg.querySelector('.g-mallet'), mm = m.querySelector('.mm');
-    m.style.display = ''; m.setAttribute('transform', `translate(${p.x.toFixed(0)} ${(p.y - 20).toFixed(0)})`);
+    /* hammeren slår ned: skaftet peger væk fra midten, hovedet svinger oppefra og ned på gnomen */
+    m.style.display = ''; m.setAttribute('transform', `translate(${p.x.toFixed(0)} ${(p.y - 72).toFixed(0)})`);
+    m.querySelector('.mf').setAttribute('transform', p.x > 800 ? 'scale(-1 1)' : '');
     mm.getAnimations && mm.getAnimations().forEach(a => a.cancel());
-    const a = mm.animate([{ transform: 'rotate(-60deg)' }, { transform: 'rotate(4deg)' }, { transform: 'rotate(-10deg)' }], { duration: 220, easing: 'ease-in' });
-    a.onfinish = () => { m.style.display = 'none'; };
+    const a = mm.animate([{ transform: 'rotate(65deg)' }, { transform: 'rotate(-4deg)' }, { transform: 'rotate(8deg)' }], { duration: 220, easing: 'ease-in' });
+    m._a = a; a.onfinish = () => { if (m._a === a) m.style.display = 'none'; };
   }
   function burst(x, y, col, txt){
     const fx = S.svg.querySelector('.g-fx'), g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -141,7 +143,7 @@
     m.g.querySelectorAll('.face-dizzy').forEach(e => { e.style.display = ''; });
     const hx = m.h.x, hy = m.h.y - 150 * m.h.k;
     if (m.kind === 'kanin'){ S.score = Math.max(0, S.score - 2); SND.play('gnom.kanin', () => sfx.nope()); burst(hx, hy, '#FF8FB0', 'Av! −2'); S.msg = 'Ikke kaninen!'; S.msgUntil = performance.now() + 1400; }
-    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; SND.play('gnom.slag', () => tone(220, 0.09, 'square', 0.06, 0, 0.5)); if (m.kind !== 'guld') setTimeout(() => SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)), 70); if (m.kind === 'guld') SND.play('gnom.guld', () => sfx.twinkle()); else SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
+    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; SND.play('gnom.slag', () => tone(220, 0.09, 'square', 0.06, 0, 0.5)); if (m.kind !== 'guld') setTimeout(() => SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)), 70); if (m.kind === 'guld') SND.play('gnom.guld', () => sfx.twinkle()); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
     S.api.score(S.score);
     const pt = S.svg.querySelector('.g-pt'); if (pt) pt.textContent = String(S.score).padStart(3, '0');
   }
