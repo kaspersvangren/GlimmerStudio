@@ -19,7 +19,7 @@ const keys = CATALOG.flatMap(g => g.slots.map(s => s.key));
 const missing = Object.keys(DEMO).filter(k => !keys.includes(k)); if (missing.length) console.warn('Ikke i kataloget:', missing.join(', '));
 const VERSION = (core.match(/VERSION\s*=\s*'([^']+)'/) || [])[1];
 // hvad der allerede ligger som egne filer i spillet
-const lf = R('src/lydfiler.js'); const INGAME = [...lf.matchAll(/^\s*'([\w.]+)'\s*:/gm)].map(m => m[1]);
+const lf = R('src/lydfiler.js'); const INGAME = [...lf.matchAll(/^\s*'([\w.]+)'\s*:/gm)].map(m => m[1]).concat([...lf.matchAll(/^\s*'?(\w+)'?\s*:\s*\{\s*src/gm)].map(m => m[1]));
 const tpl = R('tools/vaerksted.tpl.html');
 const out = tpl.replace('/*CATALOG*/', JSON.stringify(CATALOG)).replace('/*DEMO*/', JSON.stringify(DEMO)).replace('/*VERSION*/', JSON.stringify(VERSION))
   .replace('/*NYT*/', R('tools/vaerksted-nyt.json').trim()).replace('/*INGAME*/', JSON.stringify(INGAME)).replace('/*ENGINE*/', () => engine);

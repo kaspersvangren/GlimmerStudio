@@ -137,6 +137,10 @@ let playing = 0;
 function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showSlots); }
 function showTitle(){
   showScreen('#title');
+  /* byens musik spiller allerede på forsiden. Telefonen må først spille lyd efter et tryk, så det første tryk starter den */
+  playMusic('byen');
+  const kick = () => { audioCtx(); if (!SND.musicPlaying()) playMusic('byen'); };
+  $('#title').addEventListener('pointerdown', kick, { once: true });
   const box = $('#titleBody'); box.innerHTML = '';
   const letters = GAME_NAME.split('').map((ch, i) => `<span style="animation-delay:${0.05*i}s">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('');
   const bubbles = el('div', { class:'title-bubbles', 'aria-hidden':'true' }, Array.from({ length: 9 }, (_, i) => el('span', { style:`left:${8 + i*10.5}%;--s:${[46,28,64,36,22,54,30,40,26][i]}px;animation-delay:${-i*1.7}s;animation-duration:${11 + (i%4)*2.5}s` })));

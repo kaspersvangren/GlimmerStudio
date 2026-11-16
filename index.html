@@ -2158,7 +2158,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.4';
+const VERSION = 'v0.25.5';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -6642,7 +6642,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     m.g.querySelectorAll('.face-dizzy').forEach(e => { e.style.display = ''; });
     const hx = m.h.x, hy = m.h.y - 150 * m.h.k;
     if (m.kind === 'kanin'){ S.score = Math.max(0, S.score - 2); SND.play('gnom.kanin', () => sfx.nope()); burst(hx, hy, '#FF8FB0', 'Av! −2'); S.msg = 'Ikke kaninen!'; S.msgUntil = performance.now() + 1400; }
-    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; SND.play('gnom.slag', () => tone(220, 0.09, 'square', 0.06, 0, 0.5)); if (m.kind === 'guld') SND.play('gnom.guld', () => sfx.twinkle()); else SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
+    else { const n = m.kind === 'guld' ? 3 : 1; S.score += n; SND.play('gnom.slag', () => tone(220, 0.09, 'square', 0.06, 0, 0.5)); if (m.kind !== 'guld') setTimeout(() => SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)), 70); if (m.kind === 'guld') SND.play('gnom.guld', () => sfx.twinkle()); else SND.play('gnom.av', () => tone(880, 0.06, 'triangle', 0.04, 0.05)); burst(hx, hy, m.kind === 'guld' ? '#FFE27A' : '#FFF6D0', `+${n}`); }
     S.api.score(S.score);
     const pt = S.svg.querySelector('.g-pt'); if (pt) pt.textContent = String(S.score).padStart(3, '0');
   }
@@ -8039,6 +8039,10 @@ let playing = 0;
 function startPlay(){ const now = Date.now(); if (now - playing < 1500) return; playing = now; audioCtx(); sfx.magic(); playMusic('byen'); goFull(); goTo(showSlots); }
 function showTitle(){
   showScreen('#title');
+  /* byens musik spiller allerede på forsiden. Telefonen må først spille lyd efter et tryk, så det første tryk starter den */
+  playMusic('byen');
+  const kick = () => { audioCtx(); if (!SND.musicPlaying()) playMusic('byen'); };
+  $('#title').addEventListener('pointerdown', kick, { once: true });
   const box = $('#titleBody'); box.innerHTML = '';
   const letters = GAME_NAME.split('').map((ch, i) => `<span style="animation-delay:${0.05*i}s">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('');
   const bubbles = el('div', { class:'title-bubbles', 'aria-hidden':'true' }, Array.from({ length: 9 }, (_, i) => el('span', { style:`left:${8 + i*10.5}%;--s:${[46,28,64,36,22,54,30,40,26][i]}px;animation-delay:${-i*1.7}s;animation-duration:${11 + (i%4)*2.5}s` })));
@@ -9693,43 +9697,83 @@ function smilDrive(svg){
 }
 
 // Egne lydfiler. Læg filen i mappen lyd/ og skriv den her, fx  'gnom.slag': 'lyd/gnom-slag.mp3'
+// Flere filer på samme plads (en liste) = varianter: spillet vælger en tilfældig, aldrig den samme to gange i træk.
 // Nøglerne står i Værkstedet (lyd-fanen). Alt der ikke står her, bruger spillets indbyggede lyd.
 const LYD_FILER = {
+  'gnom.slag': ['lyd/gnom-slag-1.mp3', 'lyd/gnom-slag-2.mp3', 'lyd/gnom-slag-3.mp3'],
+  'gnom.av': ['lyd/gnom-av-1.mp3', 'lyd/gnom-av-2.mp3', 'lyd/gnom-av-3.mp3', 'lyd/gnom-av-4.mp3', 'lyd/gnom-av-5.mp3', 'lyd/gnom-av-6.mp3', 'lyd/gnom-av-7.mp3'],
 };
 // Musik: 'byen', 'kaelder', 'show', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
+// loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
 const LYD_MUSIK = {
+  byen: { src: 'lyd/byen.mp3', loop: [73.57294, 133.28662] },   // Kaspers "Moonbeam Meadow". Loop B (23 takter)
 };
 
 // Lydlaget: hver lyd i spillet har en nøgle. Findes der en egen fil i LYD_FILER, spilles den; ellers den indbyggede.
 const SND = (() => {
   const pool = {}, MAXP = 4;
   let song = null, songName = null;
-  function file(key){ return (typeof LYD_FILER === 'object' && LYD_FILER[key]) || null; }
+  const last = {};
+  /* en plads kan have flere filer: der vælges en tilfældig, men aldrig den samme to gange i træk */
+  function file(key){
+    const v = (typeof LYD_FILER === 'object' && LYD_FILER[key]) || null;
+    if (!Array.isArray(v)) return v;
+    if (v.length < 2) return v[0] || null;
+    let i; do { i = Math.floor(Math.random() * v.length); } while (i === last[key]);
+    last[key] = i; return v[i];
+  }
   function play(key, fallback){
     if (!soundOn) return;
     const src = file(key);
     if (!src){ if (fallback) fallback(); return; }
-    const list = pool[key] || (pool[key] = []);
+    const list = pool[src] || (pool[src] = []);
     let a = list.find(x => x.paused || x.ended);
     if (!a && list.length < MAXP){ a = new Audio(src); a.preload = 'auto'; list.push(a); }
     if (!a) a = list[0];
     try { a.currentTime = 0; const p = a.play(); if (p && p.catch) p.catch(() => { if (fallback) fallback(); }); }
     catch (e){ if (fallback) fallback(); }
   }
+  /* musik med loop-punkter spilles gennem Web Audio, så hoppet tilbage er helt uden pause */
+  const BUF = {}, BAD = {};
+  let node = null, gain = null, gen = 0;
   function music(name){
-    const src = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name];
-    if (!src) return false;
-    stopSong();
-    song = new Audio(src); song.loop = true; song.volume = 0.6; songName = name;
-    try { const p = song.play(); if (p && p.catch) p.catch(() => {}); } catch (e){}
+    const m = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name];
+    if (!m || BAD[name]) return false;
+    stopSong(); songName = name;
+    if (typeof m === 'string'){
+      song = new Audio(m); song.loop = true; song.volume = 0.6;
+      try { const p = song.play(); if (p && p.catch) p.catch(() => {}); } catch (e){}
+      return true;
+    }
+    const my = ++gen, ac = audioCtx(); if (!ac) return false;
+    const go = buf => {
+      if (my !== gen) return;
+      node = ac.createBufferSource(); node.buffer = buf; node.loop = true;
+      if (m.loop){ node.loopStart = m.loop[0]; node.loopEnd = Math.min(m.loop[1], buf.duration); }
+      gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
+      node.start(0);
+    };
+    if (BUF[m.src]) go(BUF[m.src]);
+    else fetch(m.src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
+      .then(b => { BUF[m.src] = b; go(b); })
+      .catch(() => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
     return true;
   }
-  function stopSong(){ if (song){ try { song.pause(); } catch (e){} song = null; songName = null; } }
-  function musicPlaying(){ return !!(song && !song.paused); }
+  function stopSong(){
+    gen++;
+    if (song){ try { song.pause(); } catch (e){} song = null; }
+    if (node){ try { gain.gain.setTargetAtTime(0, node.context.currentTime, 0.05); node.stop(node.context.currentTime + 0.3); } catch (e){} node = null; gain = null; }
+    songName = null;
+  }
+  function musicPlaying(){ return !!(song && !song.paused) || !!songName; }
   // alle de små standardlyde (sfx.pick, sfx.magic …) får nøglen 'sfx.<navn>'
   Object.keys(sfx).forEach(k => { const f = sfx[k]; sfx[k] = (...a) => play('sfx.' + k, () => f(...a)); });
   // en app der kommer tilbage fra baggrunden genoptager musikken
-  document.addEventListener('visibilitychange', () => { if (!song) return; if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); });
+  document.addEventListener('visibilitychange', () => {
+    if (song){ if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); }
+    if (node && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
+  });
   return { play, music, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
 })();
 
