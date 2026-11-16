@@ -401,7 +401,7 @@ const ROUTES = {
   dyr:    [HUB, [900,712], [960,640], [1010,590], [1060,550], [1100,514]],
   cafe:   [HUB, [806,746], [806,800], [790,880], [750,950], [706,984]],
   koncert:[HUB, [806,746], [802,860], [764,958], [660,994], [400,996], [190,994]],
-  arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994]]),
+  arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994], [1530,996], [1602,980]]),
   bro:    R_BRO,
   drage:  R_HUS.slice(0, -1).concat([[300,798], [200,796], [160,740], [146,640], [150,520], [166,412]]),
   broend: [HUB, [800,708]],
@@ -854,7 +854,7 @@ function showTown(o = {}){
   else {
     const box = $('#townBody'); box.innerHTML = '';
     box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = src) + '</div>' }),
-      el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
+      el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns(), menuBtn() ]));
     $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
   }
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';

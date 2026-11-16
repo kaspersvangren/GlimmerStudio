@@ -530,11 +530,11 @@ const Kort = (() => {
   }
 
   function arcade(){
-    const x = 1282, base = 980, w = 300, h = 160, top = base - h, c = '#3E2E6A', cL = '#1A1238';
+    const x = 1452, base = 952, w = 300, h = 160, top = base - h, c = '#3E2E6A', cL = '#1A1238';   /* ved siden af vejen, ikke på den */
     let s = `<ellipse cx="${x + w / 2}" cy="${base + 4}" rx="180" ry="14" fill="#1A1238" opacity=".22"/>`;
     s += `<path d="M ${x} ${top} Q ${x + w / 2} ${top - 70} ${x + w} ${top} Z" fill="#6B3FA0" stroke="${E}" stroke-width="3"/>`;
     /* en snurrende stjerne på taget */
-    s += `<path d="M ${x + w / 2} ${top - 54} V ${top - 90}" stroke="${E}" stroke-width="3"/><g transform="translate(${x + w / 2} ${top - 104})"><g>${calm ? '' : '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/>'}<polygon points="${star5pts(0, 0, 22, 9)}" fill="#F2C14E" stroke="#8A6420" stroke-width="2"/></g><circle r="30" fill="#F2C14E" opacity=".2"/></g>`;
+    s += `<path d="M ${x + w / 2} ${top - 36} V ${top - 90}" stroke="${E}" stroke-width="3"/><g transform="translate(${x + w / 2} ${top - 104})"><g>${calm ? '' : '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/>'}<polygon points="${star5pts(0, 0, 22, 9)}" fill="#F2C14E" stroke="#8A6420" stroke-width="2"/></g><circle r="30" fill="#F2C14E" opacity=".2"/></g>`;
     s += `<rect x="${x}" y="${top}" width="${w}" height="${h}" fill="${c}" stroke="${cL}" stroke-width="3"/><rect x="${x}" y="${top}" width="${w}" height="${h}" fill="url(#kBrick)"/>`;
     /* skiltet med blinkende stjerner rundt om */
     s += `<rect x="${x + 50}" y="${top + 10}" width="${w - 100}" height="38" rx="19" fill="#1A1238" stroke="#FF8FC7" stroke-width="3"/><text x="${x + w / 2}" y="${top + 37}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="24" fill="#FFE27A" letter-spacing="3">ARKADEN</text>`;
@@ -552,7 +552,7 @@ const Kort = (() => {
   /* ---------- småting overalt og liv i luften ---------- */
   function details(){
     let s = '';
-    s += magicTree(54, 610, .8) + magicTree(1580, 760, .95) + magicTree(40, 760, .7, false);
+    s += magicTree(54, 610, .8) + magicTree(1374, 948, .78) + magicTree(40, 760, .7, false);
     s += shrooms(560, 720, 3, .9) + shrooms(1050, 702, 2, .8, '#C79BFF') + shrooms(380, 780, 3, .8, '#FF8FC7') + shrooms(1150, 620, 3, .8) + shrooms(860, 900, 2, .9, '#9BE36A');
     s += pumpkin(1100, 976, 1) + pumpkin(870, 932, .8) + pumpkin(1120, 712, .8);
     /* en snegl med et lysende hus */

@@ -933,7 +933,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .pg-name:focus{outline:none;border-bottom:3px solid #7B2FB0}
 .pg-name::placeholder{color:rgba(90,58,36,.45);font-weight:500}
 .pg-num{position:absolute;bottom:-9%;left:0;right:0;text-align:center;font-size:.6em;color:rgba(90,58,36,.6)}
-.pg-next{position:absolute;right:2%;bottom:3%;z-index:5;width:calc(var(--bh) * .15);height:calc(var(--bh) * .15);min-width:44px;min-height:44px;border-radius:50%;border:3px solid #FFFFFF;background:radial-gradient(circle at 35% 30%,#FF8FC7,#FF3D8F 55%,#C21D68);color:#FFFFFF;box-shadow:0 4px 0 #8A1550,0 0 18px rgba(255,140,220,.6);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
+.pg-next,.pg-prev{position:absolute;right:2%;bottom:3%;z-index:5;transition:opacity .3s ease;width:calc(var(--bh) * .15);height:calc(var(--bh) * .15);min-width:44px;min-height:44px;border-radius:50%;border:3px solid #FFFFFF;background:radial-gradient(circle at 35% 30%,#FF8FC7,#FF3D8F 55%,#C21D68);color:#FFFFFF;box-shadow:0 4px 0 #8A1550,0 0 18px rgba(255,140,220,.6);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
 .pg-next svg{width:55%;height:55%}
 .pg-next:disabled{filter:grayscale(1) brightness(.8);opacity:.5;animation:none}
 .ib-leaf{position:absolute;left:50%;top:0;width:50%;height:100%;transform-style:preserve-3d;transform-origin:0 50%;transition:transform .9s cubic-bezier(.45,.05,.3,1);z-index:4}
@@ -968,3 +968,31 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #arkade .ak-pill .lab{color:#5A3A10}
 #arkade .ak-card{background:radial-gradient(ellipse at 50% 40%,#FBF1DA 40%,#EEDDB6 100%);color:#3A2414;border:5px solid #C9962E;box-shadow:0 0 0 3px #2A160C,0 10px 0 rgba(20,10,4,.45)}
 #arkade .ak-card .big{color:#7A2A1A}
+
+.pg-prev{right:auto;left:2%;background:radial-gradient(circle at 35% 30%,#C9A8FF,#8A5AD8 55%,#5B2E91);box-shadow:0 4px 0 #3A1A63;animation:none}
+.pg-prev.gone{opacity:0;pointer-events:none}
+.ibook.turning .pg-next,.ibook.turning .pg-prev{opacity:0;pointer-events:none}
+.ibook.closed .pg-next,.ibook.closed .pg-prev{opacity:0;pointer-events:none}
+.ib-leaf .lf.back.page{box-shadow:inset 18px 0 24px -14px rgba(90,50,20,.45);border-radius:0 6px 6px 0}
+.ib-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ib-again{font-size:clamp(14px,3.8vh,18px)}
+
+/* ---------- spillets eget tastatur: skrivemaskine-taster i messing på en træplade ---------- */
+.kb{position:fixed;left:0;right:0;bottom:0;z-index:9000;--k:min(calc((100vw - 48px) / 11.4),10.4vh,64px);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:calc(var(--k) * .12);
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 2px,transparent 2px 90px),linear-gradient(180deg,#7A4224,#4A2412);
+  border-top:4px solid #C9962E;box-shadow:0 -2px 0 #2A160C,0 -10px 30px rgba(0,0,0,.45);transform:translateY(105%);transition:transform .25s ease}
+.kb.on{transform:none}
+.kb-row{display:flex;gap:calc(var(--k) * .1);justify-content:center}
+.kb-k{width:var(--k);height:var(--k);border-radius:50%;padding:0;border:none;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(circle at 50% 38%,#FFFDF4 0 52%,#E9DCB8 70%,#C9962E 72% 82%,#8A6420 84%,#2A160C 88%);
+  color:#2A160C;font-family:Alegreya,Georgia,serif;font-weight:700;font-size:calc(var(--k) * .46);line-height:1;
+  box-shadow:0 calc(var(--k) * .08) 0 #2A160C,0 calc(var(--k) * .1) 6px rgba(0,0,0,.4);transition:transform .06s ease,box-shadow .06s ease;touch-action:manipulation}
+.kb-k.down,.kb-k:active{transform:translateY(calc(var(--k) * .07));box-shadow:0 calc(var(--k) * .01) 0 #2A160C}
+.kb-k.k-shift,.kb-k.k-del,.kb-k.k-space,.kb-k.k-enter{border-radius:calc(var(--k) * .5);
+  background:linear-gradient(180deg,#FFFDF4,#E9DCB8);box-shadow:inset 0 0 0 calc(var(--k) * .07) #C9962E,inset 0 0 0 calc(var(--k) * .1) #8A6420,0 calc(var(--k) * .08) 0 #2A160C}
+.kb-k.k-shift,.kb-k.k-del{width:calc(var(--k) * 1.45)}
+.kb-k.k-space{width:calc(var(--k) * 6.4);font-size:calc(var(--k) * .32);font-weight:500;color:#6A4A30}
+.kb-k.k-enter{width:calc(var(--k) * 2.6);font-size:calc(var(--k) * .34);background:linear-gradient(180deg,#7EE0A6,#3BAA6A);color:#FFFFFF}
+.kb.up .k-shift{background:linear-gradient(180deg,#FFE9A8,#F2C14E)}
+@media (prefers-reduced-motion: reduce){ .kb{transition:none} }

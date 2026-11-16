@@ -128,7 +128,7 @@ function renderPickDoll(){
   box.append(gameHead('Modehuset'));
   const grid = el('div', { class:'fig-grid' });
   if (!figures.length){
-    box.append(el('div', { class:'center-col' }, [ el('p', { class:'lead' }, 'Du skal have en dukke for at gå på catwalken.'), el('button', { class:'btn hot', type:'button', on:{ click: newFigure } }, 'Lav din første dukke') ]));
+    box.append(el('div', { class:'center-col' }, [ el('p', { class:'lead' }, 'Du skal have en heks for at gå på catwalken.'), el('button', { class:'btn hot', type:'button', on:{ click: newFigure } }, 'Lav din første heks') ]));
     return;
   }
   for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
@@ -226,7 +226,7 @@ function renderResults(){
     podium,
     el('p', { class:'earned', html: `${STAR_SVG}<span>+${earned} stjerner${F.special ? ' (dobbelt, fordi der var en særlig gæst)' : ''}</span>` }),
     el('div', { class:'row center' }, [
-      el('button', { class:'btn', type:'button', on:{ click: () => { F.doll.st = clone(F.player.st); F.doll.t = Date.now(); saveAll(); toast('Looket er gemt på ' + F.doll.name); } } }, 'Gem looket på dukken'),
+      el('button', { class:'btn', type:'button', on:{ click: () => { F.doll.st = clone(F.player.st); F.doll.t = Date.now(); saveAll(); toast('Looket er gemt på ' + F.doll.name); } } }, 'Gem looket på heksen'),
       el('button', { class:'btn', type:'button', on:{ click: () => goTo(showBalls) } }, 'Til kuglerne'),
       el('button', { class:'btn hot big', type:'button', on:{ click: () => { F = { doll: F.doll, theme: pickOther(THEMES, F.theme) }; renderTheme(); } } }, 'Spil igen'),
     ]),

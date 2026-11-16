@@ -3,7 +3,10 @@
 /* ---------- indlæsning: byen bygges og bages bag et tæppe, før titelskærmen vises ----------
    Første gang en ny udgave kører, skal kortet tegnes om (det tager flere sekunder på en telefon).
    Det sker her, så man aldrig ser et kort, der hakker. Næste gang hentes det fra lageret og går hurtigt. */
+/* gamle navne: "Dukke 2" hedder nu "Heks 2" */
+function fixNames(){ let ch = false; figures.forEach(f => { const m = /^Dukke (\d+)$/.exec(f.name || ''); if (m){ f.name = 'Heks ' + m[1]; ch = true; } }); if (ch) saveAll(); }
 async function startGame(){
+  fixNames();
   const bar = el('i'), msg = el('p', { class:'ld-msg' }, 'Tryller byen frem …');
   const ld = el('div', { id:'loader', role:'status', 'aria-live':'polite' }, [
     el('div', { class:'ld-logo' }, GAME_NAME),
@@ -27,6 +30,13 @@ async function startGame(){
   ld.classList.add('out'); setTimeout(() => ld.remove(), 600);
 }
 
+/* knappen i byen, der fører tilbage til forsiden (hovedmenuen). Spillet er altid gemt, så man mister ikke noget. */
+function menuBtn(){
+  return el('button', { class:'iconbtn menu', type:'button', 'aria-label':'Til forsiden', title:'Til forsiden',
+    html:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+    on:{ click: () => { sfx.pick(); goTo(showTitle); } } });
+}
+
 /* ---------- tre gemte spil ---------- */
 const SLOT_DATA = ['glimmerstudiet.dukker.v1', 'glimmerstudiet.fremskridt.v1', 'glimmerstudiet.gemtstjerne', 'glimmerstudiet.oekser', 'glimmerstudiet.arkade', 'glimmerstudiet.bamser'];
 let firstDress = false;
@@ -45,7 +55,7 @@ function slotInfo(n){
 function setSlot(n){
   SLOT = n; try { localStorage.setItem(SLOT_KEY, String(n)); } catch (e){}
   const f = store.get(KEY, []); figures = Array.isArray(f) ? f : [];
-  prog = loadProg(); heroAt = 'hus'; cur = null; history = [];
+  prog = loadProg(); heroAt = 'hus'; cur = null; history = []; fixNames();
   updateStarPills();
 }
 function clearSlot(n){ for (const k of SLOT_DATA) store.del(k, n); if (n === SLOT) setSlot(n); }
@@ -87,7 +97,7 @@ const INTRO_PAGES = [
   { art:'hat', lines:[ ['', 'Min verden er ikke helt almindelig.'], ['', 'For jeg er heller ikke helt almindelig …'], ['big glow', 'Jeg er nemlig en heks!'] ] },
   { art:'slot', lines:[ ['', 'Jeg går i skole, ligesom dig.'], ['big', 'Men min skole er en magisk skole!'] ] },
   { art:'kost', lines:[ ['', 'Vi flyver på koste, brygger eliksirer og springer i faldskærm fra skyerne.'], ['', 'Og nogle gange hygger vi os bare.'] ] },
-  { art:'doer', lines:[ ['', 'Så kom med mig ind i min verden …'], ['big', 'eller skulle jeg sige …'] ] },
+  { art:'doer', lines:[ ['', 'Kunne du tænke dig at tage med?'], ['', 'Så følg mig …'], ['big', 'eller skulle jeg sige …'] ] },
 ];
 const INTRO_END = { text: 'Men hov … hvordan ser jeg egentlig ud? Det må du bestemme!', btn: 'Lav min heks' };
 
@@ -174,40 +184,114 @@ function showIntro(){
   const box = $('#introBody'); box.innerHTML = '';
   let i = 0, name = '', busy = false;
   const L = el('div', { class:'pg l' }), R = el('div', { class:'pg r' });
-  const next = el('button', { class:'pg-next', type:'button', 'aria-label':'Vend siden', html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' });
-  const book = el('div', { class:'ibook' }, [ el('div', { class:'ib-leather' }), L, R, el('div', { class:'ib-spine' }), next ]);
-  const after = el('div', { class:'ib-after' }, [ el('p', {}, INTRO_END.text), el('button', { class:'btn hot ib-go', type:'button', on:{ click: () => finish() } }, INTRO_END.btn) ]);
+  const arrow = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  /* man blader kun med pilene — et tryk på siden eller Enter gør ikke noget, så man når at læse det hele */
+  const next = el('button', { class:'pg-next', type:'button', 'aria-label':'Næste side', html: arrow('M9 5l7 7-7 7') });
+  const prev = el('button', { class:'pg-prev', type:'button', 'aria-label':'Forrige side', html: arrow('M15 5l-7 7 7 7') });
+  const book = el('div', { class:'ibook' }, [ el('div', { class:'ib-leather' }), L, R, el('div', { class:'ib-spine' }), prev, next ]);
+  const after = el('div', { class:'ib-after' }, [ el('p', {}, INTRO_END.text),
+    el('div', { class:'ib-btns' }, [ el('button', { class:'btn hot ib-go', type:'button', on:{ click: () => finish() } }, INTRO_END.btn),
+      el('button', { class:'btn ib-again', type:'button', on:{ click: () => reopen() } }, 'Læs igen') ]) ]);
   box.append(el('div', { class:'ib-table', 'aria-hidden':'true' }), el('div', { class:'ib-candle', 'aria-hidden':'true' }), book, after);
-  const fill = () => { L.replaceChildren(introPage(i, 'l')); R.replaceChildren(introPage(i, 'r', name)); wireName(); };
   const nameOk = () => name.trim().length > 0;
-  const wireName = () => { const inp = R.querySelector('.pg-name'); next.disabled = !!inp && !nameOk(); if (!inp) return;
-    inp.addEventListener('input', () => { name = inp.value.replace(/\s+/g, ' ').replace(/^\s/, ''); next.disabled = !nameOk(); });
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); inp.blur(); turn(); } }); };
+  const arrows = () => { prev.classList.toggle('gone', i === 0); next.disabled = !!R.querySelector('.pg-name') && !nameOk(); };
+  const fade = on => book.classList.toggle('turning', on);
+  const wireName = () => { arrows(); const inp = R.querySelector('.pg-name'); if (!inp) return;
+    inp.addEventListener('input', () => { name = inp.value.replace(/\s+/g, ' ').replace(/^\s/, ''); arrows(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); kbClose(); } });
+    kbAttach(inp);
+    if (!nameOk()) setTimeout(() => { if (inp.isConnected && !busy) kbOpen(inp); }, calm ? 0 : 700); };
+  const fill = () => { L.replaceChildren(introPage(i, 'l')); R.replaceChildren(introPage(i, 'r', name)); wireName(); };
+  const tidy = () => { name = name.trim(); name = name.charAt(0).toLocaleUpperCase('da') + name.slice(1); };
   fill();
   async function turn(){
-    if (busy || !nameOk()) return; busy = true; sfx.whoosh();
-    const a = document.activeElement; if (a && a.blur) a.blur();
-    name = name.trim(); name = name.charAt(0).toLocaleUpperCase('da') + name.slice(1);
-    if (i === INTRO_PAGES.length - 1){ await closeBook(); busy = false; return; }
-    /* et blad vendes: forsiden er den højre side nu, bagsiden er den næste venstre side */
+    if (busy || !nameOk()) return; busy = true; kbClose(); sfx.whoosh(); tidy();
+    if (i === INTRO_PAGES.length - 1){ fade(true); await closeBook(); busy = false; return; }
+    /* et blad vendes frem: forsiden er den højre side nu, bagsiden er den næste venstre side */
     const leaf = el('div', { class:'ib-leaf' }, [ el('div', { class:'lf front' }, [ introPage(i, 'r', name) ]), el('div', { class:'lf back' }, [ introPage(i + 1, 'l') ]) ]);
-    i++; R.replaceChildren(introPage(i, 'r', name)); book.append(leaf);
+    fade(true); i++; R.replaceChildren(introPage(i, 'r', name)); book.append(leaf);
     if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(900); }
-    L.replaceChildren(introPage(i, 'l')); leaf.remove(); wireName(); busy = false;
+    L.replaceChildren(introPage(i, 'l')); leaf.remove(); wireName(); fade(false); busy = false;
+  }
+  async function back(){
+    if (busy || i === 0) return; busy = true; kbClose(); sfx.whoosh(); tidy();
+    /* et blad vendes tilbage: forsiden er den venstre side nu, bagsiden er den forrige højre side */
+    const leaf = el('div', { class:'ib-leaf left' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back page' }, [ introPage(i - 1, 'r', name) ]) ]);
+    fade(true); i--; L.replaceChildren(introPage(i, 'l')); book.append(leaf);
+    if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(900); }
+    R.replaceChildren(introPage(i, 'r', name)); leaf.remove(); wireName(); fade(false); busy = false;
   }
   async function closeBook(){
     /* bogen lukkes: venstre side folder over, og forsiden kommer frem */
-    const leaf = el('div', { class:'ib-leaf left' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back cover', html: introCover() }) ]);
-    L.style.visibility = 'hidden'; book.append(leaf); next.hidden = true;
+    const leaf = el('div', { class:'ib-leaf left closer' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back cover', html: introCover() }) ]);
+    L.style.visibility = 'hidden'; book.append(leaf);
     if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(1000); }
     book.classList.add('closed'); sfx.magic();
     prog.name = name; prog.intro = true; saveProg();
     await wait(calm ? 0 : 1300); after.classList.add('on');
   }
+  /* "Læs igen": bogen åbnes på første side, hvor man også kan rette navnet */
+  async function reopen(){
+    if (busy) return; busy = true; sfx.whoosh();
+    after.classList.remove('on'); book.classList.remove('closed');
+    const c = book.querySelector('.ib-leaf.closer'); if (c) c.remove();
+    L.style.visibility = ''; i = 0; fill(); await wait(calm ? 0 : 900); fade(false); busy = false;
+  }
   function finish(){
-    sfx.pick();
+    sfx.pick(); tidy(); prog.name = name; saveProg();
     goTo(() => { firstDress = true; const f = newFigure(); f.name = name; saveAll(); $('#nameInput').value = name; firstDressUi(true); });
   }
   next.addEventListener('click', turn);
-  R.addEventListener('click', e => { if (e.target.closest('input')) return; turn(); });
+  prev.addEventListener('click', back);
+}
+
+/* ---------- spillets eget tastatur: runde skrivemaskine-taster i messing på en træplade ----------
+   Kun bogstaver, skift, bindestreg, mellemrum, slet og Enter. Systemets tastatur bliver væk (inputmode="none"),
+   men et rigtigt tastatur på en computer virker stadig. */
+const KB_ROWS = [ ['q','w','e','r','t','y','u','i','o','p','å'], ['a','s','d','f','g','h','j','k','l','æ','ø'], ['shift','z','x','c','v','b','n','m','-','del'], ['space','enter'] ];
+const KB = { el: null, inp: null, shift: true, lift: null };
+function kbBuild(){
+  const lab = { shift: '⇧', del: '⌫', space: 'mellemrum', enter: 'Enter ↵' };
+  KB.el = el('div', { id:'kb', class:'kb', role:'group', 'aria-label':'Tastatur', hidden: true },
+    KB_ROWS.map(r => el('div', { class:'kb-row' }, r.map(k => el('button', { class:'kb-k k-' + (lab[k] ? k : 'ch'), type:'button', 'data-k': k, 'aria-label': k === 'space' ? 'Mellemrum' : k === 'del' ? 'Slet' : k === 'shift' ? 'Store bogstaver' : k },
+      el('span', {}, lab[k] || k))))));
+  document.body.append(KB.el);
+  KB.el.addEventListener('pointerdown', e => { const b = e.target.closest('.kb-k'); e.preventDefault(); if (!b) return; b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 120); kbPress(b.dataset.k); });
+  document.addEventListener('pointerdown', e => { if (KB.el.hidden || e.target.closest('#kb') || e.target === KB.inp) return; kbClose(); }, true);
+}
+function kbDraw(){ if (!KB.el) return; KB.el.classList.toggle('up', KB.shift); KB.el.querySelectorAll('.k-ch span').forEach(sp => { const k = sp.parentNode.dataset.k; sp.textContent = KB.shift ? k.toLocaleUpperCase('da') : k; }); }
+function kbPress(k){
+  const inp = KB.inp; if (!inp) return; sfx.pick();
+  if (k === 'enter'){ kbClose(); return; }
+  if (k === 'shift'){ KB.shift = !KB.shift; kbDraw(); return; }
+  let v = inp.value; const max = +inp.getAttribute('maxlength') || 20;
+  if (k === 'del') v = v.slice(0, -1);
+  else if (v.length < max){ const ch = k === 'space' ? ' ' : KB.shift ? k.toLocaleUpperCase('da') : k; if (!(ch === ' ' && (!v || v.endsWith(' ')))) v += ch; }
+  inp.value = v; inp.dispatchEvent(new Event('input', { bubbles: true }));
+  KB.shift = !v || v.endsWith(' ') || v.endsWith('-'); kbDraw();
+}
+function kbOpen(inp){
+  if (!KB.el) kbBuild();
+  KB.inp = inp; KB.shift = !inp.value || /[\s-]$/.test(inp.value); kbDraw();
+  KB.el.hidden = false; requestAnimationFrame(() => KB.el.classList.add('on'));
+  try { inp.focus({ preventScroll: true }); } catch (e){}
+  /* ligger feltet bag tastaturet, skubbes skærmen op, så man kan se, hvad man skriver */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const scr = inp.closest('.screen'); if (!scr) return;
+    const kt = window.innerHeight - KB.el.offsetHeight, ib = inp.getBoundingClientRect().bottom + 12;   /* tastaturet glider stadig op, så dets endelige top regnes ud */
+    if (ib > kt){ KB.lift = scr; scr.style.transition = 'transform .3s ease'; scr.style.transform = `translateY(${-(ib - kt)}px)`; }
+  }));
+}
+function kbClose(){
+  if (!KB.el || KB.el.hidden) return;
+  KB.el.classList.remove('on'); setTimeout(() => { if (!KB.el.classList.contains('on')) KB.el.hidden = true; }, 250);
+  if (KB.inp){ KB.inp.blur(); KB.inp.dispatchEvent(new Event('change', { bubbles: true })); }
+  if (KB.lift){ KB.lift.style.transform = ''; KB.lift = null; }
+  KB.inp = null;
+}
+function kbAttach(inp){
+  inp.setAttribute('inputmode', 'none'); inp.setAttribute('autocomplete', 'off');
+  if (inp._kb) return; inp._kb = true;
+  inp.addEventListener('pointerdown', () => { if (!inp.readOnly) setTimeout(() => kbOpen(inp), 0); });
+  inp.addEventListener('focus', () => { if (!inp.readOnly && (!KB.el || KB.el.hidden)) kbOpen(inp); });
 }

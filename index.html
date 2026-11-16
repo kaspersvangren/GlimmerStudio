@@ -948,7 +948,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .pg-name:focus{outline:none;border-bottom:3px solid #7B2FB0}
 .pg-name::placeholder{color:rgba(90,58,36,.45);font-weight:500}
 .pg-num{position:absolute;bottom:-9%;left:0;right:0;text-align:center;font-size:.6em;color:rgba(90,58,36,.6)}
-.pg-next{position:absolute;right:2%;bottom:3%;z-index:5;width:calc(var(--bh) * .15);height:calc(var(--bh) * .15);min-width:44px;min-height:44px;border-radius:50%;border:3px solid #FFFFFF;background:radial-gradient(circle at 35% 30%,#FF8FC7,#FF3D8F 55%,#C21D68);color:#FFFFFF;box-shadow:0 4px 0 #8A1550,0 0 18px rgba(255,140,220,.6);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
+.pg-next,.pg-prev{position:absolute;right:2%;bottom:3%;z-index:5;transition:opacity .3s ease;width:calc(var(--bh) * .15);height:calc(var(--bh) * .15);min-width:44px;min-height:44px;border-radius:50%;border:3px solid #FFFFFF;background:radial-gradient(circle at 35% 30%,#FF8FC7,#FF3D8F 55%,#C21D68);color:#FFFFFF;box-shadow:0 4px 0 #8A1550,0 0 18px rgba(255,140,220,.6);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
 .pg-next svg{width:55%;height:55%}
 .pg-next:disabled{filter:grayscale(1) brightness(.8);opacity:.5;animation:none}
 .ib-leaf{position:absolute;left:50%;top:0;width:50%;height:100%;transform-style:preserve-3d;transform-origin:0 50%;transition:transform .9s cubic-bezier(.45,.05,.3,1);z-index:4}
@@ -984,6 +984,34 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #arkade .ak-card{background:radial-gradient(ellipse at 50% 40%,#FBF1DA 40%,#EEDDB6 100%);color:#3A2414;border:5px solid #C9962E;box-shadow:0 0 0 3px #2A160C,0 10px 0 rgba(20,10,4,.45)}
 #arkade .ak-card .big{color:#7A2A1A}
 
+.pg-prev{right:auto;left:2%;background:radial-gradient(circle at 35% 30%,#C9A8FF,#8A5AD8 55%,#5B2E91);box-shadow:0 4px 0 #3A1A63;animation:none}
+.pg-prev.gone{opacity:0;pointer-events:none}
+.ibook.turning .pg-next,.ibook.turning .pg-prev{opacity:0;pointer-events:none}
+.ibook.closed .pg-next,.ibook.closed .pg-prev{opacity:0;pointer-events:none}
+.ib-leaf .lf.back.page{box-shadow:inset 18px 0 24px -14px rgba(90,50,20,.45);border-radius:0 6px 6px 0}
+.ib-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ib-again{font-size:clamp(14px,3.8vh,18px)}
+
+/* ---------- spillets eget tastatur: skrivemaskine-taster i messing på en træplade ---------- */
+.kb{position:fixed;left:0;right:0;bottom:0;z-index:9000;--k:min(calc((100vw - 48px) / 11.4),10.4vh,64px);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:calc(var(--k) * .12);
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 2px,transparent 2px 90px),linear-gradient(180deg,#7A4224,#4A2412);
+  border-top:4px solid #C9962E;box-shadow:0 -2px 0 #2A160C,0 -10px 30px rgba(0,0,0,.45);transform:translateY(105%);transition:transform .25s ease}
+.kb.on{transform:none}
+.kb-row{display:flex;gap:calc(var(--k) * .1);justify-content:center}
+.kb-k{width:var(--k);height:var(--k);border-radius:50%;padding:0;border:none;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(circle at 50% 38%,#FFFDF4 0 52%,#E9DCB8 70%,#C9962E 72% 82%,#8A6420 84%,#2A160C 88%);
+  color:#2A160C;font-family:Alegreya,Georgia,serif;font-weight:700;font-size:calc(var(--k) * .46);line-height:1;
+  box-shadow:0 calc(var(--k) * .08) 0 #2A160C,0 calc(var(--k) * .1) 6px rgba(0,0,0,.4);transition:transform .06s ease,box-shadow .06s ease;touch-action:manipulation}
+.kb-k.down,.kb-k:active{transform:translateY(calc(var(--k) * .07));box-shadow:0 calc(var(--k) * .01) 0 #2A160C}
+.kb-k.k-shift,.kb-k.k-del,.kb-k.k-space,.kb-k.k-enter{border-radius:calc(var(--k) * .5);
+  background:linear-gradient(180deg,#FFFDF4,#E9DCB8);box-shadow:inset 0 0 0 calc(var(--k) * .07) #C9962E,inset 0 0 0 calc(var(--k) * .1) #8A6420,0 calc(var(--k) * .08) 0 #2A160C}
+.kb-k.k-shift,.kb-k.k-del{width:calc(var(--k) * 1.45)}
+.kb-k.k-space{width:calc(var(--k) * 6.4);font-size:calc(var(--k) * .32);font-weight:500;color:#6A4A30}
+.kb-k.k-enter{width:calc(var(--k) * 2.6);font-size:calc(var(--k) * .34);background:linear-gradient(180deg,#7EE0A6,#3BAA6A);color:#FFFFFF}
+.kb.up .k-shift{background:linear-gradient(180deg,#FFE9A8,#F2C14E)}
+@media (prefers-reduced-motion: reduce){ .kb{transition:none} }
+
 </style>
 </head>
 <body>
@@ -996,7 +1024,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
   <section id="editor" class="screen" hidden>
     <div class="topbar">
       <button id="backBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Garderoben</span></button>
-      <input id="nameInput" maxlength="20" aria-label="Dukkens navn" autocomplete="off">
+      <input id="nameInput" maxlength="20" aria-label="Heksens navn" autocomplete="off">
       <span id="gameTheme" class="theme-pill" hidden></span>
       <div class="actions">
         <button id="undoBtn" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Fortryd</button>
@@ -1005,10 +1033,10 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
       </div>
     </div>
     <div class="work">
-      <div class="stage-wrap"><div class="mirror" id="mirror"><img id="stageImg" alt="Din dukke"></div></div>
+      <div class="stage-wrap"><div class="mirror" id="mirror"><img id="stageImg" alt="Din heks"></div></div>
       <div class="panel">
         <div class="modes" role="group" aria-label="Hvad vil du lave">
-          <button class="mode" type="button" data-mode="dukke" aria-pressed="true">Dukke</button>
+          <button class="mode" type="button" data-mode="dukke" aria-pressed="true">Heks</button>
           <button class="mode" type="button" data-mode="dyr" aria-pressed="false">Kæledyr</button>
         </div>
         <nav class="tabs" id="tabs" role="tablist" aria-label="Hvad vil du ændre"></nav>
@@ -2124,7 +2152,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.1';
+const VERSION = 'v0.25.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -2190,6 +2218,7 @@ function smilOpacityToCss(root){
 }
 /* skjulte skærme får deres SVG-animationer sat på pause; ellers kører de videre usynligt og koster i hvert billede */
 function showScreen(id){
+  if (typeof kbClose === 'function') kbClose();
   for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
     e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
   window.scrollTo(0,0);
@@ -2555,8 +2584,8 @@ function openEditor(f, opts={}){
   $('#nameInput').value = cur.name; updateUndo(); renderStage(); renderTabs(); renderPanel(true); placeBulbs(); sfx.open();
 }
 function newFigure(){
-  let n = figures.length + 1; while (figures.some(f => f.name === 'Dukke ' + n)) n++;
-  const f = { id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: 'Dukke ' + n, st: clone(DEFAULT_STATE), t: Date.now() };
+  let n = figures.length + 1; while (figures.some(f => f.name === 'Heks ' + n)) n++;
+  const f = { id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: 'Heks ' + n, st: clone(DEFAULT_STATE), t: Date.now() };
   figures.unshift(f); saveAll(); tab = 'hud'; openEditor(f);
   return f;
 }
@@ -3545,7 +3574,7 @@ function portrait(i, f, cx, cy){
     o += `<path d="M ${cx} ${cy-34} V ${cy+26} M ${cx-30} ${cy-4} H ${cx+30}" stroke="#FF3D8F" stroke-width="12" stroke-linecap="round"/>` + star4(cx + 40, cy - 50, 10, '#FFC02E') + star4(cx - 42, cy + 40, 8, '#B79BFF');
   }
   o += [[x+6,y+6],[x+fw-6,y+6],[x+6,y+fh-6],[x+fw-6,y+fh-6]].map(([a,b]) => `<circle cx="${a}" cy="${b}" r="8" fill="#FFE27A" stroke="${GD}" stroke-width="2"/>`).join('');
-  const name = f ? f.name : 'Ny figur', pw = Math.min(170, 30 + name.length * 11);
+  const name = f ? f.name : 'Ny heks', pw = Math.min(170, 30 + name.length * 11);
   o += `<rect x="${cx - pw/2}" y="${y+fh+8}" width="${pw}" height="32" rx="10" fill="#C99A3E" stroke="${GD}" stroke-width="3"/><text x="${cx}" y="${y+fh+30}" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="18" fill="#3A2340">${escT(name)}</text>`;
   o += `</g></g>`;
   if (f) o += `<g data-hit="del:${i}"><circle cx="${x+fw-4}" cy="${y+4}" r="17" fill="#FFFFFF" stroke="#E0457A" stroke-width="3"/><path d="M ${x+fw-11} ${y-3} l 14 14 M ${x+fw+3} ${y-3} l -14 14" stroke="#E0457A" stroke-width="4" stroke-linecap="round"/></g>`;
@@ -3728,7 +3757,7 @@ function renderPickDoll(){
   box.append(gameHead('Modehuset'));
   const grid = el('div', { class:'fig-grid' });
   if (!figures.length){
-    box.append(el('div', { class:'center-col' }, [ el('p', { class:'lead' }, 'Du skal have en dukke for at gå på catwalken.'), el('button', { class:'btn hot', type:'button', on:{ click: newFigure } }, 'Lav din første dukke') ]));
+    box.append(el('div', { class:'center-col' }, [ el('p', { class:'lead' }, 'Du skal have en heks for at gå på catwalken.'), el('button', { class:'btn hot', type:'button', on:{ click: newFigure } }, 'Lav din første heks') ]));
     return;
   }
   for (const f of figures.slice().sort((a,b)=>(b.t||0)-(a.t||0))){
@@ -3826,7 +3855,7 @@ function renderResults(){
     podium,
     el('p', { class:'earned', html: `${STAR_SVG}<span>+${earned} stjerner${F.special ? ' (dobbelt, fordi der var en særlig gæst)' : ''}</span>` }),
     el('div', { class:'row center' }, [
-      el('button', { class:'btn', type:'button', on:{ click: () => { F.doll.st = clone(F.player.st); F.doll.t = Date.now(); saveAll(); toast('Looket er gemt på ' + F.doll.name); } } }, 'Gem looket på dukken'),
+      el('button', { class:'btn', type:'button', on:{ click: () => { F.doll.st = clone(F.player.st); F.doll.t = Date.now(); saveAll(); toast('Looket er gemt på ' + F.doll.name); } } }, 'Gem looket på heksen'),
       el('button', { class:'btn', type:'button', on:{ click: () => goTo(showBalls) } }, 'Til kuglerne'),
       el('button', { class:'btn hot big', type:'button', on:{ click: () => { F = { doll: F.doll, theme: pickOther(THEMES, F.theme) }; renderTheme(); } } }, 'Spil igen'),
     ]),
@@ -7726,11 +7755,11 @@ const Kort = (() => {
   }
 
   function arcade(){
-    const x = 1282, base = 980, w = 300, h = 160, top = base - h, c = '#3E2E6A', cL = '#1A1238';
+    const x = 1452, base = 952, w = 300, h = 160, top = base - h, c = '#3E2E6A', cL = '#1A1238';   /* ved siden af vejen, ikke på den */
     let s = `<ellipse cx="${x + w / 2}" cy="${base + 4}" rx="180" ry="14" fill="#1A1238" opacity=".22"/>`;
     s += `<path d="M ${x} ${top} Q ${x + w / 2} ${top - 70} ${x + w} ${top} Z" fill="#6B3FA0" stroke="${E}" stroke-width="3"/>`;
     /* en snurrende stjerne på taget */
-    s += `<path d="M ${x + w / 2} ${top - 54} V ${top - 90}" stroke="${E}" stroke-width="3"/><g transform="translate(${x + w / 2} ${top - 104})"><g>${calm ? '' : '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/>'}<polygon points="${star5pts(0, 0, 22, 9)}" fill="#F2C14E" stroke="#8A6420" stroke-width="2"/></g><circle r="30" fill="#F2C14E" opacity=".2"/></g>`;
+    s += `<path d="M ${x + w / 2} ${top - 36} V ${top - 90}" stroke="${E}" stroke-width="3"/><g transform="translate(${x + w / 2} ${top - 104})"><g>${calm ? '' : '<animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/>'}<polygon points="${star5pts(0, 0, 22, 9)}" fill="#F2C14E" stroke="#8A6420" stroke-width="2"/></g><circle r="30" fill="#F2C14E" opacity=".2"/></g>`;
     s += `<rect x="${x}" y="${top}" width="${w}" height="${h}" fill="${c}" stroke="${cL}" stroke-width="3"/><rect x="${x}" y="${top}" width="${w}" height="${h}" fill="url(#kBrick)"/>`;
     /* skiltet med blinkende stjerner rundt om */
     s += `<rect x="${x + 50}" y="${top + 10}" width="${w - 100}" height="38" rx="19" fill="#1A1238" stroke="#FF8FC7" stroke-width="3"/><text x="${x + w / 2}" y="${top + 37}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="24" fill="#FFE27A" letter-spacing="3">ARKADEN</text>`;
@@ -7748,7 +7777,7 @@ const Kort = (() => {
   /* ---------- småting overalt og liv i luften ---------- */
   function details(){
     let s = '';
-    s += magicTree(54, 610, .8) + magicTree(1580, 760, .95) + magicTree(40, 760, .7, false);
+    s += magicTree(54, 610, .8) + magicTree(1374, 948, .78) + magicTree(40, 760, .7, false);
     s += shrooms(560, 720, 3, .9) + shrooms(1050, 702, 2, .8, '#C79BFF') + shrooms(380, 780, 3, .8, '#FF8FC7') + shrooms(1150, 620, 3, .8) + shrooms(860, 900, 2, .9, '#9BE36A');
     s += pumpkin(1100, 976, 1) + pumpkin(870, 932, .8) + pumpkin(1120, 712, .8);
     /* en snegl med et lysende hus */
@@ -8397,7 +8426,7 @@ const ROUTES = {
   dyr:    [HUB, [900,712], [960,640], [1010,590], [1060,550], [1100,514]],
   cafe:   [HUB, [806,746], [806,800], [790,880], [750,950], [706,984]],
   koncert:[HUB, [806,746], [802,860], [764,958], [660,994], [400,996], [190,994]],
-  arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994]]),
+  arkade: R_BRO.concat([[1238,878], [1290,920], [1330,980], [1432,994], [1530,996], [1602,980]]),
   bro:    R_BRO,
   drage:  R_HUS.slice(0, -1).concat([[300,798], [200,796], [160,740], [146,640], [150,520], [166,412]]),
   broend: [HUB, [800,708]],
@@ -8850,7 +8879,7 @@ function showTown(o = {}){
   else {
     const box = $('#townBody'); box.innerHTML = '';
     box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = src) + '</div>' }),
-      el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns() ]));
+      el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns(), menuBtn() ]));
     $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
   }
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
@@ -9720,7 +9749,10 @@ const DBG = (() => {
 /* ---------- indlæsning: byen bygges og bages bag et tæppe, før titelskærmen vises ----------
    Første gang en ny udgave kører, skal kortet tegnes om (det tager flere sekunder på en telefon).
    Det sker her, så man aldrig ser et kort, der hakker. Næste gang hentes det fra lageret og går hurtigt. */
+/* gamle navne: "Dukke 2" hedder nu "Heks 2" */
+function fixNames(){ let ch = false; figures.forEach(f => { const m = /^Dukke (\d+)$/.exec(f.name || ''); if (m){ f.name = 'Heks ' + m[1]; ch = true; } }); if (ch) saveAll(); }
 async function startGame(){
+  fixNames();
   const bar = el('i'), msg = el('p', { class:'ld-msg' }, 'Tryller byen frem …');
   const ld = el('div', { id:'loader', role:'status', 'aria-live':'polite' }, [
     el('div', { class:'ld-logo' }, GAME_NAME),
@@ -9744,6 +9776,13 @@ async function startGame(){
   ld.classList.add('out'); setTimeout(() => ld.remove(), 600);
 }
 
+/* knappen i byen, der fører tilbage til forsiden (hovedmenuen). Spillet er altid gemt, så man mister ikke noget. */
+function menuBtn(){
+  return el('button', { class:'iconbtn menu', type:'button', 'aria-label':'Til forsiden', title:'Til forsiden',
+    html:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+    on:{ click: () => { sfx.pick(); goTo(showTitle); } } });
+}
+
 /* ---------- tre gemte spil ---------- */
 const SLOT_DATA = ['glimmerstudiet.dukker.v1', 'glimmerstudiet.fremskridt.v1', 'glimmerstudiet.gemtstjerne', 'glimmerstudiet.oekser', 'glimmerstudiet.arkade', 'glimmerstudiet.bamser'];
 let firstDress = false;
@@ -9762,7 +9801,7 @@ function slotInfo(n){
 function setSlot(n){
   SLOT = n; try { localStorage.setItem(SLOT_KEY, String(n)); } catch (e){}
   const f = store.get(KEY, []); figures = Array.isArray(f) ? f : [];
-  prog = loadProg(); heroAt = 'hus'; cur = null; history = [];
+  prog = loadProg(); heroAt = 'hus'; cur = null; history = []; fixNames();
   updateStarPills();
 }
 function clearSlot(n){ for (const k of SLOT_DATA) store.del(k, n); if (n === SLOT) setSlot(n); }
@@ -9804,7 +9843,7 @@ const INTRO_PAGES = [
   { art:'hat', lines:[ ['', 'Min verden er ikke helt almindelig.'], ['', 'For jeg er heller ikke helt almindelig …'], ['big glow', 'Jeg er nemlig en heks!'] ] },
   { art:'slot', lines:[ ['', 'Jeg går i skole, ligesom dig.'], ['big', 'Men min skole er en magisk skole!'] ] },
   { art:'kost', lines:[ ['', 'Vi flyver på koste, brygger eliksirer og springer i faldskærm fra skyerne.'], ['', 'Og nogle gange hygger vi os bare.'] ] },
-  { art:'doer', lines:[ ['', 'Så kom med mig ind i min verden …'], ['big', 'eller skulle jeg sige …'] ] },
+  { art:'doer', lines:[ ['', 'Kunne du tænke dig at tage med?'], ['', 'Så følg mig …'], ['big', 'eller skulle jeg sige …'] ] },
 ];
 const INTRO_END = { text: 'Men hov … hvordan ser jeg egentlig ud? Det må du bestemme!', btn: 'Lav min heks' };
 
@@ -9891,55 +9930,129 @@ function showIntro(){
   const box = $('#introBody'); box.innerHTML = '';
   let i = 0, name = '', busy = false;
   const L = el('div', { class:'pg l' }), R = el('div', { class:'pg r' });
-  const next = el('button', { class:'pg-next', type:'button', 'aria-label':'Vend siden', html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' });
-  const book = el('div', { class:'ibook' }, [ el('div', { class:'ib-leather' }), L, R, el('div', { class:'ib-spine' }), next ]);
-  const after = el('div', { class:'ib-after' }, [ el('p', {}, INTRO_END.text), el('button', { class:'btn hot ib-go', type:'button', on:{ click: () => finish() } }, INTRO_END.btn) ]);
+  const arrow = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  /* man blader kun med pilene — et tryk på siden eller Enter gør ikke noget, så man når at læse det hele */
+  const next = el('button', { class:'pg-next', type:'button', 'aria-label':'Næste side', html: arrow('M9 5l7 7-7 7') });
+  const prev = el('button', { class:'pg-prev', type:'button', 'aria-label':'Forrige side', html: arrow('M15 5l-7 7 7 7') });
+  const book = el('div', { class:'ibook' }, [ el('div', { class:'ib-leather' }), L, R, el('div', { class:'ib-spine' }), prev, next ]);
+  const after = el('div', { class:'ib-after' }, [ el('p', {}, INTRO_END.text),
+    el('div', { class:'ib-btns' }, [ el('button', { class:'btn hot ib-go', type:'button', on:{ click: () => finish() } }, INTRO_END.btn),
+      el('button', { class:'btn ib-again', type:'button', on:{ click: () => reopen() } }, 'Læs igen') ]) ]);
   box.append(el('div', { class:'ib-table', 'aria-hidden':'true' }), el('div', { class:'ib-candle', 'aria-hidden':'true' }), book, after);
-  const fill = () => { L.replaceChildren(introPage(i, 'l')); R.replaceChildren(introPage(i, 'r', name)); wireName(); };
   const nameOk = () => name.trim().length > 0;
-  const wireName = () => { const inp = R.querySelector('.pg-name'); next.disabled = !!inp && !nameOk(); if (!inp) return;
-    inp.addEventListener('input', () => { name = inp.value.replace(/\s+/g, ' ').replace(/^\s/, ''); next.disabled = !nameOk(); });
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); inp.blur(); turn(); } }); };
+  const arrows = () => { prev.classList.toggle('gone', i === 0); next.disabled = !!R.querySelector('.pg-name') && !nameOk(); };
+  const fade = on => book.classList.toggle('turning', on);
+  const wireName = () => { arrows(); const inp = R.querySelector('.pg-name'); if (!inp) return;
+    inp.addEventListener('input', () => { name = inp.value.replace(/\s+/g, ' ').replace(/^\s/, ''); arrows(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); kbClose(); } });
+    kbAttach(inp);
+    if (!nameOk()) setTimeout(() => { if (inp.isConnected && !busy) kbOpen(inp); }, calm ? 0 : 700); };
+  const fill = () => { L.replaceChildren(introPage(i, 'l')); R.replaceChildren(introPage(i, 'r', name)); wireName(); };
+  const tidy = () => { name = name.trim(); name = name.charAt(0).toLocaleUpperCase('da') + name.slice(1); };
   fill();
   async function turn(){
-    if (busy || !nameOk()) return; busy = true; sfx.whoosh();
-    const a = document.activeElement; if (a && a.blur) a.blur();
-    name = name.trim(); name = name.charAt(0).toLocaleUpperCase('da') + name.slice(1);
-    if (i === INTRO_PAGES.length - 1){ await closeBook(); busy = false; return; }
-    /* et blad vendes: forsiden er den højre side nu, bagsiden er den næste venstre side */
+    if (busy || !nameOk()) return; busy = true; kbClose(); sfx.whoosh(); tidy();
+    if (i === INTRO_PAGES.length - 1){ fade(true); await closeBook(); busy = false; return; }
+    /* et blad vendes frem: forsiden er den højre side nu, bagsiden er den næste venstre side */
     const leaf = el('div', { class:'ib-leaf' }, [ el('div', { class:'lf front' }, [ introPage(i, 'r', name) ]), el('div', { class:'lf back' }, [ introPage(i + 1, 'l') ]) ]);
-    i++; R.replaceChildren(introPage(i, 'r', name)); book.append(leaf);
+    fade(true); i++; R.replaceChildren(introPage(i, 'r', name)); book.append(leaf);
     if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(900); }
-    L.replaceChildren(introPage(i, 'l')); leaf.remove(); wireName(); busy = false;
+    L.replaceChildren(introPage(i, 'l')); leaf.remove(); wireName(); fade(false); busy = false;
+  }
+  async function back(){
+    if (busy || i === 0) return; busy = true; kbClose(); sfx.whoosh(); tidy();
+    /* et blad vendes tilbage: forsiden er den venstre side nu, bagsiden er den forrige højre side */
+    const leaf = el('div', { class:'ib-leaf left' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back page' }, [ introPage(i - 1, 'r', name) ]) ]);
+    fade(true); i--; L.replaceChildren(introPage(i, 'l')); book.append(leaf);
+    if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(900); }
+    R.replaceChildren(introPage(i, 'r', name)); leaf.remove(); wireName(); fade(false); busy = false;
   }
   async function closeBook(){
     /* bogen lukkes: venstre side folder over, og forsiden kommer frem */
-    const leaf = el('div', { class:'ib-leaf left' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back cover', html: introCover() }) ]);
-    L.style.visibility = 'hidden'; book.append(leaf); next.hidden = true;
+    const leaf = el('div', { class:'ib-leaf left closer' }, [ el('div', { class:'lf front' }, [ introPage(i, 'l') ]), el('div', { class:'lf back cover', html: introCover() }) ]);
+    L.style.visibility = 'hidden'; book.append(leaf);
     if (!calm){ void leaf.offsetWidth; leaf.classList.add('turn'); await wait(1000); }
     book.classList.add('closed'); sfx.magic();
     prog.name = name; prog.intro = true; saveProg();
     await wait(calm ? 0 : 1300); after.classList.add('on');
   }
+  /* "Læs igen": bogen åbnes på første side, hvor man også kan rette navnet */
+  async function reopen(){
+    if (busy) return; busy = true; sfx.whoosh();
+    after.classList.remove('on'); book.classList.remove('closed');
+    const c = book.querySelector('.ib-leaf.closer'); if (c) c.remove();
+    L.style.visibility = ''; i = 0; fill(); await wait(calm ? 0 : 900); fade(false); busy = false;
+  }
   function finish(){
-    sfx.pick();
+    sfx.pick(); tidy(); prog.name = name; saveProg();
     goTo(() => { firstDress = true; const f = newFigure(); f.name = name; saveAll(); $('#nameInput').value = name; firstDressUi(true); });
   }
   next.addEventListener('click', turn);
-  R.addEventListener('click', e => { if (e.target.closest('input')) return; turn(); });
+  prev.addEventListener('click', back);
+}
+
+/* ---------- spillets eget tastatur: runde skrivemaskine-taster i messing på en træplade ----------
+   Kun bogstaver, skift, bindestreg, mellemrum, slet og Enter. Systemets tastatur bliver væk (inputmode="none"),
+   men et rigtigt tastatur på en computer virker stadig. */
+const KB_ROWS = [ ['q','w','e','r','t','y','u','i','o','p','å'], ['a','s','d','f','g','h','j','k','l','æ','ø'], ['shift','z','x','c','v','b','n','m','-','del'], ['space','enter'] ];
+const KB = { el: null, inp: null, shift: true, lift: null };
+function kbBuild(){
+  const lab = { shift: '⇧', del: '⌫', space: 'mellemrum', enter: 'Enter ↵' };
+  KB.el = el('div', { id:'kb', class:'kb', role:'group', 'aria-label':'Tastatur', hidden: true },
+    KB_ROWS.map(r => el('div', { class:'kb-row' }, r.map(k => el('button', { class:'kb-k k-' + (lab[k] ? k : 'ch'), type:'button', 'data-k': k, 'aria-label': k === 'space' ? 'Mellemrum' : k === 'del' ? 'Slet' : k === 'shift' ? 'Store bogstaver' : k },
+      el('span', {}, lab[k] || k))))));
+  document.body.append(KB.el);
+  KB.el.addEventListener('pointerdown', e => { const b = e.target.closest('.kb-k'); e.preventDefault(); if (!b) return; b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 120); kbPress(b.dataset.k); });
+  document.addEventListener('pointerdown', e => { if (KB.el.hidden || e.target.closest('#kb') || e.target === KB.inp) return; kbClose(); }, true);
+}
+function kbDraw(){ if (!KB.el) return; KB.el.classList.toggle('up', KB.shift); KB.el.querySelectorAll('.k-ch span').forEach(sp => { const k = sp.parentNode.dataset.k; sp.textContent = KB.shift ? k.toLocaleUpperCase('da') : k; }); }
+function kbPress(k){
+  const inp = KB.inp; if (!inp) return; sfx.pick();
+  if (k === 'enter'){ kbClose(); return; }
+  if (k === 'shift'){ KB.shift = !KB.shift; kbDraw(); return; }
+  let v = inp.value; const max = +inp.getAttribute('maxlength') || 20;
+  if (k === 'del') v = v.slice(0, -1);
+  else if (v.length < max){ const ch = k === 'space' ? ' ' : KB.shift ? k.toLocaleUpperCase('da') : k; if (!(ch === ' ' && (!v || v.endsWith(' ')))) v += ch; }
+  inp.value = v; inp.dispatchEvent(new Event('input', { bubbles: true }));
+  KB.shift = !v || v.endsWith(' ') || v.endsWith('-'); kbDraw();
+}
+function kbOpen(inp){
+  if (!KB.el) kbBuild();
+  KB.inp = inp; KB.shift = !inp.value || /[\s-]$/.test(inp.value); kbDraw();
+  KB.el.hidden = false; requestAnimationFrame(() => KB.el.classList.add('on'));
+  try { inp.focus({ preventScroll: true }); } catch (e){}
+  /* ligger feltet bag tastaturet, skubbes skærmen op, så man kan se, hvad man skriver */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const scr = inp.closest('.screen'); if (!scr) return;
+    const kt = window.innerHeight - KB.el.offsetHeight, ib = inp.getBoundingClientRect().bottom + 12;   /* tastaturet glider stadig op, så dets endelige top regnes ud */
+    if (ib > kt){ KB.lift = scr; scr.style.transition = 'transform .3s ease'; scr.style.transform = `translateY(${-(ib - kt)}px)`; }
+  }));
+}
+function kbClose(){
+  if (!KB.el || KB.el.hidden) return;
+  KB.el.classList.remove('on'); setTimeout(() => { if (!KB.el.classList.contains('on')) KB.el.hidden = true; }, 250);
+  if (KB.inp){ KB.inp.blur(); KB.inp.dispatchEvent(new Event('change', { bubbles: true })); }
+  if (KB.lift){ KB.lift.style.transform = ''; KB.lift = null; }
+  KB.inp = null;
+}
+function kbAttach(inp){
+  inp.setAttribute('inputmode', 'none'); inp.setAttribute('autocomplete', 'off');
+  if (inp._kb) return; inp._kb = true;
+  inp.addEventListener('pointerdown', () => { if (!inp.readOnly) setTimeout(() => kbOpen(inp), 0); });
+  inp.addEventListener('focus', () => { if (!inp.readOnly && (!KB.el || KB.el.hidden)) kbOpen(inp); });
 }
 
 /* ================= Forside og start ================= */
 /* ---------- testtilstand: tryk 5 gange på logoet ---------- */
 let logoTaps = 0, logoTimer = null;
 function openTest(){
-  const info = () => `Stjerner: ${prog.stars} · låste ting: ${lockedList().length} · dukker: ${figures.length}`;
+  const info = () => `Stjerner: ${prog.stars} · låste ting: ${lockedList().length} · hekse: ${figures.length}`;
   const refresh = () => { $('#modalText').textContent = info(); updateStarPills(); if (!$('#home').hidden) renderHome(); };
   showModal('Testtilstand', info(), [
     { label:'+50 stjerner', keep:true, fn: () => { addStars(50); refresh(); } },
     { label:'Lås alt op', keep:true, fn: () => { unlockAll(); refresh(); } },
     { label:'Lås igen', keep:true, fn: () => { prog.unlocked = []; prog.fresh = []; saveProg(); refresh(); } },
-    { label:'Nulstil alt', keep:true, fn: () => showModal('Nulstil alt?', 'Stjerner, låste ting og alle dukker slettes. Spillet starter forfra.', [
+    { label:'Nulstil alt', keep:true, fn: () => showModal('Nulstil alt?', 'Stjerner, låste ting og alle hekse slettes. Spillet starter forfra.', [
         { label:'Nej' }, { label:'Ja, nulstil', hot:true, fn: () => { store.del(KEY); store.del(KEY_PROG); figures = []; prog = loadProg(); showTitle(); toast('Spillet er nulstillet'); } } ]) },
     { label:'Byen: ' + ({ foraar:'forår', sommer:'sommer', efteraar:'efterår', vinter:'vinter', jul:'jul' }[CITY_OVR.season] || 'årstid efter kalenderen'), keep:true, fn: () => { const L = [null,'foraar','sommer','efteraar','vinter','jul']; CITY_OVR.season = L[(L.indexOf(CITY_OVR.season) + 1) % L.length]; if (!$('#town').hidden) showTown(); openTest(); } },
     { label:'Byen: ' + ({ morgen:'morgen', dag:'dag', aften:'aften', nat:'nat' }[CITY_OVR.time] || 'tid efter uret'), keep:true, fn: () => { const L = [null,'morgen','dag','aften','nat']; CITY_OVR.time = L[(L.indexOf(CITY_OVR.time) + 1) % L.length]; if (!$('#town').hidden) showTown(); openTest(); } },
@@ -9962,6 +10075,8 @@ $('#randBtn').onclick = () => {
   activeAcc = null; activePetAcc = null; sfx.magic(); saveSoon(); renderStage(); renderPanel();
   const m = $('#mirror'); m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop');
 };
+kbAttach($('#nameInput'));
+$('#nameInput').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); kbClose(); } });
 $('#nameInput').addEventListener('input', e => { if (cur.temp) return; cur.name = e.target.value.trim() || 'Uden navn'; saveSoon(); });
 document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') hideModal(); });

@@ -2,7 +2,7 @@
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.1';
+const VERSION = 'v0.25.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -68,6 +68,7 @@ function smilOpacityToCss(root){
 }
 /* skjulte skærme får deres SVG-animationer sat på pause; ellers kører de videre usynligt og koster i hvert billede */
 function showScreen(id){
+  if (typeof kbClose === 'function') kbClose();
   for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
     e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
   window.scrollTo(0,0);

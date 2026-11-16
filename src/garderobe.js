@@ -86,7 +86,7 @@ function portrait(i, f, cx, cy){
     o += `<path d="M ${cx} ${cy-34} V ${cy+26} M ${cx-30} ${cy-4} H ${cx+30}" stroke="#FF3D8F" stroke-width="12" stroke-linecap="round"/>` + star4(cx + 40, cy - 50, 10, '#FFC02E') + star4(cx - 42, cy + 40, 8, '#B79BFF');
   }
   o += [[x+6,y+6],[x+fw-6,y+6],[x+6,y+fh-6],[x+fw-6,y+fh-6]].map(([a,b]) => `<circle cx="${a}" cy="${b}" r="8" fill="#FFE27A" stroke="${GD}" stroke-width="2"/>`).join('');
-  const name = f ? f.name : 'Ny figur', pw = Math.min(170, 30 + name.length * 11);
+  const name = f ? f.name : 'Ny heks', pw = Math.min(170, 30 + name.length * 11);
   o += `<rect x="${cx - pw/2}" y="${y+fh+8}" width="${pw}" height="32" rx="10" fill="#C99A3E" stroke="${GD}" stroke-width="3"/><text x="${cx}" y="${y+fh+30}" text-anchor="middle" font-family="Fredoka, Nunito, sans-serif" font-weight="600" font-size="18" fill="#3A2340">${escT(name)}</text>`;
   o += `</g></g>`;
   if (f) o += `<g data-hit="del:${i}"><circle cx="${x+fw-4}" cy="${y+4}" r="17" fill="#FFFFFF" stroke="#E0457A" stroke-width="3"/><path d="M ${x+fw-11} ${y-3} l 14 14 M ${x+fw+3} ${y-3} l -14 14" stroke="#E0457A" stroke-width="4" stroke-linecap="round"/></g>`;

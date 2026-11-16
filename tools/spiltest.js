@@ -118,7 +118,11 @@ async function introFlow(){
   ok(await p.evaluate(() => !$('#slots').hidden && document.querySelectorAll('.sbook').length === 3), 'bøgerne med de gemte spil blev ikke vist');
   await p.locator('.sbook').nth(2).click(); await p.waitForTimeout(1200);
   ok(await p.evaluate(() => !$('#intro').hidden && $('.pg-next').disabled), 'introen startede ikke, eller man kunne gå videre uden navn');
-  await p.fill('.pg.r .pg-name', 'test'); for (let i = 0; i < 5; i++){ await p.click('.pg-next', { force: true }); await p.waitForTimeout(1200); }
+  await p.waitForTimeout(900); ok(await p.evaluate(() => !$('#kb').hidden), 'spillets tastatur kom ikke frem ved navnet');
+  for (const k of ['t','e','s','t']) await p.locator(`#kb [data-k="${k}"]`).dispatchEvent('pointerdown');
+  await p.locator('#kb [data-k="enter"]').dispatchEvent('pointerdown'); await p.waitForTimeout(400);
+  ok(await p.evaluate(() => $('#kb').hidden && $('.pg-num').textContent === '1'), 'Enter lukkede ikke tastaturet, eller bogen bladrede');
+  for (let i = 0; i < 5; i++){ await p.click('.pg-next', { force: true }); await p.waitForTimeout(1200); }
   await p.waitForTimeout(2000); ok(await p.evaluate(() => $('.ibook').classList.contains('closed') && $('.ib-after').classList.contains('on')), 'bogen lukkede ikke til sidst');
   await p.click('.ib-go'); await p.waitForTimeout(1500); ok(await p.evaluate(() => !$('#editor').hidden && $('#nameInput').value === 'Test'), 'spejlet åbnede ikke med navnet');
   ok(await p.evaluate(() => $('#backBtn').hidden && !$('#doneBtn').hidden), 'spejlet viste ikke Jeg er færdig-knappen');

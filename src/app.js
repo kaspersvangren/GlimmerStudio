@@ -220,8 +220,8 @@ function openEditor(f, opts={}){
   $('#nameInput').value = cur.name; updateUndo(); renderStage(); renderTabs(); renderPanel(true); placeBulbs(); sfx.open();
 }
 function newFigure(){
-  let n = figures.length + 1; while (figures.some(f => f.name === 'Dukke ' + n)) n++;
-  const f = { id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: 'Dukke ' + n, st: clone(DEFAULT_STATE), t: Date.now() };
+  let n = figures.length + 1; while (figures.some(f => f.name === 'Heks ' + n)) n++;
+  const f = { id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), name: 'Heks ' + n, st: clone(DEFAULT_STATE), t: Date.now() };
   figures.unshift(f); saveAll(); tab = 'hud'; openEditor(f);
   return f;
 }
