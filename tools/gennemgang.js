@@ -37,6 +37,8 @@ const V = { 'acc-bog': 6,
   /* v0.17.0: byens billeder vises igen; rytteren uden dyr, nyt hår og kappe fra skuldrene; skiltene i gangen; faldskærm */
   'sted-by': 3, 'skole-i-byen': 2, 'kost-rytter': 3, 'sted-skole': 3,
   /* v0.17.1: håret i ét stykke, kappen fast om halsen, hestehale under hjelmen; større tilskuere og magi på engen; dørene åbner */
+  /* v0.25.30: rettet efter gennemgangen af de nye ting */
+  'sko-ballerina': 2, 'acc-lanterne': 2,
   'kost-rytter': 4, 'fald-rytter': 2, 'fald-kort': 2, 'fald-lav': 2, 'fald-skaerm': 2, 'fald-frit': 2, 'sted-skole': 4 };
 
 (async () => {

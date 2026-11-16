@@ -251,9 +251,9 @@ const HATS = {
 
 /* ================= ANSIGT (hovedets mål) ================= */
 const FACE = 'M 222 292 C 220 240 252 206 300 206 C 348 206 380 240 378 292 C 377 338 346 380 300 384 C 254 380 223 338 222 292 Z';
-const PUPILS = { rund:'Runde', glimt:'Glimt', stjerne:'Stjerner', hjerte:'Hjerter' };
-const LIPSHAPES = { smil:'Smil', grin:'Stort grin', pust:'Lille mund' };
-const MARKS = { ingen:'Intet', fregner:'Fregner', hjerte:'Hjerte', stjerne:'Stjerne', glimmer:'Glimmer' };
+const PUPILS = { rund:'Runde', glimt:'Glimt', stjerne:'Stjerner', hjerte:'Hjerter', maane:'Måner', diamant:'Diamanter', blomst:'Blomster', kat:'Katteøjne', spiral:'Snurrende', stor:'Store og blanke' };
+const LIPSHAPES = { smil:'Smil', grin:'Stort grin', pust:'Lille mund', tunge:'Rækker tunge', kys:'Kyssemund', skaev:'Skævt smil', oh:'Overrasket', tand:'Små hjørnetænder', kat:'Kattemund', glad:'Bredt smil' };
+const MARKS = { ingen:'Intet', fregner:'Fregner', hjerte:'Hjerte', stjerne:'Stjerne', glimmer:'Glimmer', ar:'Ar', plaster:'Plaster', maane:'Måne', maling:'Ansigtsmaling', prik:'Skønhedsplet' };
 function eyeLook(){
   if (!IDLE || !ANIM) return '';
   const pts = trackPoints('look', e => e.d * 3.5);
@@ -264,8 +264,14 @@ function eyeOne(c, x, f){
   if (c.pupil === 'stjerne') p = starP(0, 4, 9, INK);
   else if (c.pupil === 'hjerte') p = heart(0, 6, 0.95, INK);
   else if (c.pupil === 'glimt') p = `<circle cy="4" r="5.5" fill="${INK}"/>`;
+  else if (c.pupil === 'maane') p = moon(1, 4, 9, INK);
+  else if (c.pupil === 'diamant') p = `<path d="M 0 -6 L 8 4 L 0 14 L -8 4 Z" fill="${INK}"/>`;
+  else if (c.pupil === 'blomst') p = flowerP(0, 4, 9, INK, lt(c.eye,0.35));
+  else if (c.pupil === 'kat') p = `<ellipse cy="4" rx="3.4" ry="11.5" fill="${INK}"/>`;
+  else if (c.pupil === 'spiral') p = `<path d="M 0 4 m 0 0 q 3 -3 5 0 q 2 5 -5 7 q -8 1 -9 -7 q 0 -10 10 -10 q 11 1 11 12" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  else if (c.pupil === 'stor') p = `<circle cy="4" r="10" fill="${INK}"/>`;
   else p = `<circle cy="4" r="7" fill="${INK}"/>`;
-  const shine = c.pupil === 'glimt' ? twinkle(-4, -3, 7, '#FFF') + `<circle cx="6" cy="9" r="2.2" fill="#FFF"/>` : `<circle cx="-5" cy="-3" r="4.8" fill="#FFF"/><circle cx="5" cy="8" r="2.2" fill="#FFF" opacity=".9"/>`;
+  const shine = c.pupil === 'stor' ? `<circle cx="-5" cy="-3" r="6" fill="#FFF"/><circle cx="6" cy="9" r="3" fill="#FFF" opacity=".9"/><circle cx="-8" cy="8" r="1.6" fill="#FFF" opacity=".8"/>` : c.pupil === 'glimt' ? twinkle(-4, -3, 7, '#FFF') + `<circle cx="6" cy="9" r="2.2" fill="#FFF"/>` : `<circle cx="-5" cy="-3" r="4.8" fill="#FFF"/><circle cx="5" cy="8" r="2.2" fill="#FFF" opacity=".9"/>`;
   return `<g transform="translate(${x},304)"><ellipse rx="17" ry="20" fill="#FFF"/><ellipse cy="-8" rx="17" ry="10" fill="${c.skS}" opacity=".18"/>`
     + `<g>${eyeLook()}<circle cy="3" r="14.5" fill="url(#irisF)" stroke="${fdk(c.eye,0.45)}" stroke-width="1.5"/>${p}${shine}</g>`
     + `<path d="M -19 -6 Q 0 -27 19 -6" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M ${17*f} -8 l ${6*f} -5 M ${12*f} -14 l ${4*f} -6" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><path d="M -12 16 Q 0 22 12 16" stroke="${c.sk}" stroke-width="1.6" fill="none" opacity=".7"/>`
@@ -275,6 +281,14 @@ function eyeOne(c, x, f){
 function mouthF(c){
   const L = c.lips, Ld = fdk(L,0.3);
   if (c.lipShape === 'grin') return `<path d="M 282 340 Q 300 346 318 340 Q 316 366 300 367 Q 284 366 282 340 Z" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 286 342 Q 300 346 314 342 L 313 349 Q 300 351 287 349 Z" fill="#FFF"/><path d="M 291 360 Q 300 354 309 360 Q 300 366 291 360 Z" fill="${lt(L,0.35)}"/>`;
+  const dimp = `<path d="M 281 341 q 2 -2 4 0 M 315 341 q 2 -2 4 0" stroke="${c.sk}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+  if (c.lipShape === 'tunge') return `<path d="M 284 342 Q 300 362 316 342 Q 300 350 284 342 Z" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 292 350 Q 290 366 300 368 Q 310 366 308 350 Z" fill="#FF8FA3" stroke="${fdk('#FF8FA3',0.35)}" stroke-width="1.8"/><path d="M 300 352 L 300 362" stroke="${fdk('#FF8FA3',0.3)}" stroke-width="1.5" stroke-linecap="round"/>` + dimp;
+  if (c.lipShape === 'kys') return `<path d="M 294 340 Q 300 336 306 340 Q 310 346 306 352 Q 300 356 294 352 Q 290 346 294 340 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 295 346 Q 300 344 305 346" stroke="${Ld}" stroke-width="1.6" fill="none"/><path d="M 296 343 Q 299 341 302 342" stroke="${lt(L,0.5)}" stroke-width="1.6" fill="none" stroke-linecap="round"/>` + heart(322, 330, 0.5, lt(L,0.2));
+  if (c.lipShape === 'skaev') return `<path d="M 286 346 Q 302 360 318 338 Q 302 352 286 346 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 316 337 q 3 -1 4 2" stroke="${c.sk}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+  if (c.lipShape === 'oh') return `<ellipse cx="300" cy="350" rx="8" ry="10" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2.4"/><path d="M 294 356 Q 300 352 306 356 Q 300 360 294 356 Z" fill="${lt(L,0.35)}"/>`;
+  if (c.lipShape === 'tand') return `<path d="M 284 342 Q 300 362 316 342 Q 300 350 284 342 Z" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 289 345 L 292 353 L 295 346 Z M 311 345 L 308 353 L 305 346 Z" fill="#FFF" stroke="${c.sk}" stroke-width="1" stroke-linejoin="round"/>` + dimp;
+  if (c.lipShape === 'kat') return `<path d="M 286 342 Q 292 352 300 344 Q 308 352 314 342" stroke="${Ld}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M 296 341 L 304 341 L 300 345 Z" fill="${lt(L,0.2)}"/>`;
+  if (c.lipShape === 'glad') return `<path d="M 278 338 Q 300 366 322 338 Q 300 348 278 338 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 290 350 Q 300 356 310 350" stroke="${lt(L,0.45)}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 274 336 q 2 -3 5 -1 M 321 335 q 3 -2 5 1" stroke="${c.sk}" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="272" cy="346" r="2" fill="${c.sk}" opacity=".35"/><circle cx="328" cy="346" r="2" fill="${c.sk}" opacity=".35"/>`;
   if (c.lipShape === 'pust') return `<path d="M 292 346 Q 300 354 308 346 Q 300 350 292 346 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 289 345 q 2 -2 4 0 M 307 345 q 2 -2 4 0" stroke="${c.sk}" stroke-width="1.5" fill="none"/>`;
   return `<path d="M 284 342 Q 300 362 316 342 Q 300 350 284 342 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 292 352 Q 300 357 308 352" stroke="${lt(L,0.45)}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 281 341 q 2 -2 4 0 M 315 341 q 2 -2 4 0" stroke="${c.sk}" stroke-width="1.5" fill="none"/>`;
 }
@@ -285,6 +299,11 @@ function markF(c){
     case 'hjerte': return heart(346, 337, 0.75, m);
     case 'stjerne': return starP(346, 336, 8, m);
     case 'glimmer': return twinkle(347, 334, 7, m) + twinkle(337, 342, 3.5, m) + twinkle(357, 343, 3, m) + twinkle(254, 336, 4, m);
+    case 'ar': { const S = mixC(c.skin, '#B84A5E', 0.35); return `<path d="M 336 318 L 358 344" stroke="${S}" stroke-width="3.2" stroke-linecap="round"/><path d="M 337 320 L 357 342" stroke="${lt(S,0.4)}" stroke-width="1" stroke-linecap="round"/>` + [[340,324],[346,331],[352,338]].map(([x,y]) => `<path d="M ${x-5} ${y+4} L ${x+5} ${y-4}" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`).join(''); }
+    case 'plaster': return `<g transform="rotate(-28 348 336)"><rect x="330" y="329" width="36" height="14" rx="7" fill="${lt(m,0.55)}" stroke="${fdk(m,0.2)}" stroke-width="1.6"/><rect x="342" y="329" width="12" height="14" fill="${lt(m,0.25)}"/>${[[337,334],[337,339],[359,334],[359,339]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1" fill="${fdk(m,0.25)}"/>`).join('')}</g>`;
+    case 'maane': return moon(344, 336, 12, m) + twinkle(332, 324, 4, m);
+    case 'maling': return [[256,-1],[344,1]].map(([x,f]) => [0, 9].map(dy => `<path d="M ${x - 12*f} ${328+dy} Q ${x} ${324+dy} ${x + 12*f} ${330+dy}" stroke="${m}" stroke-width="4.5" fill="none" stroke-linecap="round" opacity=".9"/>`).join('')).join('');
+    case 'prik': return `<circle cx="324" cy="352" r="2.6" fill="${m}"/>`;
     default: return '';
   }
 }
@@ -410,6 +429,13 @@ const CAPES = {
   stjerner: { label:'Stjernekappe', back: c => capeBody(c, CAPE_LONG, 820, true) },
   maane: { label:'Månekappe', back: c => capeBody(c, CAPE_LONG, 820, k => [[172,640,10],[198,520,8],[420,600,9],[440,744,10],[180,770,8],[410,470,7]].map(([x,y,r],i) => moon(x, y, r, k.b, .9) + twinkle(x + (i % 2 ? -16 : 16), y - 14, 4, k.b)).join('')) },
   takket: { label:'Takket kappe', back: c => capeBody(c, CAPE_ZIG, 820, false, CAPE_ZIG_HEM) },
+  blomster: { label:'Blomsterkappe', back: c => capeBody(c, CAPE_LONG, 820, k => { const leaf = mixC('#5FB86A', k.a, 0.25);
+      return [[172,640,12],[198,520,9],[420,600,11],[440,744,12],[180,770,10],[410,470,8],[430,680,7]].map(([x,y,r],i) => leafP(x + r, y + r*0.6, 30 + i*20, leaf, r*1.4) + flowerP(x, y, r, k.b, lt(k.b,0.6))).join(''); }) },
+  stribet: { label:'Stribet kappe', back: c => capeBody(c, CAPE_LONG, 820, k => [150, 196, 404, 446].map(x => `<path d="M ${x+(x<300?40:-40)} 410 L ${x} 830 L ${x+18} 830 L ${x+(x<300?52:-28)} 410 Z" fill="${k.b}" opacity=".75"/>`).join('')) },
+  pelskant: { label:'Kappe med pelskant', back: c => capeBody(c, CAPE_LONG, 820, k => {
+      const F = '#FFF6E8', Fs = '#D9C7B0'; let o = '';
+      for (let i = 0; i <= 20; i++){ const t = i / 20, x = 146 + t * 308, y = 810 + Math.sin(t * Math.PI) * 10 + (i % 2 ? 4 : 0); o += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="15" fill="${F}" stroke="${Fs}" stroke-width="2"/>`; }
+      return o + [[200,812],[300,820],[400,812]].map(([x,y]) => `<path d="M ${x} ${y+2} l 0 6" stroke="#5A4A3A" stroke-width="3" stroke-linecap="round" opacity=".6"/>`).join(''); }) },
 };
 
 /* ================= STØVLER ================= */
@@ -427,10 +453,38 @@ function bootOne(c, f, kind){
     b += `<path d="M -16 790 Q -12 820 -14 840" stroke="${bL}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>`;
   } else if (kind === 'ballerina'){
     /* bånd snøret op om anklen, en flad sko med sløjfe */
-    b += [[836,816],[816,796],[796,778]].map(([y1,y2]) => `<path d="M -11 ${y1} L 11 ${y2} M 11 ${y1} L -11 ${y2}" stroke="${fdk(x,0.3)}" stroke-width="5.5" stroke-linecap="round"/><path d="M -11 ${y1} L 11 ${y2} M 11 ${y1} L -11 ${y2}" stroke="${x}" stroke-width="3.5" stroke-linecap="round"/>`).join('');
+    /* båndene følger benet, der sidder lidt inde i forhold til skoens midte */
+    b += [[836,816],[816,796],[796,778]].map(([y1,y2]) => { const d = `M -14 ${y1} L 8 ${y2} M 8 ${y1} L -14 ${y2}`; return `<path d="${d}" stroke="${fdk(x,0.3)}" stroke-width="5.5" stroke-linecap="round"/><path d="${d}" stroke="${x}" stroke-width="3.5" stroke-linecap="round"/>`; }).join('');
     b += `<path d="M -20 838 Q 0 830 18 836 Q 34 838 40 848 Q 40 858 30 858 L -20 858 Q -26 858 -24 850 L -22 842 Q -22 838 -20 838 Z" fill="${B}" stroke="${bk}" stroke-width="2.5" stroke-linejoin="round"/>`;
     b += `<path d="M -16 842 Q 4 836 20 842 Q 30 846 32 850 Q 12 846 -18 848 Z" fill="${lt(B,0.5)}" opacity=".7"/><path d="M -24 853 L 40 853 Q 40 860 30 860 L -20 860 Q -26 860 -24 853 Z" fill="${fdk(B,0.45)}"/>`;
     b += `<path d="M 14 838 q -9 -8 -12 0 q 3 8 12 0 q 9 -8 12 0 q -3 8 -12 0 Z" fill="${x}" stroke="${fdk(x,0.35)}" stroke-width="1.5"/><circle cx="14" cy="838" r="2.5" fill="${fdk(x,0.2)}"/>`;
+  } else if (kind === 'sandaler'){
+    /* bare tæer og remme over foden */
+    b += `<path d="M -18 842 Q 0 834 18 838 Q 34 840 38 848 Q 38 854 30 854 L -18 854 Q -24 854 -22 848 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/>`;
+    b += [18, 25, 31].map(tx => `<path d="M ${tx} 846 q 3 -4 6 0" stroke="${c.sk}" stroke-width="1.4" fill="none"/>`).join('');
+    b += `<path d="M -24 852 L 40 852 Q 42 860 32 860 L -20 860 Q -27 860 -24 852 Z" fill="${B}" stroke="${bk}" stroke-width="2.2"/>`;
+    const st = 'M -15 830 L 9 830 M -3 830 L 8 845 M -16 846 L 26 845';
+    b += `<path d="${st}" stroke="${fdk(B,0.3)}" stroke-width="6" stroke-linecap="round" fill="none"/><path d="${st}" stroke="${B}" stroke-width="3.6" stroke-linecap="round" fill="none"/>`;
+    b += starP(7, 845, 5.5, x);
+  } else if (kind === 'krul'){
+    /* nissesko med opkrøllet snude og en lille bjælde */
+    b += `<path d="M -20 820 Q 0 812 20 820 L 22 836 Q 40 836 52 826 Q 64 812 56 800 Q 70 806 68 822 Q 64 846 40 856 L -20 858 Q -26 858 -24 850 L -22 826 Z" fill="${B}" stroke="${bk}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    b += `<path d="M 8 822 L 20 822 L 22 836 Q 40 836 52 826 Q 50 846 30 850 L 18 850 Q 10 836 8 822 Z" fill="${bD}" opacity=".5"/><path d="M -24 852 L 38 852 Q 32 860 22 860 L -20 860 Q -26 860 -24 852 Z" fill="${fdk(B,0.45)}"/>`;
+    b += `<path d="M -22 818 L -16 828 L -10 818 L -4 828 L 2 818 L 8 828 L 14 818 L 20 828 L 22 818" stroke="${x}" stroke-width="3" fill="none" stroke-linejoin="round"/>`;
+    b += `<circle cx="57" cy="798" r="6" fill="#F2C14E" stroke="#B98516" stroke-width="2"/><path d="M 54 800 L 60 800" stroke="#B98516" stroke-width="1.5"/>`;
+  } else if (kind === 'spaende'){
+    /* lave sko med en stor messingspænde, som i gamle dage */
+    b += `<path d="M -20 830 Q 0 822 18 828 Q 36 834 40 848 Q 40 858 30 858 L -20 858 Q -26 858 -24 850 L -22 836 Q -22 830 -20 830 Z" fill="${B}" stroke="${bk}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    b += `<path d="M 6 830 Q 30 834 36 848 L 20 848 Q 12 836 6 830 Z" fill="${bD}" opacity=".55"/><path d="M -24 852 L 40 852 Q 40 860 30 860 L -20 860 Q -26 860 -24 852 Z" fill="${fdk(B,0.45)}"/>`;
+    b += `<path d="M -8 826 Q 6 818 22 826 L 20 836 Q 6 830 -6 836 Z" fill="${x}" stroke="${fdk(x,0.35)}" stroke-width="1.5"/>`;
+    b += `<rect x="-2" y="828" width="18" height="15" rx="2.5" fill="none" stroke="#C9952E" stroke-width="4"/><rect x="-2" y="828" width="18" height="15" rx="2.5" fill="none" stroke="#F2C14E" stroke-width="1.6"/><path d="M 7 829 L 7 842" stroke="#C9952E" stroke-width="2.5"/>`;
+  } else if (kind === 'knap'){
+    /* knapstøvler: høje, smalle, med en række små knapper i siden */
+    b += `<path d="M -20 772 Q 0 766 20 772 L 20 836 Q 36 840 40 850 Q 40 858 30 858 L -20 858 Q -26 858 -24 850 L -23 790 Q -23 776 -20 772 Z" fill="${B}" stroke="${bk}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    b += `<path d="M 6 772 L 20 772 L 20 836 Q 32 840 36 848 L 20 848 Q 8 820 6 772 Z" fill="${bD}" opacity=".6"/><path d="M -24 852 L 40 852 Q 40 860 30 860 L -20 860 Q -26 860 -24 852 Z" fill="${fdk(B,0.45)}"/>`;
+    b += `<path d="M 8 772 Q 6 806 14 838 Q 24 840 30 846" stroke="${x}" stroke-width="12" fill="none" stroke-linejoin="round" opacity=".9"/><path d="M 8 772 Q 6 806 14 838 Q 24 840 30 846" stroke="${fdk(x,0.3)}" stroke-width="1.5" fill="none" stroke-dasharray="1 0" opacity=".6"/>`;
+    b += [782, 794, 806, 818, 830].map((y, i) => `<circle cx="${9 + i*1.1}" cy="${y}" r="2.8" fill="#F2C14E" stroke="#8A6418" stroke-width="1.2"/>`).join('');
+    b += `<path d="M -15 790 Q -12 820 -14 840" stroke="${bL}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/><path d="M -22 770 Q 0 762 22 770 L 22 776 Q 0 768 -22 776 Z" fill="${fdk(B,0.3)}"/>`;
   } else if (kind === 'gummi'){
     b += `<path d="M -23 770 Q 0 762 23 770 L 22 834 Q 38 838 42 849 Q 42 859 31 859 L -21 859 Q -28 859 -26 850 L -25 776 Q -25 771 -23 770 Z" fill="${B}" stroke="${bk}" stroke-width="2.5" stroke-linejoin="round"/>`;
     b += `<path d="M 8 770 L 22 770 L 22 834 Q 34 838 38 846 L 22 846 Q 10 820 8 770 Z" fill="${bD}" opacity=".55"/>`;
@@ -455,7 +509,7 @@ function bootOne(c, f, kind){
   }
   return b + `</g>`;
 }
-const BOOTS = { snoer:{ label:'Snørestøvler' }, spidse:{ label:'Spidse sko' }, hoeje:{ label:'Høje støvler' }, ballerina:{ label:'Ballerinasko' }, gummi:{ label:'Gummistøvler' }, pels:{ label:'Støvler med pels' } };
+const BOOTS = { snoer:{ label:'Snørestøvler' }, spidse:{ label:'Spidse sko' }, hoeje:{ label:'Høje støvler' }, ballerina:{ label:'Ballerinasko' }, gummi:{ label:'Gummistøvler' }, pels:{ label:'Støvler med pels' }, sandaler:{ label:'Sandaler' }, krul:{ label:'Nissesko' }, spaende:{ label:'Sko med spænde' }, knap:{ label:'Knapstøvler' } };
 function legsF(c, short){
   if (!short) return `<path d="M 270 776 L 266 836 M 330 776 L 334 836" stroke="${c.skS}" stroke-width="22"/>`;
   const r = c.robe; let o = '';
@@ -614,9 +668,9 @@ const ACC = {
   toerklaede: { label:'Halstørklæde', color:'#E0457A' },
   halskaede: { label:'Månekæde', color:'#F2C14E' },
   briller: { label:'Runde briller', color:'#B98516' },
-  ugle: { label:'Ugle på skulderen', color:'#A8794E' },
   lanterne: { label:'Lanterne', color:'#FFB347', hand:'L' },
   perler: { label:'Perlekæde', color:'#E0457A' },
+  lommeur: { label:'Lommeur', color:'#F2C14E' },
 };
 const ACC_SLOTS = [ ['stav','tryllestav'], ['toerklaede','halskaede','perler'], ['bog','lanterne'] ];
 const ACC_HIDDEN_BY = {};
@@ -651,29 +705,13 @@ function necklaceF(col){
     + `<circle cx="300" cy="460" r="14" fill="${col}" stroke="${D}" stroke-width="2.4"/><circle cx="300" cy="460" r="10" fill="none" stroke="${lt(col,0.45)}" stroke-width="1.2"/>`
     + moon(298, 460, 8, fdk(col,0.5)) + starP(306, 455, 3, fdk(col,0.5)) + `<circle cx="294" cy="452" r="2.2" fill="#FFF" opacity=".85"/>`;
 }
-/* ugle på venstre skulder (set fra os), ved siden af ansigtet */
-function owlF(col){
-  const D = fdk(col,0.35), L = lt(col,0.45), S = sd(col,0.3), X = 198, Y = 376, Y1 = '#F2C14E';
-  const body = `M ${X} ${Y-30} C ${X+22} ${Y-30} ${X+26} ${Y-8} ${X+24} ${Y+12} C ${X+22} ${Y+30} ${X+10} ${Y+36} ${X} ${Y+36} C ${X-10} ${Y+36} ${X-22} ${Y+30} ${X-24} ${Y+12} C ${X-26} ${Y-8} ${X-22} ${Y-30} ${X} ${Y-30} Z`;
-  let o = `<ellipse cx="${X+2}" cy="${Y+38}" rx="22" ry="5" fill="${SHC}" opacity=".2"/>`;
-  o += `<path d="M ${X-20} ${Y-22} L ${X-24} ${Y-40} L ${X-8} ${Y-28} Z M ${X+20} ${Y-22} L ${X+24} ${Y-40} L ${X+8} ${Y-28} Z" fill="${col}" stroke="${D}" stroke-width="2.5" stroke-linejoin="round"/>`;
-  o += `<path d="${body}" fill="${col}" stroke="${D}" stroke-width="2.5"/>`;
-  o += clipG(body, `<path d="M ${X+8} ${Y-30} C ${X+30} ${Y-10} ${X+30} ${Y+30} ${X+6} ${Y+40} L ${X+40} ${Y+40} L ${X+40} ${Y-40} Z" fill="${S}" opacity=".45"/>`
-    + `<ellipse cx="${X}" cy="${Y+16}" rx="14" ry="17" fill="${L}"/>` + [[-6,8],[4,10],[-2,18],[7,20],[-8,22],[1,27]].map(([dx,dy]) => `<path d="M ${X+dx-3} ${Y+dy} q 3 4 6 0" stroke="${col}" stroke-width="1.8" fill="none"/>`).join('')
-    + `<path d="M ${X-24} ${Y+4} C ${X-30} ${Y+20} ${X-22} ${Y+32} ${X-12} ${Y+34} C ${X-18} ${Y+22} ${X-18} ${Y+10} ${X-16} ${Y} Z M ${X+24} ${Y+4} C ${X+30} ${Y+20} ${X+22} ${Y+32} ${X+12} ${Y+34} C ${X+18} ${Y+22} ${X+18} ${Y+10} ${X+16} ${Y} Z" fill="${D}" opacity=".55"/>`);
-  o += `<path d="M ${X-22} ${Y-10} Q ${X} ${Y-2} ${X+22} ${Y-10} Q ${X+22} ${Y-26} ${X} ${Y-26} Q ${X-22} ${Y-26} ${X-22} ${Y-10} Z" fill="${L}" opacity=".6"/>`;
-  o += [-9, 9].map(dx => `<circle cx="${X+dx}" cy="${Y-12}" r="9.5" fill="#FFF" stroke="${D}" stroke-width="2"/><circle cx="${X+dx}" cy="${Y-12}" r="6.5" fill="${Y1}"/><circle cx="${X+dx+1}" cy="${Y-11}" r="3.8" fill="${INK}"/><circle cx="${X+dx-1}" cy="${Y-14}" r="1.6" fill="#FFF"/>`).join('');
-  o += `<path d="M ${X-4} ${Y-4} L ${X+4} ${Y-4} L ${X} ${Y+3} Z" fill="${Y1}" stroke="${fdk(Y1,0.35)}" stroke-width="1.5" stroke-linejoin="round"/>`;
-  o += [-8, 8].map(dx => `<path d="M ${X+dx-5} ${Y+34} q 2 6 0 8 M ${X+dx} ${Y+35} q 0 6 0 8 M ${X+dx+5} ${Y+34} q -2 6 0 8" stroke="${Y1}" stroke-width="3" fill="none" stroke-linecap="round"/>`).join('');
-  return o;
-}
 /* lanterne der hænger fra venstre hånd: messingramme, glas og en lille flamme */
 function lanternF(col){
-  const B = '#C9952E', Bs = '#8A6418', BL = '#F2C14E', X = 214, top = 652, y0 = 668, y1 = 726;
+  const B = '#C9952E', Bs = '#8A6418', BL = '#F2C14E', X = 214, top = 632, y0 = 648, y1 = 706;
   let o = `<defs><radialGradient id="lanG"><stop offset="0" stop-color="${lt(col,0.5)}" stop-opacity=".75"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs>`;
   const glow = `<circle cx="${X}" cy="${(y0+y1)/2}" r="58" fill="url(#lanG)"/>`;
   o += ANIM ? `<g>${glow}<animate attributeName="opacity" values="1;0.7;1" dur="2.2s" repeatCount="indefinite"/></g>` : glow;
-  o += `<path d="M ${X-10} ${top} Q ${X} 612 ${X+10} ${top}" stroke="${Bs}" stroke-width="4.5" fill="none"/><path d="M ${X-10} ${top} Q ${X} 614 ${X+10} ${top}" stroke="${BL}" stroke-width="2" fill="none"/>`;
+  o += `<path d="M ${X-10} ${top} Q ${X} 588 ${X+10} ${top}" stroke="${Bs}" stroke-width="4.5" fill="none"/><path d="M ${X-10} ${top} Q ${X} 590 ${X+10} ${top}" stroke="${BL}" stroke-width="2" fill="none"/>`;
   o += `<path d="M ${X-20} ${y0} L ${X-12} ${top} L ${X+12} ${top} L ${X+20} ${y0} Z" fill="${B}" stroke="${Bs}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${X}" cy="${top-2}" r="5" fill="${B}" stroke="${Bs}" stroke-width="2"/>`;
   o += `<rect x="${X-18}" y="${y0}" width="36" height="${y1-y0}" rx="3" fill="${lt(col,0.55)}" stroke="${Bs}" stroke-width="2.5"/>`;
   o += `<rect x="${X-18}" y="${y0}" width="36" height="${y1-y0}" rx="3" fill="${col}" opacity=".35"/>`;
@@ -683,6 +721,17 @@ function lanternF(col){
   o += `<path d="M ${X} ${y0} L ${X} ${y1} M ${X-18} ${(y0+y1)/2} L ${X+18} ${(y0+y1)/2}" stroke="${Bs}" stroke-width="2" opacity=".5"/><path d="M ${X-12} ${y0+6} L ${X-12} ${y1-8}" stroke="#FFF" stroke-width="3" stroke-linecap="round" opacity=".6"/>`;
   o += `<path d="M ${X-22} ${y1} L ${X+22} ${y1} L ${X+18} ${y1+10} L ${X-18} ${y1+10} Z" fill="${B}" stroke="${Bs}" stroke-width="2.5" stroke-linejoin="round"/><rect x="${X-22}" y="${y0-4}" width="44" height="7" rx="3" fill="${BL}" stroke="${Bs}" stroke-width="2"/>`;
   return o;
+}
+/* lommeur i en kæde fra bæltet, som en gammeldags opfinder */
+function watchF(col){
+  const D = fdk(col,0.35), L = lt(col,0.45), X = 340, Y = 586;
+  let o = `<path d="M 318 528 Q 316 560 ${X-6} ${Y-14}" stroke="${D}" stroke-width="3.4" fill="none" stroke-dasharray="4 2.5" stroke-linecap="round"/><path d="M 318 528 Q 316 560 ${X-6} ${Y-14}" stroke="${col}" stroke-width="1.8" fill="none" stroke-dasharray="4 2.5" stroke-linecap="round"/>`;
+  o += `<circle cx="318" cy="528" r="4" fill="${col}" stroke="${D}" stroke-width="1.6"/>`;
+  o += `<rect x="${X-4}" y="${Y-22}" width="8" height="7" rx="2" fill="${col}" stroke="${D}" stroke-width="1.6"/><circle cx="${X}" cy="${Y-24}" r="3.5" fill="none" stroke="${D}" stroke-width="2"/>`;
+  o += `<circle cx="${X}" cy="${Y}" r="16" fill="${col}" stroke="${D}" stroke-width="2.4"/><circle cx="${X}" cy="${Y}" r="12" fill="#FFF8EC" stroke="${D}" stroke-width="1.4"/>`;
+  o += [0,1,2,3,4,5,6,7,8,9,10,11].map(i => { const a = i * Math.PI / 6; return `<circle cx="${(X + Math.sin(a) * 9.5).toFixed(1)}" cy="${(Y - Math.cos(a) * 9.5).toFixed(1)}" r="${i % 3 ? 0.7 : 1.2}" fill="${INK}"/>`; }).join('');
+  o += `<path d="M ${X} ${Y} L ${X} ${Y-7} M ${X} ${Y} L ${X+5} ${Y+2}" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/><circle cx="${X}" cy="${Y}" r="1.4" fill="${D}"/>`;
+  return o + `<path d="M ${X-11} ${Y-6} Q ${X-8} ${Y-12} ${X-2} ${Y-13}" stroke="#FFF" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"/>`;
 }
 /* perlekæde med et lille hjerte */
 function pearlsF(col){
@@ -716,11 +765,13 @@ function waveArm(inner, ev, forever){
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
-  'robe:blomster', 'robe:striber', 'robe:forklaede', 'robe:hjerter', 'robe:sloejfe', 'robe:prikker',
-  'cape:maane', 'cape:takket',
-  'hat:blomst', 'hat:hoej', 'hat:krone', 'hat:baret', 'hat:sloejfe',
-  'boots:ballerina', 'boots:gummi', 'boots:pels',
-  'acc:ugle', 'acc:lanterne', 'acc:perler',
+  'boots:ballerina', 'acc:lanterne',
+  'pupil:maane', 'pupil:diamant', 'pupil:blomst', 'pupil:kat', 'pupil:spiral', 'pupil:stor',
+  'lip:tunge', 'lip:kys', 'lip:skaev', 'lip:oh', 'lip:tand', 'lip:kat', 'lip:glad',
+  'mark:ar', 'mark:plaster', 'mark:maane', 'mark:maling', 'mark:prik',
+  'cape:blomster', 'cape:stribet', 'cape:pelskant',
+  'boots:sandaler', 'boots:krul', 'boots:spaende', 'boots:knap',
+  'acc:lommeur',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 
@@ -757,6 +808,7 @@ function figureSvg(st, c, hl, wave){
   s += HLW(hl === 'boots', bootOne(c, -1, bootKind) + bootOne(c, 1, bootKind));
   s += HLW(hl === 'robe', robeF(c, robe));
   if (A('baelte')) s += HLW(hl === 'acc:baelte', beltF(A('baelte')));
+  if (A('lommeur')) s += HLW(hl === 'acc:lommeur', watchF(A('lommeur')));
   /* venstre arm (kan vinke); bogen ligger i hånden */
   const waveEv = IDLE && IDLE.ev.find(e => e.kind === 'wave');
   /* når hun vinker, spejles armen om sin egen akse, så albuen peger ud og ned */
@@ -805,7 +857,6 @@ function figureSvg(st, c, hl, wave){
   if (hat.draw) head += HLW(hl === 'hat', `<g transform="translate(0 10) rotate(-6 300 214)">${hat.draw(c)}</g>`);
   const look = IDLE && ANIM ? (() => { const pts = trackPoints('look', e => e.d * 4); return `<animateTransform attributeName="transform" type="translate" values="${pts.map(p => p[1].toFixed(1)+' 0').join(';')}" keyTimes="${pts.map(p => (p[0]/IDLE.T).toFixed(4)).join(';')}" dur="${IDLE.T}s" repeatCount="indefinite"/>`; })() : '';
   s += sway(`<g>${look}<g transform="${HEAD_T}">${head}</g></g>`);
-  if (A('ugle')) s += HLW(hl === 'acc:ugle', owlF(A('ugle')));
   return s;
 }
 
