@@ -5,7 +5,9 @@ const SND = (() => {
   const last = {};
   /* en plads kan have flere filer: der vælges en tilfældig, men aldrig den samme to gange i træk */
   function file(key){
-    const v = (typeof LYD_FILER === 'object' && LYD_FILER[key]) || null;
+    const v = (typeof LYD_FILER === 'object' && LYD_FILER[key]);
+    if (v === false) return false;   /* false = bevidst ingen lyd */
+    if (!v) return null;
     if (!Array.isArray(v)) return v;
     if (v.length < 2) return v[0] || null;
     let i; do { i = Math.floor(Math.random() * v.length); } while (i === last[key]);
@@ -20,11 +22,28 @@ const SND = (() => {
       .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
       .then(b => { SB[src] = b; }).catch(() => { SB[src] = 'fejl'; });
   }
-  function preload(){ try { Object.values(LYD_FILER || {}).flat().forEach(loadSfx); } catch (e){} }
+  /* lyde der kører, så længe noget står på (kloens motor, kablet der ruller ud): hold(nøgle, true/false).
+     Giver false, hvis der ikke er en fil, så spillet kan bruge sin egen lyd */
+  const HOLD = {};
+  function hold(key, on){
+    const src = file(key);
+    if (!src) return src === false;
+    const h = HOLD[key];
+    if (!on){ if (h){ try { h.g.gain.setTargetAtTime(0, h.n.context.currentTime, 0.04); h.n.stop(h.n.context.currentTime + 0.25); } catch (e){} delete HOLD[key]; } return true; }
+    if (h || !soundOn) return true;
+    const b = SB[src];
+    if (!b || typeof b !== 'object'){ loadSfx(src); return true; }
+    try { const ac = audioCtx(), n = ac.createBufferSource(), g = ac.createGain(); n.buffer = b; n.loop = true;
+      g.gain.setValueAtTime(0, ac.currentTime); g.gain.linearRampToValueAtTime(1, ac.currentTime + 0.05);
+      n.connect(g); g.connect(ac.destination); n.start(); HOLD[key] = { n, g }; } catch (e){}
+    return true;
+  }
+  function preload(){ try { Object.values(LYD_FILER || {}).flat().filter(Boolean).forEach(loadSfx); } catch (e){} }
   document.addEventListener('pointerdown', preload, { once: true, capture: true });
   function play(key, fallback){
     if (!soundOn) return;
     const src = file(key);
+    if (src === false) return;
     if (!src){ if (fallback) fallback(); return; }
     const b = SB[src];
     if (b && typeof b === 'object'){
@@ -115,5 +134,5 @@ const SND = (() => {
     if (song){ if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); }
     if ((node || amb) && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
   });
-  return { play, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
+  return { play, hold, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
 })();

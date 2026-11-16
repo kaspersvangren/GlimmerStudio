@@ -1,10 +1,21 @@
 // Egne lydfiler. Læg filen i mappen lyd/ og skriv den her, fx  'gnom.slag': 'lyd/gnom-slag.mp3'
 // Flere filer på samme plads (en liste) = varianter: spillet vælger en tilfældig, aldrig den samme to gange i træk.
+// false = bevidst ingen lyd.
 // Nøglerne står i Værkstedet (lyd-fanen). Alt der ikke står her, bruger spillets indbyggede lyd.
 const LYD_FILER = {
   'gnom.slag': ['lyd/gnom-slag-1.mp3', 'lyd/gnom-slag-2.mp3', 'lyd/gnom-slag-3.mp3'],
   'gnom.av': ['lyd/gnom-av-1.mp3', 'lyd/gnom-av-2.mp3', 'lyd/gnom-av-3.mp3', 'lyd/gnom-av-4.mp3', 'lyd/gnom-av-5.mp3', 'lyd/gnom-av-6.mp3', 'lyd/gnom-av-7.mp3'],
   'gnom.forbi': ['lyd/gnom-forbi-1.mp3', 'lyd/gnom-forbi-2.mp3', 'lyd/gnom-forbi-3.mp3', 'lyd/gnom-forbi-4.mp3', 'lyd/gnom-forbi-5.mp3', 'lyd/gnom-forbi-6.mp3', 'lyd/gnom-forbi-7.mp3', 'lyd/gnom-forbi-8.mp3'],
+  'gnom.guld': 'lyd/gnom-guld.mp3',
+  'gnom.kanin': 'lyd/gnom-kanin.mp3',
+  'gribe.motor': 'lyd/gribe-motor.wav',   // løkke: kører, så længe man holder en pil nede
+  'gribe.ned': 'lyd/gribe-ned.wav',   // løkke: kører, mens kloen sænkes
+  'gribe.luk': 'lyd/gribe-luk.mp3',
+  'gribe.slip': 'lyd/gribe-luk.mp3',
+  'gribe.greb': false,
+  'gribe.glider': false,
+  'gribe.oev': 'lyd/gribe-oev.mp3',
+  'gribe.vandt': 'lyd/gribe-vandt.mp3',
   'invader.skud': ['lyd/invader-skud-1.mp3', 'lyd/invader-skud-2.mp3', 'lyd/invader-skud-3.mp3', 'lyd/invader-skud-4.mp3', 'lyd/invader-skud-5.mp3', 'lyd/invader-skud-6.mp3'],
   'invader.ramt': 'lyd/invader-ramt.mp3',
   'invader.au': 'lyd/invader-au.mp3',

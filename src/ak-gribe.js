@@ -154,11 +154,11 @@
     api.score(0); api.info(`Tid ${LIMIT}`);
     draw(); S.raf = requestAnimationFrame(tick);
   }
-  function stop(){ if (S){ S.over = true; cancelAnimationFrame(S.raf); window.removeEventListener('keydown', S.kd); window.removeEventListener('keyup', S.ku); try { Matter.Engine.clear(S.eng); } catch (e){} } S = null; }
+  function stop(){ SND.hold('gribe.motor', false); SND.hold('gribe.ned', false); if (S){ S.over = true; cancelAnimationFrame(S.raf); window.removeEventListener('keydown', S.kd); window.removeEventListener('keyup', S.ku); try { Matter.Engine.clear(S.eng); } catch (e){} } S = null; }
 
   function grab(){
     if (!S || S.phase !== 'flyt') return;
-    S.phase = 'ned'; S.dir = 0; S.slack = 0; S.api.info(''); SND.play('gribe.ned', () => sfx.whoosh());
+    S.phase = 'ned'; S.dir = 0; S.slack = 0; S.api.info(''); SND.hold('gribe.motor', false); if (!SND.hold('gribe.ned', true)) sfx.whoosh();
   }
 
   /* ét fast fysik-skridt (1/120 s) */
@@ -177,7 +177,7 @@
       c.length = Math.min(LMAX, c.length + 260 * h, dist + 24);
       /* står kloen på bunken, bliver wiren slap */
       if (dist < c.length - 6 && S.head.velocity.y < 0.25) S.slack += h; else S.slack = 0;
-      if (S.slack > 0.1 || c.length >= LMAX){ c.length = Math.min(c.length, dist + 2); S.phase = 'luk'; S.pt = 0; SND.play('gribe.luk', () => tone(300, 0.12, 'square', 0.03, 0, 0.7)); }
+      if (S.slack > 0.1 || c.length >= LMAX){ c.length = Math.min(c.length, dist + 2); S.phase = 'luk'; S.pt = 0; SND.hold('gribe.ned', false); SND.play('gribe.luk', () => tone(300, 0.12, 'square', 0.03, 0, 0.7)); }
     } else if (ph === 'op' || ph === 'tom'){
       c.length = Math.max(L0, c.length - 200 * h);
     }
@@ -203,7 +203,7 @@
       const left = Math.max(0, LIMIT - (now - S.t0) / 1000), sec = Math.ceil(left);
       if (sec !== S.sec){ S.sec = sec; S.api.info(`Tid ${sec}`); }
       if (left <= 0) grab();
-      if (S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; SND.play('gribe.motor', () => tone(140, 0.05, 'sawtooth', 0.012, 0, 1)); } }
+      if (!SND.hold('gribe.motor', !!S.dir) && S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; tone(140, 0.05, 'sawtooth', 0.012, 0, 1); } }   /* motorlyden kører, så længe man holder en pil nede */
     }
     S.pt = (S.pt || 0) + dt;
     if (ph === 'luk' && S.close >= 1 && S.pt > 1.05){ S.phase = 'op'; S.pt = 0; }

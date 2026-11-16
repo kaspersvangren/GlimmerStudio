@@ -2158,7 +2158,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.26';
+const VERSION = 'v0.25.27';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -7162,11 +7162,11 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
     api.score(0); api.info(`Tid ${LIMIT}`);
     draw(); S.raf = requestAnimationFrame(tick);
   }
-  function stop(){ if (S){ S.over = true; cancelAnimationFrame(S.raf); window.removeEventListener('keydown', S.kd); window.removeEventListener('keyup', S.ku); try { Matter.Engine.clear(S.eng); } catch (e){} } S = null; }
+  function stop(){ SND.hold('gribe.motor', false); SND.hold('gribe.ned', false); if (S){ S.over = true; cancelAnimationFrame(S.raf); window.removeEventListener('keydown', S.kd); window.removeEventListener('keyup', S.ku); try { Matter.Engine.clear(S.eng); } catch (e){} } S = null; }
 
   function grab(){
     if (!S || S.phase !== 'flyt') return;
-    S.phase = 'ned'; S.dir = 0; S.slack = 0; S.api.info(''); SND.play('gribe.ned', () => sfx.whoosh());
+    S.phase = 'ned'; S.dir = 0; S.slack = 0; S.api.info(''); SND.hold('gribe.motor', false); if (!SND.hold('gribe.ned', true)) sfx.whoosh();
   }
 
   /* ét fast fysik-skridt (1/120 s) */
@@ -7185,7 +7185,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
       c.length = Math.min(LMAX, c.length + 260 * h, dist + 24);
       /* står kloen på bunken, bliver wiren slap */
       if (dist < c.length - 6 && S.head.velocity.y < 0.25) S.slack += h; else S.slack = 0;
-      if (S.slack > 0.1 || c.length >= LMAX){ c.length = Math.min(c.length, dist + 2); S.phase = 'luk'; S.pt = 0; SND.play('gribe.luk', () => tone(300, 0.12, 'square', 0.03, 0, 0.7)); }
+      if (S.slack > 0.1 || c.length >= LMAX){ c.length = Math.min(c.length, dist + 2); S.phase = 'luk'; S.pt = 0; SND.hold('gribe.ned', false); SND.play('gribe.luk', () => tone(300, 0.12, 'square', 0.03, 0, 0.7)); }
     } else if (ph === 'op' || ph === 'tom'){
       c.length = Math.max(L0, c.length - 200 * h);
     }
@@ -7211,7 +7211,7 @@ function akRound(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.round
       const left = Math.max(0, LIMIT - (now - S.t0) / 1000), sec = Math.ceil(left);
       if (sec !== S.sec){ S.sec = sec; S.api.info(`Tid ${sec}`); }
       if (left <= 0) grab();
-      if (S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; SND.play('gribe.motor', () => tone(140, 0.05, 'sawtooth', 0.012, 0, 1)); } }
+      if (!SND.hold('gribe.motor', !!S.dir) && S.dir){ S.hum = (S.hum || 0) + dt; if (S.hum > .16){ S.hum = 0; tone(140, 0.05, 'sawtooth', 0.012, 0, 1); } }   /* motorlyden kører, så længe man holder en pil nede */
     }
     S.pt = (S.pt || 0) + dt;
     if (ph === 'luk' && S.close >= 1 && S.pt > 1.05){ S.phase = 'op'; S.pt = 0; }
@@ -9704,11 +9704,22 @@ function smilDrive(svg){
 
 // Egne lydfiler. Læg filen i mappen lyd/ og skriv den her, fx  'gnom.slag': 'lyd/gnom-slag.mp3'
 // Flere filer på samme plads (en liste) = varianter: spillet vælger en tilfældig, aldrig den samme to gange i træk.
+// false = bevidst ingen lyd.
 // Nøglerne står i Værkstedet (lyd-fanen). Alt der ikke står her, bruger spillets indbyggede lyd.
 const LYD_FILER = {
   'gnom.slag': ['lyd/gnom-slag-1.mp3', 'lyd/gnom-slag-2.mp3', 'lyd/gnom-slag-3.mp3'],
   'gnom.av': ['lyd/gnom-av-1.mp3', 'lyd/gnom-av-2.mp3', 'lyd/gnom-av-3.mp3', 'lyd/gnom-av-4.mp3', 'lyd/gnom-av-5.mp3', 'lyd/gnom-av-6.mp3', 'lyd/gnom-av-7.mp3'],
   'gnom.forbi': ['lyd/gnom-forbi-1.mp3', 'lyd/gnom-forbi-2.mp3', 'lyd/gnom-forbi-3.mp3', 'lyd/gnom-forbi-4.mp3', 'lyd/gnom-forbi-5.mp3', 'lyd/gnom-forbi-6.mp3', 'lyd/gnom-forbi-7.mp3', 'lyd/gnom-forbi-8.mp3'],
+  'gnom.guld': 'lyd/gnom-guld.mp3',
+  'gnom.kanin': 'lyd/gnom-kanin.mp3',
+  'gribe.motor': 'lyd/gribe-motor.wav',   // løkke: kører, så længe man holder en pil nede
+  'gribe.ned': 'lyd/gribe-ned.wav',   // løkke: kører, mens kloen sænkes
+  'gribe.luk': 'lyd/gribe-luk.mp3',
+  'gribe.slip': 'lyd/gribe-luk.mp3',
+  'gribe.greb': false,
+  'gribe.glider': false,
+  'gribe.oev': 'lyd/gribe-oev.mp3',
+  'gribe.vandt': 'lyd/gribe-vandt.mp3',
   'invader.skud': ['lyd/invader-skud-1.mp3', 'lyd/invader-skud-2.mp3', 'lyd/invader-skud-3.mp3', 'lyd/invader-skud-4.mp3', 'lyd/invader-skud-5.mp3', 'lyd/invader-skud-6.mp3'],
   'invader.ramt': 'lyd/invader-ramt.mp3',
   'invader.au': 'lyd/invader-au.mp3',
@@ -9743,7 +9754,9 @@ const SND = (() => {
   const last = {};
   /* en plads kan have flere filer: der vælges en tilfældig, men aldrig den samme to gange i træk */
   function file(key){
-    const v = (typeof LYD_FILER === 'object' && LYD_FILER[key]) || null;
+    const v = (typeof LYD_FILER === 'object' && LYD_FILER[key]);
+    if (v === false) return false;   /* false = bevidst ingen lyd */
+    if (!v) return null;
     if (!Array.isArray(v)) return v;
     if (v.length < 2) return v[0] || null;
     let i; do { i = Math.floor(Math.random() * v.length); } while (i === last[key]);
@@ -9758,11 +9771,28 @@ const SND = (() => {
       .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
       .then(b => { SB[src] = b; }).catch(() => { SB[src] = 'fejl'; });
   }
-  function preload(){ try { Object.values(LYD_FILER || {}).flat().forEach(loadSfx); } catch (e){} }
+  /* lyde der kører, så længe noget står på (kloens motor, kablet der ruller ud): hold(nøgle, true/false).
+     Giver false, hvis der ikke er en fil, så spillet kan bruge sin egen lyd */
+  const HOLD = {};
+  function hold(key, on){
+    const src = file(key);
+    if (!src) return src === false;
+    const h = HOLD[key];
+    if (!on){ if (h){ try { h.g.gain.setTargetAtTime(0, h.n.context.currentTime, 0.04); h.n.stop(h.n.context.currentTime + 0.25); } catch (e){} delete HOLD[key]; } return true; }
+    if (h || !soundOn) return true;
+    const b = SB[src];
+    if (!b || typeof b !== 'object'){ loadSfx(src); return true; }
+    try { const ac = audioCtx(), n = ac.createBufferSource(), g = ac.createGain(); n.buffer = b; n.loop = true;
+      g.gain.setValueAtTime(0, ac.currentTime); g.gain.linearRampToValueAtTime(1, ac.currentTime + 0.05);
+      n.connect(g); g.connect(ac.destination); n.start(); HOLD[key] = { n, g }; } catch (e){}
+    return true;
+  }
+  function preload(){ try { Object.values(LYD_FILER || {}).flat().filter(Boolean).forEach(loadSfx); } catch (e){} }
   document.addEventListener('pointerdown', preload, { once: true, capture: true });
   function play(key, fallback){
     if (!soundOn) return;
     const src = file(key);
+    if (src === false) return;
     if (!src){ if (fallback) fallback(); return; }
     const b = SB[src];
     if (b && typeof b === 'object'){
@@ -9853,7 +9883,7 @@ const SND = (() => {
     if (song){ if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); }
     if ((node || amb) && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
   });
-  return { play, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
+  return { play, hold, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
 })();
 
 /* Fejlsøgning: tryk 5 gange på versionsnummeret på forsiden for at slå loggen til eller fra.
