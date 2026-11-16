@@ -72,6 +72,13 @@
     "navn": "Gribemaskinen",
     "hvor": "Ved klomaskinen",
     "forslag": "Afslappet spilledåse eller lounge-jazz, som en rigtig klomaskine i et indkøbscenter."
+   },
+   {
+    "key": "tryl",
+    "musik": true,
+    "navn": "Trylletegning",
+    "hvor": "Under tegnespillet i arkaden",
+    "forslag": "Legende og magisk med fart på, gerne en hurtig vals eller spilledåse med klokkespil. Låner lige nu musikken fra kosteflyvningen."
    }
   ]
  },
@@ -210,6 +217,60 @@
     "navn": "Ny bølge",
     "hvor": "Alle fjender er væk",
     "forslag": "Kort triumf-arpeggio."
+   }
+  ]
+ },
+ {
+  "gruppe": "Trylletegning",
+  "id": "tryl",
+  "slots": [
+   {
+    "key": "tryl.pop",
+    "navn": "Ballonen springer",
+    "hvor": "Hver gang en ballon popper (kommer tit, ofte flere lige efter hinanden)",
+    "forslag": "Et kort, blødt pop. Låner lige nu boble-poppet fra Boblebutikken."
+   },
+   {
+    "key": "tryl.puf",
+    "navn": "Forvandling",
+    "hvor": "Et væsen mister sin sidste ballon og bliver til en sommerfugl, en cupcake eller en badeand",
+    "forslag": "Et lille trylle-pling med glimmer, gerne lidt fjollet. Låner lige nu guldgnomens lyd."
+   },
+   {
+    "key": "tryl.fuser",
+    "navn": "Tegnet fuser",
+    "hvor": "Når stregen ikke ligner noget tegn",
+    "forslag": "Et lille, blødt \"pfft\". Det må ikke lyde som en fejl, bare som trylleri der ikke tændte."
+   },
+   {
+    "key": "tryl.lande",
+    "navn": "Et væsen lander",
+    "hvor": "Når et væsen når ned i græsset og løber mod kagen",
+    "forslag": "Et lille bump i græsset, måske et frækt fnis."
+   },
+   {
+    "key": "tryl.nam",
+    "navn": "Kagen bliver spist",
+    "hvor": "Et væsen tager en etage af kagen",
+    "forslag": "Et frækt \"nam nam\" eller et bøvs. Agnes kunne indtale den. Låner lige nu \"åh\"-lyden fra Hekse-invaders."
+   },
+   {
+    "key": "tryl.runde",
+    "navn": "Ny runde",
+    "hvor": "Hver gang en ny runde begynder",
+    "forslag": "Kort harpe opad. Låner lige nu bølge-lyden fra Hekse-invaders."
+   },
+   {
+    "key": "tryl.gave",
+    "navn": "Hjertetrylleri",
+    "hvor": "Man tegner et hjerte, gaveballonen springer, og alle bliver forvandlet på én gang",
+    "forslag": "Et stort glimmer-brag med klokker. Låner lige nu stjernekuglen fra Stjerneskjoldet."
+   },
+   {
+    "key": "tryl.nyt",
+    "navn": "Ny etage på kagen",
+    "hvor": "Efter hver tredje runde bager heksen en etage, hvis der mangler en",
+    "forslag": "En glad lille fanfare eller et \"ta-daa\"."
    }
   ]
  },

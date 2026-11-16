@@ -29,6 +29,12 @@ const LYD_FILER = {
   'skjold.skjold': 'lyd/skjold-skjold.mp3',
   'skjold.ramt': 'lyd/skjold-ramt.mp3',
   'skjold.boelge': 'lyd/invader-boelge.mp3',
+  // Trylletegning: indtil videre lånte lyde fra de andre spil. Læg egne ind via Værkstedet.
+  'tryl.pop': 'lyd/boble-pop.mp3',   // en ballon springer
+  'tryl.puf': 'lyd/gnom-guld.mp3',   // et væsen bliver forvandlet
+  'tryl.nam': 'lyd/invader-au.mp3',   // et væsen tager en etage af kagen
+  'tryl.runde': 'lyd/invader-boelge.mp3',   // ny runde
+  'tryl.gave': 'lyd/skjold-kugle.mp3',   // hjertetrylleri: gaveballonen springer
 };
 // Musik: 'byen', 'kaelder', 'show', 'kost', 'fald', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
 // loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
@@ -42,5 +48,6 @@ const LYD_MUSIK = {
   gnom: { src: 'lyd/mole-pop.mp3', loop: [11.28151, 65.60459], xf: 0.01 },   // "Mole Pop Loop". Loop A, valgt af Kasper. Bank en gnom
   gribe: { src: 'lyd/moonbyte-drift.mp3', loop: [31.27969, 106.37303], xf: 0.01 },   // "Moonbyte Drift". Loop B, valgt af Kasper. Gribemaskinen
   'stemning.arkade': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.5 },   // "casino ambiance" (freesound): summen i arkadehallen, under hallens musik. 3 s overtoning
+  tryl: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // lånt fra kosteflyvningen, indtil Trylletegning får sin egen musik
   fald: { src: 'lyd/cloud-glide.mp3', loop: [64, 138.03796], xf: 1 },   // "Cloud Glide Loop". Loop E, valgt af Kasper, 1 s overtoning. Faldskærm
 };

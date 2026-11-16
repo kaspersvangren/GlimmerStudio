@@ -1,6 +1,6 @@
 /* ================= Arkaden =================
    En gammel, hyggelig spillehal: tapet, træpaneler, plankegulv, gaslamper og et skilt med lyspærer. Alt i træ og messing.
-   To er gamle spilleautomater med skærm (Stjerneskjoldet og Hekse-invaders). To er rigtige, fysiske maskiner:
+   Tre er gamle spilleautomater med skærm (Stjerneskjoldet, Hekse-invaders og Trylletegning). To er rigtige, fysiske maskiner:
    Bank en gnom er et bord med huller og en blød hammer, og Gribemaskinen er en glaskasse fuld af bamser.
    Spillene ligger i hver sin fil og melder sig i GAMES. Fælles for dem er rammen her: Stop-knap, point,
    et slutkort med rekord og "Spil igen". */
@@ -10,6 +10,7 @@ const Arkade = (() => {
     { id:'gnom',    name:'Bank en gnom',    kind:'phys' },
     { id:'skjold',  name:'Stjerneskjoldet', kind:'screen', sub:'Red skolen',    body:'#3A4AA8', trim:'#7FD8FF', glow:'#7FD8FF', screen: shieldArt },
     { id:'invader', name:'Hekse-invaders',  kind:'screen', sub:'Skyd stjerner', body:'#7A2A8A', trim:'#FF8FC7', glow:'#FF8FC7', screen: invArt },
+    { id:'tryl',    name:'Trylletegning',   kind:'screen', sub:'Tegn og tryl',  body:'#2A1C78', trim:'#FFD86B', glow:'#FFD86B', screen: () => GAMES.tryl ? GAMES.tryl.skaermbillede() : '' },
     { id:'gribe',   name:'Gribemaskinen',   kind:'phys' },
   ];
   const GAMES = {};   /* hvert spil: GAMES.id = { start(stage, api), stop() } */
@@ -190,12 +191,13 @@ const Arkade = (() => {
       + `<text x="${x + 75}" y="${y + 128}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="21" fill="${c}">${l1}</text><text x="${x + 75}" y="${y + 154}" text-anchor="middle" font-family="${FONT_C}" font-weight="600" font-size="15" fill="#5A3A20">${l2}</text>`;
     o += poster(-200, 250, 'Prøv lykken!', 'Hver dag', '#7A2A1A') + poster(1650, 250, 'Magiske spil', 'siden 1823', '#2E5A6A');
     /* gaslamper i loftet med varmt lys */
-    [240, 1300].forEach((lx, i) => { const ly = 220;
+    [205, 1374].forEach((lx, i) => { const ly = 220;
       o += `<path d="M ${lx} 30 V ${ly - 46}" stroke="#2A160C" stroke-width="3"/><path d="M ${lx - 26} ${ly - 46} H ${lx + 26} L ${lx + 18} ${ly - 34} H ${lx - 18} Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/>`
         + `<path d="M ${lx - 18} ${ly - 34} L ${lx - 22} ${ly - 4} H ${lx + 22} L ${lx + 18} ${ly - 34} Z" fill="#FFE9A8" opacity=".85" stroke="${WD}" stroke-width="2"/><path d="M ${lx} ${ly - 24} q -6 8 0 16 q 6 -8 0 -16" fill="#FFB347"/>`
         + `<path d="M ${lx - 24} ${ly - 4} H ${lx + 24} L ${lx + 16} ${ly + 6} H ${lx - 16} Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/><circle cx="${lx}" cy="${ly - 18}" r="44" fill="url(#akGlow)"/>`
         + (true ? `<path d="M ${lx - 170} ${ly + 690} L ${lx - 26} ${ly + 6} L ${lx + 26} ${ly + 6} L ${lx + 170} ${ly + 690} Z" fill="url(#akLamp)" opacity=".4"/>` : ''); });
-    o += gnomMachine() + cabinet(CABS[1], 478, 1) + cabinet(CABS[2], 778, 2) + clawMachine();
+    /* fem maskiner på række: de er gjort en anelse mindre, så alle kan være der, også på en tablet */
+    o += `<g transform="translate(800 906) scale(.86) translate(-800 -906)"><g transform="translate(-132 0)">${gnomMachine()}</g>` + cabinet(CABS[1], 346, 1) + cabinet(CABS[2], 646, 2) + cabinet(CABS[3], 946, 3) + `<g transform="translate(168 0)">${clawMachine()}</g></g>`;
     return o + `</svg>`;
   }
 

@@ -84,7 +84,12 @@ async function run(w, h){
   await p.evaluate(() => { visit('arkade'); }); await p.waitForTimeout(300);
   await p.evaluate(() => Arkade.show()); await p.waitForTimeout(400); await noScroll('arkaden');
   const arc = {};
-  for (const id of ['gnom', 'skjold', 'invader', 'gribe']){
+  /* Trylletegning: en vandret streg med musen skal blive genkendt i vejledningen */
+  await p.evaluate(() => Arkade.openGame('tryl')); await p.waitForFunction(() => { const s = Arkade.GAMES.tryl.state(); return s && s.klar && s.kort.length; }, null, { timeout: 20000 });
+  { const c = await p.evaluate(() => { const r = document.querySelector('#akStage canvas').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * .6]; });
+    await p.mouse.move(c[0] - 60, c[1]); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(c[0] - 60 + i * 15, c[1] + (i % 2)); await p.mouse.up(); await p.waitForTimeout(200);
+    ok(await p.evaluate(() => !Arkade.GAMES.tryl.state().kort.includes('vand')), `${tag} trylletegning: en vandret streg blev ikke genkendt`); }
+  for (const id of ['gnom', 'skjold', 'invader', 'tryl', 'gribe']){
     await p.evaluate(id => { if (id === 'gribe') addStars(2); Arkade.openGame(id); }, id); await p.waitForTimeout(1500); await noScroll('arkade-' + id);
     if (id === 'gribe'){ await p.keyboard.press('Space'); await p.waitForTimeout(9000); }
     else await p.evaluate(id => Arkade.GAMES[id].test(), id);
