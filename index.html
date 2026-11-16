@@ -2510,7 +2510,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.43';
+const VERSION = 'v0.25.44';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -4172,15 +4172,17 @@ function wardrobe(){
   o += `<path d="M 450 252 L 544 290 L 544 720 L 450 748 Z" fill="${lt(W,0.08)}" ${RS(W,4)}/><path d="M 468 300 L 524 320 L 524 690 L 468 700 Z" fill="#CFE6F2" stroke="${WD}" stroke-width="4"/><path d="M 480 340 L 500 330 M 480 380 L 512 362" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".8"/><circle cx="530" cy="500" r="8" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
   return o;
 }
+const MIRROR_GLASS = 'M 1340 142 A 146 278 0 1 1 1339.9 142 Z';
 /* det store spejl med den nyeste figur */
 function wardMirror(hero){
   const G = '#E9B949', GD = '#A87A1A';
-  let o = `<ellipse cx="1340" cy="905" rx="150" ry="18" fill="${SHC}" opacity=".18"/><path d="M 1250 900 L 1300 640 M 1430 900 L 1380 640" stroke="${GD}" stroke-width="14" stroke-linecap="round"/><path d="M 1250 900 L 1300 640 M 1430 900 L 1380 640" stroke="${G}" stroke-width="8" stroke-linecap="round"/>`;
-  o += `<ellipse cx="1340" cy="400" rx="150" ry="252" fill="${G}" stroke="${GD}" stroke-width="5"/><ellipse cx="1340" cy="400" rx="128" ry="230" fill="#DDEFFA"/>`;
+  /* et stort standspejl, så hele figuren kan ses fra hat til sko */
+  let o = `<ellipse cx="1340" cy="905" rx="150" ry="18" fill="${SHC}" opacity=".18"/><path d="M 1250 900 L 1290 680 M 1430 900 L 1390 680" stroke="${GD}" stroke-width="14" stroke-linecap="round"/><path d="M 1250 900 L 1290 680 M 1430 900 L 1390 680" stroke="${G}" stroke-width="8" stroke-linecap="round"/>`;
+  o += `<ellipse cx="1340" cy="420" rx="168" ry="300" fill="${G}" stroke="${GD}" stroke-width="5"/><ellipse cx="1340" cy="420" rx="146" ry="278" fill="#DDEFFA"/>`;
   o += `<defs><linearGradient id="glassG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4FBFF"/><stop offset="1" stop-color="#BFDDF0"/></linearGradient></defs>`;
-  o += `<path d="M 1340 170 A 128 230 0 1 1 1339.9 170 Z" fill="url(#glassG)"/>`;
-  o += [[1340,148],[1190,400],[1490,400],[1340,652]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="13" fill="${G}" stroke="${GD}" stroke-width="3"/>`).join('');
-  o += `<g transform="translate(1340 130)"><polygon points="${star5pts(0,0,24,10)}" fill="#FFE27A" stroke="${GD}" stroke-width="3"/></g>`;
+  o += `<path d="${MIRROR_GLASS}" fill="url(#glassG)"/>`;
+  o += [[1340,120],[1172,420],[1508,420],[1340,720]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="13" fill="${G}" stroke="${GD}" stroke-width="3"/>`).join('');
+  o += `<g transform="translate(1340 102)"><polygon points="${star5pts(0,0,24,10)}" fill="#FFE27A" stroke="${GD}" stroke-width="3"/></g>`;
   return o;
 }
 /* figuren i spejlet ligger i sit eget lag oven på scenen: hendes små bevægelser får så telefonen til kun at
@@ -4188,8 +4190,8 @@ function wardMirror(hero){
 function wardMirrorLive(hero){
   CLIPN = 0;
   const o = `<svg class="scene ward-live" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" pointer-events="none">`
-    + clipG('M 1340 170 A 128 230 0 1 1 1339.9 170 Z', `<g transform="translate(2680 0) scale(-1 1)"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="1210" y="200" width="260" height="535"/></g></g>`
-    + `<path d="M 1240 230 L 1300 190 M 1236 300 L 1330 220" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".6"/>`) + `</svg>`;
+    + clipG(MIRROR_GLASS, `<g transform="translate(2680 0) scale(-1 1)"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="1213" y="162" width="254" height="523"/></g></g>`
+    + `<path d="M 1236 222 L 1296 178 M 1226 296 L 1326 210" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".6"/>`) + `</svg>`;
   return scopeIds(o, 'wl');
 }
 /* et portræt i guldramme med navneskilt */
@@ -4251,7 +4253,7 @@ function wardTap(hit, g, p){
   if (k === 'del'){ sfx.pick(); askDelete(list[+v]); return; }
   if (k === 'pil'){ sfx.pick(); wardPage += +v; renderHome(); return; }
   if (k === 'skab'){ sfx.whoosh(); svg.querySelectorAll('.swing').forEach(s => replay(s, 'swingit')); sparkle(svg, p.x, p.y, 6); return; }
-  if (k === 'spejl'){ sfx.magic(); replay(g, 'hop'); const live = $('#wardScene .ward-live .anim'); if (live) replay(live, 'hop'); sparkle(svg, 1340, 300, 8); return; }
+  if (k === 'spejl'){ sfx.magic(); replay(g, 'hop'); const live = $('#wardScene .ward-live .anim'); if (live) replay(live, 'hop'); sparkle(svg, 1340, 280, 8); return; }
 }
 function askDelete(f){
   showModal('Slet figuren?', `${f.name} forsvinder for altid.`, [
