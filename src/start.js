@@ -34,7 +34,7 @@ async function startGame(){
 function menuBtn(){
   return el('button', { class:'iconbtn menu', type:'button', 'aria-label':'Til forsiden', title:'Til forsiden',
     html:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
-    on:{ click: () => { sfx.pick(); goTo(showTitle); } } });
+    on:{ click: () => { sfx.pick(); showModal('Til forsiden?', 'Vil du forlade byen og gå til forsiden? Dit spil er gemt.', [ { label:'Nej, bliv' }, { label:'Ja, til forsiden', hot:true, fn: () => goTo(showTitle) } ]); } } });
 }
 
 /* ---------- tre gemte spil ---------- */

@@ -996,3 +996,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kb-k.k-enter{width:calc(var(--k) * 2.6);font-size:calc(var(--k) * .34);background:linear-gradient(180deg,#7EE0A6,#3BAA6A);color:#FFFFFF}
 .kb.up .k-shift{background:linear-gradient(180deg,#FFE9A8,#F2C14E)}
 @media (prefers-reduced-motion: reduce){ .kb{transition:none} }
+/* eliksirtimen: gryden tegnes om hele tiden, så knapperne og stjernerne får deres eget lag og blinker ikke med */
+#potionBody > .place-ui{will-change:transform}
+#potScene{will-change:transform}

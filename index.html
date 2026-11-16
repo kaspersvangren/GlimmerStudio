@@ -1011,6 +1011,9 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kb-k.k-enter{width:calc(var(--k) * 2.6);font-size:calc(var(--k) * .34);background:linear-gradient(180deg,#7EE0A6,#3BAA6A);color:#FFFFFF}
 .kb.up .k-shift{background:linear-gradient(180deg,#FFE9A8,#F2C14E)}
 @media (prefers-reduced-motion: reduce){ .kb{transition:none} }
+/* eliksirtimen: gryden tegnes om hele tiden, så knapperne og stjernerne får deres eget lag og blinker ikke med */
+#potionBody > .place-ui{will-change:transform}
+#potScene{will-change:transform}
 
 </style>
 </head>
@@ -2152,7 +2155,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.2';
+const VERSION = 'v0.25.3';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -4107,7 +4110,7 @@ function stirCounter(st){
   const R = 34, C = (2 * Math.PI * R).toFixed(1);
   return `<g class="stircnt" pointer-events="none" transform="translate(${CX} ${CY - 128})"><circle r="${R + 8}" fill="#1E2B26" opacity=".72"/>`
     + (st.time ? `<circle r="${R}" fill="none" stroke="#3A4A44" stroke-width="7"/><circle class="tring" r="${R}" fill="none" stroke="#FFE27A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90)"/>` : '')
-    + `<text class="stirn" y="10" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="28" fill="#FFF6D0">0/${st.n}</text></g>`;
+    + `<text class="stirn" y="10" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="28" fill="#FFF6D0">${Math.min((POT.p && POT.p.got) || 0, st.n)}/${st.n}</text></g>`;
 }
 function stirHint(d = 1){
   return `<g class="stirhint${d < 0 ? ' ccw' : ''}" pointer-events="none"><g transform="${d < 0 ? `translate(${2 * CX} 0) scale(-1 1)` : ''}"><ellipse cx="${CX}" cy="${CY+4}" rx="${CRX - 40}" ry="${CRY + 8}" fill="none" stroke="#FFF6D0" stroke-width="6" stroke-dasharray="18 14" opacity=".9"/><path d="M ${CX + CRX - 52} ${CY - 10} l 26 6 l -18 18" fill="none" stroke="#FFF6D0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
@@ -4326,7 +4329,10 @@ function renderPotions(){
 function drawRecipe(){
   const r = $('#potScene .recipe'); if (r) r.innerHTML = recipeSvg(POT.p);
   const step = POT.p.steps[POT.p.i], wrap = $('#potScene .stirwrap');
-  if (wrap) wrap.innerHTML = step && step.kind === 'ror' && !POT.busy ? stirHint(step.dir || 1) + stirCounter(step) : '';
+  /* omrøringen tegnes kun forfra, når det er et nyt trin — ellers ville tælleren springe tilbage til 0 hver gang */
+  const key = step && step.kind === 'ror' && !POT.busy ? POT.p.i : -1;
+  if (wrap && wrap._k !== key){ wrap._k = key; wrap.innerHTML = key >= 0 ? stirHint(step.dir || 1) + stirCounter(step) : ''; }
+  else if (wrap && key >= 0){ const t = wrap.querySelector('.stirn'); if (t) t.textContent = `${Math.min(POT.p.got || 0, step.n)}/${step.n}`; }
   const svg = $('#potScene svg'); if (!svg) return;
   svg.classList.toggle('stirring', !!(step && step.kind === 'ror'));
   svg.classList.toggle('heating', !!(step && step.kind === 'varme'));
@@ -5695,7 +5701,7 @@ const Fald = (() => {
       el('div', { class:'reveal-info' }, [
         el('p', { class:'reveal-cat' }, Kost.TEACH),
         el('h3', { class:'reveal-name' }, 'Klar til at springe?'),
-        el('p', { class:'kf-how' }, 'I det frie fald styrer du med fingeren og samler stjernebobler. Når skærmen er ude: venstre og højre side drejer, begge sider bremser, og midten giver fart. Land midt i målet!'),
+        el('p', { class:'kf-how' }, 'I det frie fald styrer du med fingeren, samler stjernebobler og undgår tordenskyerne. Når skærmen er ude, får du et håndtag i hver side: træk det ene ned for at dreje, og skub samtidig det andet op for at dreje skarpere. Begge ned bremser, begge op giver fart. Land midt i målet!'),
         el('div', { class:'reveal-btns row' }, [ el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); veil.remove(); introStart(); } } }, 'Klar!') ]) ]) ]);
     const veil = el('div', { class:'shop-veil kf-veil' }, [ card ]);
     $('#faldBody').append(veil);
@@ -9780,7 +9786,7 @@ async function startGame(){
 function menuBtn(){
   return el('button', { class:'iconbtn menu', type:'button', 'aria-label':'Til forsiden', title:'Til forsiden',
     html:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
-    on:{ click: () => { sfx.pick(); goTo(showTitle); } } });
+    on:{ click: () => { sfx.pick(); showModal('Til forsiden?', 'Vil du forlade byen og gå til forsiden? Dit spil er gemt.', [ { label:'Nej, bliv' }, { label:'Ja, til forsiden', hot:true, fn: () => goTo(showTitle) } ]); } } });
 }
 
 /* ---------- tre gemte spil ---------- */

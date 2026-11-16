@@ -242,7 +242,7 @@ function stirCounter(st){
   const R = 34, C = (2 * Math.PI * R).toFixed(1);
   return `<g class="stircnt" pointer-events="none" transform="translate(${CX} ${CY - 128})"><circle r="${R + 8}" fill="#1E2B26" opacity=".72"/>`
     + (st.time ? `<circle r="${R}" fill="none" stroke="#3A4A44" stroke-width="7"/><circle class="tring" r="${R}" fill="none" stroke="#FFE27A" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90)"/>` : '')
-    + `<text class="stirn" y="10" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="28" fill="#FFF6D0">0/${st.n}</text></g>`;
+    + `<text class="stirn" y="10" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="28" fill="#FFF6D0">${Math.min((POT.p && POT.p.got) || 0, st.n)}/${st.n}</text></g>`;
 }
 function stirHint(d = 1){
   return `<g class="stirhint${d < 0 ? ' ccw' : ''}" pointer-events="none"><g transform="${d < 0 ? `translate(${2 * CX} 0) scale(-1 1)` : ''}"><ellipse cx="${CX}" cy="${CY+4}" rx="${CRX - 40}" ry="${CRY + 8}" fill="none" stroke="#FFF6D0" stroke-width="6" stroke-dasharray="18 14" opacity=".9"/><path d="M ${CX + CRX - 52} ${CY - 10} l 26 6 l -18 18" fill="none" stroke="#FFF6D0" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
@@ -461,7 +461,10 @@ function renderPotions(){
 function drawRecipe(){
   const r = $('#potScene .recipe'); if (r) r.innerHTML = recipeSvg(POT.p);
   const step = POT.p.steps[POT.p.i], wrap = $('#potScene .stirwrap');
-  if (wrap) wrap.innerHTML = step && step.kind === 'ror' && !POT.busy ? stirHint(step.dir || 1) + stirCounter(step) : '';
+  /* omrøringen tegnes kun forfra, når det er et nyt trin — ellers ville tælleren springe tilbage til 0 hver gang */
+  const key = step && step.kind === 'ror' && !POT.busy ? POT.p.i : -1;
+  if (wrap && wrap._k !== key){ wrap._k = key; wrap.innerHTML = key >= 0 ? stirHint(step.dir || 1) + stirCounter(step) : ''; }
+  else if (wrap && key >= 0){ const t = wrap.querySelector('.stirn'); if (t) t.textContent = `${Math.min(POT.p.got || 0, step.n)}/${step.n}`; }
   const svg = $('#potScene svg'); if (!svg) return;
   svg.classList.toggle('stirring', !!(step && step.kind === 'ror'));
   svg.classList.toggle('heating', !!(step && step.kind === 'varme'));

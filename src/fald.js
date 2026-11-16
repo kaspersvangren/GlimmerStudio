@@ -274,7 +274,7 @@ const Fald = (() => {
       el('div', { class:'reveal-info' }, [
         el('p', { class:'reveal-cat' }, Kost.TEACH),
         el('h3', { class:'reveal-name' }, 'Klar til at springe?'),
-        el('p', { class:'kf-how' }, 'I det frie fald styrer du med fingeren og samler stjernebobler. Når skærmen er ude: venstre og højre side drejer, begge sider bremser, og midten giver fart. Land midt i målet!'),
+        el('p', { class:'kf-how' }, 'I det frie fald styrer du med fingeren, samler stjernebobler og undgår tordenskyerne. Når skærmen er ude, får du et håndtag i hver side: træk det ene ned for at dreje, og skub samtidig det andet op for at dreje skarpere. Begge ned bremser, begge op giver fart. Land midt i målet!'),
         el('div', { class:'reveal-btns row' }, [ el('button', { class:'btn hot', type:'button', on:{ click: () => { sfx.pick(); veil.remove(); introStart(); } } }, 'Klar!') ]) ]) ]);
     const veil = el('div', { class:'shop-veil kf-veil' }, [ card ]);
     $('#faldBody').append(veil);
