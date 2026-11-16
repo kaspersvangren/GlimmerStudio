@@ -66,11 +66,19 @@ function wardMirror(hero){
   let o = `<ellipse cx="1340" cy="905" rx="150" ry="18" fill="${SHC}" opacity=".18"/><path d="M 1250 900 L 1300 640 M 1430 900 L 1380 640" stroke="${GD}" stroke-width="14" stroke-linecap="round"/><path d="M 1250 900 L 1300 640 M 1430 900 L 1380 640" stroke="${G}" stroke-width="8" stroke-linecap="round"/>`;
   o += `<ellipse cx="1340" cy="400" rx="150" ry="252" fill="${G}" stroke="${GD}" stroke-width="5"/><ellipse cx="1340" cy="400" rx="128" ry="230" fill="#DDEFFA"/>`;
   o += `<defs><linearGradient id="glassG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4FBFF"/><stop offset="1" stop-color="#BFDDF0"/></linearGradient></defs>`;
-  o += clipG('M 1340 170 A 128 230 0 1 1 1339.9 170 Z', `<rect x="1200" y="160" width="280" height="480" fill="url(#glassG)"/><g transform="translate(2680 0) scale(-1 1)"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="1210" y="200" width="260" height="535"/></g></g>`
-    + `<path d="M 1240 230 L 1300 190 M 1236 300 L 1330 220" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".6"/>`);
+  o += `<path d="M 1340 170 A 128 230 0 1 1 1339.9 170 Z" fill="url(#glassG)"/>`;
   o += [[1340,148],[1190,400],[1490,400],[1340,652]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="13" fill="${G}" stroke="${GD}" stroke-width="3"/>`).join('');
   o += `<g transform="translate(1340 130)"><polygon points="${star5pts(0,0,24,10)}" fill="#FFE27A" stroke="${GD}" stroke-width="3"/></g>`;
   return o;
+}
+/* figuren i spejlet ligger i sit eget lag oven på scenen: hendes små bevægelser får så telefonen til kun at
+   tegne hende forfra, ikke hele muren, lysene og stemningslaget bag hende (det gav lav billedrate) */
+function wardMirrorLive(hero){
+  CLIPN = 0;
+  const o = `<svg class="scene ward-live" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet" pointer-events="none">`
+    + clipG('M 1340 170 A 128 230 0 1 1 1339.9 170 Z', `<g transform="translate(2680 0) scale(-1 1)"><g class="anim"><image href="${dollUrl(hero, { viewBox:'150 40 500 1030', pet:false, anim: !calm, idle: true })}" x="1210" y="200" width="260" height="535"/></g></g>`
+    + `<path d="M 1240 230 L 1300 190 M 1236 300 L 1330 220" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity=".6"/>`) + `</svg>`;
+  return scopeIds(o, 'wl');
 }
 /* et portræt i guldramme med navneskilt */
 function portrait(i, f, cx, cy){
@@ -119,8 +127,8 @@ function showHome(){ cur = null; gameDress = null; showScreen('#home'); playMusi
 function renderHome(){
   const box = $('#homeBody'); box.innerHTML = '';
   box.append(el('div', { class:'scene-wrap', id:'wardScene' }), ...placeUi([ backBtn('Værelset', showRoom) ], [ starPill() ]));
-  const w = $('#wardScene'); w.innerHTML = wardScene();
-  const svg = w.querySelector('svg');
+  const w = $('#wardScene'); w.innerHTML = wardScene() + wardMirrorLive(heroState());
+  const svg = w.querySelector('svg');   /* den første er scenen; spejlbilledet ligger ovenpå og kan ikke trykkes på */
   svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) wardTap(g.dataset.hit, g, svgPoint(svg, e)); });
 }
 function wardTap(hit, g, p){
@@ -131,7 +139,7 @@ function wardTap(hit, g, p){
   if (k === 'del'){ sfx.pick(); askDelete(list[+v]); return; }
   if (k === 'pil'){ sfx.pick(); wardPage += +v; renderHome(); return; }
   if (k === 'skab'){ sfx.whoosh(); svg.querySelectorAll('.swing').forEach(s => replay(s, 'swingit')); sparkle(svg, p.x, p.y, 6); return; }
-  if (k === 'spejl'){ sfx.magic(); replay(g, 'hop'); sparkle(svg, 1340, 300, 8); return; }
+  if (k === 'spejl'){ sfx.magic(); replay(g, 'hop'); const live = $('#wardScene .ward-live .anim'); if (live) replay(live, 'hop'); sparkle(svg, 1340, 300, 8); return; }
 }
 function askDelete(f){
   showModal('Slet figuren?', `${f.name} forsvinder for altid.`, [
