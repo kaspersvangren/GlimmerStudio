@@ -4,6 +4,17 @@
 const LYD_FILER = {
   'gnom.slag': ['lyd/gnom-slag-1.mp3', 'lyd/gnom-slag-2.mp3', 'lyd/gnom-slag-3.mp3'],
   'gnom.av': ['lyd/gnom-av-1.mp3', 'lyd/gnom-av-2.mp3', 'lyd/gnom-av-3.mp3', 'lyd/gnom-av-4.mp3', 'lyd/gnom-av-5.mp3', 'lyd/gnom-av-6.mp3', 'lyd/gnom-av-7.mp3'],
+  'invader.skud': ['lyd/invader-skud-1.mp3', 'lyd/invader-skud-2.mp3', 'lyd/invader-skud-3.mp3', 'lyd/invader-skud-4.mp3', 'lyd/invader-skud-5.mp3', 'lyd/invader-skud-6.mp3'],
+  'invader.ramt': 'lyd/invader-ramt.mp3',
+  'invader.au': 'lyd/invader-au.mp3',
+  'invader.ugle': 'lyd/invader-ugle.mp3',
+  'invader.boelge': 'lyd/invader-boelge.mp3',
+  'skjold.skud': 'lyd/skjold-skud.mp3',
+  'skjold.kugle': 'lyd/skjold-kugle.mp3',
+  'skjold.meteor': 'lyd/skjold-meteor.mp3',
+  'skjold.skjold': 'lyd/skjold-skjold.mp3',
+  'skjold.ramt': 'lyd/skjold-ramt.mp3',
+  'skjold.boelge': 'lyd/invader-boelge.mp3',
 };
 // Musik: 'byen', 'kaelder', 'show', 'kost', 'fald', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
 // loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
