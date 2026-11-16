@@ -2506,7 +2506,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.36';
+const VERSION = 'v0.25.37';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -10080,6 +10080,7 @@ const LYD_FILER = {
   'gribe.glider': false,
   'gribe.oev': 'lyd/gribe-oev.mp3',
   'gribe.vandt': 'lyd/gribe-vandt.mp3',
+  'sfx.crack': 'lyd/boble-pop.mp3',   // boblen i boblebutikken popper
   'invader.skud': ['lyd/invader-skud-1.mp3', 'lyd/invader-skud-2.mp3', 'lyd/invader-skud-3.mp3', 'lyd/invader-skud-4.mp3', 'lyd/invader-skud-5.mp3', 'lyd/invader-skud-6.mp3'],
   'invader.ramt': 'lyd/invader-ramt.mp3',
   'invader.au': 'lyd/invader-au.mp3',
