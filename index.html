@@ -2158,7 +2158,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.25.9';
+const VERSION = 'v0.25.10';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -9710,7 +9710,7 @@ const LYD_FILER = {
 const LYD_MUSIK = {
   byen: { src: 'lyd/byen.mp3', loop: [73.57294, 133.61413] },   // Kaspers "Moonbeam Meadow". Loop B2, valgt af Kasper
   invader: { src: 'lyd/stjernelygten.mp3', loop: [19.7, 63.18798] },   // "Star Lantern Quest". Loop A (forslag)
-  skjold: { src: 'lyd/stjernelygten.mp3', loop: [19.7, 63.18798] },
+  skjold: { src: 'lyd/stjernelygten-2.mp3', loop: [19.7, 63.264] },   // "Star Lantern Quest 2". Loop A (forslag)
 };
 
 // Lydlaget: hver lyd i spillet har en nøgle. Findes der en egen fil i LYD_FILER, spilles den; ellers den indbyggede.
