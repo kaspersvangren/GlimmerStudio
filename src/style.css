@@ -999,3 +999,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* eliksirtimen: gryden tegnes om hele tiden, så knapperne og stjernerne får deres eget lag og blinker ikke med */
 #potionBody > .place-ui{will-change:transform}
 #potScene{will-change:transform}
+#potScene .say-tap{display:none}
+#potScene svg.waittap .say-tap{display:inline;animation:saymore 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+#potScene svg.waittap{cursor:pointer}

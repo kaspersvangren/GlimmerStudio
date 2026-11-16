@@ -586,8 +586,18 @@ function visit(id){
   heroWalk(id, done);
 }
 
-/* ---------- tryk på ting ---------- */
+/* ---------- tryk på ting ----------
+   Hver figur siger kun én ting ad gangen: trykker man igen, mens taleboblen står der, sker der ingenting.
+   (Brønden styrer selv sine bobler, for der er det andet tryk, der kaster stjernen.) */
 function tapThing(t){
+  const k = t.dataset.tap + (t.dataset.id ? ':' + t.dataset.id : ''), now = performance.now();
+  LIFE.talk = LIFE.talk || {};
+  if (k !== 'broend' && now < (LIFE.talk[k] || 0)) return;
+  const r = tapThing0(t);
+  if (r && r.until && k !== 'broend') LIFE.talk[k] = r.until;
+  return r;
+}
+function tapThing0(t){
   const kind = t.dataset.tap, now = performance.now();
   const jump = e => { if (typeof e === 'string') e = t.querySelector(e); if (!e) return; e.classList.remove('jump'); void e.getBoundingClientRect(); e.classList.add('jump'); };
   const say = (txt, x, y, ms = 1500) => bubble(txt, () => [x, y], ms);
@@ -674,14 +684,17 @@ function dragonTalk(t){
 /* ---------- Øksebrønden: en stjerne i brønden giver en økse, der dukker op på værelset ---------- */
 const KEY_AXE = 'glimmerstudiet.oekser', AXE_MAX = 12;
 const axeCount = () => Math.max(0, Math.min(AXE_MAX, +store.get(KEY_AXE, 0) || 0));
-let wellAsk = 0, wellBusy = false;
+let wellAsk = 0, wellBusy = false, wellMsg = 0, wellAskB = null;
 function wellWish(t){
   if (wellBusy) return;
   const n = axeCount(), now = performance.now(), pos = () => [800, 500];
-  if (n >= AXE_MAX){ sfx.nope(); return bubble(TXT.broend.tom, pos, 2200); }
-  if (prog.stars < 1){ sfx.nope(); return bubble(TXT.broend.ingen, pos, 2400); }
-  if (now > wellAsk){ wellAsk = now + 4000; sfx.pick(); return bubble(TXT.broend.spoerg, pos, 3200); }
+  if (now < wellMsg) return;   /* en besked fra brønden står der stadig */
+  const msg = (txt, ms) => { wellMsg = now + ms; return bubble(txt, pos, ms); };
+  if (n >= AXE_MAX){ sfx.nope(); return msg(TXT.broend.tom, 2200); }
+  if (prog.stars < 1){ sfx.nope(); return msg(TXT.broend.ingen, 2400); }
+  if (now > wellAsk){ wellAsk = now + 4000; sfx.pick(); wellAskB = bubble(TXT.broend.spoerg, pos, 3200); return wellAskB; }
   wellAsk = 0; wellBusy = true;
+  if (wellAskB){ wellAskB.until = 0; wellAskB = null; }   /* spørgsmålet forsvinder, når hun kaster stjernen */
   addStars(-1); sfx.coin();
   const fx = $('#fx'), st = sv('g', { 'pointer-events':'none' }, `<polygon points="${star5pts(0,0,13,5.5)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2"/>`);
   fx.append(st); const t0 = performance.now();
@@ -701,7 +714,7 @@ function wellWish(t){
       if (m === 1) bubble(TXT.broend.foerste, pos, 2600);
       else if (m >= AXE_MAX){ bubble(TXT.broend.udsolgt, pos, 2800, true); t.insertAdjacentHTML('beforeend', wellSoldSign()); }
       else bubble(TXT.broend.flere.replace('{n}', m), pos, 2400);
-      wellBusy = false;
+      setTimeout(() => { wellBusy = false; }, 2800);   /* først når den sidste boble er væk */
     }, 3100);
   };
 }

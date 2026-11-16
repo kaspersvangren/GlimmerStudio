@@ -279,7 +279,11 @@ function recipeSvg(p){
   /* fra niveau 3 hænger et klæde over tavlen; man kan kigge ved at trykke */
   if (POT.covered) o += `<g class="cover"><path d="M 1072 32 H 1570 V 300 Q 1520 318 1470 300 Q 1420 318 1370 300 Q 1320 318 1270 300 Q 1220 318 1170 300 Q 1120 318 1072 300 Z" fill="#6A2A4A" stroke="#3A1028" stroke-width="4"/>`
     + [1150, 1250, 1350, 1450].map(x => `<path d="M ${x} 40 Q ${x + 6} 170 ${x - 4} 296" stroke="#4A1A34" stroke-width="3" fill="none" opacity=".6"/>`).join('')
-    + `<text x="1321" y="160" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="30" fill="#FFE9F3">Hvad stod der nu?</text><text x="1321" y="204" text-anchor="middle" font-family="${FONT_S}" font-weight="600" font-size="22" fill="#FFC8DE">Tryk for at kigge</text></g>`;
+    + `<text x="1321" y="120" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="30" fill="#FFE9F3">Hvad stod der nu?</text>`
+    + [0, 1, 2].map(k => { const ex = 1241 + k * 80, open = k < (POT.peeks ?? 3); return open
+        ? `<g transform="translate(${ex} 178)"><path d="M -26 0 Q 0 -22 26 0 Q 0 22 -26 0 Z" fill="#FFF6FA" stroke="#3A1028" stroke-width="3"/><circle r="9" fill="#5A2A8A"/><circle r="4" fill="#1A0A20"/><circle cx="-3" cy="-3" r="2.2" fill="#FFF"/></g>`
+        : `<g transform="translate(${ex} 178)" opacity=".55"><path d="M -26 0 Q 0 16 26 0" fill="none" stroke="#FFC8DE" stroke-width="4" stroke-linecap="round"/><path d="M -16 8 l -4 7 M 0 11 v 8 M 16 8 l 4 7" stroke="#FFC8DE" stroke-width="3" stroke-linecap="round"/></g>`; }).join('')
+    + `<text x="1321" y="246" text-anchor="middle" font-family="${FONT_S}" font-weight="600" font-size="22" fill="#FFC8DE">${(POT.peeks ?? 3) > 0 ? `Tryk for at kigge (${POT.peeks ?? 3} kig tilbage)` : 'Ikke flere kig'}</text></g>`;
   return o;
 }
 /* en lille rund pil, der viser vejen: 1 er med uret, -1 mod uret */
@@ -337,11 +341,19 @@ function potionScene(){
   /* professorens taleboble */
   o += `<g class="say" data-hit="say"><path d="M 470 34 Q 470 10 494 10 H 1016 Q 1040 10 1040 34 V 92 L 1092 132 L 1040 128 V 150 Q 1040 174 1016 174 H 494 Q 470 174 470 150 Z" fill="#FFF8EC" stroke="#2A3A34" stroke-width="4"/>`
     + `<foreignObject x="484" y="16" width="544" height="152"><div xmlns="http://www.w3.org/1999/xhtml" class="say-text"></div></foreignObject>`
-    + `<g class="say-more" hidden><circle cx="1012" cy="150" r="20" fill="#7A4FD8" stroke="#2A3A34" stroke-width="3"/><path d="M 1005 140 L 1022 150 L 1005 160 Z" fill="#FFF8EC"/></g></g>`;
+    + `<g class="say-more" hidden><circle cx="1012" cy="150" r="20" fill="#7A4FD8" stroke="#2A3A34" stroke-width="3"/><path d="M 1005 140 L 1022 150 L 1005 160 Z" fill="#FFF8EC"/></g>`
+    + `<g class="say-tap"><rect x="820" y="184" width="220" height="40" rx="20" fill="#7A4FD8" stroke="#2A3A34" stroke-width="3"/><text x="930" y="211" text-anchor="middle" font-family="${FONT_S}" font-weight="700" font-size="22" fill="#FFF8EC">Tryk for at gå videre</text></g></g>`;
   o += `<g class="fx" pointer-events="none"></g></svg>`;
   return scopeIds(o, 'po');
 }
 /* professoren taler. Har hun mere at sige, viser boblen en lille pil, og man trykker på boblen for at gå videre */
+/* professoren venter, til man trykker: en pil i taleboblen viser, at man skal trykke for at gå videre.
+   Et tryk hvor som helst på scenen virker. */
+function waitTap(){
+  const m = $('#potScene .say-more'), svg = $('#potScene svg');
+  if (m) m.removeAttribute('hidden'); if (svg) svg.classList.add('waittap');
+  return new Promise(res => { POT.sayWait = () => { POT.sayWait = null; if (m) m.setAttribute('hidden', ''); if (svg) svg.classList.remove('waittap'); sfx.pick(); res(); }; });
+}
 function profSay(t, more = []){
   POT.sayQ = more.slice();
   if (t && typeof t === 'object'){ markTip(t.k); t = t.t; }
@@ -371,7 +383,7 @@ function makeRecipe(potion){
 function startRecipe(){
   const lv = potLevel(), p = POT.p, varme = p.steps.filter(st => st.kind === 'varme').length;
   POT.hg = lv >= 1 ? { t0: performance.now(), lim: (POT.diff === 2 ? 10 + p.steps.length * 5 + varme * 5 : 12 + p.steps.length * 6 + varme * 6) * 1000, out: false } : null;
-  POT.heat = 30; POT.heatOk = 0; POT.timer = null; POT.covered = false;
+  POT.heat = 30; POT.heatOk = 0; POT.timer = null; POT.covered = false; POT.peeks = 3; clearTimeout(POT.peekT); POT.peekT = 0;
   clearTimeout(POT.coverT);
   if (lv >= 3) POT.coverT = setTimeout(() => { if (POT.p === p && p.i < p.steps.length){ POT.covered = true; drawRecipe(); profSay(tipOnce('tavle', 'Nu dækker jeg tavlen! Kan du huske opskriften? Tryk på tavlen, hvis du vil kigge.') || 'Tavlen er dækket. Tryk på den for at kigge.'); } }, 8000);
 }
@@ -450,10 +462,11 @@ function renderPotions(){
   const w = $('#potScene'); w.innerHTML = potionScene();
   const svg = w.querySelector('svg');
   stillDolls(svg);
-  svg.addEventListener('click', e => { const g = e.target.closest('[data-hit]'); if (g) potTap(g.dataset.hit, g, svgPoint(svg, e)); });
+  svg.addEventListener('click', e => { if (POT.sayWait){ POT.sayWait(); return; } const g = e.target.closest('[data-hit]'); if (g) potTap(g.dataset.hit, g, svgPoint(svg, e)); });
   svg.addEventListener('pointerdown', stirStart);
   svg.addEventListener('pointermove', stirMove);
   svg.addEventListener('pointerup', stirEnd); svg.addEventListener('pointercancel', stirEnd);
+  svg.addEventListener('dragstart', e => e.preventDefault());   /* et træk med musen må ikke blive til et træk-og-slip, der afbryder omrøringen */
   setLiquid(POT.p.mix);
   drawRecipe();
   if (!POT.raf){ POT.last = performance.now(); POT.raf = requestAnimationFrame(potLoop); }
@@ -462,12 +475,14 @@ function drawRecipe(){
   const r = $('#potScene .recipe'); if (r) r.innerHTML = recipeSvg(POT.p);
   const step = POT.p.steps[POT.p.i], wrap = $('#potScene .stirwrap');
   /* omrøringen tegnes kun forfra, når det er et nyt trin — ellers ville tælleren springe tilbage til 0 hver gang */
-  const key = step && step.kind === 'ror' && !POT.busy ? POT.p.i : -1;
-  if (wrap && wrap._k !== key){ wrap._k = key; wrap.innerHTML = key >= 0 ? stirHint(step.dir || 1) + stirCounter(step) : ''; }
-  else if (wrap && key >= 0){ const t = wrap.querySelector('.stirn'); if (t) t.textContent = `${Math.min(POT.p.got || 0, step.n)}/${step.n}`; }
+  /* når tavlen er dækket, afslører gryden ikke, at der skal røres: tælleren kommer først, når man selv går i gang */
+  const hidden = POT.covered && potLevel() >= 3, ror = step && step.kind === 'ror' && !POT.busy;
+  const key = ror ? (hidden ? (POT.stir ? 's' : 'h') + POT.p.i : String(POT.p.i)) : '-';
+  if (wrap && wrap._k !== key){ wrap._k = key; wrap.innerHTML = !ror ? '' : hidden ? (POT.stir ? stirCounter(step) : '') : stirHint(step.dir || 1) + stirCounter(step); }
+  else if (wrap && ror){ const t = wrap.querySelector('.stirn'); if (t) t.textContent = `${Math.min(POT.p.got || 0, step.n)}/${step.n}`; }
   const svg = $('#potScene svg'); if (!svg) return;
   svg.classList.toggle('stirring', !!(step && step.kind === 'ror'));
-  svg.classList.toggle('heating', !!(step && step.kind === 'varme'));
+  svg.classList.toggle('heating', !!(step && step.kind === 'varme') && !(POT.covered && potLevel() >= 3));
 }
 function setLiquid(c){ const svg = $('#potScene svg'); if (svg) svg.style.setProperty('--liq', c); }
 const potFx = () => $('#potScene .fx');
@@ -479,8 +494,13 @@ function potTap(hit, g, pt){
   if (k === 'mate'){ sfx.pick(); replay(g, 'hop'); sparkle(svg, pt.x, pt.y, 4); return; }
   if (k === 'dyr'){ sfx.pick(); replay(g, 'hop'); sparkle(svg, pt.x, pt.y - 60, 5, '#FF8FC7'); return; }
   if (k === 'tavle'){
-    if (POT.covered){ sfx.pick(); POT.covered = false; drawRecipe(); clearTimeout(POT.coverT); POT.coverT = setTimeout(() => { if (POT.p === p && p.i < p.steps.length){ POT.covered = true; drawRecipe(); } }, 2600); }
-    else { const st = p.steps[p.i]; if (st) profSay(nextLine(st)); }
+    if (POT.covered){
+      /* svær: 3 kig pr. eliksir, og hvert kig koster en af ekstrastjernerne */
+      if (POT.peeks <= 0){ sfx.nope(); profSay('Du har ikke flere kig til den her eliksir. Prøv at huske det!'); return; }
+      sfx.pick(); POT.peeks--; p.peeked = (p.peeked || 0) + 1; POT.covered = false; drawRecipe(); clearTimeout(POT.coverT);
+      POT.peekT = setTimeout(() => { POT.peekT = 0; if (POT.p === p && p.i < p.steps.length){ POT.covered = true; drawRecipe(); } }, 2600);
+    }
+    else if (!POT.peekT){ const st = p.steps[p.i]; if (st) profSay(nextLine(st)); }
     return;
   }
   if (k === 'blaes'){
@@ -495,8 +515,9 @@ function potTap(hit, g, pt){
   if (k !== 'jar' || POT.busy) return;
   const s = p.steps[p.i]; if (!s) return;
   replay(g, 'jiggle');
-  if (s.kind === 'ror'){ sfx.nope(); profSay('Først skal der røres! Tegn cirkler i gryden med fingeren.'); return; }
-  if (s.kind === 'varme'){ sfx.nope(); profSay('Først skal gryden varmes! Tryk på blæsebælgen ved ilden.'); return; }
+  const hush = POT.covered && potLevel() >= 3;   /* dækket tavle: professoren afslører ikke, hvad der mangler */
+  if (s.kind === 'ror'){ sfx.nope(); profSay(hush ? 'Hov, det står der ikke lige nu. Kig på tavlen, hvis du er i tvivl!' : 'Først skal der røres! Tegn cirkler i gryden med fingeren.'); return; }
+  if (s.kind === 'varme'){ sfx.nope(); profSay(hush ? 'Hov, det står der ikke lige nu. Kig på tavlen, hvis du er i tvivl!' : 'Først skal gryden varmes! Tryk på blæsebælgen ved ilden.'); return; }
   throwIn(v, g, v === s.id);
 }
 function blub(){ const r = $('#potScene .ripple'); if (r){ r.classList.remove('go'); void r.getBoundingClientRect(); r.classList.add('go'); } tone(220, 0.12, 'sine', 0.06, 0, 2.2); }
@@ -519,7 +540,7 @@ async function throwIn(id, jar, right){
     tone(660, 0.1, 'triangle', 0.06); tone(990, 0.12, 'triangle', 0.05, 0.08);
     p.mix = mixC(p.mix, INGR[id].col, 0.55); setLiquid(p.mix);
     p.got++;
-    if (p.got >= p.steps[p.i].n){ p.i++; p.got = 0; profSay(pick(PROF_OK) + (p.steps[p.i] ? ' ' + nextLine(p.steps[p.i]) : '')); }
+    if (p.got >= p.steps[p.i].n){ p.i++; p.got = 0; profSay(pick(PROF_OK) + afterOk(p.steps[p.i])); }
     drawRecipe();
     POT.busy = false;
     if (p.i >= p.steps.length) finishPotion();
@@ -529,6 +550,12 @@ async function throwIn(id, jar, right){
     profSay(pick(PROF_MISS) + (POT.diff === 2 && p.miss < 3 ? (p.miss === 2 ? ' Pas på, én fejl mere, så koger den over!' : ' Det var fejl nummer ét.') : ''));
     POT.busy = false;
   }
+}
+/* hvad professoren siger om næste trin. Når tavlen er dækket (svær), holder hun tæt — kun en tidsfrist siger hun */
+function afterOk(s){
+  if (!s) return '';
+  if (potLevel() >= 3 && (POT.covered || POT.peekT)) return s.kind === 'ror' && s.time ? ` Skynd dig, nu er der tid på: ${s.time} sekunder!` : '';
+  return ' ' + nextLine(s);
 }
 function nextLine(s){
   if (s.kind === 'varme') return tipOnce('varme', 'Varm gryden op! Tryk på blæsebælgen, til termometeret står i det grønne – men ikke for meget!') || 'Nu skal gryden varmes op til det grønne!';
@@ -569,6 +596,7 @@ function stirStart(e){
   try { svg.setPointerCapture(e.pointerId); } catch (er) {}
   ladleTo(q);
   const h = $('#potScene .stirhint'); if (h) h.classList.add('fade');
+  if (POT.covered && potLevel() >= 3){ const w = $('#potScene .stirwrap'); if (w && !w.firstChild){ w._k = 's' + p.i; w.innerHTML = stirCounter(s); } }   /* nu må tælleren gerne komme frem */
 }
 function stirMove(e){
   const st = POT.stir; if (!st || e.pointerId !== st.id) return;
@@ -577,14 +605,14 @@ function stirMove(e){
   st.a = a; st.acc += d;
   ladleTo(q);
   const p = POT.p, s = p.steps[p.i], dir = s.dir || 0;
-  if (dir && st.acc * dir < -Math.PI * 1.2){ POT.stir = null; sfx.nope(); profSay(`Hov, forkert vej! Rør ${dir > 0 ? 'med' : 'mod'} uret – følg pilen.`); return; }
+  if (dir && st.acc * dir < -Math.PI * 1.2){ POT.stir = null; sfx.nope(); profSay(POT.covered && potLevel() >= 3 ? 'Hov, forkert vej! Kig på tavlen, hvis du er i tvivl.' : `Hov, forkert vej! Rør ${dir > 0 ? 'med' : 'mod'} uret – følg pilen.`); if (POT.covered) drawRecipe(); return; }
   const turns = Math.floor(Math.max(0, dir ? st.acc * dir : Math.abs(st.acc)) / (2 * Math.PI));
   if (turns > st.turns){
     const cnt = $('#potScene .stirn'); if (cnt) cnt.textContent = `${Math.min(turns, s.n)}/${s.n}`;
     st.turns = turns; p.got = turns;
     tone(520 + turns * 120, 0.14, 'triangle', 0.06); sparkle($('#potScene svg'), CX + Math.cos(a) * CRX * 0.6, CY, 5, '#FFF6D0');
     p.mix = mixC(p.mix, p.potion.col, 0.3); setLiquid(p.mix);
-    if (turns >= s.n){ POT.stir = null; POT.timer = null; p.i++; p.got = 0; profSay(pick(PROF_OK) + (p.steps[p.i] ? ' ' + nextLine(p.steps[p.i]) : '')); drawRecipe(); if (p.i >= p.steps.length) finishPotion(); return; }
+    if (turns >= s.n){ POT.stir = null; POT.timer = null; p.i++; p.got = 0; profSay(pick(PROF_OK) + afterOk(p.steps[p.i])); drawRecipe(); if (p.i >= p.steps.length) finishPotion(); return; }
     drawRecipe();
   }
 }
@@ -630,7 +658,7 @@ function potLoop(now){
     if (POT.heat > 100){ boilOver('Uha, den kogte over! Lidt mere forsigtigt med blæsebælgen.'); POT.heat = 40; }
     else if (POT.heat >= 55 && POT.heat <= 80){ POT.heatOk += dt;
       if (POT.heatOk >= 1.2){ POT.heatOk = 0; tone(660, 0.1, 'triangle', 0.06); tone(990, 0.12, 'triangle', 0.05, 0.08); p.mix = mixC(p.mix, '#FF8A3D', 0.2); setLiquid(p.mix);
-        p.i++; p.got = 0; profSay(pick(PROF_OK) + (p.steps[p.i] ? ' ' + nextLine(p.steps[p.i]) : '')); drawRecipe(); if (p.i >= p.steps.length) finishPotion(); } }
+        p.i++; p.got = 0; profSay(pick(PROF_OK) + afterOk(p.steps[p.i])); drawRecipe(); if (p.i >= p.steps.length) finishPotion(); } }
     else POT.heatOk = 0;
   } else if (!POT.busy) POT.heat += (32 - POT.heat) * Math.min(1, dt * .8);
   /* kun når noget faktisk ændrer sig: hver ændring får browseren til at regne hele tegningen igennem */
@@ -650,9 +678,9 @@ async function boilOver(msg){
 /* ---------- eliksiren er færdig: et stort puf, og så sker der noget sjovt ---------- */
 async function finishPotion(){
   POT.busy = true;
-  const fast = !!(POT.hg && !POT.hg.out); POT.hg = null; POT.timer = null; clearTimeout(POT.coverT); POT.covered = false; drawRecipe();
+  const fast = !!(POT.hg && !POT.hg.out); POT.hg = null; POT.timer = null; clearTimeout(POT.coverT); clearTimeout(POT.peekT); POT.peekT = 0; POT.covered = false; drawRecipe();
   const p = POT.p, svg = $('#potScene svg'), d = POT.diff || 0, bonusFast = fast && d === 1;
-  const stars = d === 0 ? 1 : d === 1 ? Math.max(1, 3 - p.miss) + (bonusFast ? 1 : 0) : Math.max(2, 5 - p.miss);
+  const stars = d === 0 ? 1 : d === 1 ? Math.max(1, 3 - p.miss) + (bonusFast ? 1 : 0) : Math.max(1, 5 - p.miss - (p.peeked || 0));
   setLiquid(p.potion.col); svg.classList.add('brewed');
   sfx.magic();
   if (!calm) for (let i = 0; i < 3; i++) setTimeout(() => sparkle(svg, CX - 120 + i * 120, CY - 40 - i * 30, 8, p.potion.col), i * 180);
@@ -663,7 +691,8 @@ async function finishPotion(){
   prog.potions = (prog.potions || 0) + 1; saveProg();
   addStars(stars); POT.lesson.stars += stars;
   starBurst(stars);
-  await wait(calm ? 200 : 1500);
+  await wait(calm ? 200 : 900);
+  await waitTap();
   svg.classList.remove('brewed');
   nextPotion();
 }
@@ -679,11 +708,12 @@ function nextPotion(){
 }
 /* svær: eliksiren kogte over. Ingen stjerner for den, men timen går videre */
 async function failPotion(msg){
-  POT.busy = true; POT.hg = null; POT.timer = null; POT.stir = null; clearTimeout(POT.coverT); POT.covered = false; drawRecipe();
+  POT.busy = true; POT.hg = null; POT.timer = null; POT.stir = null; clearTimeout(POT.coverT); clearTimeout(POT.peekT); POT.peekT = 0; POT.covered = false; drawRecipe();
   POT.lesson.fail++;
   await potPuff(); setLiquid('#5A5048');
   profSay(`${msg} ${pick(PROF_FAIL)}`);
-  await wait(calm ? 300 : 2800);
+  await wait(calm ? 300 : 900);
+  await waitTap();
   nextPotion();
 }
 function starBurst(n){

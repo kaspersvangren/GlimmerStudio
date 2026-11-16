@@ -31,12 +31,13 @@ async function run(w, h){
     for (let g = 0; g < 160; g++){
       const st = await p.evaluate(() => ({ busy: POT.busy, step: POT.p.steps[POT.p.i], heat: POT.heat, done: !!document.querySelector('#potionBody .shop-veil') }));
       if (st.done) break;
+      if (await p.evaluate(() => !!POT.sayWait)){ await p.locator('#potScene .say').dispatchEvent('click'); await p.waitForTimeout(300); continue; }
       if (st.busy || !st.step){ await p.waitForTimeout(300); continue; }
       if (st.step.kind === 'ing'){ await p.click(`#potScene [data-hit="jar:${st.step.id}"]`, { force: true }); await p.waitForTimeout(750); }
       else if (st.step.kind === 'varme'){ sawHeat = true; if (st.heat < 62) await p.click('#potScene [data-hit="blaes"]', { force: true }); await p.waitForTimeout(260); }
       else { const d = st.step.dir || 1; if (st.step.dir) sawDir = true; const pts = []; for (let k = 0; k <= 24 * (st.step.n + 0.3); k++){ const a = d * k / 24 * Math.PI * 2; pts.push(await toScreen(800 + Math.cos(a) * 150, 656 + Math.sin(a) * 30)); }
-        await p.mouse.move(...pts[0]); await p.mouse.down(); let mid = null; for (const [qi, q] of pts.entries()){ await p.mouse.move(...q); await p.waitForTimeout(8); if (qi === 30 && st.step.n >= 2) mid = await p.evaluate(() => document.querySelector('#potScene .stirn')?.textContent); } await p.mouse.up(); await p.waitForTimeout(300);
-        if (mid !== null) ok(mid === `1/${st.step.n}`, `${tag} eliksirtimen: tælleren viste ${mid} efter én omgang`); }
+        await p.mouse.move(...pts[0]); await p.mouse.down(); let mid = null; for (const [qi, q] of pts.entries()){ await p.mouse.move(...q); await p.waitForTimeout(8); if (qi === 30 && st.step.n >= 2) mid = await p.evaluate(() => POT.stir ? document.querySelector('#potScene .stirn')?.textContent + ' ' : null);   /* kun hvis omrøringen stadig er i gang */ } await p.mouse.up(); await p.waitForTimeout(300);
+        if (mid !== null) ok(mid.startsWith(`1/${st.step.n} `), `${tag} eliksirtimen: tælleren viste ${mid} efter én omgang`); }
     }
     await p.waitForTimeout(600);
     ok(await p.evaluate(() => POT.lesson.n === 3 && !!document.querySelector('#potionBody .shop-veil')), `${tag} eliksirtimen (${lvPotions}): timen blev ikke færdig`);
