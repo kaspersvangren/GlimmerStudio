@@ -324,7 +324,7 @@ function markF(c){
     case 'plaster': return `<g transform="rotate(-28 348 336)"><rect x="330" y="329" width="36" height="14" rx="7" fill="${lt(m,0.55)}" stroke="${fdk(m,0.2)}" stroke-width="1.6"/><rect x="342" y="329" width="12" height="14" fill="${lt(m,0.25)}"/>${[[337,334],[337,339],[359,334],[359,339]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1" fill="${fdk(m,0.25)}"/>`).join('')}</g>`;
     case 'maane': return moon(348, 340, 7.5, m) + twinkle(338, 331, 3, m);
     case 'maling': return [[256,-1],[344,1]].map(([x,f]) => [0, 9].map(dy => `<path d="M ${x - 12*f} ${328+dy} Q ${x} ${324+dy} ${x + 12*f} ${330+dy}" stroke="${m}" stroke-width="4.5" fill="none" stroke-linecap="round" opacity=".9"/>`).join('')).join('');
-    case 'prik': return `<circle cx="290" cy="338" r="2.3" fill="${m}"/>`;
+    case 'prik': return `<circle cx="290" cy="336" r="1.9" fill="${m}"/>`;
     default: return '';
   }
 }
@@ -728,11 +728,11 @@ function necklaceF(col){
 }
 /* lanterne der hænger fra venstre hånd: messingramme, glas og en lille flamme */
 function lanternF(col){
-  const B = '#C9952E', Bs = '#8A6418', BL = '#F2C14E', X = 214, top = 632, y0 = 648, y1 = 706;
+  const B = '#C9952E', Bs = '#8A6418', BL = '#F2C14E', X = 214, top = 642, y0 = 658, y1 = 716;
   let o = `<defs><radialGradient id="lanG"><stop offset="0" stop-color="${lt(col,0.5)}" stop-opacity=".75"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient></defs>`;
   const glow = `<circle cx="${X}" cy="${(y0+y1)/2}" r="58" fill="url(#lanG)"/>`;
   o += ANIM ? `<g>${glow}<animate attributeName="opacity" values="1;0.7;1" dur="2.2s" repeatCount="indefinite"/></g>` : glow;
-  o += `<path d="M ${X-10} ${top} Q ${X} 588 ${X+10} ${top}" stroke="${Bs}" stroke-width="4.5" fill="none"/><path d="M ${X-10} ${top} Q ${X} 590 ${X+10} ${top}" stroke="${BL}" stroke-width="2" fill="none"/>`;
+  o += `<path d="M ${X-10} ${top} Q ${X} 602 ${X+10} ${top}" stroke="${Bs}" stroke-width="4.5" fill="none"/><path d="M ${X-10} ${top} Q ${X} 604 ${X+10} ${top}" stroke="${BL}" stroke-width="2" fill="none"/>`;
   o += `<path d="M ${X-20} ${y0} L ${X-12} ${top} L ${X+12} ${top} L ${X+20} ${y0} Z" fill="${B}" stroke="${Bs}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${X}" cy="${top-2}" r="5" fill="${B}" stroke="${Bs}" stroke-width="2"/>`;
   o += `<rect x="${X-18}" y="${y0}" width="36" height="${y1-y0}" rx="3" fill="${lt(col,0.55)}" stroke="${Bs}" stroke-width="2.5"/>`;
   o += `<rect x="${X-18}" y="${y0}" width="36" height="${y1-y0}" rx="3" fill="${col}" opacity=".35"/>`;
@@ -786,7 +786,7 @@ function waveArm(inner, ev, forever){
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
-  'acc:lanterne', 'mark:ar', 'mark:prik', 'pet:ugle',
+  'acc:lanterne', 'mark:prik', 'pet:ugle',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 
@@ -831,7 +831,7 @@ function figureSvg(st, c, hl, wave){
   const raised = () => `<g transform="${AXIS}">${armOpen(c, false, '', 'vink')}</g>`;
   let left;
   if (A('bog')) left = armOpen(c, false, HLW(hl === 'acc:bog', bookF(A('bog'))), 'bog');
-  else if (A('lanterne')) left = armFist(c, { behind: HLW(hl === 'acc:lanterne', lanternF(A('lanterne'))) });   /* hanken sidder i den knyttede hånd */
+  else if (A('lanterne')) left = HLW(hl === 'acc:lanterne', lanternF(A('lanterne'))) + armOpen(c, false);
   else if (wave && ANIM) left = `<g transform="translate(-26 50)">${waveArm(raised(), null, true)}</g>`;
   else if (waveEv && ANIM) left = showDuring(armOpen(c, false), [[0, waveEv.a], [waveEv.b, IDLE.T]]) + showDuring(`<g transform="translate(-26 50)">${waveArm(raised(), waveEv, false)}</g>`, [[waveEv.a, waveEv.b]]);
   else left = armOpen(c, false);

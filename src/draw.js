@@ -337,7 +337,7 @@ const PET_SPECIES = {
     o += H.pat('phC', [[50,-218,10],[-54,-210,8]], ["M -16 -240 L -12 -220","M 0 -244 L 0 -220","M 16 -240 L 12 -220"], [-30,-182,34,32]);
     o += `<ellipse cx="-30" cy="-180" rx="34" ry="32" fill="${P.B}" opacity=".85"/><ellipse cx="30" cy="-180" rx="34" ry="32" fill="${P.B}" opacity=".85"/>`;
     o += `<path d="M -4 -226 Q 0 -206 0 -196 Q 0 -206 4 -226" stroke="${P.L}" stroke-width="2" fill="none" opacity=".5"/>`;
-    o += H.eye(-30,-182,0.88,false,-1) + H.eye(30,-182,0.88,false,1) + H.blush(-42,-145) + H.blush(42,-145);
+    o += H.eye(-30,-182,0.88,false,-1) + H.eye(30,-182,0.88,false,1) + `<ellipse cx="-44" cy="-151" rx="11" ry="6.5" fill="#FF7FA6" opacity="0.5"/><ellipse cx="44" cy="-151" rx="11" ry="6.5" fill="#FF7FA6" opacity="0.5"/>`;
     o += `<path d="M -9 -160 L 9 -160 L 0 -142 Z" fill="#F2A93B" stroke="#B9741A" stroke-width="2.5" stroke-linejoin="round"/>`;
     return o; },
     draw:(P,H) => {

@@ -41,6 +41,7 @@ const V = { 'acc-bog': 6,
   'sko-ballerina': 2, 'acc-lanterne': 2,
   'maerke-ar': 2, 'maerke-maane': 2, 'maerke-prik': 2, 'dyr-ugle': 2, 'dyr-froe': 2,
   'acc-lanterne': 3, 'maerke-ar': 3, 'maerke-prik': 3, 'dyr-ugle': 3,
+  'acc-lanterne': 4, 'maerke-prik': 4, 'dyr-ugle': 4,
   'kost-rytter': 4, 'fald-rytter': 2, 'fald-kort': 2, 'fald-lav': 2, 'fald-skaerm': 2, 'fald-frit': 2, 'sted-skole': 4 };
 
 (async () => {
