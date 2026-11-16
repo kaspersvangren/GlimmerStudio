@@ -9,6 +9,6 @@ const LYD_FILER = {
 // loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
 const LYD_MUSIK = {
   byen: { src: 'lyd/byen.mp3', loop: [73.57294, 133.61413] },   // Kaspers "Moonbeam Meadow". Loop B2, valgt af Kasper
-  invader: { src: 'lyd/stjernelygten.mp3', loop: [19.7, 63.18798] },   // "Star Lantern Quest". Loop A (forslag)
-  skjold: { src: 'lyd/stjernelygten-2.mp3', loop: [19.7, 63.264] },   // "Star Lantern Quest 2". Loop A (forslag)
+  invader: { src: 'lyd/stjernelygten.mp3', loop: [19.7, 63.18798] },   // "Star Lantern Quest". Loop A, valgt af Kasper
+  skjold: { src: 'lyd/stjernelygten-2.mp3', loop: [19.7, 63.264] },   // "Star Lantern Quest 2". Loop A, valgt af Kasper
 };
