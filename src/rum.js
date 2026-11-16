@@ -533,20 +533,32 @@ Object.assign(TING, {
   teleskop: { label:'Teleskop', draw: c => { const W = '#6A4430', B = '#C9952E', BD = '#8A6420';
       let o = `<ellipse cx="1420" cy="944" rx="110" ry="10" fill="${SHC}" opacity=".22"/><path d="M 1420 760 L 1340 940 M 1420 760 L 1500 940 M 1420 760 L 1420 944" stroke="${W}" stroke-width="12" stroke-linecap="round"/>`;
       /* kikkerten peger op mod vinduet (til venstre): okularet nederst til højre, den store linse øverst til venstre */
-      o += `<g transform="rotate(34 1420 750)"><rect x="1430" y="736" width="34" height="28" rx="6" fill="${B}" stroke="${BD}" stroke-width="3"/><rect x="1350" y="730" width="96" height="40" rx="10" fill="${c}" ${RS(c)}/><rect x="1282" y="722" width="76" height="56" rx="10" fill="${c}" ${RS(c)}/><rect x="1350" y="728" width="12" height="44" fill="${B}"/><rect x="1264" y="716" width="24" height="68" rx="8" fill="${B}" stroke="${BD}" stroke-width="3"/>`
+      o += `<g transform="rotate(34 1420 750)"><rect x="1462" y="742" width="34" height="16" rx="3" fill="${B}" stroke="${BD}" stroke-width="3"/><rect x="1492" y="736" width="12" height="28" rx="5" fill="#2A2436"/><rect x="1430" y="736" width="34" height="28" rx="6" fill="${B}" stroke="${BD}" stroke-width="3"/><rect x="1350" y="730" width="96" height="40" rx="10" fill="${c}" ${RS(c)}/><rect x="1282" y="722" width="76" height="56" rx="10" fill="${c}" ${RS(c)}/><rect x="1350" y="728" width="12" height="44" fill="${B}"/><rect x="1264" y="716" width="24" height="68" rx="8" fill="${B}" stroke="${BD}" stroke-width="3"/>`
         + `<ellipse cx="1265" cy="750" rx="11" ry="31" fill="#9FD4F2" stroke="${BD}" stroke-width="3"/><ellipse cx="1263" cy="740" rx="4" ry="11" fill="#FFFFFF" opacity=".8"/><path d="M 1296 730 H 1350" stroke="${lt(c,0.35)}" stroke-width="4" opacity=".7"/></g>`;
       return o + `<circle cx="1420" cy="760" r="12" fill="${B}" stroke="${BD}" stroke-width="3"/>` + starP(1300, 560, 12, '#FFF6D0') + starP(1340, 520, 7, '#FFF6D0'); } },
   aeg: { label:'Drageæg i rede', draw: c => { let o = `<ellipse cx="1410" cy="940" rx="130" ry="14" fill="${SHC}" opacity=".22"/>` + glowAt(1410, 780, 130, lt(c,0.3));
       o += `<path d="M 1300 900 C 1290 860 1330 840 1410 846 C 1490 840 1530 860 1520 900 C 1500 940 1320 940 1300 900 Z" fill="#9C7A4A" stroke="#6A4E2A" stroke-width="4"/>` + Array.from({ length: 14 }, (_, i) => `<path d="M ${1300 + i*16} ${870 + (i%3)*14} q 20 -10 40 4" stroke="#6A4E2A" stroke-width="3" fill="none"/>`).join('');
       o += `<path d="M 1410 690 C 1360 690 1340 780 1350 830 C 1360 870 1460 870 1470 830 C 1480 780 1460 690 1410 690 Z" fill="${c}" ${RS(c)}/>` + [[1390,740],[1430,770],[1395,810],[1440,825],[1420,720]].map(([x,y]) => `<path d="M ${x-10} ${y} q 10 -12 20 0 q -10 6 -20 0" fill="${lt(c,0.4)}"/>`).join('');
       return o + `<path d="M 1372 740 q -6 30 4 60" stroke="#FFFFFF" stroke-width="7" fill="none" stroke-linecap="round" opacity=".5"/><path d="M 1430 700 l -8 20 l 12 10 l -6 18" stroke="${fdk(c,0.4)}" stroke-width="3" fill="none"/>`; } },
-  ovn: { label:'Lille brændeovn', draw: c => { const I = '#3A3346';
-      /* røret går op, knækker og forsvinder ud til højre */
-      let o = `<ellipse cx="1410" cy="944" rx="110" ry="12" fill="${SHC}" opacity=".22"/><path d="M 1410 712 V 600 Q 1410 560 1450 560 H 1640" stroke="${I}" stroke-width="28" fill="none" stroke-linejoin="round"/><path d="M 1402 712 V 600 Q 1402 552 1450 552 H 1640" stroke="#5A5268" stroke-width="5" fill="none" opacity=".7"/>`
-        + `<rect x="1394" y="640" width="32" height="12" rx="3" fill="#2A2436"/><rect x="1500" y="544" width="12" height="32" rx="3" fill="#2A2436"/>` + glowAt(1410, 850, 130, '#FFB04A');
-      o += `<path d="M 1330 940 V 760 Q 1330 720 1370 720 H 1450 Q 1490 720 1490 760 V 940 Z" fill="${c}" ${RS(c)}/><rect x="1316" y="706" width="188" height="24" rx="8" fill="${fdk(c,0.2)}" ${RS(c)}/>`;
-      o += `<path d="M 1360 900 V 820 Q 1360 784 1410 784 Q 1460 784 1460 820 V 900 Z" fill="#2A1E30" stroke="#C9952E" stroke-width="5"/><path d="M 1380 896 q -6 -40 20 -70 q 4 30 14 34 q 6 -20 18 -30 q 10 40 -6 66 Z" fill="#FFC02E" stroke="#E07A1F" stroke-width="3"><animate attributeName="opacity" values="1;.75;1" dur="0.8s" repeatCount="indefinite"/></path>`;
-      return o + [1370, 1450].map(x => `<rect x="${x-10}" y="930" width="20" height="14" rx="3" fill="${I}"/>`).join('') + `<path d="M 1360 812 H 1460" stroke="#C9952E" stroke-width="3"/>`; } },
+  ovn: { label:'Lille brændeovn', draw: c => { const I = '#3A3346', ID = '#2A2436', IH = '#5A5268', B = '#C9952E', BD = '#8A6420', E = fdk(c,0.25);
+      /* klassisk støbejernsovn: buede ben, sokkel, emaljeret krop med relief, buet låge med rude, askeskuffe og trinvis top */
+      let o = `<ellipse cx="1410" cy="946" rx="112" ry="11" fill="${SHC}" opacity=".22"/><path d="M 1410 700 V 600 Q 1410 560 1450 560 H 1640" stroke="${I}" stroke-width="28" fill="none" stroke-linejoin="round"/><path d="M 1402 700 V 600 Q 1402 552 1450 552 H 1640" stroke="${IH}" stroke-width="5" fill="none" opacity=".7"/>`
+        + `<rect x="1394" y="640" width="32" height="12" rx="3" fill="${ID}"/><rect x="1500" y="544" width="12" height="32" rx="3" fill="${ID}"/>` + glowAt(1410, 820, 130, '#FFB04A');
+      o += [[1344, -1], [1476, 1]].map(([x, f]) => `<path d="M ${x} 900 C ${x + f*4} 918 ${x - f*10} 930 ${x - f*2} 944 L ${x + f*12} 944 C ${x + f*6} 930 ${x + f*18} 918 ${x + f*16} 900 Z" fill="${I}" stroke="${ID}" stroke-width="2.5"/>`).join('');
+      o += `<rect x="1324" y="888" width="172" height="18" rx="5" fill="${I}" stroke="${ID}" stroke-width="3"/><path d="M 1330 892 H 1490" stroke="${IH}" stroke-width="3" opacity=".7"/>`;
+      o += `<rect x="1336" y="728" width="148" height="162" rx="6" fill="${c}" ${RS(c)}/><path d="M 1346 740 V 880" stroke="${lt(c,0.35)}" stroke-width="5" opacity=".6" stroke-linecap="round"/>`;
+      /* relief over lågen */
+      o += `<path d="M 1360 750 H 1460" stroke="${E}" stroke-width="3"/>` + [1374, 1446].map(x => `<circle cx="${x}" cy="740" r="5" fill="${E}"/>`).join('') + `<path d="M 1396 744 Q 1410 728 1424 744" stroke="${E}" stroke-width="3" fill="none"/>`;
+      /* lågen */
+      o += `<path d="M 1354 856 V 794 Q 1354 758 1410 758 Q 1466 758 1466 794 V 856 Z" fill="${I}" stroke="${ID}" stroke-width="3"/><path d="M 1366 846 V 798 Q 1366 770 1410 770 Q 1454 770 1454 798 V 846 Z" fill="#2A1E30" stroke="${B}" stroke-width="3"/>`;
+      o += `<path d="M 1380 844 q -6 -36 18 -62 q 4 26 12 30 q 6 -18 16 -26 q 10 36 -6 58 Z" fill="#FFC02E" stroke="#E07A1F" stroke-width="3"><animate attributeName="opacity" values="1;.75;1" dur="0.8s" repeatCount="indefinite"/></path><path d="M 1374 846 H 1446" stroke="#8A3A1A" stroke-width="5" stroke-linecap="round"/>`;
+      o += [1396, 1424].map(x => `<path d="M ${x} 772 V 846" stroke="${I}" stroke-width="3" opacity=".85"/>`).join('') + `<rect x="1458" y="798" width="20" height="8" rx="4" fill="${B}" stroke="${BD}" stroke-width="2"/>`;
+      /* askeskuffe */
+      o += `<rect x="1366" y="864" width="88" height="18" rx="3" fill="${I}" stroke="${ID}" stroke-width="2.5"/><rect x="1400" y="869" width="20" height="7" rx="3.5" fill="${B}" stroke="${BD}" stroke-width="1.5"/>`;
+      /* trinvis top med rørkrave */
+      o += `<rect x="1322" y="712" width="176" height="20" rx="5" fill="${I}" stroke="${ID}" stroke-width="3"/><rect x="1336" y="700" width="148" height="16" rx="4" fill="${I}" stroke="${ID}" stroke-width="3"/><path d="M 1328 717 H 1492" stroke="${IH}" stroke-width="3" opacity=".7"/><rect x="1390" y="688" width="40" height="16" rx="3" fill="${ID}"/>`;
+      return o; } },
+
 });
 
 Object.assign(DYRESENG, Object.fromEntries(Object.entries({
