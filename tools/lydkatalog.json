@@ -398,6 +398,12 @@
     "forslag": "Gummi-boing."
    },
    {
+    "key": "boble.tryk",
+    "navn": "Tryk på boblen",
+    "hvor": "Boblen i Boblebutikken, hver gang man trykker på den",
+    "forslag": "Et blødt, fjedrende boing."
+   },
+   {
     "key": "sfx.crack",
     "navn": "Boblen popper",
     "hvor": "Boblen i Boblebutikken, når den popper og viser tingen",

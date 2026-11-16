@@ -189,7 +189,7 @@ async function tapShopBubble(bub, drops, b, hint, dim){
   if (bubBusy) return;
   bubTaps++;
   bub.style.setProperty('--grow', 1 + bubTaps * 0.08);
-  bub.classList.remove('wobble'); void bub.offsetWidth; bub.classList.add('wobble'); sfx.wobble();
+  bub.classList.remove('wobble'); void bub.offsetWidth; bub.classList.add('wobble'); SND.play('boble.tryk', () => sfx.wobble());
   bub.classList.remove('hover');
   if (hint) hint.textContent = bubTaps === 1 ? 'To gange til…' : bubTaps === 2 ? 'Én gang til!' : '';
   if (bubTaps === 2) say('Én gang til!');
