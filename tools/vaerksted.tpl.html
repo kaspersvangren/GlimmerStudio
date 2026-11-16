@@ -82,6 +82,7 @@ textarea{min-height:64px; resize:vertical}
 .btn.danger{color:var(--warn)}
 .btn:disabled{opacity:.5; cursor:default}
 .saved{font-size:13px; color:var(--muted)}
+.files{display:flex; flex-direction:column; gap:6px; margin-bottom:10px}
 .filebox{display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--sunk); border-radius:10px; padding:8px 10px}
 .filebox audio{height:34px; max-width:100%}
 .note{font-size:14px; background:var(--gold-bg); color:var(--fg); border-radius:10px; padding:10px 12px}
@@ -125,10 +126,10 @@ form.add{display:grid; grid-template-columns:1fr auto auto; gap:8px}
     <div class="card"><h2>Sådan kommer dine egne lyde i spillet</h2>
       <ol class="steps">
         <li>Find pladsen under <a href="#lyd">Lyd og musik</a>, og tryk på den runde knap for at høre den lyd, der er der nu.</li>
-        <li>Skriv dit ønske, eller læg en lydfil op (mp3, m4a eller wav). Filen behøver ikke være færdig: skriv hvad jeg skal rette, så klipper og justerer jeg den.</li>
+        <li>Skriv dit ønske, eller læg lydfiler op (mp3, m4a, wav eller ogg). Du kan lægge flere filer på samme plads, så skifter spillet mellem dem for variation. Filerne behøver ikke være færdige: skriv hvad jeg skal rette, så klipper og justerer jeg dem.</li>
         <li>Sig til mig i chatten, så lægger jeg filerne ind i spillet og sætter pladsen til <span class="pill spil">I spillet</span>.</li>
       </ol>
-      <p class="muted" style="margin:10px 0 0">Hvis en fil ikke vil lægges op her, kan du bare sende den til mig i chatten og skrive hvilken plads den skal på.</p>
+      <p class="muted" style="margin:10px 0 0">Hvis en fil ikke vil lægges op her, kan du bare sende den til mig i chatten og skrive hvilken plads den skal på. En fil må højst være 14 MB.</p>
     </div>
   </section>
 
@@ -193,7 +194,7 @@ const slotIndex = {}; CATALOG.forEach(g => g.slots.forEach(s => slotIndex[s.key]
 function slotState(k){
   const d = LYD[docId(k)] || {};
   if (INGAME.includes(k) || d.status === 'spil') return ['spil', 'I spillet'];
-  if (d.fileUrl) return ['fil', 'Fil lagt op'];
+  const n = filesOf(d).length; if (n) return ['fil', n === 1 ? 'Fil lagt op' : n + ' filer lagt op'];
   if (d.note && d.note.trim()) return ['oensket', 'Ønske skrevet'];
   return ['', 'Indbygget'];
 }
@@ -220,9 +221,20 @@ function playBuiltin(k, btn){
   if (k.startsWith('sfx.')){ const f = sfx[k.slice(4)]; if (f) f(); }
   else if (DEMO[k]){ try { (new Function('tone', 'sfx', 'return (' + DEMO[k] + ')'))(tone, sfx)(); } catch (e){ console.warn(k, e); } }
 }
-function playFile(url, btn){
+/* lydfiler gemmes som tekst (lageret tager ikke imod lyd): en data-adresse med lyden indeni.
+   Ældre filer, der blev lagt op som lyd, afspilles direkte. */
+const AUDIO_CACHE = {};
+async function audioSrc(f){
+  if (!f.wrapped) return f.url;
+  if (AUDIO_CACHE[f.id]) return AUDIO_CACHE[f.id];
+  const txt = await (await fetch(f.url)).text();
+  return (AUDIO_CACHE[f.id] = txt.trim());
+}
+async function playFile(f, btn){
   const was = playing && playing.btn === btn; stopAll(); if (was) return;
-  const a = new Audio(url); a.play().catch(() => {});
+  btn.classList.add('on'); btn.innerHTML = STOP;
+  let src; try { src = await audioSrc(f); } catch (e){ btn.classList.remove('on'); btn.innerHTML = PLAY; return; }
+  const a = new Audio(src); a.play().catch(() => {});
   btn.classList.add('on'); btn.innerHTML = STOP;
   playing = { btn, audio: a, label: btn.getAttribute('aria-label') };
   a.onended = stopAll;
@@ -251,12 +263,13 @@ function slotHtml(s){
       <div class="muted" style="font-size:12px">Plads: <span class="key">${esc(s.key)}</span></div>
     </div></details>`;
 }
+/* en plads kan have flere filer: spillet skifter mellem dem, så lyden ikke er ens hver gang */
+function filesOf(d){ return Array.isArray(d.files) ? d.files : d.fileUrl ? [{ id: d.fileId, url: d.fileUrl, name: d.fileName }] : []; }
 function fileArea(k){
-  const d = LYD[docId(k)] || {};
-  if (d.fileUrl) return `<div class="filebox"><button class="play" type="button" data-act="file" aria-label="Hør din fil">${PLAY}</button><span>${esc(d.fileName || 'Din lydfil')}</span><span style="flex:1"></span><button class="btn danger" type="button" data-act="rmfile">Fjern filen</button></div>`;
-  if (!assets) return `<div class="note">Send lydfilen til mig i chatten og skriv pladsen <span class="key">${esc(k)}</span>, så sætter jeg den ind.</div>`;
-  const id = 'f-' + docId(k);
-  return `<label class="lbl" for="${id}">Læg din egen lydfil op</label><input type="file" id="${id}" data-act="upload" accept="audio/*,.mp3,.m4a,.wav,.ogg,video/mp4"><div class="saved" data-up></div>`;
+  const d = LYD[docId(k)] || {}, fs = filesOf(d), id = 'f-' + docId(k);
+  const list = fs.map((f, i) => `<div class="filebox" data-i="${i}"><button class="play" type="button" data-act="file" aria-label="Hør ${esc(f.name || 'filen')}">${PLAY}</button><span>${fs.length > 1 ? 'Variant ' + (i + 1) + ': ' : ''}${esc(f.name || 'Din lydfil')}</span><span style="flex:1"></span><button class="btn danger" type="button" data-act="rmfile">Fjern</button></div>`).join('');
+  if (!assets) return list + `<div class="note">Send lydfilen til mig i chatten og skriv pladsen <span class="key">${esc(k)}</span>, så sætter jeg den ind.</div>`;
+  return `<div class="files">${list}</div><label class="lbl" for="${id}">${fs.length ? 'Læg flere varianter op' : 'Læg din egen lydfil op'} <span class="muted" style="font-weight:600">(du kan vælge flere filer på én gang)</span></label><input type="file" id="${id}" data-act="upload" multiple accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac"><div class="saved" data-up></div>`;
 }
 function renderGroups(){
   const open = new Set([...document.querySelectorAll('details.slot[open]')].map(d => d.dataset.k));
@@ -275,11 +288,13 @@ $('#groups').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const el = b.closest('details.slot'), k = el.dataset.k;
   if (b.dataset.act === 'builtin'){ e.preventDefault(); e.stopPropagation(); playBuiltin(k, b); }
-  if (b.dataset.act === 'file'){ e.preventDefault(); const d = LYD[docId(k)]; if (d && d.fileUrl) playFile(d.fileUrl, b); }
+  const i = +(b.closest('[data-i]') || {}).dataset?.i;
+  if (b.dataset.act === 'file'){ e.preventDefault(); const f = filesOf(LYD[docId(k)] || {})[i]; if (f) playFile(f, b); }
   if (b.dataset.act === 'rmfile'){
     if (b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Tryk igen for at fjerne'; return; }
-    const d = clone(LYD[docId(k)]), id = d.fileId; delete d.fileId; delete d.fileUrl; delete d.fileName; if (d.status === 'fil') delete d.status;
-    save(k, d).then(() => { if (id && assets) assets.delete(id).catch(() => {}); });
+    const d = clone(LYD[docId(k)] || {}), fs = filesOf(d).slice(), gone = fs.splice(i, 1)[0];
+    d.files = fs; delete d.fileId; delete d.fileUrl; delete d.fileName; if (!fs.length && d.status === 'fil') delete d.status;
+    save(k, d).then(() => { if (gone && gone.id && assets) assets.delete(gone.id).catch(() => {}); });
   }
 });
 const timers = {};
@@ -289,19 +304,27 @@ $('#groups').addEventListener('input', e => {
   out.textContent = 'Gemmer …'; clearTimeout(timers[k]);
   timers[k] = setTimeout(() => { const d = clone(LYD[docId(k)]); d.note = e.target.value; save(k, d).then(ok => out.textContent = ok ? 'Gemt kl. ' + new Date().toLocaleTimeString('da-DK', { hour:'2-digit', minute:'2-digit' }) : 'Kunne ikke gemme. Prøv igen om lidt.'); }, 700);
 });
+const MAX_MB = 14;
+const asDataUrl = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(f); });
 $('#groups').addEventListener('change', async e => {
   if (e.target.dataset.act !== 'upload') return;
-  const el = e.target.closest('details.slot'), k = el.dataset.k, out = el.querySelector('[data-up]'), f = e.target.files && e.target.files[0];
-  if (!f) return;
-  if (f.size > 15 * 1024 * 1024){ out.textContent = 'Filen er over 15 MB. Send den til mig i chatten i stedet.'; return; }
-  out.textContent = 'Lægger op …';
-  try {
-    const r = await assets.upload(f);
-    const d = clone(LYD[docId(k)]); Object.assign(d, { fileId: r.id, fileUrl: r.url, fileName: f.name, status: 'fil' });
-    await save(k, d);
-  } catch (err){
-    out.textContent = 'Filen kunne ikke lægges op her (' + (err && (err.code || err.message) || 'ukendt fejl') + '). Send den til mig i chatten, og skriv pladsen ' + k + '.';
+  const el = e.target.closest('details.slot'), k = el.dataset.k, out = el.querySelector('[data-up]'), list = [...(e.target.files || [])];
+  if (!list.length) return;
+  const added = [], fails = [];
+  for (const [n, f] of list.entries()){
+    if (f.size > MAX_MB * 1024 * 1024){ fails.push(f.name + ' er over ' + MAX_MB + ' MB'); continue; }
+    out.textContent = list.length > 1 ? `Lægger op … (${n + 1} af ${list.length})` : 'Lægger op …';
+    try {
+      /* lageret tager ikke imod lydfiler, så lyden pakkes ind i en tekstfil */
+      const data = await asDataUrl(f);
+      const r = await assets.upload(new File([data], f.name.replace(/\.[^.]+$/, '') + '.lyd.txt', { type: 'text/plain' }));
+      added.push({ id: r.id, url: r.url, name: f.name, type: f.type || '', size: f.size, wrapped: true });
+    } catch (err){ fails.push(f.name + ' (' + (err && (err.code || err.message) || 'ukendt fejl') + ')'); }
   }
+  e.target.blur();
+  if (added.length){ const d = clone(LYD[docId(k)] || {}), fs = filesOf(d).concat(added); d.files = fs; delete d.fileId; delete d.fileUrl; delete d.fileName; d.status = d.status === 'spil' ? 'spil' : 'fil'; await save(k, d); }
+  const o2 = el.querySelector('[data-up]');
+  if (o2) o2.textContent = fails.length ? 'Kunne ikke lægge op: ' + fails.join(', ') + '. Send dem til mig i chatten, og skriv pladsen ' + k + '.' : added.length > 1 ? added.length + ' filer lagt op.' : 'Lagt op.';
 });
 async function save(k, d){
   d.key = k; d.ts = Date.now(); LYD[docId(k)] = d; refreshSlot(k); renderStats();
