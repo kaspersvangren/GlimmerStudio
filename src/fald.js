@@ -41,8 +41,10 @@ const Fald = (() => {
   const personTop = (x, y, body, hair, a = 0, o = {}) => { const k = 5.2, bd = fdk(body, .4);
     let g = `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(0)}) scale(${k})"><ellipse cx=".12" cy=".16" rx=".46" ry=".3" fill="#0E1A12" opacity=".3"/><g data-z="1.6">`;
     if (o.cape) g += `<path d="M -.36 0 Q -.4 .5 0 .62 Q .4 .5 .36 0 Z" fill="${o.cape}" stroke="${fdk(o.cape, .4)}" stroke-width=".04"/>`;
-    g += o.wave ? `<path d="M -.34 -.04 L -.5 -.42 M .34 -.04 L .5 -.42" stroke="${body}" stroke-width=".14" stroke-linecap="round"/><circle cx="-.52" cy="-.46" r=".08" fill="#F1C9A6"/><circle cx=".52" cy="-.46" r=".08" fill="#F1C9A6"/>`
-      : `<path d="M -.38 0 L -.44 .26 M .38 0 L .44 .26" stroke="${body}" stroke-width=".13" stroke-linecap="round"/>`;
+    /* lokalt peger +y mod målet (den vej de kigger). Vinkende arme går ud til siden og lidt frem, med hænderne løftet op mod os;
+       ellers hænger armene ned langs siden og ses kun som en smule ved skuldrene */
+    g += o.wave ? `<path d="M -.34 .02 Q -.62 .06 -.66 .3 M .34 .02 Q .62 .06 .66 .3" stroke="${body}" stroke-width=".15" stroke-linecap="round" fill="none"/><circle cx="-.67" cy=".34" r=".1" fill="#F1C9A6" stroke="#B8876A" stroke-width=".02"/><circle cx=".67" cy=".34" r=".1" fill="#F1C9A6" stroke="#B8876A" stroke-width=".02"/>`
+      : `<path d="M -.38 0 L -.43 .16 M .38 0 L .43 .16" stroke="${body}" stroke-width=".13" stroke-linecap="round"/>`;
     g += `<ellipse rx=".4" ry=".24" fill="${body}" stroke="${bd}" stroke-width=".04"/><circle cy="-.02" r=".19" fill="${hair}" stroke="${fdk(hair, .4)}" stroke-width=".035"/>`;
     if (o.hat) g += `<circle cy="-.02" r=".3" fill="${body}" stroke="${bd}" stroke-width=".035"/><path d="M -.15 -.02 L 0 -.17 L .15 -.02 L 0 .13 Z" fill="${lt(body, .15)}" stroke="${bd}" stroke-width=".03"/><circle cy="-.02" r=".04" fill="${lt(body, .4)}"/>`;
     return g + `</g></g>`; };
