@@ -12,6 +12,6 @@ const LYD_MUSIK = {
   invader: { src: 'lyd/pixel-star-chase.mp3', loop: [26.7, 65.86335] },   // "Pixel Star Chase". Loop B, valgt af Kasper
   skjold: { src: 'lyd/orbital-ashes.mp3', loop: [71.6, 100.8465] },   // "Orbital Ashes". Loop A, valgt af Kasper
   kaelder: { src: 'lyd/wizard-crypt.mp3', loop: [65.4, 101.49313] },   // "Wizard Crypt Loop". Loop A, valgt af Kasper. Skolen og eliksirtimen
-  kost: { src: 'lyd/broomstick-dash.mp3', loop: [3, 39.6649], xf: 0.5 },   // "Broomstick Dash". Loop A (forslag). Kosteflyvning
+  kost: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // "Broomstick Dash". Loop D, valgt af Kasper (takt 24 → takt 8). Kosteflyvning
   fald: { src: 'lyd/cloud-glide.mp3', loop: [64, 138.03796], xf: 1 },   // "Cloud Glide Loop". Loop E, valgt af Kasper, 1 s overtoning. Faldskærm
 };
