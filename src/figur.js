@@ -272,7 +272,7 @@ const HATS = {
 /* ================= ANSIGT (hovedets mål) ================= */
 const FACE = 'M 222 292 C 220 240 252 206 300 206 C 348 206 380 240 378 292 C 377 338 346 380 300 384 C 254 380 223 338 222 292 Z';
 const PUPILS = { rund:'Runde', glimt:'Glimt', stjerne:'Stjerner', hjerte:'Hjerter', maane:'Måner', diamant:'Diamanter', blomst:'Blomster', kat:'Katteøjne', spiral:'Snurrende', stor:'Store og blanke' };
-const LIPSHAPES = { smil:'Smil', grin:'Stort grin', pust:'Lille mund', tunge:'Rækker tunge', kys:'Kyssemund', skaev:'Skævt smil', oh:'Overrasket', tand:'Små hjørnetænder', kat:'Kattemund', glad:'Bredt smil' };
+const LIPSHAPES = { smil:'Smil', grin:'Stort grin', pust:'Lille mund', tunge:'Rækker tunge', kys:'Kyssemund', kysstor:'Store kyslæber', skaev:'Skævt smil', oh:'Overrasket', tand:'Små hjørnetænder', kat:'Kattemund', glad:'Bredt smil' };
 const MARKS = { ingen:'Intet', fregner:'Fregner', hjerte:'Hjerte', stjerne:'Stjerne', glimmer:'Glimmer', ar:'Ar', plaster:'Plaster', maane:'Måne', maling:'Ansigtsmaling', prik:'Skønhedsplet' };
 function eyeLook(){
   if (!IDLE || !ANIM) return '';
@@ -304,6 +304,7 @@ function mouthF(c){
   const dimp = `<path d="M 281 341 q 2 -2 4 0 M 315 341 q 2 -2 4 0" stroke="${c.sk}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
   if (c.lipShape === 'tunge') return `<path d="M 284 342 Q 300 362 316 342 Q 300 350 284 342 Z" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 292 350 Q 290 366 300 368 Q 310 366 308 350 Z" fill="#FF8FA3" stroke="${fdk('#FF8FA3',0.35)}" stroke-width="1.8"/><path d="M 300 352 L 300 362" stroke="${fdk('#FF8FA3',0.3)}" stroke-width="1.5" stroke-linecap="round"/>` + dimp;
   if (c.lipShape === 'kys') return `<path d="M 294 340 Q 300 336 306 340 Q 310 346 306 352 Q 300 356 294 352 Q 290 346 294 340 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 295 346 Q 300 344 305 346" stroke="${Ld}" stroke-width="1.6" fill="none"/><path d="M 296 343 Q 299 341 302 342" stroke="${lt(L,0.5)}" stroke-width="1.6" fill="none" stroke-linecap="round"/>` + heart(322, 330, 0.5, lt(L,0.2));
+  if (c.lipShape === 'kysstor') return `<path d="M 284 345 Q 290 333 297 337 Q 300 339 303 337 Q 310 333 316 345 Q 300 349 284 345 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 284 345 Q 300 349 316 345 Q 312 362 300 363 Q 288 362 284 345 Z" fill="${lt(L,0.08)}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 286 345 Q 300 350 314 345" stroke="${Ld}" stroke-width="1.6" fill="none"/><path d="M 292 354 Q 300 358 307 354" stroke="${lt(L,0.5)}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 289 339 Q 292 336 295 338" stroke="${lt(L,0.5)}" stroke-width="2" fill="none" stroke-linecap="round"/>` + heart(326, 330, 0.6, lt(L,0.2));
   if (c.lipShape === 'skaev') return `<path d="M 286 346 Q 302 360 318 338 Q 302 352 286 346 Z" fill="${L}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 316 337 q 3 -1 4 2" stroke="${c.sk}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
   if (c.lipShape === 'oh') return `<ellipse cx="300" cy="350" rx="8" ry="10" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2.4"/><path d="M 294 356 Q 300 352 306 356 Q 300 360 294 356 Z" fill="${lt(L,0.35)}"/>`;
   if (c.lipShape === 'tand') return `<path d="M 284 342 Q 300 362 316 342 Q 300 350 284 342 Z" fill="${fdk(L,0.45)}" stroke="${Ld}" stroke-width="2" stroke-linejoin="round"/><path d="M 289 345 L 292 353 L 295 346 Z M 311 345 L 308 353 L 305 346 Z" fill="#FFF" stroke="${c.sk}" stroke-width="1" stroke-linejoin="round"/>` + dimp;
@@ -319,11 +320,11 @@ function markF(c){
     case 'hjerte': return heart(346, 337, 0.75, m);
     case 'stjerne': return starP(346, 336, 8, m);
     case 'glimmer': return twinkle(347, 334, 7, m) + twinkle(337, 342, 3.5, m) + twinkle(357, 343, 3, m) + twinkle(254, 336, 4, m);
-    case 'ar': { const S = mixC(c.skin, '#B84A5E', 0.35); return `<path d="M 336 318 L 358 344" stroke="${S}" stroke-width="3.2" stroke-linecap="round"/><path d="M 337 320 L 357 342" stroke="${lt(S,0.4)}" stroke-width="1" stroke-linecap="round"/>` + [[340,324],[346,331],[352,338]].map(([x,y]) => `<path d="M ${x-5} ${y+4} L ${x+5} ${y-4}" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`).join(''); }
+    case 'ar': { const S = mixC(c.skin, '#B84A5E', 0.35); return `<path d="M 338 332 L 358 354" stroke="${S}" stroke-width="3.2" stroke-linecap="round"/><path d="M 339 334 L 357 352" stroke="${lt(S,0.4)}" stroke-width="1" stroke-linecap="round"/>` + [[342,337],[348,343],[354,349]].map(([x,y]) => `<path d="M ${x-5} ${y+4} L ${x+5} ${y-4}" stroke="${S}" stroke-width="2" stroke-linecap="round"/>`).join(''); }
     case 'plaster': return `<g transform="rotate(-28 348 336)"><rect x="330" y="329" width="36" height="14" rx="7" fill="${lt(m,0.55)}" stroke="${fdk(m,0.2)}" stroke-width="1.6"/><rect x="342" y="329" width="12" height="14" fill="${lt(m,0.25)}"/>${[[337,334],[337,339],[359,334],[359,339]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="1" fill="${fdk(m,0.25)}"/>`).join('')}</g>`;
-    case 'maane': return moon(344, 336, 12, m) + twinkle(332, 324, 4, m);
+    case 'maane': return moon(348, 340, 7.5, m) + twinkle(338, 331, 3, m);
     case 'maling': return [[256,-1],[344,1]].map(([x,f]) => [0, 9].map(dy => `<path d="M ${x - 12*f} ${328+dy} Q ${x} ${324+dy} ${x + 12*f} ${330+dy}" stroke="${m}" stroke-width="4.5" fill="none" stroke-linecap="round" opacity=".9"/>`).join('')).join('');
-    case 'prik': return `<circle cx="324" cy="352" r="2.6" fill="${m}"/>`;
+    case 'prik': return `<circle cx="318" cy="334" r="2.4" fill="${m}"/>`;
     default: return '';
   }
 }
@@ -786,17 +787,8 @@ function waveArm(inner, ev, forever){
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
   'boots:ballerina', 'acc:lanterne',
-  'pupil:maane', 'pupil:diamant', 'pupil:blomst', 'pupil:kat', 'pupil:spiral', 'pupil:stor',
-  'lip:tunge', 'lip:kys', 'lip:skaev', 'lip:oh', 'lip:tand', 'lip:kat', 'lip:glad',
-  'mark:ar', 'mark:plaster', 'mark:maane', 'mark:maling', 'mark:prik',
-  'cape:blomster', 'cape:stribet', 'cape:pelskant',
-  'boots:sandaler', 'boots:krul', 'boots:spaende', 'boots:knap',
-  'acc:lommeur',
-  'front:gardin', 'front:mini', 'front:venstre', 'front:boelget', 'front:lang',
-  'back:rottehaler', 'back:sidefletning', 'back:topknold', 'back:skulder',
-  'pet:ugle', 'pet:raev', 'pet:froe',
-  'petpat:hjerter', 'petpat:stjerner', 'petpat:prikker', 'petpat:plet', 'petpat:glimmer',
-  'petacc:hat', 'petacc:blomst', 'petacc:stjerne', 'petacc:toerklaede', 'petacc:butterfly', 'petacc:briller',
+  'lip:kysstor', 'mark:ar', 'mark:maane', 'mark:prik',
+  'pet:ugle', 'pet:froe',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 

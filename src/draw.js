@@ -337,7 +337,7 @@ const PET_SPECIES = {
     o += H.pat('phC', [[50,-218,10],[-54,-210,8]], ["M -16 -240 L -12 -220","M 0 -244 L 0 -220","M 16 -240 L 12 -220"], [-30,-182,34,32]);
     o += `<ellipse cx="-30" cy="-180" rx="34" ry="32" fill="${P.B}" opacity=".85"/><ellipse cx="30" cy="-180" rx="34" ry="32" fill="${P.B}" opacity=".85"/>`;
     o += `<path d="M -4 -226 Q 0 -206 0 -196 Q 0 -206 4 -226" stroke="${P.L}" stroke-width="2" fill="none" opacity=".5"/>`;
-    o += H.eye(-30,-182,0.88,false,-1) + H.eye(30,-182,0.88,false,1) + H.blush(-58,-150) + H.blush(58,-150);
+    o += H.eye(-30,-182,0.88,false,-1) + H.eye(30,-182,0.88,false,1) + H.blush(-46,-158) + H.blush(46,-158);
     o += `<path d="M -9 -160 L 9 -160 L 0 -142 Z" fill="#F2A93B" stroke="#B9741A" stroke-width="2.5" stroke-linejoin="round"/>`;
     return o; },
     draw:(P,H) => {
@@ -384,7 +384,7 @@ const PET_SPECIES = {
     const head = "M -86 -132 C -92 -176, -50 -184, 0 -180 C 50 -184, 92 -176, 86 -132 C 82 -104, 40 -94, 0 -94 C -40 -94, -82 -104, -86 -132 Z";
     o += H.clip('phC', head) + H.path(head,'url(#petFur)');
     o += H.pat('phC', [[0,-162,10],[-60,-150,8],[58,-146,7]], ["M -30 -178 L -26 -156","M 30 -178 L 26 -156"], [-42,-150,26,22]);
-    o += H.eye(-42,-190,0.72,false,-1) + H.eye(42,-190,0.72,false,1) + H.blush(-62,-122) + H.blush(62,-122);
+    o += H.eye(-42,-190,0.72,false,-1) + H.eye(42,-190,0.72,false,1) + H.blush(-58,-136) + H.blush(58,-136);
     o += `<circle cx="-8" cy="-146" r="2.6" fill="${P.L}"/><circle cx="8" cy="-146" r="2.6" fill="${P.L}"/>`;
     o += `<path d="M -50 -128 Q 0 -96 50 -128" fill="none" stroke="#3A2440" stroke-width="3.2" stroke-linecap="round"/><path d="M -50 -128 l -4 -4 M 50 -128 l 4 -4" stroke="#3A2440" stroke-width="2.6" stroke-linecap="round"/>`;
     return o; },

@@ -39,6 +39,7 @@ const V = { 'acc-bog': 6,
   /* v0.17.1: håret i ét stykke, kappen fast om halsen, hestehale under hjelmen; større tilskuere og magi på engen; dørene åbner */
   /* v0.25.30: rettet efter gennemgangen af de nye ting */
   'sko-ballerina': 2, 'acc-lanterne': 2,
+  'maerke-ar': 2, 'maerke-maane': 2, 'maerke-prik': 2, 'dyr-ugle': 2, 'dyr-froe': 2,
   'kost-rytter': 4, 'fald-rytter': 2, 'fald-kort': 2, 'fald-lav': 2, 'fald-skaerm': 2, 'fald-frit': 2, 'sted-skole': 4 };
 
 (async () => {
@@ -66,10 +67,13 @@ const V = { 'acc-bog': 6,
     add('pose-ro', 'Stillinger', 'Hænderne i ro', { acc: {} }, null, '250 680 300 160');
     /* kæledyr: kun de nye (kladderne) vises her; farver der passer til dyret */
     const PETCOL = { ugle:['#A8794E','#F2E2C0','#F2A93B'], raev:['#E8843A','#FFF6E8','#3A2340'], froe:['#6BBF6A','#E6F5C8','#F2C14E'] };
+    /* de oprindelige dyreting har aldrig været på Tegnebordet; kun dem fra v0.25.31 og frem vises */
+    const NEWPET = new Set(['pet:ugle','pet:raev','pet:froe','petpat:hjerter','petpat:stjerner','petpat:prikker','petpat:plet','petpat:glimmer','petacc:hat','petacc:blomst','petacc:stjerne','petacc:toerklaede','petacc:butterfly','petacc:briller']);
+    const visDyr = (c, k) => NEWPET.has(c + ':' + k) || isKladde(c, k);
     const petIt = (id, title, pet) => out.push({ id, cat: 'Kæledyr', title, kind: 'pet', pet, vbT: '500 720 320 350', vbZ: '540 750 240 230' });
-    for (const k of Object.keys(PET_KINDS)) if (isKladde('pet', k)){ const [a, b, c] = PETCOL[k] || ['#FFC9E2','#FFFFFF','#B79BFF']; petIt('dyr-' + k, 'Dyr: ' + PET_KINDS[k].label, { kind: k, a, b, c, pattern: 'ingen', eyes: '#3D8BFF', acc: {} }); }
-    for (const k of Object.keys(PET_PATTERNS)) if (isKladde('petpat', k)) petIt('moenster-' + k, 'Mønster: ' + PET_PATTERNS[k], { kind: 'kat', a: '#FFC9E2', b: '#B79BFF', c: '#B79BFF', pattern: k, eyes: '#3D8BFF', acc: {} });
-    for (const k of Object.keys(PET_ACC)) if (isKladde('petacc', k)) petIt('dyracc-' + k, 'Dyretilbehør: ' + PET_ACC[k].label, { kind: 'kat', a: '#FFC9E2', b: '#FFFFFF', c: '#B79BFF', pattern: 'ingen', eyes: '#3D8BFF', acc: { [k]: PET_ACC[k].color } });
+    for (const k of Object.keys(PET_KINDS)) if (visDyr('pet', k)){ const [a, b, c] = PETCOL[k] || ['#FFC9E2','#FFFFFF','#B79BFF']; petIt('dyr-' + k, 'Dyr: ' + PET_KINDS[k].label, { kind: k, a, b, c, pattern: 'ingen', eyes: '#3D8BFF', acc: {} }); }
+    for (const k of Object.keys(PET_PATTERNS)) if (visDyr('petpat', k)) petIt('moenster-' + k, 'Mønster: ' + PET_PATTERNS[k], { kind: 'kat', a: '#FFC9E2', b: '#B79BFF', c: '#B79BFF', pattern: k, eyes: '#3D8BFF', acc: {} });
+    for (const k of Object.keys(PET_ACC)) if (visDyr('petacc', k)) petIt('dyracc-' + k, 'Dyretilbehør: ' + PET_ACC[k].label, { kind: 'kat', a: '#FFC9E2', b: '#FFFFFF', c: '#B79BFF', pattern: 'ingen', eyes: '#3D8BFF', acc: { [k]: PET_ACC[k].color } });
     /* værelset: hele rummet med tingen (som på tabletten) og tingen tæt på */
     for (const s of ROOM_SLOTS) for (const k of Object.keys(s.cat))
       out.push({ id: 'rum-' + s.id + '-' + k, cat: 'Værelset', title: s.label + ': ' + s.cat[k].label, kind: 'rum', slot: s.id, item: k, vbT: '0 0 1600 1000', vbZ: ROOM_VB[s.id] });
