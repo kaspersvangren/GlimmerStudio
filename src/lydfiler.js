@@ -32,9 +32,15 @@ const LYD_FILER = {
   // Trylletegning: indtil videre lånte lyde fra de andre spil. Læg egne ind via Værkstedet.
   'tryl.pop': 'lyd/boble-pop.mp3',   // en ballon springer
   'tryl.puf': 'lyd/gnom-guld.mp3',   // et væsen bliver forvandlet
-  'tryl.nam': 'lyd/invader-au.mp3',   // et væsen tager en etage af kagen
+  'tryl.nam': 'lyd/tryl-nam.mp3',   // et væsen tager en etage af kagen (Kaspers "nom", stilheden foran skåret væk)
   'tryl.runde': 'lyd/invader-boelge.mp3',   // ny runde
-  'tryl.gave': 'lyd/skjold-kugle.mp3',   // hjertetrylleri: gaveballonen springer
+  'tryl.gave': 'lyd/tryl-gave.mp3',   // hjertetrylleri: gaveballonen springer (Kaspers "shine")
+  'tryl.fuser': 'lyd/tryl-fuser.mp3',   // tegnet fuser (Kaspers elektriske stød, kortet)
+  'tryl.nyt': 'lyd/tryl-nyt.mp3',   // ny etage på kagen (Kaspers slap, uden stilhed)
+  // Koncertsalen
+  'koncert.ud': 'lyd/koncert-ud.mp3',   // bandet går ud: fodtrin i tre lag, lidt forskudt, så det lyder som flere gnomer
+  'koncert.taeppe': ['lyd/koncert-taeppe-1.mp3', 'lyd/koncert-taeppe-2.mp3'],   // tæppet for og fra: de to første sus fra Kaspers fil, skiftes
+  'koncert.klap': 'lyd/koncert-klap.mp3',   // publikum klapper (de første 4,6 sekunder, toner ud)
 };
 // Musik: 'byen', 'kaelder', 'show', 'kost', 'fald', 'arkade', 'gnom', 'skjold', 'invader', 'gribe'
 // loop: [start, slut] i sekunder. Musikken spiller fra begyndelsen og hopper så fra slut tilbage til start, uden pause.
@@ -49,5 +55,10 @@ const LYD_MUSIK = {
   gribe: { src: 'lyd/moonbyte-drift.mp3', loop: [31.27969, 106.37303], xf: 0.01 },   // "Moonbyte Drift". Loop B, valgt af Kasper. Gribemaskinen
   'stemning.arkade': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.5 },   // "casino ambiance" (freesound): summen i arkadehallen, under hallens musik. 3 s overtoning
   tryl: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // lånt fra kosteflyvningen, indtil Trylletegning får sin egen musik
+  /* koncertsalen: Kaspers egne sange, spilles hele og forfra igen */
+  'koncert.rock': { src: 'lyd/koncert-rock.mp3', loop: [0, 206.35] },   // "Stop Volden"
+  'koncert.country': { src: 'lyd/koncert-country.mp3', loop: [0, 185.1] },   // "Hun kom aldrig"
+  'koncert.disko': { src: 'lyd/koncert-disko.mp3', loop: [0, 127.58] },   // "Gi' mig, gi' mig!"
+  'koncert.hawaii': { src: 'lyd/koncert-hawaii.mp3', loop: [0, 149.1] },   // "Frøgt mig ikke!"
   fald: { src: 'lyd/cloud-glide.mp3', loop: [64, 138.03796], xf: 1 },   // "Cloud Glide Loop". Loop E, valgt af Kasper, 1 s overtoning. Faldskærm
 };
