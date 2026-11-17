@@ -194,11 +194,35 @@ function gpuAtlas(svg, pieces, extra, sc){
     const body = sh.items.map(i => { const pc = all[i]; return `<svg x="${pc.ax}" y="${pc.ay}" width="${pc.aw}" height="${pc.ah}" viewBox="${pc.x} ${pc.y} ${pc.w} ${pc.h}" preserveAspectRatio="none" overflow="hidden">${pc.markup || gpuPieceMarkup(pc, svg)}</svg>`; }).join('');
     return { W, H, src: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${defs}</defs>${body}</svg>` }; });
 }
-function gpuRasterSheet(sheet){
+function gpuRasterSheet(sheet, asCanvas){
   return new Promise((res, rej) => { const url = URL.createObjectURL(new Blob([sheet.src], { type: 'image/svg+xml' })), img = new Image();
-    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d').drawImage(img, 0, 0);
+    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d', { willReadFrequently: !!asCanvas }).drawImage(img, 0, 0);
+      if (asCanvas) return res(cv);
       cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'); };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('ark kunne ikke tegnes')); }; img.src = url; });
+}
+
+/* stykker uden en eneste synlig pixel smides væk, og resten pakkes tæt i nye ark (pixlerne kopieres, intet tegnes om).
+   Fx er skyggen i kortets kanter helt gennemsigtig inden for kameraets område, men fyldte 3/4 af arket og lå som et
+   fuldskærmslag over alt det andet */
+async function gpuDropEmpty(all, cvs){
+  /* kun store stykker undersøges (små koster næsten intet, og så skal der ikke læses så mange pixels) */
+  let dropped = 0;
+  all.forEach(pc => { if (pc.aw * pc.ah < 65536) return;
+    const d = cvs[pc.sheet].getContext('2d', { willReadFrequently: true }).getImageData(pc.ax, pc.ay, pc.aw, pc.ah).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i]) return;
+    pc.empty = true; dropped++; });
+  if (dropped){
+    const MAXW = 4096, MAXH = 4096, H = [0]; let sx = 0, sy = 0, rowH = 0, sh = 0;
+    const keep = all.filter(pc => !pc.empty).map(pc => { const pw = pc.aw + 2, ph = pc.ah + 2;
+      if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
+      if (sy + ph > MAXH){ sh++; H[sh] = 0; sx = 0; sy = 0; rowH = 0; }
+      const p = [pc, sh, sx, sy]; sx += pw; rowH = Math.max(rowH, ph); H[sh] = Math.max(H[sh], sy + rowH); return p; });
+    const out = H.map(h => { const c = document.createElement('canvas'); c.width = MAXW; c.height = Math.max(1, h); return c; });
+    for (const [pc, s2, x, y] of keep){ if (pc.aw > 0 && pc.ah > 0) out[s2].getContext('2d').drawImage(cvs[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, x, y, pc.aw, pc.ah); pc.sheet = s2; pc.ax = x; pc.ay = y; }
+    cvs = out;
+  }
+  return Promise.all(cvs.map(cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'))));
 }
 
 /* ---------- byg laget på skærmen ---------- */
@@ -207,7 +231,8 @@ async function gpuMount(svg, gen, rec, st){
   /* arkene bruges direkte som baggrundsbillede for hvert stykke (et udsnit af arket). Før var hvert stykke sit eget lærred,
      og så skulle browseren aflevere alle ~240 lærreder til grafikchippen i hvert eneste billede; det kostede halvdelen af
      tiden på tabletten. Et billedudsnit males én gang og genbruges */
-  const sheets = await Promise.all(g.sheets.map(b => createImageBitmap(b)));
+  /* kun arkenes mål skal bruges her; de står i PNG-hovedet (før blev hele arket pakket ud, ~56 MB, kun for at læse målene) */
+  const sheets = await Promise.all(g.sheets.map(async b => { const v = new DataView(await b.slice(16, 24).arrayBuffer()); return { width: v.getUint32(0), height: v.getUint32(4) }; }));
   const sheetUrl = g.sheets.map(b => URL.createObjectURL(b));
   (GPU.urls || []).forEach(u => URL.revokeObjectURL(u)); GPU.urls = sheetUrl;
   if (gen !== BAKE.gen || !svg.isConnected) return false;
@@ -219,7 +244,7 @@ async function gpuMount(svg, gen, rec, st){
   const box = (el, x, y, w, h) => { Object.assign(el.style, { transform: `translate(${x}px,${y}px)`, width: w + 'px', height: h + 'px' }); return el; };
   /* baggrunden: det bagte billede */
   const bg = new Image(); bg.decoding = 'async'; bg.src = BAKE.url; bg.className = 'gpu-bg'; cam.append(box(bg, rec.x0, rec.y0, rec.W, rec.H));
-  const piece = i => { const pc = g.pieces[i], d = document.createElement('div'), sx = pc.w / pc.aw, sy = pc.h / pc.ah, sh = sheets[pc.sheet];
+  const piece = i => { const pc = g.pieces[i]; if (!pc) return null; const d = document.createElement('div'), sx = pc.w / pc.aw, sy = pc.h / pc.ah, sh = sheets[pc.sheet];
     d.className = pc.fix ? 'gpu-p gpu-fix' : 'gpu-p'; d.dataset.i = i; if (pc.blend) d.style.mixBlendMode = pc.blend;
     d.style.backgroundImage = `url(${sheetUrl[pc.sheet]})`; d.style.backgroundSize = `${sh.width * sx}px ${sh.height * sy}px`; d.style.backgroundPosition = `${-pc.ax * sx}px ${-pc.ay * sy}px`;
     return box(d, pc.x, pc.y, pc.w, pc.h); };
@@ -234,15 +259,14 @@ async function gpuMount(svg, gen, rec, st){
       if (w.o != null) d.style.opacity = w.o;
       if (w.a){ try { d.animate(w.a.kf, { duration: w.a.dur, delay: w.a.delay, iterations: Infinity, easing: 'linear' }); } catch (e){} }
       cur = d; }
-    for (const k of spec.c){ let e = k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k);
+    for (const k of spec.c){ let e = k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k); if (!e) continue;
       if (k.mir) k.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(e); e = w; gpuMirror(svg, A, w, true); });
       cur.append(e); }
     return outer; };
-  for (const it of g.items){ let el = it.p != null ? piece(it.p) : node(it);
+  for (const it of g.items){ let el = it.p != null ? piece(it.p) : node(it); if (!el) continue;
     /* ting man kan trykke på: et hop eller et skjul på originalen i SVG'en spejles over på laget */
     if (it.mir) it.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(el); el = w; gpuMirror(svg, A, w); });
     cam.append(el); }
-  sheets.forEach(s => s.close && s.close());
   /* skjul originalerne i SVG'en og fjern deres animationer, så de ikke tikker videre */
   g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place,[data-tap]')) r.style.pointerEvents = 'painted';
     /* tekst og billeder i roden bliver vist i SVG'en */
@@ -327,9 +351,33 @@ function driveJob(a){
     if (mode === 'discrete' || i >= vals.length - 1) return vals[i];
     const u = (k - offs[i]) / ((offs[i + 1] - offs[i]) || 1), A = vals[i], B = vals[i + 1]; return A.map((v, j) => v + ((B[j] ?? v) - v) * u); };
   const fmt = v => v.map(x => +x.toFixed(3)).join(' ');
-  if (t === 'animateTransform'){ const type = a.getAttribute('type') || 'translate'; return { el, kind: 'transform', sum, dur, begin, val: k => `${type}(${fmt(sample(k))})` }; }
+  if (t === 'animateTransform'){ const type = a.getAttribute('type') || 'translate'; return { el, kind: 'transform', sum, dur, begin, offs, disc: mode === 'discrete', val: k => `${type}(${fmt(sample(k))})` }; }
   const base = parseFloat(el.getAttribute(at));
-  return { el, kind: 'attr', at, dur, begin, val: k => { const v = sample(k); return fmt(sum && !isNaN(base) ? v.map(x => x + base) : v); } };
+  return { el, kind: 'attr', at, dur, begin, offs, disc: mode === 'discrete', val: k => { const v = sample(k); return fmt(sum && !isNaN(base) ? v.map(x => x + base) : v); } };
+}
+/* én gruppe (ét element) som CSS-animationer: gennemsigtighed for sig, og flytning/drejning/cx/cy/r samlet som én transform.
+   Værdierne tages tæt (48 pr. runde) fra samme funktioner som uret bruger, så forløbet er det samme. Lykkes det ikke, kører uret den */
+function driveCompose(g){
+  const el = g.el, ops = g.jobs.filter(j => j.kind === 'attr' && j.at === 'opacity'), geo = g.jobs.filter(j => !ops.includes(j));
+  if (!el.animate || ops.length > 1 || g.jobs.some(j => j.disc)) return false;
+  if (geo.some(j => j.kind === 'attr' && !(/^(cx|cy|r)$/.test(j.at) && el.tagName === 'circle'))) return false;
+  if (geo.length && geo.some(j => j.dur !== geo[0].dur || j.begin !== geo[0].begin)) return false;
+  if (geo.filter(j => j.kind === 'motion').length > 1 || geo.filter(j => j.kind === 'transform').length > 1) return false;
+  const N = 48, grid = js => [...new Set([...Array(N + 1).keys()].map(i => i / N).concat(...js.map(j => j.offs || [])))].filter(t => t >= 0 && t <= 1).sort((a, b) => a - b), tmp = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const cssM = s => { tmp.setAttribute('transform', s || ''); const c = tmp.transform.baseVal.consolidate(), m = c ? c.matrix : { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+    return `matrix(${[m.a, m.b, m.c, m.d, m.e, m.f].map(v => +v.toFixed(4)).join(',')})`; };
+  const base = n => parseFloat(el.getAttribute(n)) || 0, cx0 = base('cx'), cy0 = base('cy'), r0 = base('r') || 1;
+  const run = (kf, j) => el.animate(kf, { duration: j.dur * 1000, delay: j.begin * 1000, iterations: Infinity, easing: 'linear' });
+  try {
+    if (geo.length){ const j0 = geo[0], kf = [];
+      for (const t of grid(geo)){ const k = Math.min(t, 0.99999); let tr = null, mo = '', cx = cx0, cy = cy0, r = r0;
+        for (const j of geo){ const v = j.val(k); if (j.kind === 'transform') tr = j.sum ? g.tbase + ' ' + v : v; else if (j.kind === 'motion') mo = v + ' '; else if (j.at === 'cx') cx = +v; else if (j.at === 'cy') cy = +v; else r = +v; }
+        const s = r / r0, attr = (cx !== cx0 || cy !== cy0 || s !== 1) ? ` matrix(${s} 0 0 ${s} ${cx - s * cx0} ${cy - s * cy0})` : '';
+        kf.push({ offset: t, transform: cssM(mo + (tr ?? g.tbase) + attr) }); }
+      el.style.transformOrigin = '0 0'; el.style.transformBox = 'view-box'; run(kf, j0); }
+    if (ops.length){ const j = ops[0], kf = grid(ops).map(t => ({ offset: t, opacity: +j.val(Math.min(t, 0.99999)) })); run(kf, j); }
+  } catch (e){ el.getAnimations().forEach(a => a.cancel()); return false; }
+  return true;
 }
 function smilDrive(svg){
   const groups = new Map();
@@ -339,7 +387,9 @@ function smilDrive(svg){
     let g = groups.get(j.el); if (!g){ g = { el: j.el, jobs: [], tbase: j.el.getAttribute('transform') || '', last: {} }; groups.set(j.el, g); }
     g.jobs.push(j); a.remove();
   }
-  const list = [...groups.values()]; DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
+  /* de fleste kan køre som CSS-animationer direkte på SVG-elementet: så flytter grafikchippen dem selv,
+     og kortet skal ikke tegnes om på processoren 30 gange i sekundet (det gjorde det, så længe noget her blev drevet af uret) */
+  const list = [...groups.values()].filter(g => !driveCompose(g)); DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
   const dash = DRIVE.dash;
   if (!list.length && !dash.length) return;
   /* hvor ligger hver ting (med god margen til bevægelsen)? */

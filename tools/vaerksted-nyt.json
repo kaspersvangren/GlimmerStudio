@@ -1,4 +1,5 @@
 [
+ "Byen er gjort lettere: et usynligt lag, der fyldte 3/4 af billedarket, er væk (billedarket går fra 54 til 15 MB i hukommelsen), figurer og talebobler har fået deres eget lag, så kortet ikke tegnes om hele tiden, og hjemkomsten til byen hakker mindre.",
  "Byen skifter ikke længere fra aften til nat midt i spillet (kl. 20.30), for så skulle hele kortet bages forfra, og det gav et langt hak. Tidspunktet bestemmes nu, når spillet starter.",
  "Byen kører lettere: de bevægelige ting på kortet var ~240 små lærreder, som browseren skulle aflevere til grafikchippen i hvert billede. Nu er de udsnit af ét fælles billede.",
  "Rettet i Koncertsalen: de sange, man har hørt, huskes nu i det gemte spil, og man kommer altid ind til lounge, også hvis man gik midt i en ønskesang.",

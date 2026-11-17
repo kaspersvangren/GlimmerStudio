@@ -171,7 +171,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   let li = 0;
   const step = () => {
     if (gen !== BAKE.gen || !svg.isConnected) return;
-    refresh(); const until = performance.now() + 12;
+    refresh(); const until = performance.now() + (window.BAKE_CHUNK || 12);
     for (; li < leaves.length && performance.now() < until; li++){ const e = leaves[li];
     const b = map(e.getBoundingClientRect());
     const ag = isAnim(e), transparent = !ag && bakeInvisible(e);
@@ -215,7 +215,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
       clipped.set(e, R); }
     }
     BAKE.prog = li / leaves.length;
-    if (li < leaves.length){ setTimeout(step, 16); return; }
+    if (li < leaves.length){ setTimeout(step, window.BAKE_GAP ?? 16); return; }
     refresh(); finish();
   };
   const finish = () => {
@@ -261,7 +261,10 @@ function bakeNow(svg, gen, key, sc, gpuOn){
       const cl = []; regs.forEach(x => { let c = cl.find(c => c.some(y => x.r[0] < y.r[2] + 2 && x.r[2] > y.r[0] - 2 && x.r[1] < y.r[3] + 2 && x.r[3] > y.r[1] - 2)); if (c) c.push(x); else cl.push([x]); });
       for (let k = 0; k < cl.length; k++) for (let m = k + 1; m < cl.length; m++) if (cl[k].some(x => cl[m].some(y => x.r[0] < y.r[2] + 2 && x.r[2] > y.r[0] - 2 && x.r[1] < y.r[3] + 2 && x.r[3] > y.r[1] - 2))){ cl[k] = cl[k].concat(cl[m]); cl.splice(m, 1); m = k; }
       cl.forEach(c => {
-        const bx0 = Math.min(...c.map(x => x.r[0])), by0 = Math.min(...c.map(x => x.r[1])), bx1 = Math.max(...c.map(x => x.r[2])), by1 = Math.max(...c.map(x => x.r[3]));
+        /* lappen skæres til det område, billedet dækker (kameraets område); udenfor kan intet ses.
+           Skyggen i kortets kanter gav ellers én lap på 2163x2176, som fyldte over 80 % af arket */
+        const bx0 = Math.max(x0, Math.min(...c.map(x => x.r[0]))), by0 = Math.max(y0, Math.min(...c.map(x => x.r[1]))), bx1 = Math.min(x1, Math.max(...c.map(x => x.r[2]))), by1 = Math.min(y1, Math.max(...c.map(x => x.r[3])));
+        if (bx1 <= bx0 || by1 <= by0) return;
         const byEl = new Map(); c.forEach(x => { if (!byEl.has(x.e)) byEl.set(x.e, []); byEl.get(x.e).push(x.r); });
         /* en ting med blandingstilstand (nattens farvelag) får sin egen lap, så kun den blander med lagene under sig */
         let markup = '', blend = null, k = 0;
@@ -292,15 +295,17 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   async function gpuFinish(gs){
     /* bladenes markup skal laves, mens SVG'en er urørt; derefter tegnes arkene */
     gs.pieces.forEach(pc => { pc.markup = gpuPieceMarkup(pc, svg); });
-    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), blobs = [];
-    for (const sh of sheets){ blobs.push(await gpuRasterSheet(sh)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
-    const all = gs.pieces.concat(gs.extra), sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
+    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), cvs = [];
+    for (const sh of sheets){ cvs.push(await gpuRasterSheet(sh, true)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
+    const all = gs.pieces.concat(gs.extra), blobs = await gpuDropEmpty(all, cvs);
+    if (gen !== BAKE.gen) throw new Error('afbrudt');
+    const sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
     const fixP = it => { if (it.d) return; if (it.p != null){ it.p = it.p < 0 ? gs.pieces.length + (-it.p - 1) : it.p; return; } it.c.forEach(fixP); };
     gs.items.forEach(fixP);
     const fixM = it => { if (it.mirEl){ it.mir = it.mirEl.map(e => aidx.get(e)); delete it.mirEl; if (it.mir.some(v => v == null)) delete it.mir; } if (it.c) it.c.forEach(fixM); };
     gs.items.forEach(fixM);
     return { nAll: sAll.length, sheets: blobs, roots: gs.roots.map(r => aidx.get(r)),
-      pieces: all.map((pc, i) => ({ sheet: pc.sheet, ax: pc.ax, ay: pc.ay, aw: pc.aw, ah: pc.ah, x: pc.x, y: pc.y, w: pc.w, h: pc.h, blend: pc.blend || null, fix: i >= gs.pieces.length })), px, items: gs.items };
+      pieces: all.map((pc, i) => pc.empty ? null : ({ sheet: pc.sheet, ax: pc.ax, ay: pc.ay, aw: pc.aw, ah: pc.ah, x: pc.x, y: pc.y, w: pc.w, h: pc.h, blend: pc.blend || null, fix: i >= gs.pieces.length })), px, items: gs.items };
   }
   /* kopien til billedet: uden det levende. Gennemsigtige klippede ting får hul i deres felter, så de ikke tegnes dobbelt */
   const idx = new Map(); all.forEach((e, i) => idx.set(e, i));

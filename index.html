@@ -870,11 +870,14 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* fejlsøgnings-mærket, når loggen er slået til */
 .dbg-badge{position:fixed;left:calc(6px + env(safe-area-inset-left,0px));bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:9999;pointer-events:none;font:700 11px/1 system-ui,sans-serif;color:#FFF;background:rgba(200,30,60,.85);padding:4px 7px;border-radius:8px;letter-spacing:.04em}
 #townSvg.baked .bk{visibility:hidden}
+#townSvg.baked .bk:not(.place .bk):not([data-tap] .bk){display:none}   /* bagt og ikke til at trykke på: helt ude af tegningen (~2000 elementer færre at gå igennem) */
 #townSvg.baked .place .bk{pointer-events:painted}   /* skjulte dele af husene kan stadig trykkes på */
 /* kortets animationer på grafikchippen (src/gpukort.js) */
 /* kortets verden: på telefoner er den større end skærmen og flyttes af kameraet som ét lag */
 #town .world{position:absolute;left:0;top:0;width:100%;height:100%}
 #town .world.cam{transform-origin:0 0;will-change:transform}
+#town .town-live{position:absolute;left:0;top:0;pointer-events:none}   /* figurer og bobler: eget lag over kortet */
+#townLive #chars > g{will-change:transform}   /* hver figur sit lille lag: at gå er kun en flytning, kun dukkens egen animation tegnes om */
 .gpu-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
 .gpu-host{isolation:isolate}
 .gpu-cam{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
@@ -2811,7 +2814,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.32.5';
+const VERSION = 'v0.33.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -11781,7 +11784,9 @@ function sv(tag, attrs = {}, html = ''){ const e = document.createElementNS(NS, 
 /* en tegning laves om til et almindeligt billede én gang — så hakker det ikke */
 function raster(svg, w, h){
   return new Promise(res => { const img = new Image();
-    img.onload = () => { try { const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/png')); } catch(e){ res(img.src); } };
+    /* PNG-pakningen sker med toBlob uden for hovedtråden (toDataURL låste den i ~20-50 ms pr. figur, mens byen kørte) */
+    img.onload = () => { try { const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => { if (!b) return res(img.src); const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => res(img.src); fr.readAsDataURL(b); }, 'image/png'); } catch(e){ res(img.src); } };
     img.onerror = () => res(''); img.src = svgUrl(svg); });
 }
 /* stierne er et net: alle ruterne lægges sammen (punkter tættere end 14 er det samme kryds), plus stier rundt om brønden,
@@ -11827,7 +11832,9 @@ function makeChar(kind, href, o = {}){
   if (c.face < 0) c.cf.setAttribute('transform', 'scale(-1,1)');
   $('#chars').append(g); LIFE.chars.push(c); placeChar(c); return c;
 }
-function placeChar(c){ const s = depthS(c.y); c.g.setAttribute('transform', `translate(${c.x.toFixed(1)},${c.y.toFixed(1)}) scale(${s.toFixed(3)})`); }
+/* skriv kun en egenskab, når den faktisk ændrer sig (ellers markeres SVG'en som ændret og tegnes om i hvert billede) */
+const setIf = (el, k, v) => { const m = el._last || (el._last = {}); if (m[k] !== v){ m[k] = v; el.setAttribute(k, v); } };
+function placeChar(c){ const s = depthS(c.y); setIf(c.g, 'transform', `translate(${c.x.toFixed(1)},${c.y.toFixed(1)}) scale(${s.toFixed(3)})`); }
 function setDir(c, dx){ if (Math.abs(dx) < 0.5) return; const d = dx < 0 ? -1 : 1; if (d !== c.dir){ c.dir = d; c.cf.setAttribute('transform', d * c.face < 0 ? 'scale(-1,1)' : ''); } }
 function sortChars(){ const L = $('#chars'); if (!L) return; const sorted = LIFE.chars.slice().sort((a, b) => a.y - b.y); sorted.forEach((c, i) => { if (L.children[i] !== c.g) L.insertBefore(c.g, L.children[i] || null); }); }
 /* gå langs en rute med jævn fart; kalder done til sidst */
@@ -11856,7 +11863,7 @@ function tickChar(c, dt, now){
     r.d = Math.min(r.total, r.d + r.speed * depthS(c.y) * dt); const [x, y, dx] = routePos(r, r.d); setDir(c, dx); c.x = x; c.y = y;
     if (r.d >= r.total){ c.route = null; r.done && r.done(); } }
   if (c.bob){ const moving = !!c.route && !c.paused, t = (now + c.t0) / 1000;
-    c.cb.setAttribute('transform', moving ? `translate(0,${(-Math.abs(Math.sin(t * 7)) * 5).toFixed(1)}) rotate(${(Math.sin(t * 7) * 3).toFixed(1)})` : ''); }
+    setIf(c.cb, 'transform', moving ? `translate(0,${(-Math.abs(Math.sin(t * 7)) * 5).toFixed(1)}) rotate(${(Math.sin(t * 7) * 3).toFixed(1)})` : ''); }
   placeChar(c);
 }
 /* taleboble der følger en figur */
@@ -11867,7 +11874,7 @@ function bubble(text, pos, ms = 2300, special = false){
   const b = { g, pos, until: performance.now() + ms };
   const bb = g.querySelector('.bb');
   b.place = () => { let [x, y] = b.pos(); const [vx0, vx1, vy0] = camView(); const bx = Math.max(vx0 + w/2 + 6, Math.min(vx1 - w/2 - 6, x)); x = Math.max(vx0 + 16, Math.min(vx1 - 16, x)); y = Math.max(vy0 + 56, y);
-    g.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)})`); bb.setAttribute('transform', `translate(${Math.max(-w/2 + 24, Math.min(w/2 - 24, bx - x)).toFixed(1)},0)`); };
+    setIf(g, 'transform', `translate(${x.toFixed(1)},${y.toFixed(1)})`); setIf(bb, 'transform', `translate(${Math.max(-w/2 + 24, Math.min(w/2 - 24, bx - x)).toFixed(1)},0)`); };
   b.place(); LIFE.bubbles.push(b); return b;
 }
 const above = c => () => [c.x, c.y - c.h * depthS(c.y) * 0.98];
@@ -11912,7 +11919,7 @@ function tickDog(p){
   else if (!r && Math.abs(d.x - p.c.x) < 20){ d.x = p.c.x + 34; }
   if (!d.leash){ d.leash = sv('path', { fill:'none', stroke: adj(p.st.robe.a, -0.2), 'stroke-width': 2.5, 'stroke-linecap':'round', 'pointer-events':'none' }); $('#chars').append(d.leash); }
   const s1 = depthS(p.c.y), s2 = depthS(d.y), side = d.x >= p.c.x ? 1 : -1, hx = p.c.x + side * 20 * s1, hy = p.c.y - 62 * s1, cx = d.x - side * 10 * s2, cy = d.y - 30 * s2;
-  d.leash.setAttribute('d', `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${((hx+cx)/2).toFixed(1)} ${(Math.max(hy, cy) + 14).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`);
+  setIf(d.leash, 'd', `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${((hx+cx)/2).toFixed(1)} ${(Math.max(hy, cy) + 14).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`);
   d.bobStop = !r || p.c.paused;
 }
 function greetPed(p){
@@ -12140,7 +12147,7 @@ function lifeTick(now){
   const dt = Math.min(50, now - LIFE.last); LIFE.last = now;
   for (const c of LIFE.chars) if (c !== LIFE.pet && !c.isDog) tickChar(c, dt, now);
   heroPetFollow(); if (LIFE.pet) placeChar(LIFE.pet);
-  for (const p of LIFE.peds) if (p.dog){ tickDog(p); const d = p.dog; if (d.bob){ const t = (now + d.t0) / 1000; d.cb.setAttribute('transform', d.bobStop ? '' : `translate(0,${(-Math.abs(Math.sin(t * 9)) * 3).toFixed(1)})`); } placeChar(d); }
+  for (const p of LIFE.peds) if (p.dog){ tickDog(p); const d = p.dog; if (d.bob){ const t = (now + d.t0) / 1000; setIf(d.cb, 'transform', d.bobStop ? '' : `translate(0,${(-Math.abs(Math.sin(t * 9)) * 3).toFixed(1)})`); } placeChar(d); }
   camFollow(now, dt);
   sortChars();
   for (const b of LIFE.bubbles.slice()){ if (now > b.until){ b.g.remove(); LIFE.bubbles.splice(LIFE.bubbles.indexOf(b), 1); } else b.place(); }
@@ -12162,10 +12169,11 @@ function camFit(){
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
+  const lv = $('#townLive'), vb = v => { svg.setAttribute('viewBox', v); if (lv) lv.setAttribute('viewBox', v); };
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; vb(`0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
   CAM.vh = vh; CAM.vw = Math.min(CAM_W, vh * W / H);
   CAM.k = Math.min(W / CAM.vw, H / CAM.vh); CAM.ox = (W - CAM.vw * CAM.k) / 2; CAM.oy = (H - CAM.vh * CAM.k) / 2;
-  svg.setAttribute('viewBox', `${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
+  vb(`${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
   w.classList.add('cam'); w.style.width = (CAM_W * CAM.k).toFixed(2) + 'px'; w.style.height = (CAM_H * CAM.k).toFixed(2) + 'px';
   CAM.t = ''; camApply();
 }
@@ -12228,9 +12236,15 @@ function showTown(o = {}){
     box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = src) + '</div>' }),
       el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns(), menuBtn() ]));
     $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
+    /* figurer og talebobler ligger øverst i kortet. De flyttes til deres egen gennemsigtige SVG lige ovenpå,
+       så en figur der går (eller blinker) kun tegner sit eget lille lag om, og ikke hele kortet med ~2800 elementer */
+    const ts = $('#townSvg'), live = sv('svg', { id: 'townLive', class: 'town-live', viewBox: ts.getAttribute('viewBox'), preserveAspectRatio: ts.getAttribute('preserveAspectRatio') || 'xMidYMid meet', 'aria-hidden': 'true' });
+    live.append($('#chars'), $('#bubbles')); ts.after(live);
+    live.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t) tapThing(t); });
   }
-  const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
-  SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
+  const hero = heroState(), hasPet = hero.pet.kind !== 'ingen', sprKey = JSON.stringify(hero) + '|' + calm;
+  /* samme dukke som sidst: genbrug billederne (samme adresse = browseren har dem allerede pakket ud og tegnet) */
+  if (!SPR || SPR.key !== sprKey) SPR = { key: sprKey, idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),
           sit: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, viewBox: VB_PET, anim: !calm })) : '',
           pwalk: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, petMode: 'walk', viewBox: VB_PET, anim: !calm })) : '' };
@@ -12249,7 +12263,7 @@ function showTown(o = {}){
     else $('#homeDoll').remove();
     placeHiddenStar();
     $('#townLogo').addEventListener('click', logoTap);
-    camWire($('#street')); camFit(); growTaps(svg);
+    camWire($('#street')); camFit(); growTaps(svg); growTaps($('#townLive'));
     bakeTown(svg);
     svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
     svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
@@ -12437,7 +12451,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   let li = 0;
   const step = () => {
     if (gen !== BAKE.gen || !svg.isConnected) return;
-    refresh(); const until = performance.now() + 12;
+    refresh(); const until = performance.now() + (window.BAKE_CHUNK || 12);
     for (; li < leaves.length && performance.now() < until; li++){ const e = leaves[li];
     const b = map(e.getBoundingClientRect());
     const ag = isAnim(e), transparent = !ag && bakeInvisible(e);
@@ -12481,7 +12495,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
       clipped.set(e, R); }
     }
     BAKE.prog = li / leaves.length;
-    if (li < leaves.length){ setTimeout(step, 16); return; }
+    if (li < leaves.length){ setTimeout(step, window.BAKE_GAP ?? 16); return; }
     refresh(); finish();
   };
   const finish = () => {
@@ -12527,7 +12541,10 @@ function bakeNow(svg, gen, key, sc, gpuOn){
       const cl = []; regs.forEach(x => { let c = cl.find(c => c.some(y => x.r[0] < y.r[2] + 2 && x.r[2] > y.r[0] - 2 && x.r[1] < y.r[3] + 2 && x.r[3] > y.r[1] - 2)); if (c) c.push(x); else cl.push([x]); });
       for (let k = 0; k < cl.length; k++) for (let m = k + 1; m < cl.length; m++) if (cl[k].some(x => cl[m].some(y => x.r[0] < y.r[2] + 2 && x.r[2] > y.r[0] - 2 && x.r[1] < y.r[3] + 2 && x.r[3] > y.r[1] - 2))){ cl[k] = cl[k].concat(cl[m]); cl.splice(m, 1); m = k; }
       cl.forEach(c => {
-        const bx0 = Math.min(...c.map(x => x.r[0])), by0 = Math.min(...c.map(x => x.r[1])), bx1 = Math.max(...c.map(x => x.r[2])), by1 = Math.max(...c.map(x => x.r[3]));
+        /* lappen skæres til det område, billedet dækker (kameraets område); udenfor kan intet ses.
+           Skyggen i kortets kanter gav ellers én lap på 2163x2176, som fyldte over 80 % af arket */
+        const bx0 = Math.max(x0, Math.min(...c.map(x => x.r[0]))), by0 = Math.max(y0, Math.min(...c.map(x => x.r[1]))), bx1 = Math.min(x1, Math.max(...c.map(x => x.r[2]))), by1 = Math.min(y1, Math.max(...c.map(x => x.r[3])));
+        if (bx1 <= bx0 || by1 <= by0) return;
         const byEl = new Map(); c.forEach(x => { if (!byEl.has(x.e)) byEl.set(x.e, []); byEl.get(x.e).push(x.r); });
         /* en ting med blandingstilstand (nattens farvelag) får sin egen lap, så kun den blander med lagene under sig */
         let markup = '', blend = null, k = 0;
@@ -12558,15 +12575,17 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   async function gpuFinish(gs){
     /* bladenes markup skal laves, mens SVG'en er urørt; derefter tegnes arkene */
     gs.pieces.forEach(pc => { pc.markup = gpuPieceMarkup(pc, svg); });
-    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), blobs = [];
-    for (const sh of sheets){ blobs.push(await gpuRasterSheet(sh)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
-    const all = gs.pieces.concat(gs.extra), sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
+    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), cvs = [];
+    for (const sh of sheets){ cvs.push(await gpuRasterSheet(sh, true)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
+    const all = gs.pieces.concat(gs.extra), blobs = await gpuDropEmpty(all, cvs);
+    if (gen !== BAKE.gen) throw new Error('afbrudt');
+    const sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
     const fixP = it => { if (it.d) return; if (it.p != null){ it.p = it.p < 0 ? gs.pieces.length + (-it.p - 1) : it.p; return; } it.c.forEach(fixP); };
     gs.items.forEach(fixP);
     const fixM = it => { if (it.mirEl){ it.mir = it.mirEl.map(e => aidx.get(e)); delete it.mirEl; if (it.mir.some(v => v == null)) delete it.mir; } if (it.c) it.c.forEach(fixM); };
     gs.items.forEach(fixM);
     return { nAll: sAll.length, sheets: blobs, roots: gs.roots.map(r => aidx.get(r)),
-      pieces: all.map((pc, i) => ({ sheet: pc.sheet, ax: pc.ax, ay: pc.ay, aw: pc.aw, ah: pc.ah, x: pc.x, y: pc.y, w: pc.w, h: pc.h, blend: pc.blend || null, fix: i >= gs.pieces.length })), px, items: gs.items };
+      pieces: all.map((pc, i) => pc.empty ? null : ({ sheet: pc.sheet, ax: pc.ax, ay: pc.ay, aw: pc.aw, ah: pc.ah, x: pc.x, y: pc.y, w: pc.w, h: pc.h, blend: pc.blend || null, fix: i >= gs.pieces.length })), px, items: gs.items };
   }
   /* kopien til billedet: uden det levende. Gennemsigtige klippede ting får hul i deres felter, så de ikke tegnes dobbelt */
   const idx = new Map(); all.forEach((e, i) => idx.set(e, i));
@@ -12811,11 +12830,35 @@ function gpuAtlas(svg, pieces, extra, sc){
     const body = sh.items.map(i => { const pc = all[i]; return `<svg x="${pc.ax}" y="${pc.ay}" width="${pc.aw}" height="${pc.ah}" viewBox="${pc.x} ${pc.y} ${pc.w} ${pc.h}" preserveAspectRatio="none" overflow="hidden">${pc.markup || gpuPieceMarkup(pc, svg)}</svg>`; }).join('');
     return { W, H, src: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${defs}</defs>${body}</svg>` }; });
 }
-function gpuRasterSheet(sheet){
+function gpuRasterSheet(sheet, asCanvas){
   return new Promise((res, rej) => { const url = URL.createObjectURL(new Blob([sheet.src], { type: 'image/svg+xml' })), img = new Image();
-    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d').drawImage(img, 0, 0);
+    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d', { willReadFrequently: !!asCanvas }).drawImage(img, 0, 0);
+      if (asCanvas) return res(cv);
       cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'); };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('ark kunne ikke tegnes')); }; img.src = url; });
+}
+
+/* stykker uden en eneste synlig pixel smides væk, og resten pakkes tæt i nye ark (pixlerne kopieres, intet tegnes om).
+   Fx er skyggen i kortets kanter helt gennemsigtig inden for kameraets område, men fyldte 3/4 af arket og lå som et
+   fuldskærmslag over alt det andet */
+async function gpuDropEmpty(all, cvs){
+  /* kun store stykker undersøges (små koster næsten intet, og så skal der ikke læses så mange pixels) */
+  let dropped = 0;
+  all.forEach(pc => { if (pc.aw * pc.ah < 65536) return;
+    const d = cvs[pc.sheet].getContext('2d', { willReadFrequently: true }).getImageData(pc.ax, pc.ay, pc.aw, pc.ah).data;
+    for (let i = 3; i < d.length; i += 4) if (d[i]) return;
+    pc.empty = true; dropped++; });
+  if (dropped){
+    const MAXW = 4096, MAXH = 4096, H = [0]; let sx = 0, sy = 0, rowH = 0, sh = 0;
+    const keep = all.filter(pc => !pc.empty).map(pc => { const pw = pc.aw + 2, ph = pc.ah + 2;
+      if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
+      if (sy + ph > MAXH){ sh++; H[sh] = 0; sx = 0; sy = 0; rowH = 0; }
+      const p = [pc, sh, sx, sy]; sx += pw; rowH = Math.max(rowH, ph); H[sh] = Math.max(H[sh], sy + rowH); return p; });
+    const out = H.map(h => { const c = document.createElement('canvas'); c.width = MAXW; c.height = Math.max(1, h); return c; });
+    for (const [pc, s2, x, y] of keep){ if (pc.aw > 0 && pc.ah > 0) out[s2].getContext('2d').drawImage(cvs[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, x, y, pc.aw, pc.ah); pc.sheet = s2; pc.ax = x; pc.ay = y; }
+    cvs = out;
+  }
+  return Promise.all(cvs.map(cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'))));
 }
 
 /* ---------- byg laget på skærmen ---------- */
@@ -12824,7 +12867,8 @@ async function gpuMount(svg, gen, rec, st){
   /* arkene bruges direkte som baggrundsbillede for hvert stykke (et udsnit af arket). Før var hvert stykke sit eget lærred,
      og så skulle browseren aflevere alle ~240 lærreder til grafikchippen i hvert eneste billede; det kostede halvdelen af
      tiden på tabletten. Et billedudsnit males én gang og genbruges */
-  const sheets = await Promise.all(g.sheets.map(b => createImageBitmap(b)));
+  /* kun arkenes mål skal bruges her; de står i PNG-hovedet (før blev hele arket pakket ud, ~56 MB, kun for at læse målene) */
+  const sheets = await Promise.all(g.sheets.map(async b => { const v = new DataView(await b.slice(16, 24).arrayBuffer()); return { width: v.getUint32(0), height: v.getUint32(4) }; }));
   const sheetUrl = g.sheets.map(b => URL.createObjectURL(b));
   (GPU.urls || []).forEach(u => URL.revokeObjectURL(u)); GPU.urls = sheetUrl;
   if (gen !== BAKE.gen || !svg.isConnected) return false;
@@ -12836,7 +12880,7 @@ async function gpuMount(svg, gen, rec, st){
   const box = (el, x, y, w, h) => { Object.assign(el.style, { transform: `translate(${x}px,${y}px)`, width: w + 'px', height: h + 'px' }); return el; };
   /* baggrunden: det bagte billede */
   const bg = new Image(); bg.decoding = 'async'; bg.src = BAKE.url; bg.className = 'gpu-bg'; cam.append(box(bg, rec.x0, rec.y0, rec.W, rec.H));
-  const piece = i => { const pc = g.pieces[i], d = document.createElement('div'), sx = pc.w / pc.aw, sy = pc.h / pc.ah, sh = sheets[pc.sheet];
+  const piece = i => { const pc = g.pieces[i]; if (!pc) return null; const d = document.createElement('div'), sx = pc.w / pc.aw, sy = pc.h / pc.ah, sh = sheets[pc.sheet];
     d.className = pc.fix ? 'gpu-p gpu-fix' : 'gpu-p'; d.dataset.i = i; if (pc.blend) d.style.mixBlendMode = pc.blend;
     d.style.backgroundImage = `url(${sheetUrl[pc.sheet]})`; d.style.backgroundSize = `${sh.width * sx}px ${sh.height * sy}px`; d.style.backgroundPosition = `${-pc.ax * sx}px ${-pc.ay * sy}px`;
     return box(d, pc.x, pc.y, pc.w, pc.h); };
@@ -12851,15 +12895,14 @@ async function gpuMount(svg, gen, rec, st){
       if (w.o != null) d.style.opacity = w.o;
       if (w.a){ try { d.animate(w.a.kf, { duration: w.a.dur, delay: w.a.delay, iterations: Infinity, easing: 'linear' }); } catch (e){} }
       cur = d; }
-    for (const k of spec.c){ let e = k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k);
+    for (const k of spec.c){ let e = k.p != null ? piece(k.p) : k.d ? dashCv(k.d) : node(k); if (!e) continue;
       if (k.mir) k.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(e); e = w; gpuMirror(svg, A, w, true); });
       cur.append(e); }
     return outer; };
-  for (const it of g.items){ let el = it.p != null ? piece(it.p) : node(it);
+  for (const it of g.items){ let el = it.p != null ? piece(it.p) : node(it); if (!el) continue;
     /* ting man kan trykke på: et hop eller et skjul på originalen i SVG'en spejles over på laget */
     if (it.mir) it.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(el); el = w; gpuMirror(svg, A, w); });
     cam.append(el); }
-  sheets.forEach(s => s.close && s.close());
   /* skjul originalerne i SVG'en og fjern deres animationer, så de ikke tikker videre */
   g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place,[data-tap]')) r.style.pointerEvents = 'painted';
     /* tekst og billeder i roden bliver vist i SVG'en */
@@ -12944,9 +12987,33 @@ function driveJob(a){
     if (mode === 'discrete' || i >= vals.length - 1) return vals[i];
     const u = (k - offs[i]) / ((offs[i + 1] - offs[i]) || 1), A = vals[i], B = vals[i + 1]; return A.map((v, j) => v + ((B[j] ?? v) - v) * u); };
   const fmt = v => v.map(x => +x.toFixed(3)).join(' ');
-  if (t === 'animateTransform'){ const type = a.getAttribute('type') || 'translate'; return { el, kind: 'transform', sum, dur, begin, val: k => `${type}(${fmt(sample(k))})` }; }
+  if (t === 'animateTransform'){ const type = a.getAttribute('type') || 'translate'; return { el, kind: 'transform', sum, dur, begin, offs, disc: mode === 'discrete', val: k => `${type}(${fmt(sample(k))})` }; }
   const base = parseFloat(el.getAttribute(at));
-  return { el, kind: 'attr', at, dur, begin, val: k => { const v = sample(k); return fmt(sum && !isNaN(base) ? v.map(x => x + base) : v); } };
+  return { el, kind: 'attr', at, dur, begin, offs, disc: mode === 'discrete', val: k => { const v = sample(k); return fmt(sum && !isNaN(base) ? v.map(x => x + base) : v); } };
+}
+/* én gruppe (ét element) som CSS-animationer: gennemsigtighed for sig, og flytning/drejning/cx/cy/r samlet som én transform.
+   Værdierne tages tæt (48 pr. runde) fra samme funktioner som uret bruger, så forløbet er det samme. Lykkes det ikke, kører uret den */
+function driveCompose(g){
+  const el = g.el, ops = g.jobs.filter(j => j.kind === 'attr' && j.at === 'opacity'), geo = g.jobs.filter(j => !ops.includes(j));
+  if (!el.animate || ops.length > 1 || g.jobs.some(j => j.disc)) return false;
+  if (geo.some(j => j.kind === 'attr' && !(/^(cx|cy|r)$/.test(j.at) && el.tagName === 'circle'))) return false;
+  if (geo.length && geo.some(j => j.dur !== geo[0].dur || j.begin !== geo[0].begin)) return false;
+  if (geo.filter(j => j.kind === 'motion').length > 1 || geo.filter(j => j.kind === 'transform').length > 1) return false;
+  const N = 48, grid = js => [...new Set([...Array(N + 1).keys()].map(i => i / N).concat(...js.map(j => j.offs || [])))].filter(t => t >= 0 && t <= 1).sort((a, b) => a - b), tmp = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const cssM = s => { tmp.setAttribute('transform', s || ''); const c = tmp.transform.baseVal.consolidate(), m = c ? c.matrix : { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+    return `matrix(${[m.a, m.b, m.c, m.d, m.e, m.f].map(v => +v.toFixed(4)).join(',')})`; };
+  const base = n => parseFloat(el.getAttribute(n)) || 0, cx0 = base('cx'), cy0 = base('cy'), r0 = base('r') || 1;
+  const run = (kf, j) => el.animate(kf, { duration: j.dur * 1000, delay: j.begin * 1000, iterations: Infinity, easing: 'linear' });
+  try {
+    if (geo.length){ const j0 = geo[0], kf = [];
+      for (const t of grid(geo)){ const k = Math.min(t, 0.99999); let tr = null, mo = '', cx = cx0, cy = cy0, r = r0;
+        for (const j of geo){ const v = j.val(k); if (j.kind === 'transform') tr = j.sum ? g.tbase + ' ' + v : v; else if (j.kind === 'motion') mo = v + ' '; else if (j.at === 'cx') cx = +v; else if (j.at === 'cy') cy = +v; else r = +v; }
+        const s = r / r0, attr = (cx !== cx0 || cy !== cy0 || s !== 1) ? ` matrix(${s} 0 0 ${s} ${cx - s * cx0} ${cy - s * cy0})` : '';
+        kf.push({ offset: t, transform: cssM(mo + (tr ?? g.tbase) + attr) }); }
+      el.style.transformOrigin = '0 0'; el.style.transformBox = 'view-box'; run(kf, j0); }
+    if (ops.length){ const j = ops[0], kf = grid(ops).map(t => ({ offset: t, opacity: +j.val(Math.min(t, 0.99999)) })); run(kf, j); }
+  } catch (e){ el.getAnimations().forEach(a => a.cancel()); return false; }
+  return true;
 }
 function smilDrive(svg){
   const groups = new Map();
@@ -12956,7 +13023,9 @@ function smilDrive(svg){
     let g = groups.get(j.el); if (!g){ g = { el: j.el, jobs: [], tbase: j.el.getAttribute('transform') || '', last: {} }; groups.set(j.el, g); }
     g.jobs.push(j); a.remove();
   }
-  const list = [...groups.values()]; DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
+  /* de fleste kan køre som CSS-animationer direkte på SVG-elementet: så flytter grafikchippen dem selv,
+     og kortet skal ikke tegnes om på processoren 30 gange i sekundet (det gjorde det, så længe noget her blev drevet af uret) */
+  const list = [...groups.values()].filter(g => !driveCompose(g)); DRIVE.jobs = list.reduce((n, g) => n + g.jobs.length, 0);
   const dash = DRIVE.dash;
   if (!list.length && !dash.length) return;
   /* hvor ligger hver ting (med god margen til bevægelsen)? */

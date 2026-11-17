@@ -427,7 +427,9 @@ function sv(tag, attrs = {}, html = ''){ const e = document.createElementNS(NS, 
 /* en tegning laves om til et almindeligt billede én gang — så hakker det ikke */
 function raster(svg, w, h){
   return new Promise(res => { const img = new Image();
-    img.onload = () => { try { const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/png')); } catch(e){ res(img.src); } };
+    /* PNG-pakningen sker med toBlob uden for hovedtråden (toDataURL låste den i ~20-50 ms pr. figur, mens byen kørte) */
+    img.onload = () => { try { const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => { if (!b) return res(img.src); const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => res(img.src); fr.readAsDataURL(b); }, 'image/png'); } catch(e){ res(img.src); } };
     img.onerror = () => res(''); img.src = svgUrl(svg); });
 }
 /* stierne er et net: alle ruterne lægges sammen (punkter tættere end 14 er det samme kryds), plus stier rundt om brønden,
@@ -473,7 +475,9 @@ function makeChar(kind, href, o = {}){
   if (c.face < 0) c.cf.setAttribute('transform', 'scale(-1,1)');
   $('#chars').append(g); LIFE.chars.push(c); placeChar(c); return c;
 }
-function placeChar(c){ const s = depthS(c.y); c.g.setAttribute('transform', `translate(${c.x.toFixed(1)},${c.y.toFixed(1)}) scale(${s.toFixed(3)})`); }
+/* skriv kun en egenskab, når den faktisk ændrer sig (ellers markeres SVG'en som ændret og tegnes om i hvert billede) */
+const setIf = (el, k, v) => { const m = el._last || (el._last = {}); if (m[k] !== v){ m[k] = v; el.setAttribute(k, v); } };
+function placeChar(c){ const s = depthS(c.y); setIf(c.g, 'transform', `translate(${c.x.toFixed(1)},${c.y.toFixed(1)}) scale(${s.toFixed(3)})`); }
 function setDir(c, dx){ if (Math.abs(dx) < 0.5) return; const d = dx < 0 ? -1 : 1; if (d !== c.dir){ c.dir = d; c.cf.setAttribute('transform', d * c.face < 0 ? 'scale(-1,1)' : ''); } }
 function sortChars(){ const L = $('#chars'); if (!L) return; const sorted = LIFE.chars.slice().sort((a, b) => a.y - b.y); sorted.forEach((c, i) => { if (L.children[i] !== c.g) L.insertBefore(c.g, L.children[i] || null); }); }
 /* gå langs en rute med jævn fart; kalder done til sidst */
@@ -502,7 +506,7 @@ function tickChar(c, dt, now){
     r.d = Math.min(r.total, r.d + r.speed * depthS(c.y) * dt); const [x, y, dx] = routePos(r, r.d); setDir(c, dx); c.x = x; c.y = y;
     if (r.d >= r.total){ c.route = null; r.done && r.done(); } }
   if (c.bob){ const moving = !!c.route && !c.paused, t = (now + c.t0) / 1000;
-    c.cb.setAttribute('transform', moving ? `translate(0,${(-Math.abs(Math.sin(t * 7)) * 5).toFixed(1)}) rotate(${(Math.sin(t * 7) * 3).toFixed(1)})` : ''); }
+    setIf(c.cb, 'transform', moving ? `translate(0,${(-Math.abs(Math.sin(t * 7)) * 5).toFixed(1)}) rotate(${(Math.sin(t * 7) * 3).toFixed(1)})` : ''); }
   placeChar(c);
 }
 /* taleboble der følger en figur */
@@ -513,7 +517,7 @@ function bubble(text, pos, ms = 2300, special = false){
   const b = { g, pos, until: performance.now() + ms };
   const bb = g.querySelector('.bb');
   b.place = () => { let [x, y] = b.pos(); const [vx0, vx1, vy0] = camView(); const bx = Math.max(vx0 + w/2 + 6, Math.min(vx1 - w/2 - 6, x)); x = Math.max(vx0 + 16, Math.min(vx1 - 16, x)); y = Math.max(vy0 + 56, y);
-    g.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)})`); bb.setAttribute('transform', `translate(${Math.max(-w/2 + 24, Math.min(w/2 - 24, bx - x)).toFixed(1)},0)`); };
+    setIf(g, 'transform', `translate(${x.toFixed(1)},${y.toFixed(1)})`); setIf(bb, 'transform', `translate(${Math.max(-w/2 + 24, Math.min(w/2 - 24, bx - x)).toFixed(1)},0)`); };
   b.place(); LIFE.bubbles.push(b); return b;
 }
 const above = c => () => [c.x, c.y - c.h * depthS(c.y) * 0.98];
@@ -558,7 +562,7 @@ function tickDog(p){
   else if (!r && Math.abs(d.x - p.c.x) < 20){ d.x = p.c.x + 34; }
   if (!d.leash){ d.leash = sv('path', { fill:'none', stroke: adj(p.st.robe.a, -0.2), 'stroke-width': 2.5, 'stroke-linecap':'round', 'pointer-events':'none' }); $('#chars').append(d.leash); }
   const s1 = depthS(p.c.y), s2 = depthS(d.y), side = d.x >= p.c.x ? 1 : -1, hx = p.c.x + side * 20 * s1, hy = p.c.y - 62 * s1, cx = d.x - side * 10 * s2, cy = d.y - 30 * s2;
-  d.leash.setAttribute('d', `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${((hx+cx)/2).toFixed(1)} ${(Math.max(hy, cy) + 14).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`);
+  setIf(d.leash, 'd', `M ${hx.toFixed(1)} ${hy.toFixed(1)} Q ${((hx+cx)/2).toFixed(1)} ${(Math.max(hy, cy) + 14).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`);
   d.bobStop = !r || p.c.paused;
 }
 function greetPed(p){
@@ -786,7 +790,7 @@ function lifeTick(now){
   const dt = Math.min(50, now - LIFE.last); LIFE.last = now;
   for (const c of LIFE.chars) if (c !== LIFE.pet && !c.isDog) tickChar(c, dt, now);
   heroPetFollow(); if (LIFE.pet) placeChar(LIFE.pet);
-  for (const p of LIFE.peds) if (p.dog){ tickDog(p); const d = p.dog; if (d.bob){ const t = (now + d.t0) / 1000; d.cb.setAttribute('transform', d.bobStop ? '' : `translate(0,${(-Math.abs(Math.sin(t * 9)) * 3).toFixed(1)})`); } placeChar(d); }
+  for (const p of LIFE.peds) if (p.dog){ tickDog(p); const d = p.dog; if (d.bob){ const t = (now + d.t0) / 1000; setIf(d.cb, 'transform', d.bobStop ? '' : `translate(0,${(-Math.abs(Math.sin(t * 9)) * 3).toFixed(1)})`); } placeChar(d); }
   camFollow(now, dt);
   sortChars();
   for (const b of LIFE.bubbles.slice()){ if (now > b.until){ b.g.remove(); LIFE.bubbles.splice(LIFE.bubbles.indexOf(b), 1); } else b.place(); }
@@ -808,10 +812,11 @@ function camFit(){
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
+  const lv = $('#townLive'), vb = v => { svg.setAttribute('viewBox', v); if (lv) lv.setAttribute('viewBox', v); };
+  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; vb(`0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
   CAM.vh = vh; CAM.vw = Math.min(CAM_W, vh * W / H);
   CAM.k = Math.min(W / CAM.vw, H / CAM.vh); CAM.ox = (W - CAM.vw * CAM.k) / 2; CAM.oy = (H - CAM.vh * CAM.k) / 2;
-  svg.setAttribute('viewBox', `${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
+  vb(`${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
   w.classList.add('cam'); w.style.width = (CAM_W * CAM.k).toFixed(2) + 'px'; w.style.height = (CAM_H * CAM.k).toFixed(2) + 'px';
   CAM.t = ''; camApply();
 }
@@ -874,9 +879,15 @@ function showTown(o = {}){
     box.append(el('div', { class:'map', id:'street', html: '<div class="world" id="world">' + (BAKE.src = src) + '</div>' }),
       el('div', { class:'place-ui tl' }, [ el('h1', { class:'town-logo', id:'townLogo' }, GAME_NAME) ]), el('div', { class:'place-ui tr' }, [ starPill(), audioBtns(), menuBtn() ]));
     $('#street').style.background = $('#world').style.background = SKY[CM.time][0];
+    /* figurer og talebobler ligger øverst i kortet. De flyttes til deres egen gennemsigtige SVG lige ovenpå,
+       så en figur der går (eller blinker) kun tegner sit eget lille lag om, og ikke hele kortet med ~2800 elementer */
+    const ts = $('#townSvg'), live = sv('svg', { id: 'townLive', class: 'town-live', viewBox: ts.getAttribute('viewBox'), preserveAspectRatio: ts.getAttribute('preserveAspectRatio') || 'xMidYMid meet', 'aria-hidden': 'true' });
+    live.append($('#chars'), $('#bubbles')); ts.after(live);
+    live.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t) tapThing(t); });
   }
-  const hero = heroState(), hasPet = hero.pet.kind !== 'ingen';
-  SPR = { idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
+  const hero = heroState(), hasPet = hero.pet.kind !== 'ingen', sprKey = JSON.stringify(hero) + '|' + calm;
+  /* samme dukke som sidst: genbrug billederne (samme adresse = browseren har dem allerede pakket ud og tegnet) */
+  if (!SPR || SPR.key !== sprKey) SPR = { key: sprKey, idle: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, idle: true, pet: false })),
           walk: svgUrl(renderDoll(hero, { viewBox: VB_DOLL, anim: !calm, walk: true, pet: false })),
           sit: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, viewBox: VB_PET, anim: !calm })) : '',
           pwalk: hasPet ? svgUrl(renderDoll(hero, { petOnly: true, petMode: 'walk', viewBox: VB_PET, anim: !calm })) : '' };
@@ -895,7 +906,7 @@ function showTown(o = {}){
     else $('#homeDoll').remove();
     placeHiddenStar();
     $('#townLogo').addEventListener('click', logoTap);
-    camWire($('#street')); camFit(); growTaps(svg);
+    camWire($('#street')); camFit(); growTaps(svg); growTaps($('#townLive'));
     bakeTown(svg);
     svg.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t){ tapThing(t); return; } const g = e.target.closest('.place'); if (g) visit(g.dataset.place); });
     svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.place')){ e.preventDefault(); visit(e.target.closest('.place').dataset.place); } });
