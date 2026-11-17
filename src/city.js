@@ -705,7 +705,7 @@ function wellWish(t){
   wellAsk = 0; wellBusy = true;
   if (wellAskB){ wellAskB.until = 0; wellAskB = null; }   /* spørgsmålet forsvinder, når hun kaster stjernen */
   addStars(-1); sfx.coin();
-  const fx = $('#fx'), st = sv('g', { 'pointer-events':'none' }, `<polygon points="${star5pts(0,0,13,5.5)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2"/>`);
+  const fx = $('#fxLive') || $('#fx'), st = sv('g', { 'pointer-events':'none' }, `<polygon points="${star5pts(0,0,13,5.5)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2"/>`);
   fx.append(st); const t0 = performance.now();
   const fall = now2 => { const k = Math.min(1, (now2 - t0) / 700), y = 470 + k * 150, sc = 1 - k * .6;
     st.setAttribute('transform', `translate(800,${y.toFixed(1)}) scale(${sc.toFixed(2)}) rotate(${(k * 300).toFixed(0)})`);
@@ -763,7 +763,7 @@ function releaseBalloon(){
   sfx.pop(); b.style.display = 'none';
   const c = b.dataset.c, x = +b.dataset.x, y = +b.dataset.y;
   const fl = sv('g', { 'pointer-events':'none' }, `<ellipse rx="13" ry="16" fill="${c}"/><ellipse cx="-4" cy="-5" rx="3.5" ry="5" fill="#FFF" opacity=".5"/><path d="M 0 16 q 6 14 -3 28" stroke="#9C95B5" stroke-width="1.2" fill="none"/>`);
-  $('#fx').append(fl); const t0 = performance.now();
+  ($('#fxLive') || $('#fx')).append(fl); const t0 = performance.now();
   const up = now => { const k = (now - t0) / 1000, yy = y - k * 70; fl.setAttribute('transform', `translate(${(x + Math.sin(k * 1.6) * 18).toFixed(1)},${yy.toFixed(1)})`); if (yy > -60 && fl.isConnected) requestAnimationFrame(up); else fl.remove(); };
   requestAnimationFrame(up);
   setTimeout(() => { b.style.display = ''; }, 20000);
@@ -882,7 +882,9 @@ function showTown(o = {}){
     /* figurer og talebobler ligger øverst i kortet. De flyttes til deres egen gennemsigtige SVG lige ovenpå,
        så en figur der går (eller blinker) kun tegner sit eget lille lag om, og ikke hele kortet med ~2800 elementer */
     const ts = $('#townSvg'), live = sv('svg', { id: 'townLive', class: 'town-live', viewBox: ts.getAttribute('viewBox'), preserveAspectRatio: ts.getAttribute('preserveAspectRatio') || 'xMidYMid meet', 'aria-hidden': 'true' });
-    live.append($('#chars'), $('#bubbles')); ts.after(live);
+    /* den gemte stjerne (flyttes af koden) ligger også her, og 'fxLive' er til ting, koden lader flyve hen over kortet (stjernen i brønden, øksen):
+       kortets egen SVG er usynlig i lærreds-byen, så alt, koden selv tegner og flytter, skal ligge i dette lag */
+    live.append(...[$('#hiddenStars'), $('#chars'), $('#bubbles')].filter(Boolean), sv('g', { id: 'fxLive', 'pointer-events': 'none' })); ts.after(live);
     live.addEventListener('click', e => { const t = e.target.closest('[data-tap]'); if (t) tapThing(t); });
   }
   const hero = heroState(), hasPet = hero.pet.kind !== 'ingen', sprKey = JSON.stringify(hero) + '|' + calm;

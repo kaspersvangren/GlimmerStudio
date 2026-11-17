@@ -1,10 +1,12 @@
-/* ================= Lærreds-byen: kortets bevægelige ting tegnet på ét lærred =================
+/* ================= Lærreds-byen: hele kortet tegnet på ét lærred =================
    Før lå hver bevægelig ting på kortet (ca. 260) som sit eget HTML-lag, og browseren lagde dem sammen i hvert
-   billede. Det var dét, der kostede: på tabletten gav det 37 billeder i sekundet, hvor ét lærred med de samme
-   billeder og de samme bevægelser gav 90 (målt 17. november 2026).
-   Her tegnes det bagte billede og alle stykkerne fra arket med drawImage på ét <canvas>, som ligger under
-   SVG'en præcis hvor lagene lå. Alt andet er som før: SVG'en ovenpå tager imod tryk og viser tekst, figurer
-   og nattens farvelag, og et hop på en ting i SVG'en spejles over på lærredet.
+   billede, med SVG'en og nattens farvelag ovenpå. På tabletten gav det 37 billeder i sekundet. Med stykkerne på ét
+   lærred blev det ca. 60, og en måling viste, at resten af vejen op til skærmens 90 lå i selve SVG'en ovenpå
+   (farvelaget, dens egne små bevægelser og sammenlægningen af den). Derfor tegnes nu ALT synligt på kortet her:
+   det bagte billede, stykkerne fra arket, ting man kan trykke på, tekst og billeder. Nattens farvelag er ganget ind
+   i billederne ved bagningen. SVG'en ligger usynlig ovenpå og tager kun imod tryk; et hop eller et skjul på en ting
+   i SVG'en spejles over på lærredet. Figurer, talebobler og den gemte stjerne ligger i deres eget lille lag øverst.
+   Kan en bagning ikke få alt med (rec.lr mangler), vises SVG'en stadig oven på lærredet som i v0.34.0.
    Kan slås fra med glimmerstudiet.laerred = '0' (så bruges HTML-lagene igen). */
 const LAERRED_KEY = 'glimmerstudiet.laerred';
 function laerredWanted(){ try { return localStorage.getItem(LAERRED_KEY) !== '0' && !!window.createImageBitmap; } catch (e){ return !!window.createImageBitmap; } }
@@ -37,7 +39,8 @@ const LAERRED = (() => {
   function mirror(s, A, local){
     let mr = s.mirOf.get(A); if (mr) return mr;
     const cs = getComputedStyle(A);
-    mr = { A, local, hidden: cs.display === 'none', M: null, o: 1, live: false, dirty: false, o0: +cs.opacity || 1, E0: null, P: null };
+    const a0 = parseFloat(A.getAttribute('opacity') ?? A.style.opacity ?? ''), o0 = a0 > 0 && a0 <= 1 ? a0 : 1;   /* (grundværdien står allerede i lagenes træ) */
+    mr = { A, local, hidden: cs.display === 'none', M: null, o: Math.max(0, Math.min(1, (+cs.opacity) / o0)), live: A.getAnimations().length > 0, dirty: false, o0, E0: null, P: null };
     mr.ob = new MutationObserver(() => { mr.dirty = true; }); mr.ob.observe(A, { attributes: true, attributeFilter: ['class', 'style'] });
     s.mirOf.set(A, mr); s.mirs.push(mr); return mr;
   }
@@ -66,22 +69,61 @@ const LAERRED = (() => {
       mr.was = ans.length > 0;
     }
   }
-  /* lagenes træ flades ud til en liste af tegneopgaver; hver har sin kæde af flytninger (yderst først) */
+  /* farve ganget med nattens farvelag */
+  const kcol = (c, k) => { if (!k || !c) return c; const m = String(c).match(/[\d.]+/g); if (!m || m.length < 3 || !/^rgb/.test(c)) return c;
+    return `rgba(${Math.round(m[0] * k[0])},${Math.round(m[1] * k[1])},${Math.round(m[2] * k[2])},${m[3] ?? 1})`; };
+  /* et billede på kortet (fx dukken i vinduet): hentes fra SVG-elementets adresse og følger med, hvis den skifter */
+  function billede(s, A, spec, k){
+    const o = { A, x: spec.x, y: spec.y, w: spec.w, h: spec.h, src: null, img: null, cvs: null, S: 0, k };
+    const load = () => { const href = A.getAttribute('href') || A.getAttribute('xlink:href') || ''; if (href === o.src) return; o.src = href; o.img = o.cvs = null; if (!href) return;
+      const im = new Image(); im.onload = () => { if (o.src === href){ o.img = im; o.cvs = null; } }; im.src = href; };
+    const ob = new MutationObserver(load); ob.observe(A, { attributes: true, attributeFilter: ['href', 'xlink:href'] }); s.obs.push(ob); load(); return o;
+  }
+  /* billedet tegnes én gang i skærmens opløsning (og farves, hvis det ligger under nattens farvelag) */
+  function billedLaerred(o, S){
+    const im = o.img, iw = im.naturalWidth || o.w, ih = im.naturalHeight || o.h, f = Math.min(o.w / iw, o.h / ih), dw = iw * f, dh = ih * f;
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(o.w * S)); c.height = Math.max(1, Math.ceil(o.h * S));
+    const x = c.getContext('2d', { willReadFrequently: !!o.k }); x.drawImage(im, (o.w - dw) / 2 * S, (o.h - dh) / 2 * S, dw * S, dh * S);
+    if (o.k){ const id = x.getImageData(0, 0, c.width, c.height), d = id.data, k = o.k; for (let i = 0; i < d.length; i += 4){ d[i] *= k[0]; d[i + 1] *= k[1]; d[i + 2] *= k[2]; } x.putImageData(id, 0, 0); }
+    o.cvs = c; o.S = S;
+  }
+  /* lagenes træ flades ud til en liste af tegneopgaver; hver har sin kæde af flytninger (yderst først).
+     Alt før mærket for nattens farvelag (sk) er farvet; stykkerne er farvet i arket, tekst og streger farves her */
   function flatten(s, g, st){
-    const out = [];
+    const out = []; let k = s.k;
     const mirs = (spec, local) => (spec.mir || []).map(i => st[i]).filter(Boolean).map(A => ({ mir: mirror(s, A, local) }));
     const walk = (spec, chain, top) => {
+      if (spec.sk){ k = null; return; }
       const c1 = spec.mir ? chain.concat(mirs(spec, !top)) : chain;
       if (spec.p != null){ const pc = g.pieces[spec.p]; if (pc) out.push({ pc, chain: c1, still: !c1.length }); return; }
-      if (spec.d){ out.push({ d: spec.d, chain: c1, path: new Path2D(spec.d.path), grad: null }); return; }
+      if (spec.d){ const d = k ? Object.assign({}, spec.d, { stroke: kcol(spec.d.stroke, k), fill: spec.d.fill === 'none' ? 'none' : kcol(spec.d.fill, k), grad: spec.d.grad ? { c: spec.d.grad.c, stops: spec.d.grad.stops.map(([f, c]) => [f, kcol(c, k)]) } : null }) : spec.d;
+        out.push({ d, chain: c1, path: new Path2D(d.path), grad: null }); return; }
+      if (spec.t){ const t = spec.t; out.push({ t: Object.assign({}, t, { stroke: kcol(t.stroke, k), parts: t.parts.map(p => Object.assign({}, p, { fill: kcol(p.fill, k) })), fv: -1 }), chain: c1 }); return; }
+      if (spec.im){ const A = st[spec.im.i]; if (A) out.push({ im: billede(s, A, spec.im, k), chain: c1 }); return; }
       const c2 = c1.concat(spec.w.map(w => ({ m: w.m ? w.m.slice() : null, o: w.o ?? null, a: w.a ? compile(w.a) : null })));
-      for (const k of spec.c) walk(k, c2, false);
+      for (const kid of spec.c) walk(kid, c2, false);
     };
     for (const it of g.items) walk(it, [], true);
     /* en kæde uden animation og uden spejl regnes sammen én gang */
     for (const it of out){ if (it.chain.some(w => w.a || w.mir)) continue;
       let M = [1,0,0,1,0,0], a = 1; for (const w of it.chain){ if (w.m) M = mul(M, w.m); if (w.o != null) a *= w.o; } it.fast = { M, a }; }
     return out;
+  }
+  /* tekst: bredden måles én gang (og igen, når en skrifttype er hentet), så teksten kan stilles efter sit ankerpunkt */
+  let FONTV = 0;
+  try { document.fonts.addEventListener('loadingdone', () => { FONTV++; }); } catch (e){}
+  function tekst(ctx, T, a){
+    const ls = T.ls ? T.ls + 'px' : '0px'; if ('letterSpacing' in ctx) ctx.letterSpacing = ls;
+    if (T.fv !== FONTV){ T.fv = FONTV; T.wd = T.parts.map(p => { ctx.font = p.f; return ctx.measureText(p.s).width; }); T.tot = T.wd.reduce((x, y) => x + y, 0) + T.parts.reduce((x, p) => x + p.dx, 0); }
+    let x = T.x - (T.anchor === 'middle' ? T.tot / 2 : T.anchor === 'end' ? T.tot : 0), y = T.y;
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+    if (T.stroke){ ctx.strokeStyle = T.stroke; ctx.lineWidth = T.sw; ctx.lineJoin = 'round'; }
+    for (let i = 0; i < T.parts.length; i++){ const p = T.parts[i]; x += p.dx; y += p.dy; ctx.font = p.f;
+      if (T.stroke && T.under){ ctx.globalAlpha = a; ctx.strokeText(p.s, x, y); }
+      ctx.globalAlpha = a * T.fo; ctx.fillStyle = p.fill; ctx.fillText(p.s, x, y);
+      if (T.stroke && !T.under){ ctx.globalAlpha = a; ctx.strokeText(p.s, x, y); }
+      x += T.wd[i]; }
+    if (T.ls && 'letterSpacing' in ctx) ctx.letterSpacing = '0px';
   }
 
   async function mount(svg, gen, rec, st){
@@ -90,7 +132,7 @@ const LAERRED = (() => {
     if (gen !== BAKE.gen || !svg.isConnected){ [bg, ...sheets].forEach(b => b.close()); return null; }
     reset();
     const cv = document.createElement('canvas'); cv.className = 'gpu-cv'; cv.setAttribute('aria-hidden', 'true');
-    const s = { svg, host, cv, ctx: cv.getContext('2d', { alpha: false }), bg, sheets, rec, mirs: [], mirOf: new Map(), T0: performance.now(), raf: 0, base: null, W: 0, H: 0, key: '', n: 0, ms: 0, tn: 0, tms: 0 };
+    const s = { svg, host, cv, ctx: cv.getContext('2d', { alpha: false }), bg, sheets, rec, k: rec.lr && rec.shade ? rec.shade : null, obs: [], mirs: [], mirOf: new Map(), T0: performance.now(), raf: 0, base: null, W: 0, H: 0, key: '', n: 0, ms: 0, tn: 0, tms: 0 };
     s.list = flatten(s, g, st); S = s;
     return cv;
   }
@@ -150,6 +192,9 @@ const LAERRED = (() => {
         if (it.still && pc.fix) blit(ctx, s.sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, pc.x, pc.y, pc.w, pc.h, M);
         else { ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); ctx.drawImage(s.sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, pc.x, pc.y, pc.w, pc.h); }
         if (pc.blend) ctx.globalCompositeOperation = 'source-over'; }
+      else if (it.t){ ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); tekst(ctx, it.t, a > 1 ? 1 : a); }
+      else if (it.im){ const o = it.im; if (!o.img) continue; const S = Math.min(4, Math.hypot(M[0], M[1])); if (!o.cvs || Math.abs(o.S - S) > .01) billedLaerred(o, S);
+        ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); ctx.drawImage(o.cvs, o.x, o.y, o.w, o.h); }
       else { /* en stiplet streg, hvor stiplerne løber (åen, vandfaldet) */
         const d = it.d, u = t / 1000 - (d.begin || 0); let v = d.off0;
         if (u >= 0 && d.vals){ const k = (u % d.dur) / d.dur; let i = 0; while (i < d.offs.length - 1 && k >= d.offs[i + 1]) i++;
@@ -165,46 +210,10 @@ const LAERRED = (() => {
   }
   function reset(){
     const s = S; if (!s) return; S = null;
-    cancelAnimationFrame(s.raf); s.mirs.forEach(m => m.ob.disconnect()); s.cv.remove();
+    cancelAnimationFrame(s.raf); s.mirs.forEach(m => m.ob.disconnect()); s.obs.forEach(o => o.disconnect()); s.cv.remove();
     try { s.bg.close(); s.sheets.forEach(b => b.close()); } catch (e){}
   }
-  /* ---------- måling (fra fejlsøgningen: hold på LOG-mærket i byen) ----------
-     Byens dele slås fra én ad gangen, oven i hinanden, og hver udgave måles i 6 sekunder. Så kan vi se, hvad det
-     næste skridt (farvelaget, kortets egne bevægelser, SVG'en, figurerne) hver især vil give. Bagefter er alt som før */
-  let running = false;
-  async function test(sek = 6){
-    if (running) return null;
-    const svg = document.getElementById('townSvg'), live = document.getElementById('townLive');
-    if (!S || !svg || town().hidden){ toast('Åbn byen først'); return null; }
-    running = true;
-    const undo = [], set = (e, prop, v) => { if (!e) return; const old = e.style[prop]; e.style[prop] = v; undo.push(() => { e.style[prop] = old; }); };
-    const FASER = [
-      ['byen som nu', () => {}],
-      ['uden nattens farvelag', () => svg.querySelectorAll('[style*="multiply"]').forEach(e => set(e, 'display', 'none'))],
-      ['uden kortets egne bevægelser', () => { const an = svg.getAnimations({ subtree: true }).filter(a => a.playState === 'running'); an.forEach(a => a.pause()); undo.push(() => an.forEach(a => { try { a.play(); } catch (e){} })); }],
-      ['med usynligt kort ovenpå', () => set(svg, 'opacity', '0')],
-      ['også uden figurer', () => set(live, 'display', 'none')] ];
-    const maal = () => new Promise(res => { const fr = []; let last = 0, t0 = 0;
-      const q = t => { if (!t0) t0 = t; else fr.push(t - last); last = t; DBG.count('test'); if (t - t0 < sek * 1000) requestAnimationFrame(q); else res(fr); }; requestAnimationFrame(q); });
-    const stat = fr => { const f = fr.slice().sort((a, b) => a - b), n = f.length, sum = fr.reduce((a, b) => a + b, 0), q = p => +f[Math.min(n - 1, Math.floor(p * n))].toFixed(1);
-      const fps1 = []; let acc = 0, k = 0; fr.forEach(d => { acc += d; k++; if (acc >= 1000){ fps1.push(Math.round(k * 1000 / acc)); acc = 0; k = 0; } });
-      return { fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), fps1 }; };
-    const lab = el('div', { class: 'lr-lab' }); document.body.append(lab);
-    const res = [];
-    try { for (let i = 0; i < FASER.length; i++){ lab.textContent = `Måler ${i + 1} af ${FASER.length}: ${FASER[i][0]} …`; FASER[i][1](); await wait(1000);
-        const n0 = S ? [S.tn, S.tms] : [0, 0], r = { navn: FASER[i][0], ...stat(await maal()) };
-        if (S && S.tn > n0[0]) r.js = +((S.tms - n0[1]) / (S.tn - n0[0])).toFixed(2);
-        res.push(r); } }
-    catch (e){ res.push({ fejl: String(e && e.message || e) }); }
-    undo.splice(0).reverse().forEach(f => f()); lab.remove(); running = false;
-    DBG.row('laerredtest', { faser: res, skaerm: `${innerWidth}x${innerHeight}`, dpr: window.devicePixelRatio || 1, kamera: CAM.on, tid: CM.time, ting: S ? S.list.length : 0 }, 'town'); DBG.flush();
-    const panel = el('div', { class: 'lr-res' }, [ el('h2', {}, 'Målingen er sendt'),
-      ...res.map(r => el('p', {}, r.fejl ? 'Fejl: ' + r.fejl : `${r.navn}: ${Math.round(r.fps)} billeder i sekundet`)),
-      el('button', { class: 'btn', type: 'button', on: { click: () => panel.remove() } }, 'Luk') ]);
-    document.body.append(panel);
-    return res;
-  }
-  return { mount, sync, reset, test, get running(){ return running; }, get on(){ return !!S; }, get ting(){ return S ? S.list.length : 0; },
+  return { mount, sync, reset, get on(){ return !!S; }, get ting(){ return S ? S.list.length : 0; },
     /* (til test) spejle, der lige nu flytter eller skjuler noget */
-    get spejle(){ return S ? S.mirs.filter(m => m.M || m.hidden || m.o < 1).map(m => ({ ting: m.A.dataset.tap || m.A.getAttribute('class'), M: m.M && m.M.map(v => +v.toFixed(2)), o: m.o, skjult: m.hidden })) : []; }, get antalSpejle(){ return S ? S.mirs.length : 0; } };
+    get spejle(){ return S ? S.mirs.filter(m => m.M || m.hidden || m.o < 1).map(m => ({ ting: m.A.dataset.tap || m.A.getAttribute('class'), M: m.M && m.M.map(v => +v.toFixed(2)), o: m.o, skjult: m.hidden })) : []; }, get antalSpejle(){ return S ? S.mirs.length : 0; }, get ms(){ return S && S.tn ? +(S.tms / S.tn).toFixed(2) : 0; } };
 })();

@@ -30,7 +30,7 @@ const DBG = (() => {
     if (!on) return;
     if (last) frames.push(t - last); last = t;
     const s = curScreen();
-    if (s !== screen){ if (screen) sample(); row('skaerm', { fra: screen, til: s }); screen = s; sampleT = t; if (badge) badge.classList.toggle('tryk', s === 'town'); }
+    if (s !== screen){ if (screen) sample(); row('skaerm', { fra: screen, til: s }); screen = s; sampleT = t; }
     if (t - sampleT > 5000){ sample(); sampleT = t; }
     if (t - flushT > 30000){ flush(); flushT = t; }
     if (badge && frames.length && frames.length % 15 === 0){ const k = frames.slice(-30), avg = k.reduce((a, b) => a + b, 0) / k.length; badge.textContent = `LOG ${Math.round(1000 / avg)} fps`; }
@@ -52,12 +52,6 @@ const DBG = (() => {
         (e.scripts || []).forEach(sc => { L.kode += sc.duration; const k = String(sc.sourceFunctionName || sc.invoker || '?').slice(0, 40); L.top[k] = (L.top[k] || 0) + sc.duration; }); }));
       laf.observe({ type: 'long-animation-frame', buffered: false }); } catch (e){ laf = null; }
     badge = document.createElement('div'); badge.className = 'dbg-badge'; badge.textContent = 'LOG'; document.body.append(badge);
-    /* i byen: hold på mærket for at måle, hvad hver del af byen koster (laerred.js) */
-    /* (et langt tryk, så man ikke rammer det ved et uheld, når man vil ind i Koncertsalen lige ved siden af) */
-    let hold = 0; const slip = () => { clearTimeout(hold); hold = 0; };
-    badge.addEventListener('pointerdown', () => { slip(); hold = setTimeout(() => { hold = 0; if (screen !== 'town' || LAERRED.running) return;
-      showModal('Mål byen?', 'Jeg slår byens dele fra én ad gangen og måler. Det tager under et minut, og bagefter er alt som før.', [ { label: 'Nej' }, { label: 'Ja, mål', hot: true, fn: () => LAERRED.test() } ]); }, 800); });
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => badge.addEventListener(ev, slip)); badge.addEventListener('contextmenu', e => e.preventDefault());
     last = 0; frames = []; screen = ''; flushT = performance.now(); raf = requestAnimationFrame(loop);
   }
   function stop(){ if (!on) return; sample(); row('stop', {}); flush(true); on = false; cancelAnimationFrame(raf); if (obs) obs.disconnect(); if (laf) laf.disconnect(); if (badge) badge.remove(); badge = null; }

@@ -131,19 +131,35 @@ function gpuNodeSpec(el, rootMatrix, pieces, NS){
   const o = parseFloat(el.getAttribute('opacity') ?? el.style.opacity ?? '');
   if (op) wraps.push(o >= 0 && o < 1 ? { a: smilKeyframes(op, el), o } : { a: smilKeyframes(op, el) });
   else if (o >= 0 && o < 1) wraps.push({ o });
-  const isLeaf = !/^(g|a|svg|switch)$/.test(el.tagName);
-  if (isLeaf){ kids.push(anims.some(a => a.getAttribute('attributeName') === 'stroke-dashoffset') ? gpuDashSpec(el) : gpuPiece([el], el, pieces, true)); }
+  const isLeaf = !/^(g|a|svg|switch)$/.test(el.tagName), LRB = GPU.lrBake;
+  /* lærreds-byen: et støvfnug svæver med en CSS-animation (.mote i stilarket); den oversættes til de samme nøglebilleder */
+  if (LRB && el.classList.contains('mote')){ const cs = getComputedStyle(el), ms = v => secs(String(v).trim()) * 1000, mx = parseFloat(cs.getPropertyValue('--mx')) || 0, dur = ms(cs.getPropertyValue('--dur'));
+    if (dur > 0) wraps.push({ o: 0, a: { dur, delay: ms(cs.getPropertyValue('--del')) || 0, kf: [{ offset: 0, opacity: 0, transform: 'translate(0px,0px)' }, { offset: .5, opacity: .7, transform: `translate(${mx / 2}px,-20px)` }, { offset: 1, opacity: 0, transform: `translate(${mx}px,-40px)` }] } }); }
+  if (isLeaf && LRB && el.tagName === 'text') kids.push({ t: gpuTextSpec(el) });
+  else if (isLeaf && LRB && el.tagName === 'image') kids.push({ im: { el, x: +el.getAttribute('x') || 0, y: +el.getAttribute('y') || 0, w: +el.getAttribute('width') || 0, h: +el.getAttribute('height') || 0 } });
+  else if (isLeaf){ kids.push(anims.some(a => a.getAttribute('attributeName') === 'stroke-dashoffset') ? gpuDashSpec(el) : gpuPiece([el], el, pieces, true)); }
   else {
     let run = [];
     const flush = () => { if (run.length){ const p = gpuPiece(run, el, pieces, false); if (p) kids.push(p); run = []; } };
     for (const c of el.children){
       if (/^(animate|animateTransform|animateMotion|set|title|desc|defs|linearGradient|radialGradient|filter|clipPath|mask|pattern|symbol|marker)$/.test(c.tagName)) continue;
-      if (smilKids(c).length || c.querySelector(SMIL_SEL) || c.matches(GPU_MIRROR) || c.querySelector(GPU_MIRROR)){ flush(); const k = gpuNodeSpec(c, null, pieces, NS); if (c.matches(GPU_MIRROR)) k.mirEl = [c]; kids.push(k); }
+      if (LRB && c.classList.contains('tapzone')) continue;
+      if (smilKids(c).length || c.querySelector(SMIL_SEL) || c.matches(GPU_MIRROR) || c.querySelector(GPU_MIRROR) || (LRB && (/^(text|image)$/.test(c.tagName) || c.querySelector('text,image')))){ flush(); const k = gpuNodeSpec(c, null, pieces, NS); if (c.matches(GPU_MIRROR)) k.mirEl = [c]; kids.push(k); }
       else run.push(c);
     }
     flush();
   }
   return { w: wraps, c: kids };
+}
+/* lærreds-byen: en tekst tegnes på lærredet med fillText (i et billede af SVG'en kan skrifttyperne fra nettet ikke bruges) */
+function gpuTextSpec(el){
+  const cs = getComputedStyle(el), num = (e, n) => parseFloat(e.getAttribute(n)) || 0, font = c => `${c.fontStyle} ${c.fontWeight} ${c.fontSize} ${c.fontFamily}`, parts = [];
+  for (const n of el.childNodes){
+    if (n.nodeType === 3){ const t = n.nodeValue.replace(/\s+/g, ' '); if (t.trim() || (parts.length && t)) parts.push({ s: t, f: font(cs), fill: cs.fill, dx: 0, dy: 0 }); }
+    else if (n.tagName === 'tspan'){ const c = getComputedStyle(n); parts.push({ s: n.textContent.replace(/\s+/g, ' '), f: font(c), fill: c.fill, dx: num(n, 'dx'), dy: num(n, 'dy') }); } }
+  if (parts.length){ parts[0].s = parts[0].s.replace(/^ /, ''); parts[parts.length - 1].s = parts[parts.length - 1].s.replace(/ $/, ''); }
+  return { x: num(el, 'x'), y: num(el, 'y'), anchor: cs.textAnchor, ls: parseFloat(cs.letterSpacing) || 0, fo: +cs.fillOpacity, parts,
+    stroke: cs.stroke && cs.stroke !== 'none' && parseFloat(cs.strokeWidth) > 0 ? cs.stroke : null, sw: parseFloat(cs.strokeWidth) || 0, under: /stroke/.test(cs.paintOrder.split(' ')[0] || '') };
 }
 /* et stykke: elementerne tegnes i 'space'-elementets koordinater (uden dets egen transform) */
 function gpuPiece(els, space, pieces, self){
@@ -186,7 +202,7 @@ function gpuAtlas(svg, pieces, extra, sc){
   const MAXW = 4096, MAXH = 4096, sheets = [];
   let sx = 0, sy = 0, rowH = 0, sheet = { items: [], h: 0 };
   const all = pieces.concat(extra);
-  all.forEach((pc, i) => { if (pc.empty) return; const pw = Math.ceil(pc.w * sc - 1e-3) + 2, ph = Math.ceil(pc.h * sc - 1e-3) + 2;
+  all.forEach((pc, i) => { if (pc.empty) return; const q = sc * (pc.q || 1), pw = Math.ceil(pc.w * q - 1e-3) + 2, ph = Math.ceil(pc.h * q - 1e-3) + 2;   /* (q: nogle bløde stykker gemmes i lavere opløsning) */
     if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
     if (sy + ph > MAXH){ sheet.h = sy + rowH; sheets.push(sheet); sheet = { items: [], h: 0 }; sx = 0; sy = 0; rowH = 0; }
     pc.sheet = sheets.length; pc.ax = sx; pc.ay = sy; pc.aw = pw - 2; pc.ah = ph - 2; sheet.items.push(i);
@@ -232,15 +248,19 @@ async function gpuMount(svg, gen, rec, st){
   if (laerredWanted()){ try { cvs = await LAERRED.mount(svg, gen, rec, st); } catch (e){ DBG.row('fejl', { besked: 'lærred: ' + (e && e.message || e) }); cvs = null; LAERRED.reset(); }
     if (gen !== BAKE.gen || !svg.isConnected){ LAERRED.reset(); return false; } }
   if (cvs) DRIVE.dash = [];
-  const layer = cvs || await gpuLayer(svg, gen, rec, st); if (!layer) return false;
+  const full = !!(cvs && rec.lr);
+  /* (en bagning til den fulde lærreds-by kan ikke vises som HTML-lag; uden lærred vises kortet så bare som SVG) */
+  const layer = cvs || (rec.lr ? null : await gpuLayer(svg, gen, rec, st)); if (!layer) return false;
   /* skjul originalerne i SVG'en og fjern deres animationer, så de ikke tikker videre */
   g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place,[data-tap]')) r.style.pointerEvents = 'painted';
-    /* tekst og billeder i roden bliver vist i SVG'en */
-    r.querySelectorAll('text,image,foreignObject').forEach(t => { t.style.visibility = 'visible'; }); });
+    /* tekst og billeder i roden bliver vist i SVG'en (i den fulde lærreds-by tegnes de også på lærredet) */
+    if (!full) r.querySelectorAll('text,image,foreignObject').forEach(t => { t.style.visibility = 'visible'; }); });
   const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
+  /* fuld lærreds-by: SVG'en er usynlig og tager kun imod tryk */
+  svg.classList.toggle('lr', full);
   /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
   host.prepend(layer); host.classList.add('gpu-host');
-  GPU.layer = layer; GPU.cam = cvs ? null : layer.firstChild; GPU.cv = !!cvs; GPU.svg = svg; GPU.on = true; gpuSync();
+  GPU.layer = layer; GPU.cam = cvs ? null : layer.firstChild; GPU.cv = !!cvs; GPU.full = full; GPU.svg = svg; GPU.on = true; gpuSync();
   smilDrive(svg);
   return true;
 }
@@ -325,7 +345,7 @@ function gpuSync(){
   else { const m = GPU.svg.getScreenCTM(), r = GPU.layer.getBoundingClientRect(); if (!m) return; t = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e - r.left},${m.f - r.top})`; }
   if (t !== GPU.t){ GPU.t = t; GPU.cam.style.transform = t; }
 }
-function gpuReset(){ LAERRED.reset(); if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.cv = false; GPU.layer = GPU.cam = GPU.svg = null; GPU.t = ''; }
+function gpuReset(){ LAERRED.reset(); if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } if (GPU.svg) GPU.svg.classList.remove('lr'); GPU.on = false; GPU.cv = GPU.full = false; GPU.layer = GPU.cam = GPU.svg = null; GPU.t = ''; }
 
 /* ---------- de sidste SVG-animationer drives af et lille ur i koden ----------
    Det, der ikke kan flyttes til grafikchippen (det man kan trykke på, åen, tekst), bliver i SVG'en.
