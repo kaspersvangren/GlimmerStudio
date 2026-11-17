@@ -66,5 +66,6 @@ const LYD_MUSIK = {
   'koncert.country': { src: 'lyd/koncert-country.mp3', loop: [0, 185.1] },   // "Hun kom aldrig"
   'koncert.disko': { src: 'lyd/koncert-disko.mp3', loop: [0, 127.58] },   // "Gi' mig, gi' mig!"
   'koncert.hawaii': { src: 'lyd/koncert-hawaii.mp3', loop: [0, 149.1] },   // "Frøgt mig ikke!"
+  'koncert.klassisk': { src: 'lyd/koncert-klassisk.mp3', loop: [0, 162.4], vol: 0.7 },   // "Pomp's Popo" (lidt lavere optaget end de andre, så skruet en anelse op)
   fald: { src: 'lyd/cloud-glide.mp3', loop: [64, 138.03796], xf: 1 },   // "Cloud Glide Loop". Loop E, valgt af Kasper, 1 s overtoning. Faldskærm
 };

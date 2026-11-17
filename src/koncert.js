@@ -32,7 +32,7 @@ const Koncert = (() => {
     rock:     { navn: 'Rock', sang: 'Stop Volden', lys: '#FF3D6E', lys2: '#8A5CFF' },
     country:  { navn: 'Country', sang: 'Hun kom aldrig', lys: '#FFB25A', lys2: '#FFE08A' },
     disko:    { navn: 'Disko', sang: "Gi' mig, gi' mig!", lys: '#FF5FD2', lys2: '#5FE0FF' },
-    klassisk: { navn: 'Klassisk', sang: 'Gnomernes symfoni', lys: '#FFF2C8', lys2: '#FFE0A0' },
+    klassisk: { navn: 'Klassisk', sang: "Pomp's Popo", lys: '#FFF2C8', lys2: '#FFE0A0' },
     hawaii:   { navn: 'Hawaii', sang: 'Frøgt mig ikke!', lys: '#FF9A5A', lys2: '#FF6FA8' },
   };
   const STILE = Object.keys(STIL);
@@ -580,7 +580,8 @@ const Koncert = (() => {
   function aabnOensker(){
     if (busy) return;
     sfx.open();
-    const kort = STILE.map(g => {
+    /* lounge er det, bandet spiller mellem ønskesangene, så den kan ikke ønskes */
+    const kort = STILE.filter(g => g !== 'hygge').map(g => {
       const b = el('button', { class: 'ak-prize kz-sangkort' + (g === stil ? ' own' : ''), type: 'button', on: { click: () => { luk(); if (g !== stil) skift(g); } } });
       SLEEVE = farver(BAND[1], g).krop;
       b.innerHTML = `<span class="pic">${svgDoc('-120 -380 240 290', gnom(BAND[1], g, 0))}</span><span class="nm">${STIL[g].sang}</span><span class="pris">${g === stil ? 'Spiller nu' : STIL[g].navn}</span>`;
@@ -588,7 +589,7 @@ const Koncert = (() => {
     });
     const wrap = el('div', { class: 'ak-shopwrap kz-oenskwrap', on: { click: e => { if (e.target === wrap) luk(); } } }, [
       el('div', { class: 'ak-shop-panel' }, [
-        el('div', { class: 'ak-shop-top' }, [ el('p', { class: 'say' }, 'Hvilken sang vil du høre? Så klæder gnomerne om og spiller den for dig.'),
+        el('div', { class: 'ak-shop-top' }, [ el('p', { class: 'say' }, 'Hvilken sang vil du ønske? Så klæder gnomerne om og spiller den for dig.'),
           el('button', { class: 'iconbtn', type: 'button', 'aria-label': 'Luk', on: { click: luk }, html: ic('<path d="M6 6l12 12M18 6L6 18"/>') }) ]),
         el('div', { class: 'ak-prizes' }, kort) ]) ]);
     function luk(){ wrap.remove(); }
