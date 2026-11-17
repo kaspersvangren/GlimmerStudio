@@ -26,7 +26,7 @@ const CAT_INFO = {
 /* kladder (nye ting, der ikke er godkendt endnu) er ikke med i spillet */
 for (const [cat, info] of Object.entries(CAT_INFO)){ const all = info.ids; info.ids = () => all().filter(id => !isKladde(cat, id)); }
 
-function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [], room: (p.room && typeof p.room === 'object') ? p.room : null, potions: Math.max(0, +p.potions || 0), flights: Math.max(0, +p.flights || 0), jumps: Math.max(0, +p.jumps || 0), name: typeof p.name === 'string' ? p.name : '', intro: !!p.intro, billetter: Math.max(0, +p.billetter || 0) } : { stars:0, unlocked:[], fresh:[], room:null, potions:0, flights:0, jumps:0, name:'', intro:false, billetter:0 }; }
+function loadProg(){ const p = store.get(KEY_PROG, null); return (p && typeof p === 'object') ? { stars: Math.max(0, +p.stars || 0), unlocked: Array.isArray(p.unlocked) ? p.unlocked : [], fresh: Array.isArray(p.fresh) ? p.fresh : [], room: (p.room && typeof p.room === 'object') ? p.room : null, potions: Math.max(0, +p.potions || 0), flights: Math.max(0, +p.flights || 0), jumps: Math.max(0, +p.jumps || 0), name: typeof p.name === 'string' ? p.name : '', intro: !!p.intro, billetter: Math.max(0, +p.billetter || 0), koncert: Array.isArray(p.koncert) ? p.koncert : [] } : { stars:0, unlocked:[], fresh:[], room:null, potions:0, flights:0, jumps:0, name:'', intro:false, billetter:0, koncert:[] }; }
 let prog = loadProg();
 const saveProg = () => store.set(KEY_PROG, prog);
 /* nye ting pulserer i skaberen, indtil man har trykket på dem */

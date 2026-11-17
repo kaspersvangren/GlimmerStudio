@@ -50,7 +50,11 @@ function musicTick(){
 const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show', kost: 'show', fald: 'show', tryl: 'show' };
 function playMusic(name, opts){
   if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
-  stopMusic(); MUSIC.track = name;
+  if (opts && opts.over && MUSIC.on){   /* overtoning: lydfilen, der spiller, får lov at fortsætte, til den nye er klar */
+    clearInterval(MUSIC.timer); MUSIC.timer = null;
+    if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, opts.over / 3); } catch (e){} MUSIC.out = null; }
+  } else stopMusic();
+  MUSIC.track = name;
   if (!MUSIC.on) return;
   if (SND.music(name, opts)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
   if (!audioCtx()) return;

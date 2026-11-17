@@ -616,7 +616,8 @@ const Koncert = (() => {
   const URL_CACHE = {};
   const url = (k, fn) => URL_CACHE[k] || (URL_CACHE[k] = svgUrl(fn()));
   function show(){
-    showScreen('#koncert'); busy = false;
+    /* man kommer altid ind til lounge, også hvis man gik midt i en ønskesang */
+    showScreen('#koncert'); busy = false; sangGen++; clearTimeout(sangT); stil = 'hygge';
     const box = $('#koncertBody'); box.innerHTML = '';
     const scene = el('div', { class: 'kz-wrap' }), sal = el('div', { class: 'kz-sal' }), st = el('div', { class: 'kz-stage' });
     st.style.cssText = `left:${SAL.x}px;top:${SAL.y}px;transform:scale(${SAL.s});clip-path:inset(${KLIP[1]}px ${1600 - KLIP[2]}px ${1000 - KLIP[3]}px ${KLIP[0]}px)`;
@@ -734,7 +735,11 @@ const Koncert = (() => {
   }
 
   /* ---------- en sang er færdig: klapsalve, bandet bukker, går ud og kommer tilbage i det almindelige tøj ---------- */
-  let sangGen = 0, sangT = 0, lounge = 0;
+  let sangGen = 0, sangT = 0, lounge = 0, naesteLounge = 0;
+  /* næste lounge-nummer: aldrig det samme to gange i træk */
+  function nyLounge(){ let k; do { k = 1 + Math.floor(Math.random() * 4); } while (k === lounge && LYD_MUSIK['koncert.lounge2']); return k; }
+  /* kaldes, når figuren går mod koncertsalen på kortet: det første nummer vælges og hentes allerede nu */
+  function forbered(){ if (!naesteLounge) naesteLounge = nyLounge(); SND.forhent('koncert.lounge' + naesteLounge); }
   /* bandet (og publikum) bevæger sig kun, mens musikken faktisk spiller */
   function spiller(on){ if (root) root.classList.toggle('spiller', !!on); if (salEl) salEl.classList.toggle('spiller', !!on); }
   function startet(g){ return () => { if (g === sangGen) spiller(true); }; }
@@ -744,8 +749,8 @@ const Koncert = (() => {
     setTimeout(() => { if (g === sangGen && (!MUSIC.on || MUSIC.timer)) spiller(true); }, 250);
     if (stil === 'hygge'){   /* lounge: fire numre på skift (aldrig det samme to gange i træk), med mumlen fra publikum under */
       SND.ambience('stemning.koncert', 2);
-      let k; do { k = 1 + Math.floor(Math.random() * 4); } while (k === lounge && LYD_MUSIK['koncert.lounge2']); lounge = k;
-      playMusic('koncert.lounge' + k, { engang: true, start: startet(g), slut: () => { if (g === sangGen) spilSang(); } });
+      const k = naesteLounge || nyLounge(); naesteLounge = 0; lounge = k;
+      playMusic('koncert.lounge' + k, { engang: true, over: MUSIC.track && MUSIC.track.indexOf('koncert.') ? 1.6 : 0, start: startet(g), slut: () => { if (g === sangGen) spilSang(); } });
       return;
     }
     SND.ambience(null, 2.5);
@@ -771,7 +776,7 @@ const Koncert = (() => {
     skift('hygge', true);
   }
 
-  return { show, previewSvg, previewSal, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
+  return { show, forbered, previewSvg, previewSal, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
 })();
 
 Object.assign(MUSIC_SYNTH, { 'koncert.lounge1': 'koncert.hygge', 'koncert.lounge2': 'koncert.hygge', 'koncert.lounge3': 'koncert.hygge', 'koncert.lounge4': 'koncert.hygge' });

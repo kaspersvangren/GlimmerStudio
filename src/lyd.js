@@ -60,11 +60,17 @@ const SND = (() => {
   /* musik med loop-punkter spilles gennem Web Audio, så hoppet tilbage er helt uden pause */
   const BUF = {}, BAD = {}, BRUGT = [];
   let node = null, gain = null, gen = 0;
-  /* opts.engang: spil kun én gang og kald opts.slut, når den er færdig (koncertsalens sange) */
+  /* opts.engang: spil kun én gang og kald opts.slut, når den er færdig (koncertsalens sange)
+     opts.over: sekunders overtoning; den musik, der spiller, fortsætter, til den nye er hentet, og så glider de over i hinanden */
+  let gamle = [];
+  function fadeUd(g, sek){ try { const t = g.node.context.currentTime; g.gain.gain.cancelScheduledValues(t); g.gain.gain.setValueAtTime(g.gain.gain.value, t); g.gain.gain.linearRampToValueAtTime(0, t + sek); g.node.stop(t + sek + .1); } catch (e){} }
   function music(name, opts){
     const m = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name];
     if (!m || BAD[name]) return false;
-    stopSong(); songName = name;
+    const over = opts && opts.over && typeof m === 'object' ? opts.over : 0;
+    if (over && node){ gamle.push({ node, gain }); node = null; gain = null; gen++; if (song){ try { song.pause(); } catch (e){} song = null; } }
+    else stopSong();
+    songName = name;
     if (typeof m === 'string'){
       song = new Audio(m); song.loop = true; song.volume = 0.6;
       try { const p = song.play(); if (p && p.catch) p.catch(() => {}); } catch (e){}
@@ -75,7 +81,9 @@ const SND = (() => {
       if (my !== gen) return;
       node = loopNode(ac, buf, m);
       if (opts && opts.engang){ node.loop = false; node.onended = () => { if (my === gen && opts.slut) opts.slut(); }; }
-      gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
+      gain = ac.createGain(); node.connect(gain); gain.connect(ac.destination);
+      if (over){ const t = ac.currentTime; gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(m.vol || 0.6, t + over); gamle.forEach(g => fadeUd(g, over)); gamle = []; }
+      else gain.gain.value = m.vol || 0.6;
       node.start(0);
       if (opts && opts.start) opts.start();
     }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name, opts && opts.start ? { start: opts.start } : undefined); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
@@ -133,7 +141,7 @@ const SND = (() => {
     });
   }
   function stopSong(){
-    gen++;
+    gen++; gamle.forEach(g => fadeUd(g, .3)); gamle = [];
     if (song){ try { song.pause(); } catch (e){} song = null; }
     if (node){ try { gain.gain.setTargetAtTime(0, node.context.currentTime, 0.05); node.stop(node.context.currentTime + 0.3); } catch (e){} node = null; gain = null; }
     songName = null;

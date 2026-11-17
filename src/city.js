@@ -581,6 +581,8 @@ function visit(id){
   if (p.soon && !(p.forp && store.get(KEY_FORP, false))){ sfx.nope(); toast(p.name + ' kommer snart!'); return; }
   if (walking && LIFE.hero.dest === id) return;
   sfx.pick();
+  /* stedets musik hentes og pakkes ud, mens figuren går derhen, så den kan glide ind med det samme */
+  if (id === 'arkade') SND.forhent('arkade'); else if (id === 'koncert') Koncert.forbered();
   const done = () => { sfx.open(); goTo(() => p.open()); };
   if (calm || (!walking && heroAt === id)){ walking = false; done(); return; }
   heroWalk(id, done);
@@ -858,7 +860,7 @@ function growTaps(svg){
    og kun figurerne laves på ny — så hakker det ikke, hver gang man kommer tilbage. */
 const mapNorm = src => src.replace(/\b(id="|url\(#|href="#)[a-z]+\d+/gi, '$1#');
 function showTown(o = {}){
-  showScreen('#town'); if (!o.quiet) playMusic('byen');
+  showScreen('#town'); if (!o.quiet) playMusic('byen', { over: 1.6 });
   LIFE.peds.forEach(p => clearTimeout(p.wait));
   Object.assign(LIFE, { chars: [], bubbles: [], peds: [], nextPed: performance.now() + 1500, gen: LIFE.gen + 1 });
   walking = false;

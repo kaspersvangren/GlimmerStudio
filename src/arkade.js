@@ -206,7 +206,7 @@ const Arkade = (() => {
   /* ---------- hallen som skærm ---------- */
   function show(){
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
-    showScreen('#arkade'); playMusic('arkade'); SND.ambience('stemning.arkade'); busy = false;   /* hallens musik, med summen fra maskiner og mennesker under */
+    showScreen('#arkade'); playMusic('arkade', { over: 1.6 }); SND.ambience('stemning.arkade'); busy = false;   /* hallens musik, med summen fra maskiner og mennesker under */
     const box = $('#arkadeBody'); box.innerHTML = ''; box.classList.remove('ak-wood');
     box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ billetPill(), starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
