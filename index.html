@@ -2806,7 +2806,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.31.0';
+const VERSION = 'v0.31.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -11043,16 +11043,18 @@ const Koncert = (() => {
     o += `<ellipse cx="800" cy="640" rx="560" ry="70" fill="#FFB0D0" opacity=".08"/>`;
     return svgDoc('0 0 1600 1000', o, d);
   }
-  /* et menneske set bagfra (silhuet): skuldre, hoved og en hat eller frisure */
-  function silhuet(x, y, s, type, c = '#140A16', kant = '#5A3A7A'){
+  /* et menneske i silhuet: krop, hoved og en hat eller frisure. stol = sidder med ryggen til os på en stol (ryglænet dækker ryggen forneden) */
+  function silhuet(x, y, s, type, c = '#140A16', kant = '#5A3A7A', stol = false){
     let o = `<g transform="translate(${x} ${y}) scale(${s})">`;
-    o += `<path d="M -46 40 Q -48 -6 -22 -14 Q 0 -20 22 -14 Q 48 -6 46 40 Z" fill="${c}"/>`;
+    /* kroppen går langt ned, så bordet eller stolen dækker den nederste del */
+    o += `<path d="M -46 40 Q -48 -6 -22 -14 Q 0 -20 22 -14 Q 48 -6 46 40 L 50 120 Q 0 132 -50 120 Z" fill="${c}"/>`;
     o += `<circle cx="0" cy="-36" r="24" fill="${c}"/>`;
     const H = {
       gnom: `<path d="M -26 -48 L 4 -118 L 26 -48 Z" fill="${c}"/>`,
       heks: `<path d="M -46 -48 Q 0 -60 46 -48 Q 0 -40 -46 -48 Z M -22 -52 L 14 -116 L 22 -52 Z" fill="${c}"/>`,
       top: `<rect x="-20" y="-104" width="40" height="50" fill="${c}"/><path d="M -32 -54 H 32" stroke="${c}" stroke-width="7" stroke-linecap="round"/>`,
-      fjer: `<path d="M -30 -50 Q 0 -74 30 -50 Z" fill="${c}"/><path d="M 14 -62 Q 40 -100 22 -116 Q 28 -86 8 -64 Z" fill="${c}"/>`,
+      /* en dame med bredskygget hat og en stor rose på */
+      rose: `<ellipse cx="0" cy="-54" rx="44" ry="9" fill="${c}"/><path d="M -24 -56 Q -22 -82 0 -82 Q 22 -82 24 -56 Z" fill="${c}"/><circle cx="24" cy="-70" r="11" fill="${c}"/><circle cx="24" cy="-70" r="11" fill="none" stroke="${kant}" stroke-width="2.5" opacity=".7"/>`,
       elver: `<path d="M -22 -40 L -44 -64 L -18 -50 Z M 22 -40 L 44 -64 L 18 -50 Z" fill="${c}"/><circle cx="0" cy="-64" r="13" fill="${c}"/>`,
       dvaerg: `<path d="M -28 -42 Q -30 -76 0 -78 Q 30 -76 28 -42 Z" fill="${c}"/><path d="M -24 -60 L -40 -78 M 24 -60 L 40 -78" stroke="${c}" stroke-width="8" stroke-linecap="round"/>`,
       fletning: `<path d="M -22 -30 Q -34 0 -26 20 M 22 -30 Q 34 0 26 20" stroke="${c}" stroke-width="12" fill="none" stroke-linecap="round"/>`,
@@ -11061,22 +11063,28 @@ const Koncert = (() => {
     o += H[type] || '';
     /* svagt lys fra scenen langs kanten */
     o += `<path d="M -40 -6 Q -22 -14 0 -16 Q 22 -14 40 -6" stroke="${kant}" stroke-width="3" fill="none" opacity=".7"/><path d="M -20 -48 Q 0 -60 20 -48" stroke="${kant}" stroke-width="3" fill="none" opacity=".7"/>`;
+    /* stolen: et buet ryglæn med tremmer foran ryggen, og benene ned til gulvet */
+    if (stol) o += `<path d="M -50 54 Q 0 40 50 54 L 46 66 Q 0 54 -46 66 Z" fill="#2A1410"/><path d="M -36 62 V 120 M -12 58 V 120 M 12 58 V 120 M 36 62 V 120" stroke="#2A1410" stroke-width="8"/>`
+      + `<path d="M -48 120 H 48 V 132 H -48 Z" fill="#2A1410"/><path d="M -44 132 L -48 190 M 44 132 L 48 190" stroke="#2A1410" stroke-width="8" stroke-linecap="round"/>`
+      + `<path d="M -50 54 Q 0 40 50 54" stroke="${kant}" stroke-width="2.5" fill="none" opacity=".6"/>`;
     return o + '</g>';
   }
-  const TYPER = ['gnom', 'heks', 'top', 'fjer', 'elver', 'dvaerg', 'fletning', 'bowler'];
-  /* en række borde: hvert bord med dug, en lille lampe og to-tre gæster */
+  const TYPER = ['gnom', 'heks', 'top', 'rose', 'elver', 'dvaerg', 'fletning', 'bowler'];
+  /* en række borde: hvert bord med en dug helt ned, en lille lampe, to gæster bag bordet og én med ryggen til os */
   function borde(raekke){
     const R = [ { y: 660, s: .55, xs: [150, 420, 1180, 1450] }, { y: 790, s: .8, xs: [240, 600, 1000, 1360] }, { y: 960, s: 1.15, xs: [90, 520, 1080, 1510] } ][raekke];
     let o = '', n = raekke * 7;
     for (const x of R.xs){
-      const s = R.s, pl = [[-70, -10], [70, -10], [0, 4]];
-      /* gæsterne bag bordet (to i siderne) */
-      for (const [dx, dy] of pl.slice(0, 2)) o += silhuet(x + dx * s, R.y + dy * s - 40 * s, s, TYPER[(n++) % TYPER.length], raekke === 2 ? '#0C060E' : '#140A16');
-      /* bordet med dug og lampe */
-      o += `<ellipse cx="${x}" cy="${R.y}" rx="${90 * s}" ry="${24 * s}" fill="#D8C8D8" opacity=".55"/><path d="M ${x - 90 * s} ${R.y} Q ${x - 92 * s} ${R.y + 50 * s} ${x - 80 * s} ${R.y + 60 * s} H ${x + 80 * s} Q ${x + 92 * s} ${R.y + 50 * s} ${x + 90 * s} ${R.y} Z" fill="#3A2440"/>`;
+      const s = R.s, mork = raekke === 2 ? '#0C060E' : '#140A16';
+      /* gæsterne bag bordet: dugen dækker dem forneden */
+      for (const dx of [-70, 70]) o += silhuet(x + dx * s, R.y - 50 * s, s, TYPER[(n++) % TYPER.length], mork);
+      /* bordet med en lang dug og lampe */
+      o += `<path d="M ${x - 92 * s} ${R.y} Q ${x - 96 * s} ${R.y + 70 * s} ${x - 84 * s} ${R.y + 86 * s} Q ${x} ${R.y + 98 * s} ${x + 84 * s} ${R.y + 86 * s} Q ${x + 96 * s} ${R.y + 70 * s} ${x + 92 * s} ${R.y} Z" fill="#4A2A4A"/>`
+        + `<path d="M ${x - 60 * s} ${R.y + 20 * s} Q ${x - 62 * s} ${R.y + 60 * s} ${x - 56 * s} ${R.y + 90 * s} M ${x + 20 * s} ${R.y + 24 * s} Q ${x + 22 * s} ${R.y + 64 * s} ${x + 18 * s} ${R.y + 96 * s}" stroke="#2A1430" stroke-width="${4 * s}" fill="none"/>`
+        + `<ellipse cx="${x}" cy="${R.y}" rx="${92 * s}" ry="${24 * s}" fill="#C8B4C8" opacity=".6"/>`;
       o += `<circle cx="${x}" cy="${R.y - 30 * s}" r="${70 * s}" fill="url(#lg)"/><rect x="${x - 6 * s}" y="${R.y - 44 * s}" width="${12 * s}" height="${30 * s}" fill="#C99A12"/><path d="M ${x - 18 * s} ${R.y - 40 * s} L ${x - 12 * s} ${R.y - 62 * s} H ${x + 12 * s} L ${x + 18 * s} ${R.y - 40 * s} Z" fill="#FF8F6A"/>`;
-      /* den forreste gæst (med ryggen til) */
-      o += silhuet(x + pl[2][0], R.y + 40 * s, s * 1.05, TYPER[(n++) % TYPER.length], raekke === 2 ? '#0A050C' : '#120814');
+      /* den forreste gæst sidder på en stol med ryggen til os */
+      o += silhuet(x, R.y + 30 * s, s * 1.05, TYPER[(n++) % TYPER.length], raekke === 2 ? '#0A050C' : '#120814', '#5A3A7A', true);
     }
     const d = `<radialGradient id="lg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFC080" stop-opacity=".5"/><stop offset="1" stop-color="#FFC080" stop-opacity="0"/></radialGradient>`;
     return svgDoc('0 0 1600 1000', o, d);
