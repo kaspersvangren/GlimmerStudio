@@ -89,6 +89,12 @@ async function run(w, h){
   { const c = await p.evaluate(() => { const r = document.querySelector('#akStage canvas').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * .6]; });
     await p.mouse.move(c[0] - 60, c[1]); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(c[0] - 60 + i * 15, c[1] + (i % 2)); await p.mouse.up(); await p.waitForTimeout(200);
     ok(await p.evaluate(() => !Arkade.GAMES.tryl.state().kort.includes('vand')), `${tag} trylletegning: en vandret streg blev ikke genkendt`); }
+  /* Trylletegning: boss i runde 5 kan besejres med tegnene, og spillet går videre til runde 6 */
+  { await p.evaluate(() => { window.TRYL_FART = 4; Arkade.GAMES.tryl.tilRunde(5); const G = Arkade.GAMES.tryl;
+      window.__bossIv = setInterval(() => { const s = G.state(); if (!s) return; if (s.boss && s.boss.next) G.kast(s.boss.next); else if (s.skud.length) G.kast(s.skud[0].sym); }, 150); });
+    const b = await p.waitForFunction(() => { const s = Arkade.GAMES.tryl.state(); return s && s.runde >= 6 && !s.boss ? { n: s.bossNr, liv: s.liv } : null; }, null, { timeout: 90000 }).then(h => h.jsonValue()).catch(() => null);
+    await p.evaluate(() => { clearInterval(window.__bossIv); window.TRYL_FART = 1; });
+    ok(b && b.n === 1, `${tag} trylletegning: bossen i runde 5 blev ikke besejret (${JSON.stringify(b)})`); }
   /* præmiebutikken: billetter efter et spil, og lugen kan åbnes og lukkes */
   { const f = await p.evaluate(() => { const f0 = prog.billetter || 0; Arkade.show(); Arkade.praemie.open(); const ok = !!document.querySelector('.ak-shop-panel'); Arkade.praemie.luk(); return { f0, ok }; });
     ok(f.ok, `${tag} præmiebutikken åbnede ikke`); }

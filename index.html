@@ -2728,7 +2728,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.28.3';
+const VERSION = 'v0.29.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -8427,6 +8427,95 @@ const trylGenkend = (() => {
     return o;
   }
 
+  /* ================= bosserne (hver 5. runde) =================
+     Store, mytiske væsner, der svæver i luften og kaster ting efter kagen. Tegnet i en kasse på 400 med midten i 0,0.
+     ups = svimmel (spiral-øjne og tungen ud), når de er sårbare. */
+  const spiral = (x, y, r) => { let d = ''; for (let i = 0; i <= 24; i++){ const a = i / 24 * Math.PI * 4, rr = r * i / 24; d += (i ? 'L' : 'M') + (x + Math.cos(a) * rr).toFixed(1) + ' ' + (y + Math.sin(a) * rr).toFixed(1); } return `<circle cx="${x}" cy="${y}" r="${r * 1.15}" fill="#FFF" ${st(4)}/><path d="${d}" stroke="${E}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`; };
+  const tunge = (x, y, w = 14) => `<path d="M ${x - w} ${y} Q ${x - w} ${y + w * 1.8} ${x} ${y + w * 1.8} Q ${x + w} ${y + w * 1.8} ${x + w} ${y} Z" fill="#FF6F9A" ${st(3.5)}/><path d="M ${x} ${y + 3} V ${y + w * 1.2}" stroke="#D84A78" stroke-width="2.5" stroke-linecap="round"/>`;
+  const sky = (y, w) => `<path d="M ${-w} ${y + 20} C ${-w - 40} ${y + 20} ${-w - 40} ${y - 30} ${-w + 10} ${y - 26} C ${-w + 10} ${y - 70} ${-w * .3} ${y - 72} ${-w * .2} ${y - 40} C ${-w * .1} ${y - 86} ${w * .5} ${y - 80} ${w * .4} ${y - 36} C ${w * .6} ${y - 70} ${w + 30} ${y - 50} ${w} ${y - 14} C ${w + 44} ${y - 10} ${w + 40} ${y + 24} ${w} ${y + 20} Z" fill="#F7F4FF" ${st()}/><path d="M ${-w + 20} ${y + 6} Q 0 ${y + 16} ${w - 20} ${y + 6}" stroke="#D8D0EE" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+  function bTrold(ups){
+    const G = '#7AB84A', G2 = '#5A9A34', V = '#8A5A9A';
+    let o = sky(120, 150);
+    /* sækken med bomber i venstre hånd */
+    o += `<path d="M -190 20 C -210 70 -190 110 -140 110 C -96 110 -84 66 -104 22 Z" fill="#B8864A" ${st()}/><path d="M -176 24 Q -150 4 -112 22" stroke="${E}" stroke-width="6" fill="none"/>` + [[-168, 8], [-140, 0], [-118, 10]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="#2A2438" ${st(3)}/><circle cx="${x - 5}" cy="${y - 5}" r="4" fill="#6A6280"/>`).join('');
+    o += `<path d="M -96 40 C -110 50 -124 50 -132 40" stroke="${E}" stroke-width="32" stroke-linecap="round" fill="none"/><path d="M -96 40 C -110 50 -124 50 -132 40" stroke="${G}" stroke-width="22" stroke-linecap="round" fill="none"/>`;
+    /* kroppen, vesten og den løftede arm */
+    o += `<path d="M 96 10 C 130 -20 150 -40 160 -66" stroke="${E}" stroke-width="34" stroke-linecap="round" fill="none"/><path d="M 96 10 C 130 -20 150 -40 160 -66" stroke="${G}" stroke-width="24" stroke-linecap="round" fill="none"/><circle cx="162" cy="-76" r="20" fill="${G}" ${st()}/>`;
+    o += `<ellipse cx="0" cy="40" rx="112" ry="88" fill="${G}" ${st()}/><path d="M -100 0 C -80 90 -40 116 -30 120 L -40 10 Z M 100 0 C 80 90 40 116 30 120 L 40 10 Z" fill="${V}" ${st(4)}/><ellipse cx="0" cy="60" rx="46" ry="40" fill="#A8D878"/>`;
+    o += [[-60, 46], [-74, 76], [60, 46], [74, 76]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="#FFD23E" ${st(2)}/>`).join('');
+    /* hovedet med store ører, kæmpenæse og hugtænder */
+    o += both(`<path d="M -96 -80 C -150 -110 -160 -50 -104 -46 Z" fill="${G}" ${st()}/><path d="M -104 -74 C -134 -90 -138 -60 -108 -56 Z" fill="#FF9FB0"/>`);
+    o += `<ellipse cx="0" cy="-70" rx="100" ry="84" fill="${G}" ${st()}/><path d="M -70 -120 Q 0 -150 70 -120" stroke="${G2}" stroke-width="6" fill="none" stroke-linecap="round" opacity=".6"/>`;
+    o += ups ? spiral(-40, -96, 18) + spiral(40, -96, 18) : `<ellipse cx="-40" cy="-96" rx="14" ry="16" fill="#FFF" ${st(3.5)}/><ellipse cx="40" cy="-96" rx="14" ry="16" fill="#FFF" ${st(3.5)}/><circle cx="-36" cy="-92" r="7" fill="${E}"/><circle cx="44" cy="-92" r="7" fill="${E}"/><path d="M -62 -124 L -24 -112 M 62 -124 L 24 -112" stroke="${E}" stroke-width="8" stroke-linecap="round"/>`;
+    o += `<path d="M -80 -38 Q 0 30 80 -38 Q 0 -6 -80 -38 Z" fill="#5A1E2A" ${st()}/>` + (ups ? tunge(14, -20, 16) : '') + `<path d="M -50 -30 L -44 -58 L -34 -26 Z M 50 -30 L 44 -58 L 34 -26 Z" fill="#FFF6E0" ${st(3)}/>`;
+    o += `<ellipse cx="0" cy="-64" rx="30" ry="26" fill="#9AD06A" ${st()}/><ellipse cx="-10" cy="-72" rx="8" ry="5" fill="#C8F0A0" opacity=".8"/>` + both(blush(-70, -60, 12));
+    /* håret og kronen */
+    o += `<path d="M -70 -136 C -90 -170 -50 -170 -48 -150 C -40 -186 0 -176 -6 -150 C 10 -186 54 -176 40 -146 C 70 -170 90 -150 66 -132" fill="#E8742A" ${st()}/>`;
+    o += `<path d="M -54 -150 L -60 -206 L -30 -176 L 0 -216 L 30 -176 L 60 -206 L 54 -150 Z" fill="#F2C14E" ${st()}/><path d="M -54 -150 H 54" stroke="${E}" stroke-width="5"/>` + [[-58, -206, '#FF5C8A'], [0, -216, '#4AA8FF'], [58, -206, '#7AD06A']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="9" fill="${c}" ${st(3)}/>`).join('') + `<circle cx="0" cy="-166" r="10" fill="#FF5C8A" ${st(3)}/>`;
+    return o;
+  }
+  function bFoenix(ups){
+    const R = '#F2552A', O = '#FF9A2A', Y = '#FFD23E';
+    const flamme = (d, c) => `<path d="${d}" fill="${c}" ${st(4)}/>`;
+    let o = '';
+    /* vingerne af flammer */
+    o += both(flamme('M -40 -10 C -110 -90 -170 -110 -196 -60 C -170 -64 -160 -50 -180 -30 C -150 -36 -150 -16 -166 4 C -136 -2 -130 16 -140 34 C -110 20 -80 30 -50 30 Z', R) + flamme('M -46 0 C -100 -60 -140 -70 -160 -44 C -140 -44 -136 -30 -146 -16 C -124 -18 -120 0 -126 14 C -100 8 -76 20 -50 20 Z', O) + flamme('M -50 6 C -86 -30 -110 -34 -122 -20 C -104 -16 -100 -4 -102 6 C -84 4 -70 14 -54 14 Z', Y));
+    /* halen af lange flammer, der krøller */
+    o += flamme('M -20 60 C -40 120 -70 160 -40 196 C -40 160 -20 140 0 120 C 20 140 40 160 40 196 C 70 160 40 120 20 60 Z', R) + flamme('M -10 70 C -20 110 -30 140 -14 160 C -10 140 0 124 0 110 C 0 124 10 140 14 160 C 30 140 20 110 10 70 Z', Y);
+    /* kroppen og hovedet */
+    o += `<ellipse cx="0" cy="30" rx="56" ry="66" fill="${O}" ${st()}/><ellipse cx="0" cy="44" rx="32" ry="40" fill="${Y}"/>`;
+    o += flamme('M -30 -90 C -40 -140 -20 -170 -6 -190 C -2 -160 6 -150 10 -176 C 20 -150 30 -130 22 -104 C 40 -130 50 -120 40 -90 Z', R) + flamme('M -16 -96 C -20 -130 -8 -150 0 -164 C 4 -140 10 -134 14 -150 C 20 -130 22 -116 14 -100 Z', Y);
+    o += `<circle cx="0" cy="-60" r="50" fill="${O}" ${st()}/>` + both(blush(-30, -46, 9));
+    o += ups ? spiral(-20, -70, 13) + spiral(20, -70, 13) : `<ellipse cx="-20" cy="-70" rx="10" ry="13" fill="${E}"/><ellipse cx="20" cy="-70" rx="10" ry="13" fill="${E}"/><circle cx="-16" cy="-75" r="4" fill="#FFF"/><circle cx="24" cy="-75" r="4" fill="#FFF"/><path d="M -36 -90 L -10 -84 M 36 -90 L 10 -84" stroke="${E}" stroke-width="6" stroke-linecap="round"/>`;
+    o += `<path d="M -16 -46 Q 0 -38 16 -46 L 0 -14 Z" fill="${Y}" ${st(3.5)}/><path d="M -16 -46 Q 0 -52 16 -46" stroke="${E}" stroke-width="3" fill="none"/>` + (ups ? tunge(0, -30, 9) : '');
+    /* kløerne, der holder en ildkugle klar */
+    o += `<circle cx="0" cy="110" r="20" fill="${Y}" ${st(3)}/><circle cx="0" cy="110" r="11" fill="#FFF6C0"/>` + both(`<path d="M -14 92 L -22 120 M -6 92 L -8 124" stroke="${E}" stroke-width="5" stroke-linecap="round"/>`);
+    return o;
+  }
+  function bIsdrage(ups){
+    const B = '#8AD0F2', B2 = '#5AA8D8', H = '#E8F8FF';
+    let o = '';
+    o += both(`<path d="M -50 -20 L -180 -110 L -166 -60 L -200 -40 L -160 -20 L -176 10 L -130 0 L -136 34 L -70 24 Z" fill="${B2}" ${st()}/><path d="M -60 -10 L -170 -96 M -60 0 L -186 -40 M -66 10 L -160 4" stroke="${H}" stroke-width="3" opacity=".6"/>`);
+    o += `<path d="M 30 80 C 90 100 140 140 120 190 C 110 160 90 140 40 130 Z" fill="${B}" ${st()}/><path d="M 120 190 L 134 166 L 146 196 Z" fill="${H}" ${st(3)}/>`;
+    o += `<ellipse cx="0" cy="50" rx="70" ry="76" fill="${B}" ${st()}/><ellipse cx="0" cy="64" rx="40" ry="50" fill="${H}"/>` + [30, 54, 78, 102].map(y => `<path d="M -30 ${y} H 30" stroke="#BFE4F6" stroke-width="4" stroke-linecap="round"/>`).join('');
+    o += both(`<path d="M -40 112 Q -50 140 -30 146 Q -18 140 -22 112" fill="${B}" ${st()}/>`);
+    /* hovedet med ishorn og en lang snude */
+    o += both(`<path d="M -40 -110 L -66 -180 L -50 -170 L -58 -206 L -26 -126 Z" fill="${H}" ${st(4)}/>`);
+    o += `<path d="M -70 -70 C -70 -140 70 -140 70 -70 C 70 -30 50 -6 0 -6 C -50 -6 -70 -30 -70 -70 Z" fill="${B}" ${st()}/>`;
+    o += `<ellipse cx="0" cy="-34" rx="44" ry="28" fill="${H}" ${st(4)}/><circle cx="-14" cy="-40" r="4" fill="${E}"/><circle cx="14" cy="-40" r="4" fill="${E}"/>`;
+    o += ups ? spiral(-32, -84, 15) + spiral(32, -84, 15) + tunge(0, -20, 10) : `<ellipse cx="-32" cy="-84" rx="13" ry="15" fill="#FFF" ${st(3.5)}/><ellipse cx="32" cy="-84" rx="13" ry="15" fill="#FFF" ${st(3.5)}/><circle cx="-29" cy="-82" r="7" fill="#2A5A9A"/><circle cx="35" cy="-82" r="7" fill="#2A5A9A"/><circle cx="-27" cy="-85" r="2.6" fill="#FFF"/><circle cx="37" cy="-85" r="2.6" fill="#FFF"/><path d="M -50 -108 L -16 -98 M 50 -108 L 16 -98" stroke="${E}" stroke-width="6" stroke-linecap="round"/><path d="M -20 -20 Q 0 -10 20 -20" stroke="${E}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    o += both(blush(-52, -54, 10));
+    /* rimfrost-pigge ned ad ryggen og frostånde */
+    o += [[-10, -130], [10, -132], [0, -140]].map(([x, y]) => `<path d="M ${x - 8} ${y + 12} L ${x} ${y - 10} L ${x + 8} ${y + 12} Z" fill="${H}" ${st(3)}/>`).join('');
+    return o;
+  }
+  function bKraken(ups){
+    const P = '#B07AE0', P2 = '#8A52C0', L = '#E8D2FF';
+    let o = '';
+    /* otte arme, der krøller */
+    const arm = (x, s, len, k) => `<path d="M ${x} 30 C ${x + s * 30} ${60 + len * .3} ${x + s * 70} ${80 + len * .5} ${x + s * 40} ${110 + len * .6} C ${x + s * 20} ${130 + len * .6} ${x + s * 54} ${150 + len * .6} ${x + s * 70} ${136 + len * .6}" stroke="${E}" stroke-width="${30 - k}" stroke-linecap="round" fill="none"/><path d="M ${x} 30 C ${x + s * 30} ${60 + len * .3} ${x + s * 70} ${80 + len * .5} ${x + s * 40} ${110 + len * .6} C ${x + s * 20} ${130 + len * .6} ${x + s * 54} ${150 + len * .6} ${x + s * 70} ${136 + len * .6}" stroke="${P}" stroke-width="${21 - k}" stroke-linecap="round" fill="none"/>`;
+    o += arm(-90, -1, 40, 2) + arm(90, 1, 40, 2) + arm(-60, -1, 80, 0) + arm(60, 1, 80, 0) + arm(-30, 1, 100, 0) + arm(30, -1, 100, 0) + arm(-110, -1, -20, 4) + arm(110, 1, -20, 4);
+    /* hovedet: en stor kuppel med pletter, en tiara og en perlekæde */
+    o += `<path d="M -120 40 C -140 -120 140 -120 120 40 C 90 70 -90 70 -120 40 Z" fill="${P}" ${st()}/>` + [[-60, -60, 14], [50, -76, 10], [80, -20, 12], [-90, -10, 9], [10, -100, 8]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P2}" opacity=".6"/>`).join('');
+    o += `<path d="M -90 40 Q 0 74 90 40" stroke="#FFF" stroke-width="12" stroke-dasharray="0.1 18" stroke-linecap="round" fill="none"/>`;
+    o += ups ? spiral(-44, -10, 20) + spiral(44, -10, 20) + `<ellipse cx="0" cy="26" rx="16" ry="12" fill="#5A1E3A" ${st(3)}/>` + tunge(0, 30, 10) : `<ellipse cx="-44" cy="-10" rx="22" ry="24" fill="#FFF" ${st(4)}/><ellipse cx="44" cy="-10" rx="22" ry="24" fill="#FFF" ${st(4)}/><circle cx="-38" cy="-6" r="11" fill="${E}"/><circle cx="50" cy="-6" r="11" fill="${E}"/><circle cx="-34" cy="-11" r="4" fill="#FFF"/><circle cx="54" cy="-11" r="4" fill="#FFF"/><path d="M -70 -42 L -26 -34 M 70 -42 L 26 -34" stroke="${E}" stroke-width="7" stroke-linecap="round"/><path d="M -16 26 Q 0 18 16 26 Q 0 40 -16 26 Z" fill="#E8324A" ${st(3)}/>`;
+    o += both(blush(-80, 20, 12));
+    o += `<path d="M -50 -108 L -40 -140 L -20 -118 L 0 -150 L 20 -118 L 40 -140 L 50 -108 Q 0 -96 -50 -108 Z" fill="#F2C14E" ${st(4)}/><circle cx="0" cy="-128" r="8" fill="#FF8FC7" ${st(2.5)}/>`;
+    return o;
+  }
+  /* det, bosserne bliver til, når de er besejret (kasse 160) */
+  function sTrold(){ return `<ellipse cx="0" cy="20" rx="40" ry="36" fill="#9AD06A" ${st(4)}/><ellipse cx="0" cy="26" rx="20" ry="18" fill="#C8F0A0"/>` + both(`<circle cx="-30" cy="-34" r="12" fill="#9AD06A" ${st(4)}/><circle cx="-30" cy="-34" r="6" fill="#FF9FB0"/>`) + `<circle cx="0" cy="-18" r="34" fill="#9AD06A" ${st(4)}/><circle cx="-11" cy="-22" r="4" fill="${E}"/><circle cx="11" cy="-22" r="4" fill="${E}"/><ellipse cx="0" cy="-10" rx="8" ry="6" fill="#7AB84A" ${st(2.5)}/><path d="M -8 0 Q 0 6 8 0" ${st(3)} fill="none"/>` + both(blush(-20, -8, 5)) + `<path d="${'M 0 40 C -22 24 -14 6 0 18 C 14 6 22 24 0 40 Z'}" fill="#FF5C8A" ${st(3)}/>`; }
+  function sFoenix(){ return `<ellipse cx="0" cy="10" rx="40" ry="38" fill="#FFE27A" ${st(4)}/>` + both(`<path d="M -36 6 C -56 0 -60 20 -40 26" fill="#FFD23E" ${st(3.5)}/>`) + `<path d="M -6 -30 Q 0 -46 6 -30 Q 12 -40 14 -28" fill="none" ${st(3)}/><circle cx="-13" cy="0" r="4.5" fill="${E}"/><circle cx="13" cy="0" r="4.5" fill="${E}"/><path d="M -8 10 L 0 20 L 8 10 Z" fill="#FF9A2A" ${st(2.5)}/>` + both(blush(-24, 12, 5)) + both(`<path d="M -12 46 l -4 10 m 4 -10 l 0 10 m 0 -10 l 4 10" stroke="#FF9A2A" stroke-width="3.5" stroke-linecap="round"/>`); }
+  function sIsdrage(){ return both(`<path d="M -26 0 L -60 -20 L -50 6 Z" fill="#BFE4F6" ${st(3.5)}/>`) + `<ellipse cx="0" cy="18" rx="34" ry="36" fill="#8AD0F2" ${st(4)}/><circle cx="0" cy="-20" r="30" fill="#8AD0F2" ${st(4)}/><circle cx="-10" cy="-24" r="4.5" fill="${E}"/><circle cx="10" cy="-24" r="4.5" fill="${E}"/><path d="M -8 -10 Q 0 -4 8 -10" ${st(3)} fill="none"/>` + both(blush(-20, -12, 5)) + `<path d="M -30 2 Q 0 16 30 2 L 34 14 Q 0 30 -34 14 Z" fill="#FF6F9A" ${st(3)}/><path d="M 22 10 L 30 40 L 40 36 L 34 12" fill="#FF6F9A" ${st(3)}/>`; }
+  function sKraken(){ let o = ''; for (let i = 0; i < 6; i++){ const x = -30 + i * 12; o += `<path d="M ${x} 20 q ${i % 2 ? 6 : -6} 16 0 30 q ${i % 2 ? -8 : 8} 6 ${i % 2 ? -4 : 4} 12" stroke="${E}" stroke-width="12" stroke-linecap="round" fill="none"/><path d="M ${x} 20 q ${i % 2 ? 6 : -6} 16 0 30 q ${i % 2 ? -8 : 8} 6 ${i % 2 ? -4 : 4} 12" stroke="#E8A8FF" stroke-width="6" stroke-linecap="round" fill="none"/>`; }
+    return o + `<path d="M -40 24 C -50 -50 50 -50 40 24 Q 0 34 -40 24 Z" fill="#E8A8FF" ${st(4)}/><circle cx="-14" cy="0" r="5" fill="${E}"/><circle cx="14" cy="0" r="5" fill="${E}"/><path d="M -6 12 Q 0 17 6 12" ${st(2.6)} fill="none"/>` + both(blush(-26, 10, 5)) + `<path d="M 0 -28 L -16 -40 V -16 Z M 0 -28 L 16 -40 V -16 Z" fill="#FF5C8A" ${st(3)}/><circle cx="0" cy="-28" r="5" fill="#FF8FC7" ${st(2)}/>`; }
+  /* kasteskyts (kasse 120). Tegnet uden tegnet; tegnet sættes på i spillet */
+  function kBombe(){ return `<circle cx="0" cy="6" r="34" fill="#3A3448" ${st()}/><path d="M -20 -10 A 26 26 0 0 1 4 -24" stroke="#7A7290" stroke-width="7" fill="none" stroke-linecap="round"/><rect x="-10" y="-38" width="20" height="14" rx="3" fill="#6A6280" ${st(3.5)}/><path d="M 0 -38 Q 6 -52 18 -54" stroke="#B8864A" stroke-width="5" fill="none" stroke-linecap="round"/>`; }
+  function kIld(){ return `<path d="M -30 0 C -30 -24 -6 -34 10 -30 C 30 -40 56 -30 60 -20 C 46 -18 44 -12 58 -4 C 44 0 46 8 60 14 C 40 22 30 32 10 30 C -8 34 -30 24 -30 0 Z" fill="#F2552A" ${st(4)}/><circle cx="0" cy="0" r="26" fill="#FF9A2A"/><circle cx="-4" cy="0" r="17" fill="#FFD23E"/>`; }
+  function kIs(){ let d = ''; for (let i = 0; i < 12; i++){ const a = i * Math.PI / 6 - Math.PI / 2, r = i % 2 ? 22 : 46; d += (i ? 'L' : 'M') + (Math.cos(a) * r).toFixed(1) + ' ' + (Math.sin(a) * r).toFixed(1); }
+    return `<path d="${d}Z" fill="#BFE8FF" ${st(4)}/>` + [0, 60, 120].map(a => `<path d="M 0 -40 V 40" stroke="#FFFFFF" stroke-width="3" transform="rotate(${a})" opacity=".8"/>`).join('') + `<circle r="22" fill="#5AA8D8" ${st(3)}/>`; }
+  function kBlaek(){ return `<path d="M -32 -6 C -40 -34 -6 -40 6 -30 C 26 -42 46 -20 34 -2 C 46 12 30 34 12 28 C 4 42 -22 40 -24 24 C -42 24 -46 4 -32 -6 Z" fill="#6A3A9A" ${st(4)}/><circle cx="-36" cy="-28" r="6" fill="#6A3A9A" ${st(2.5)}/><circle cx="40" cy="26" r="5" fill="#6A3A9A" ${st(2.5)}/><ellipse cx="-14" cy="-18" rx="7" ry="4" fill="#B07AE0" opacity=".8"/>`; }
+
   const KASSE = 220, GREB = -92;                                     /* væsnernes kasse og hvor hænderne er */
   const ART = { gnom, spoeg, froe, gris, drage };
   const svgW = (vb, inner) => { const [, , w, h] = vb.split(' ').map(Number); return { vb, w, h, svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${inner}</svg>` }; };
@@ -8438,6 +8527,9 @@ const trylGenkend = (() => {
     B.sommerfugl1 = svgW('-70 -60 140 120', sommerfugl('#FF8FC7', '#C79BFF')); B.sommerfugl2 = svgW('-70 -60 140 120', sommerfugl('#7FD8FF', '#FFE27A'));
     B.cupcake = svgW('-70 -60 140 120', cupcake()); B.and = svgW('-70 -70 140 130', and()); B.hjertevinge = svgW('-70 -60 140 120', hjertevinge());
     B.gave = svgW('-60 -60 120 120', gave());
+    for (const [k, f] of Object.entries({ trold: bTrold, foenix: bFoenix, isdrage: bIsdrage, kraken: bKraken })){ B['boss_' + k] = svgW('-210 -230 420 440', f(false)); B['boss_' + k + '!'] = svgW('-210 -230 420 440', f(true)); }
+    for (const [k, f] of Object.entries({ trold: sTrold, foenix: sFoenix, isdrage: sIsdrage, kraken: sKraken })) B['sod_' + k] = svgW('-80 -80 160 160', f());
+    for (const [k, f] of Object.entries({ bombe: kBombe, ild: kIld, is: kIs, blaek: kBlaek })) B['skud_' + k] = svgW('-64 -64 128 128', f());
     for (let n = 0; n <= 3; n++) B['kage' + n] = svgW('-170 -330 340 340', kage(n));
     B.bg = svgW('-400 0 2400 1000', baggrund());
     return B;
@@ -8459,10 +8551,30 @@ const trylGenkend = (() => {
   const MAAL = { bg: [1, 0, 0], heks: [.31, 400, 1052], kaeledyr: [.5, 660, 1050], gave: [.86, 0, -50], kage0: [.7, 0, 0], kage1: [.7, 0, 0], kage2: [.7, 0, 0], kage3: [.7, 0, 0] };
   for (const k of Object.keys(SLAGS)){ MAAL[k] = MAAL[k + '!'] = MAAL[k + '_1'] = MAAL[k + '_2'] = [SLAGS[k].sk, 0, GREB]; }
   for (const k of DYR) MAAL[k] = [.62, 0, 0];
+  for (const k of ['trold', 'foenix', 'isdrage', 'kraken']){ MAAL['boss_' + k] = MAAL['boss_' + k + '!'] = [1, 0, 0]; MAAL['sod_' + k] = [.9, 0, 0]; }
+  for (const k of ['bombe', 'ild', 'is', 'blaek']) MAAL['skud_' + k] = [.95, 0, 0];
+
+  /* ---------- bosserne: hver 5. runde kommer en af dem, i denne rækkefølge, og så forfra, hver gang lidt sværere ----------
+     skud: hvad den kaster. bane: hvordan det flyver (bue, ret eller zigzag). hp: hvor mange gange den skal rammes.
+     kombo: hvor mange tegn, man skal tegne i træk, når den er svimmel. hand: hvor kastet starter, set fra midten af bossen. */
+  const BOSSER = [
+    { k:'trold', navn:'Kongetrolden', skud:'bombe', bane:'bue', hp:2, kombo:2, antal:1, hand:[-150, 10], sod:'en lille bamsetrold',
+      snak:['Hø hø hø!', 'Den kage er MIN!', 'Stinkbombe på vej!', 'Hø hø, fang!'], av:['Av, min krone!', 'Hov hov hov!', 'Det kilder!'], grin:'Hø hø! For langsom!' },
+    { k:'foenix', navn:'Ildfuglen', skud:'ild', bane:'ret', hp:3, kombo:3, antal:1, hand:[0, 110], sod:'en lille kylling',
+      snak:['Kra-kraaa!', 'Varm kage, mums!', 'Ild og flammer!', 'Fjer-flammer!'], av:['Mine fjer!', 'Kraaa-av!', 'Puha, det svider!'], grin:'Kra-kra! Jeg vandt næsten!' },
+    { k:'isdrage', navn:'Isdragen', skud:'is', bane:'zigzag', hp:3, kombo:3, antal:1, hand:[0, 0], sod:'en lille babydrage',
+      snak:['Brrr! Is-kage!', 'Frys, kage!', 'Hihi, glat!', 'Snefnug-stjerner!'], av:['Atjuu!', 'Det er for varmt!', 'Mine horn!'], grin:'Brrr-ha-ha!' },
+    { k:'kraken', navn:'Kæmpeblæksprutten', skud:'blaek', bane:'bue', hp:4, kombo:3, antal:2, hand:[0, 120], sod:'en lille blæksprutte',
+      snak:['Blæk-blæk!', 'Otte arme til kagen!', 'Splat!', 'Blob-blob-blob!'], av:['Mine arme!', 'Blubb!', 'Av, min tiara!'], grin:'Blæk-hæ-hæ!' },
+  ];
+  const PYNT = ['sloejfe', 'hjerte', 'blomst', 'hjerte', 'sloejfe'];
+  /* hvor pynten sætter sig på hver boss, når den bliver ramt */
+  const PYNT_AT = { trold: [[-60, -150], [-70, -60], [70, -60], [0, 60], [60, 20]], foenix: [[0, -150], [-34, -40], [34, -40], [0, 40], [-60, 0]],
+    isdrage: [[0, -150], [-52, -52], [52, -52], [0, 60], [-40, 20]], kraken: [[60, -110], [-80, 20], [80, 20], [0, -70], [-60, -80]] };
 
   function rundeplan(w){
-    const tegn = ['vand', 'lod']; if (w >= 2) tegn.push('v'); if (w >= 3) tegn.push('hat'); if (w >= 5) tegn.push('ring'); if (w >= 7) tegn.push('lyn');
-    const nyt = w === 1 ? ['vand', 'lod'] : w === 2 ? ['v'] : w === 3 ? ['hat'] : w === 5 ? ['ring'] : w === 7 ? ['lyn'] : [];
+    const tegn = ['vand', 'lod']; if (w >= 2) tegn.push('v'); if (w >= 3) tegn.push('hat'); if (w >= 4) tegn.push('ring'); if (w >= 7) tegn.push('lyn');
+    const nyt = w === 1 ? ['vand', 'lod'] : w === 2 ? ['v'] : w === 3 ? ['hat'] : w === 4 ? ['ring'] : w === 7 ? ['lyn'] : [];
     /* afprøvet med robotter: en nybegynder (godt 2 sekunder pr. tegn) når runde 4-5, en øvet (1 sekund) runde 14-16. Det bliver ved med at blive sværere */
     return { tegn, nyt, antal: Math.min(5 + w * 2, 26), gab: Math.max(.5, 2.85 - w * .165), fart: Math.min(50 + w * 6, 200) };
   }
@@ -8475,7 +8587,7 @@ const trylGenkend = (() => {
   }
   function raster(){
     if (!S) return;
-    kamera(); const q = S.C.V.k * S.C.V.dpr * S.Z;
+    kamera(); const q = S.C.V.k * S.C.V.dpr * S.Zn;
     for (const [name, I] of Object.entries(IMG)){
       const [sk] = MAAL[name] || [1], [x0, y0, w, h] = I.vb, c = document.createElement('canvas');
       const f = Math.min(1, 4096 / (w * sk * q), 4096 / (h * sk * q));
@@ -8522,8 +8634,14 @@ const trylGenkend = (() => {
   /* kameraet: på en bred, lav skærm (en telefon) zoomes der ind mod bunden, så balloner og væsner bliver store nok.
      Her måles også, hvor knapperne i de øverste hjørner sidder, så væsnerne kommer ned imellem dem. */
   function kamera(){
-    const C = S.C, cv = C.cv, w = cv.clientWidth || 800, h = cv.clientHeight || 500, [a, b] = C.visX();
-    S.Z = Math.max(1, Math.min(1.3, (w / h) / 1.6)); S.top = 1000 - 1000 / S.Z;
+    const cv = S.C.cv, w = cv.clientWidth || 800, h = cv.clientHeight || 500;
+    S.Zn = Math.max(1, Math.min(1.3, (w / h) / 1.6)); if (S.Z == null || !S.boss) S.Z = S.boss ? 1 + (S.Zn - 1) * .45 : S.Zn;
+    kameraFra();
+  }
+  /* ved en boss zoomes der ud (Z mod 1), så der er plads til den foroven. Her regnes alt det ud, der afhænger af zoomet */
+  function kameraFra(){
+    const C = S.C, cv = C.cv, [a, b] = C.visX();
+    S.top = 1000 - 1000 / S.Z;
     S.x0 = 800 + (a - 800) / S.Z; S.x1 = 800 + (b - 800) / S.Z;
     const r = cv.getBoundingClientRect(), gx = px => 800 + ((px - r.left - C.V.ox) / C.V.k - 800) / S.Z, gy = py => 1000 + ((py - r.top - C.V.oy) / C.V.k - 1000) / S.Z;
     const tl = document.querySelector('#arkadeBody .place-ui.tl'), tr = document.querySelector('#arkadeBody .place-ui.tr');
@@ -8540,7 +8658,7 @@ const trylGenkend = (() => {
     const hero = heroState(), harDyr = !!(hero.pet && hero.pet.kind !== 'ingen');
     S = { api, C, t: 0, last: performance.now(), raf: 0, over: false, klar: false, score: 0, runde: 0, liv: 3, forvandlet: 0, cfg: null,
           foes: [], frie: [], dyr: [], parts: [], tekster: [], spor: [], streg: null, koe: [], tving: [], spawnT: 0, fase: 'hent', faseT: 0, kort: null,
-          gave: null, gaveT: 0, hop: 0, dyrHop: 0, kageHop: 0, ryst: 0, msg: '', msgT: 0, harDyr,
+          gave: null, gaveT: 0, hop: 0, dyrHop: 0, kageHop: 0, ryst: 0, msg: '', msgT: 0, harDyr, boss: null, skud: [], bossNr: 0, Z: null, msg2: '',
           blink: Array.from({ length: 26 }, () => ({ x: rnd(-380, 1980), y: rnd(20, 560), p: rnd(0, 6), r: rnd(1.6, 3.2) })),
           ild: Array.from({ length: 9 }, () => ({ x: rnd(-300, 1900), y: rnd(700, 930), p: rnd(0, 6) })) };
     const me = S, cv = C.cv;
@@ -8565,6 +8683,7 @@ const trylGenkend = (() => {
   /* ---------- runderne ---------- */
   function naesteRunde(){
     S.runde++; const w = S.runde, cfg = S.cfg = rundeplan(w);
+    if (w % 5 === 0) return bossStart(w);
     /* hvem kommer i denne runde: flest gnomer, og de store sjældnere. Et nyt slags væsen kommer altid med i sin første runde */
     const kan = Object.keys(SLAGS).filter(k => SLAGS[k].fra <= w), sum = kan.reduce((a, k) => a + SLAGS[k].tit, 0);
     S.koe = Array.from({ length: cfg.antal }, () => { let r = Math.random() * sum; for (const k of kan){ r -= SLAGS[k].tit; if (r <= 0) return k; } return 'gnom'; });
@@ -8579,6 +8698,87 @@ const trylGenkend = (() => {
     if (w > 1) SND.play('tryl.runde', () => sfx.magic());
   }
   const aktive = () => S.cfg ? S.cfg.tegn.concat(S.gave ? ['hjerte'] : []) : [];
+
+  /* ---------- boss-runden ---------- */
+  function bossStart(w){
+    const nr = ++S.bossNr, def = BOSSER[(nr - 1) % BOSSER.length], cyk = Math.floor((nr - 1) / BOSSER.length);
+    S.koe = []; S.tving = []; S.kort = null; S.spawnT = 99;
+    S.gaveT = Math.random() < .6 ? rnd(10, 22) : -1;
+    S.boss = { def, nr, x: 800, y: -300, t: 0, fase: 'ind', faseT: 2.4, hp: def.hp + cyk, hpMax: def.hp + cyk, komboN: Math.min(5, def.kombo + cyk),
+      flyv: Math.max(2.4, 5.4 - .35 * (nr - 1)), gab: Math.max(.9, 2.5 - .22 * (nr - 1)), angreb: 5 + Math.min(4, nr), kastet: 0, kastT: 1.2,
+      kombo: [], komboI: 0, saarT: 0, ramtT: 0, pynt: [], snak: null, snakT: 0, besejrT: 0, glimt: 0 };
+    S.fase = 'spil'; S.msg = `BOSS: ${def.navn}!`; S.msg2 = `Tegn tegnene på det, den kaster, før det rammer kagen`; S.msgT = 3.2;
+    SND.play('tryl.boss', () => { tone(110, .5, 'sawtooth', .05, 0, .6); tone(165, .5, 'sawtooth', .04, .15, .6); });
+  }
+  function bossSig(txt){ if (S.boss){ S.boss.snak = txt; S.boss.snakT = 2.2; } }
+  function bossKast(){
+    const B = S.boss, d = B.def, n = d.antal + (B.nr > 8 ? 1 : 0);
+    for (let i = 0; i < n; i++){
+      const x0 = B.x + d.hand[0], y0 = B.y + d.hand[1], tx = BORD + rnd(-70, 70), ty = 760;
+      /* tegnene: forskellige på skud, der flyver samtidig, når det kan lade sig gøre */
+      const brugt = new Set(S.skud.map(k => k.sym)), pulje = S.cfg.tegn.filter(t => !brugt.has(t)), sym = vaelg(pulje.length ? pulje : S.cfg.tegn);
+      S.skud.push({ k: d.skud, bane: d.bane, sym, x0, y0, tx: tx + (n > 1 ? (i - (n - 1) / 2) * 120 : 0), ty, x: x0, y: y0, T: B.flyv * (d.bane === 'ret' ? .9 : 1) * rnd(.95, 1.08) + i * .5, t: 0, plan: 0, rot: rnd(0, 6), ph: rnd(0, 6) });
+    }
+    B.kastet++; B.glimt = .3;
+    SND.play('tryl.kast', () => tone(420, .14, 'triangle', .04, 0, .5));
+    if (Math.random() < .35) bossSig(vaelg(d.snak));
+  }
+  function bossSaarbar(){
+    const B = S.boss; B.fase = 'saarbar'; B.komboI = 0;
+    const p = S.cfg.tegn.slice(); B.kombo = Array.from({ length: B.komboN }, (_, i) => { let t; do { t = vaelg(p); } while (p.length > 1 && i > 0 && t === B.kombo[i - 1]); B.kombo[i] = t; return t; });
+    B.saarT = B.saarMax = 3.5 + 2.3 * B.komboN;
+    S.msg = 'Den er svimmel!'; S.msg2 = 'Tegn tegnene over den, i rækkefølge'; S.msgT = 2.2;
+    SND.play('tryl.svimmel', () => [660, 520, 400].forEach((f, i) => tone(f, .14, 'sine', .04, i * .12, .9)));
+  }
+  function bossRamt(){
+    const B = S.boss; B.hp--; B.ramtT = 1.1; B.fase = 'ramt'; B.pynt.push(PYNT[B.pynt.length % PYNT.length]);
+    S.score += 100; S.api.score(S.score); S.hop = .5; S.dyrHop = .5; S.ryst = .25;
+    SND.play('tryl.ramt', () => sfx.fanfare());
+    gnist(B.x, B.y - 60, '#FFE27A', 24, 420); for (let i = 0; i < 14; i++) S.parts.push({ type: 'hjerte', x: B.x, y: B.y - 60, vx: rnd(-420, 420), vy: rnd(-380, 200), t: 0, life: rnd(.7, 1.3), r: rnd(8, 15), c: vaelg(['#FF4F7B', '#FF8FC7', '#FFD86B']), g: 260 });
+    tekst(B.x, B.y - 20, '+100', '#FFF6D0', 46); bossSig(vaelg(B.def.av));
+  }
+  function bossBesejret(){
+    const B = S.boss; B.fase = 'besejret'; B.besejrT = 1.6;
+    const p = 200 + 50 * B.nr; S.score += p; S.api.score(S.score); S.forvandlet++;
+    SND.play('tryl.besejret', () => sfx.fanfare());
+    for (let i = 0; i < 16; i++){ const a = i / 16 * 6.28; S.parts.push({ type: 'sky', x: B.x + Math.cos(a) * 80, y: B.y + Math.sin(a) * 80, vx: Math.cos(a) * 160, vy: Math.sin(a) * 160, t: 0, life: .9, r: rnd(40, 60), c: '#FFF' }); }
+    gnist(B.x, B.y, '#FF8FC7', 30, 520); gnist(B.x, B.y, '#FFE27A', 24, 460);
+    S.msg = `${B.def.navn} blev til ${B.def.sod}!`; S.msg2 = ''; S.msgT = 2.8; tekst(B.x, B.y + 40, '+' + p, '#FFF6D0', 56);
+    for (const k of S.skud) if (!k.plan){ k.plan = S.t + rnd(.1, .4); k.t0 = S.t; }
+  }
+  /* et kasteskud er ramt af det rigtige tegn: det bliver til noget sødt */
+  function skudPuf(k){
+    const c = { bombe: ['#FF8FC7', '#FFE27A', '#7FD8FF', '#9BE36A'], ild: ['#FF8FC7', '#FFC2DE', '#FFF'], is: ['#FFFFFF', '#BFE8FF', '#7FD8FF'], blaek: ['#E8D2FF', '#FFFFFF', '#C79BFF'] }[k.k];
+    SND.play('tryl.pop', () => sfx.pop());
+    S.parts.push({ type: 'ring', x: k.x, y: k.y, t: 0, life: .3, r: 50, c: '#FFF' });
+    for (let i = 0; i < 14; i++){ const a = rnd(0, 6.28), v = rnd(120, 360); S.parts.push({ type: k.k === 'ild' ? 'hjerte' : k.k === 'is' ? 'stjerne' : k.k === 'blaek' ? 'sky' : 'flis', x: k.x, y: k.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, t: 0, life: rnd(.5, .9), r: k.k === 'blaek' ? rnd(6, 12) : rnd(6, 11), c: vaelg(c), rot: rnd(0, 6), g: 300 }); }
+  }
+  function skudPos(k){
+    const p = Math.min(1, k.t / k.T), lx = k.x0 + (k.tx - k.x0) * p, ly = k.y0 + (k.ty - k.y0) * p;
+    if (k.bane === 'bue') return [lx, ly - 220 * 4 * p * (1 - p)];
+    if (k.bane === 'zigzag') return [lx + Math.sin(p * Math.PI * 4 + k.ph) * 150 * (1 - p), ly];
+    return [lx + Math.sin(p * Math.PI * 3 + k.ph) * 40, ly];
+  }
+  function bossFrem(dt){
+    const B = S.boss; B.t += dt; if (B.snakT > 0) B.snakT -= dt; if (B.glimt > 0) B.glimt -= dt;
+    const hoverY = Math.max(S.hudB + 230, S.top + 300), span = Math.max(80, (S.baneR - S.baneL) / 2 - 240);
+    if (B.fase === 'ind'){ B.faseT -= dt; const k = Math.min(1, 1 - B.faseT / 2.4), e = 1 - Math.pow(1 - k, 3); B.y = -300 + (hoverY + 300) * e; B.x = 800; if (B.faseT <= 0){ B.fase = 'angreb'; bossSig(B.def.snak[1]); } return; }
+    if (B.fase === 'besejret'){ B.besejrT -= dt; if (B.besejrT <= 0){ S.dyr.push({ k: 'sod_' + B.def.k, x: B.x, y: B.y, t: 0, vx: rnd(-40, 40), vy: -170, ph: 0 }); S.boss = null; } return; }
+    /* den svæver frem og tilbage. Er den svimmel, står den stille og vugger */
+    const fart = B.fase === 'saarbar' ? 0 : 1; B.vt = (B.vt || 0) + dt * fart;
+    B.x = 800 + Math.sin(B.vt * .45) * span; B.y = hoverY + Math.sin(B.t * 1.3) * 14;
+    if (B.fase === 'angreb'){
+      B.kastT -= dt;
+      if (B.kastet < B.angreb && B.kastT <= 0){ bossKast(); B.kastT = B.gab * rnd(.8, 1.2); }
+      if (B.kastet >= B.angreb && !S.skud.length){ bossSaarbar(); }
+    } else if (B.fase === 'saarbar'){
+      B.saarT -= dt;
+      if (B.saarT <= 0){ B.fase = 'angreb'; B.kastet = 0; B.kastT = 1; bossSig(B.def.grin); SND.play('tryl.grin', () => [300, 360, 300].forEach((f, i) => tone(f, .1, 'square', .03, i * .1, 1))); }
+    } else if (B.fase === 'ramt'){
+      B.ramtT -= dt;
+      if (B.ramtT <= 0){ if (B.hp <= 0) bossBesejret(); else { B.fase = 'angreb'; B.kastet = 0; B.kastT = 1.2; B.gab = Math.max(.8, B.gab * .9); } }
+    }
+  }
 
   function spawn(k){
     const def = SLAGS[k], n = def.bal, m = BR + 8 + (n - 1) * 44 + def.svaj, lo = S.baneL + m, hi = Math.max(S.baneL + m + 10, S.baneR - m);
@@ -8603,9 +8803,18 @@ const trylGenkend = (() => {
     if (S.fase === 'kort' && S.kort.nyt.includes(sym) && !S.kort.ok[sym]){ S.kort.ok[sym] = true; S.hop = .4; SND.play('tryl.puf', () => sfx.twinkle()); gnist(mx, my, c, 14, 260);
       if (S.kort.nyt.every(k => S.kort.ok[k])) S.faseT = Math.min(S.faseT, .9); return; }
     if (sym === 'hjerte' && S.gave){ hjertebrag(); return; }
+    /* bossen: er den svimmel, og er det næste tegn i rækken, rykker man et skridt frem */
+    let bossOk = false;
+    if (S.boss && S.boss.fase === 'saarbar' && S.boss.kombo[S.boss.komboI] === sym){
+      const B = S.boss; B.komboI++; bossOk = true; S.hop = .4; gnist(B.x, B.y - 120, c, 12, 280); SND.play('tryl.puf', () => sfx.twinkle());
+      if (B.komboI >= B.kombo.length) bossRamt();
+    }
+    const skud = S.skud.filter(k => !k.plan && k.sym === sym);
+    skud.forEach((k, i) => { k.plan = S.t + .04 + i * .06; k.t0 = S.t; });
+    if (skud.length){ const q = 10 * skud.length; S.score += q; S.api.score(S.score); tekst(mx, my - 10, '+' + q, '#FFF6D0', 34); }
     const ramt = [];
     for (const f of S.foes){ if (f.st !== 'ned') continue; for (const b of f.bal){ if (!b.pop && !b.plan && b.sym === sym && f.y + b.dy > S.top - BR * .4) ramt.push([f, b]); } }
-    if (!ramt.length){ gnist(mx, my, c, 6, 160); tone(900, .05, 'triangle', .02, 0, 1.3); return; }
+    if (!ramt.length){ if (!bossOk && !skud.length){ gnist(mx, my, c, 6, 160); tone(900, .05, 'triangle', .02, 0, 1.3); } else gnist(mx, my, c, 10, 240); return; }
     ramt.sort((a, b) => Math.hypot(a[0].x + a[1].dx - mx, a[0].y + a[1].dy - my) - Math.hypot(b[0].x + b[1].dx - mx, b[0].y + b[1].dy - my));
     ramt.forEach(([f, b], i) => { b.plan = S.t + .05 + i * .075; b.t0 = S.t; });
     const n = ramt.length, p = 5 * n * (n + 1); S.score += p; S.api.score(S.score); S.hop = .42;
@@ -8619,6 +8828,7 @@ const trylGenkend = (() => {
     for (let i = 0; i < 26; i++) S.parts.push({ type: 'hjerte', x: g.x, y: g.y, vx: rnd(-520, 520), vy: rnd(-460, 300), t: 0, life: rnd(.8, 1.5), r: rnd(9, 18), c: vaelg(['#FF4F7B', '#FF8FC7', '#FFD86B']), g: 240 });
     gnist(g.x, g.y, '#FFD86B', 20, 420);
     let i = 0; for (const f of S.foes){ if (f.st !== 'ned' || f.y < S.top - 40) continue; for (const b of f.bal){ if (!b.pop && !b.plan){ b.plan = S.t + .15 + i * .05; b.t0 = S.t; i++; } } }
+    for (const k of S.skud) if (!k.plan){ k.plan = S.t + .15 + i * .05; k.t0 = S.t; i++; }
     tekst(g.x, g.y + 70, 'Hjertetrylleri!', '#FF8FC7', 56); tekst(g.x, g.y + 122, '+100', '#FFF6D0', 40);
   }
   function pop(f, b){
@@ -8645,12 +8855,12 @@ const trylGenkend = (() => {
     SND.play('tryl.lande', () => tone(140, .08, 'sine', .05, 0, .6));
     for (let i = 0; i < 4; i++) S.parts.push({ type: 'sky', x: f.x + rnd(-20, 20), y: GULV, vx: rnd(-60, 60), vy: rnd(-40, -10), t: 0, life: .4, r: rnd(8, 14), c: '#CDE8D0' });
   }
-  function bid(f){
+  function bid(f, txt){
     if (S.liv <= 0 || S.fase === 'tabt') return;
     S.liv--; S.ryst = .3; S.kageHop = .35; SND.play('tryl.nam', () => sfx.nope());
     const y = GULV - 90 - S.liv * 40;
     for (let i = 0; i < 14; i++) S.parts.push({ type: 'flis', x: BORD + rnd(-50, 50), y: y + rnd(-20, 20), vx: rnd(-260, 260), vy: rnd(-380, -80), t: 0, life: rnd(.5, .9), r: rnd(5, 10), c: vaelg(['#F6D9A8', '#FF8FC7', '#FFF', '#B79BFF']), rot: rnd(0, 6), g: 700 });
-    tekst(f.x, f.y - 20, 'NAM!', '#FF8FC7', 54);
+    tekst(f.x, f.y - 20, txt || 'NAM!', '#FF8FC7', 54);
     if (S.liv <= 0){ S.fase = 'tabt'; S.faseT = 2.1; S.streg = null; S.gave = null; S.msg = 'Kagen er spist!'; S.msgT = 9; }
   }
   function gnist(x, y, c, n, v){ for (let i = 0; i < n; i++){ const a = rnd(0, 6.28), s = rnd(v * .3, v); S.parts.push({ type: 'stjerne', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, life: rnd(.35, .75), r: rnd(5, 11), c, rot: rnd(0, 6), g: 120 }); } }
@@ -8666,7 +8876,13 @@ const trylGenkend = (() => {
     S.raf = requestAnimationFrame(tick);
   }
   function frem(dt){
+    const zt = S.boss ? 1 + (S.Zn - 1) * .45 : S.Zn; if (Math.abs(S.Z - zt) > .002){ S.Z += (zt - S.Z) * Math.min(1, dt * 2.5); if (Math.abs(S.Z - zt) <= .002) S.Z = zt; kameraFra(); }
     const x0 = S.x0, x1 = S.x1;
+    if (S.boss && S.fase !== 'tabt') bossFrem(dt);
+    for (const k of S.skud){ k.t += dt; const [x, y] = skudPos(k); k.x = x; k.y = y;
+      if (k.plan && S.t >= k.plan){ k.dod = true; skudPuf(k); }
+      else if (k.t >= k.T && !k.dod){ k.dod = true; S.ryst = .3; for (let i = 0; i < 10; i++) S.parts.push({ type: k.k === 'blaek' ? 'sky' : 'flis', x: k.x, y: k.y, vx: rnd(-240, 240), vy: rnd(-300, -60), t: 0, life: .7, r: rnd(6, 12), c: k.k === 'blaek' ? '#6A3A9A' : k.k === 'is' ? '#BFE8FF' : '#F2552A', rot: 0, g: 600 }); bid({ x: k.x, y: k.y - 40 }, k.k === 'bombe' ? 'BOM!' : k.k === 'is' ? 'FRYS!' : k.k === 'ild' ? 'AV, VARMT!' : 'SPLAT!'); } }
+    S.skud = S.skud.filter(k => !k.dod);
     S.faseT -= dt; for (const k of ['hop', 'dyrHop', 'kageHop', 'ryst', 'msgT']) if (S[k] > 0) S[k] -= dt;
     if (S.fase === 'kort'){ S.kort.t += dt; if (S.faseT <= 0){ S.fase = 'spil'; S.kort.ud = .35; } }
     if (S.kort && S.kort.ud > 0){ S.kort.ud -= dt; if (S.kort.ud <= 0) S.kort = null; }
@@ -8674,7 +8890,7 @@ const trylGenkend = (() => {
       S.spawnT -= dt;
       if (S.spawnT <= 0 && S.koe.length){ spawn(S.koe.shift()); S.spawnT = S.cfg.gab * rnd(.75, 1.25); }
       if (S.gaveT > 0){ S.gaveT -= dt; if (S.gaveT <= 0 && !S.gave){ const d = Math.random() < .5 ? 1 : -1; S.gave = { x: d > 0 ? x0 - 110 : x1 + 110, y: S.hudB + 96, d, t: 0 }; } }
-      if (!S.koe.length && !S.foes.some(f => f.st !== 'flygt')){
+      if (!S.koe.length && !S.foes.some(f => f.st !== 'flygt') && !S.boss && !S.skud.length){
         S.fase = 'slut'; S.faseT = 1.7; S.score += 50; S.api.score(S.score); S.msg = 'Runde klaret!'; S.msgT = 1.5; tekst(800, (S.top + 1000) / 2 + 40, '+50', '#FFF6D0', 44);
         /* efter hver tredje runde bager heksen en ny etage, hvis der mangler en */
         if (S.runde % 3 === 0 && S.liv < 3){ S.liv++; S.kageHop = .5; S.msg = 'En ny etage på kagen!'; gnist(BORD, GULV - 190, '#FFE27A', 22, 380); SND.play('tryl.nyt', () => sfx.magic()); }
@@ -8743,6 +8959,7 @@ const trylGenkend = (() => {
     for (const d of S.dyr){ const ind = Math.min(1, d.t / .25), fl = d.k.startsWith('sommerfugl') ? .3 + .7 * Math.abs(Math.sin(d.t * 13)) : 1;
       put(ctx, d.k, d.x, d.y, { s: .4 + .6 * ind, r: Math.sin(d.t * 5 + d.ph) * .18, sx: fl, sy: 1, a: Math.min(1, Math.max(0, (d.y - S.top + 110) / 170)) }); }
     for (const b of S.frie){ ctx.strokeStyle = 'rgba(242,238,220,.9)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(b.x, b.y + BR + 8); ctx.quadraticCurveTo(b.x + Math.sin(b.t * 6) * 10, b.y + BR + 40, b.x, b.y + BR + 66); ctx.stroke(); bal(ctx, b.sym, b.x, b.y); }
+    if (S.boss) tegnBoss(ctx);
     /* væsnerne i luften, de øverste først */
     const ned = S.foes.filter(f => f.st === 'ned').sort((a, b) => a.y - b.y);
     for (const f of ned){
@@ -8773,6 +8990,14 @@ const trylGenkend = (() => {
       else if (f.st === 'jubel'){ y -= Math.abs(Math.sin(f.t * 8 + f.ph)) * 26; bil = f.k; }   /* jubel: armene i vejret */
       ctx.fillStyle = 'rgba(8,30,24,.35)'; ctx.beginPath(); ctx.ellipse(f.x, GULV + 4, 40 * sk / .66, 8, 0, 0, 7); ctx.fill();
       put(ctx, bil, f.x, y, { r, sy, ay: 96 }); }
+    /* det, bossen kaster, med tegnet på */
+    for (const k of S.skud){ const p = Math.min(1, k.t / k.T), sp = k.plan ? 1 + .3 * Math.min(1, (t - k.t0) / Math.max(.01, k.plan - k.t0)) : 1;
+      let r = 0; if (k.k === 'bombe') r = k.t * 2.2 + k.rot; else if (k.k === 'is') r = k.t * 7; else if (k.k === 'ild'){ const [nx, ny] = skudPos({ ...k, t: k.t + .02 }); r = Math.atan2(ny - k.y, nx - k.x) + Math.PI; }
+      if (p > .7){ ctx.fillStyle = `rgba(255,80,80,${(p - .7) * 1.2 * (.5 + .5 * Math.sin(t * 20))})`; ctx.beginPath(); ctx.arc(k.x, k.y, 72, 0, 7); ctx.fill(); }
+      put(ctx, 'skud_' + k.k, k.x, k.y, { r, s: 1.25 * sp * (k.k === 'blaek' ? 1 + Math.sin(k.t * 9) * .06 : 1) });
+      if (k.k === 'bombe'){ const fx = k.x + Math.cos(r - Math.PI / 2 + .5) * 66, fy = k.y + Math.sin(r - Math.PI / 2 + .5) * 66; ctx.fillStyle = '#FFE27A'; akStar(ctx, fx, fy, 9 + Math.sin(t * 30) * 3, t * 10); ctx.fill(); }
+      ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.strokeStyle = E; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(k.x, k.y, 36 * sp, 0, 7); ctx.fill(); ctx.stroke();
+      glyf(ctx, k.sym, k.x, k.y + (k.sym === 'hjerte' ? 2 : 0), 20 * sp, 7, TG[k.sym].c, E); }
     /* gnister, krummer og skyer */
     for (const p of S.parts){ const k = p.t / p.life, a = 1 - k;
       if (p.type === 'ring'){ ctx.globalAlpha = a; ctx.strokeStyle = p.c; ctx.lineWidth = 7 * a + 1; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (.6 + k * .9), 0, 7); ctx.stroke(); }
@@ -8787,7 +9012,50 @@ const trylGenkend = (() => {
     for (const x of S.tekster){ const k = x.t / 1.25, s = x.t < .12 ? .5 + x.t / .12 * .6 : 1.1 - Math.min(.1, (x.t - .12) * .5); ctx.globalAlpha = k > .7 ? Math.max(0, (1 - k) / .3) : 1; skilt(ctx, x.txt, x.x, x.y, Math.round(x.size * s), x.c); }
     ctx.globalAlpha = 1;
     if (S.kort) kort(ctx);
-    else if (S.msgT > 0){ ctx.globalAlpha = Math.min(1, S.msgT * 1.5); skilt(ctx, S.msg, 800, Math.max(S.hudB + 90, (S.top + 1000) / 2 - 70), 68 / Math.sqrt(Z), '#FFD86B'); ctx.globalAlpha = 1; }
+    else if (S.msgT > 0){ const my = S.boss ? Math.max(S.hudB + 80, 600) : Math.max(S.hudB + 90, (S.top + 1000) / 2 - 70); ctx.globalAlpha = Math.min(1, S.msgT * 1.5); skilt(ctx, S.msg, 800, my, 68 / Math.sqrt(Z), '#FFD86B');
+      if (S.msg2) skilt(ctx, S.msg2, 800, my + 56, 32 / Math.sqrt(Z), '#FFF6D0'); ctx.globalAlpha = 1; }
+  }
+  /* bossen: selve figuren, pynten den har fået, svimmel-stjerner, snakkeboble, navneskilt med hjerter og rækken af tegn, når den er svimmel */
+  function tegnBoss(ctx){
+    const B = S.boss, t = S.t, k = B.def.k, svim = B.fase === 'saarbar' || B.fase === 'ramt';
+    if (B.fase === 'besejret'){ const q = B.besejrT / 1.6; put(ctx, 'boss_' + k + '!', B.x, B.y, { s: .2 + .8 * q, r: (1 - q) * 9, a: q }); return; }
+    const ryst = B.fase === 'ramt' ? Math.sin(B.ramtT * 40) * 10 * B.ramtT : 0, vug = svim ? Math.sin(t * 2.4) * .08 : Math.sin(t * 1.1) * .03;
+    ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(B.x, GULV + 6, 150, 14, 0, 0, 7); ctx.fill();
+    put(ctx, 'boss_' + k + (svim ? '!' : ''), B.x + ryst, B.y, { r: vug, sy: B.glimt > 0 ? 1 + B.glimt * .15 : 1 });
+    if (B.fase === 'ramt' && B.ramtT > .8){ ctx.globalAlpha = (B.ramtT - .8) * 2.5; ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.ellipse(B.x, B.y, 200, 210, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+    /* pynt: for hver gang den er ramt, får den en sløjfe, et hjerte eller en blomst på */
+    B.pynt.forEach((p, i) => { const [dx, dy] = PYNT_AT[k][i % PYNT_AT[k].length], x = B.x + ryst + dx * Math.cos(vug) - dy * Math.sin(vug), y = B.y + dx * Math.sin(vug) + dy * Math.cos(vug);
+      ctx.save(); ctx.translate(x, y); ctx.rotate(vug - .2); ctx.strokeStyle = E; ctx.lineWidth = 3.5; ctx.lineJoin = 'round';
+      if (p === 'sloejfe'){ ctx.fillStyle = '#FF5FA8'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-30, -18); ctx.lineTo(-30, 18); ctx.closePath(); ctx.moveTo(0, 0); ctx.lineTo(30, -18); ctx.lineTo(30, 18); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#FF9FC8'; ctx.beginPath(); ctx.arc(0, 0, 9, 0, 7); ctx.fill(); ctx.stroke(); }
+      else if (p === 'hjerte'){ ctx.fillStyle = '#FF4F7B'; hjerteform(ctx, 0, 0, 13); ctx.fill(); ctx.stroke(); }
+      else { ctx.fillStyle = '#FFF'; for (let j = 0; j < 5; j++){ ctx.beginPath(); ctx.ellipse(Math.cos(j * 1.256) * 11, Math.sin(j * 1.256) * 11, 9, 9, 0, 0, 7); ctx.fill(); ctx.stroke(); } ctx.fillStyle = '#FFD23E'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, 7); ctx.fill(); ctx.stroke(); }
+      ctx.restore(); });
+    if (svim){ for (let i = 0; i < 4; i++){ const a = t * 3 + i * Math.PI / 2; ctx.fillStyle = '#FFE27A'; ctx.strokeStyle = E; ctx.lineWidth = 2.5; akStar(ctx, B.x + Math.cos(a) * 110, B.y - 150 + Math.sin(a) * 26, 14, t * 4); ctx.fill(); ctx.stroke(); } }
+    /* navneskilt med hjerter */
+    const ny = B.y - 250, w = 300;
+    ctx.save(); ctx.translate(B.x, ny);
+    const g = ctx.createLinearGradient(0, -30, 0, 30); g.addColorStop(0, '#F7E2A0'); g.addColorStop(.5, '#D9A848'); g.addColorStop(1, '#8A6420');
+    ctx.fillStyle = g; ctx.strokeStyle = '#2A160C'; ctx.lineWidth = 4; akRound(ctx, -w / 2, -28, w, 58, 14); ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.fillStyle = '#3A2008'; ctx.font = `700 22px ${FONT_C}`; ctx.fillText(B.def.navn.toUpperCase(), 0, -5);
+    for (let i = 0; i < B.hpMax; i++){ const x = (i - (B.hpMax - 1) / 2) * 30; ctx.fillStyle = i < B.hp ? '#E8324A' : 'rgba(58,32,8,.25)'; ctx.strokeStyle = '#2A160C'; ctx.lineWidth = 2; hjerteform(ctx, x, 16, 9); ctx.fill(); ctx.stroke(); }
+    ctx.restore();
+    /* snakkeboble */
+    if (B.snakT > 0 && B.snak){ ctx.font = `700 26px ${FONT_C}`; const tw = ctx.measureText(B.snak).width + 36, bx = Math.max(S.x0 + tw / 2 + 10, Math.min(S.x1 - tw / 2 - 10, B.x + 180)), by = B.y - 150;
+      ctx.globalAlpha = Math.min(1, B.snakT * 3); ctx.fillStyle = '#FFF'; ctx.strokeStyle = E; ctx.lineWidth = 4; akRound(ctx, bx - tw / 2, by - 30, tw, 52, 22); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx - tw / 2 + 20, by + 18); ctx.lineTo(bx - tw / 2 - 6, by + 44); ctx.lineTo(bx - tw / 2 + 44, by + 20); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#FFF'; ctx.fillRect(bx - tw / 2 + 18, by + 12, 30, 8);
+      ctx.fillStyle = '#33204F'; ctx.textAlign = 'center'; ctx.fillText(B.snak, bx, by + 5); ctx.globalAlpha = 1; }
+    /* rækken af tegn, når den er svimmel: dem man har tegnet bliver grønne, det næste lyser, og en bjælke viser tiden */
+    if (B.fase === 'saarbar'){
+      const n = B.kombo.length, gap = 96, y = B.y + 200, x0 = B.x - (n - 1) / 2 * gap;
+      const bw = n * gap + 30; ctx.fillStyle = 'rgba(20,10,50,.6)'; akRound(ctx, B.x - bw / 2, y - 56, bw, 132, 24); ctx.fill();
+      B.kombo.forEach((sym, i) => { const x = x0 + i * gap, ok = i < B.komboI, nu = i === B.komboI, r = nu ? 40 + Math.sin(t * 8) * 3 : 34;
+        if (nu){ ctx.fillStyle = 'rgba(255,226,122,.35)'; ctx.beginPath(); ctx.arc(x, y, r + 14, 0, 7); ctx.fill(); }
+        ctx.fillStyle = ok ? '#3FA86A' : TG[sym].c; ctx.strokeStyle = E; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
+        if (ok){ ctx.strokeStyle = '#FFF'; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x - 14, y); ctx.lineTo(x - 4, y + 11); ctx.lineTo(x + 15, y - 12); ctx.stroke(); }
+        else glyf(ctx, sym, x, y + (sym === 'hjerte' ? 2 : 0), r * .48, 7, '#FFF', E); });
+      const q = Math.max(0, B.saarT / B.saarMax); ctx.fillStyle = 'rgba(255,255,255,.25)'; akRound(ctx, B.x - bw / 2 + 20, y + 50, bw - 40, 12, 6); ctx.fill();
+      ctx.fillStyle = q > .3 ? '#FFE27A' : '#FF6F6F'; akRound(ctx, B.x - bw / 2 + 20, y + 50, (bw - 40) * q, 12, 6); ctx.fill();
+    }
   }
   /* træskiltet i haven viser runden og pointene (knapperne foroven skal ikke dække for ballonerne) */
   function haveskilt(ctx){
@@ -8800,7 +9068,7 @@ const trylGenkend = (() => {
     ctx.fillStyle = g; akRound(ctx, -108, -54, 216, 108, 12); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = 'rgba(42,22,12,.3)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-98, -36); ctx.lineTo(60, -38); ctx.moveTo(-40, 44); ctx.lineTo(98, 42); ctx.moveTo(-98, 4); ctx.lineTo(-30, 3); ctx.stroke();
     ctx.fillStyle = '#D9A848'; ctx.strokeStyle = '#2A160C'; ctx.lineWidth = 1.5; for (const sx of [-94, 94]){ ctx.beginPath(); ctx.arc(sx, -40, 4.5, 0, 7); ctx.fill(); ctx.stroke(); }
-    ctx.textAlign = 'center'; ctx.fillStyle = '#FFE9A8'; ctx.font = `700 26px ${FONT_C}`; ctx.fillText('RUNDE ' + S.runde, 0, -16);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#FFE9A8'; ctx.font = `700 26px ${FONT_C}`; ctx.fillText(S.boss ? 'BOSS-RUNDE' : 'RUNDE ' + S.runde, 0, -16);
     ctx.fillStyle = '#FFF6D0'; ctx.font = `700 38px ${FONT_C}`; ctx.fillText(S.score + ' point', 0, 30);
     ctx.restore();
   }
@@ -8833,8 +9101,9 @@ const trylGenkend = (() => {
     test(){ const go = () => { if (!S) return; if (!S.klar) return setTimeout(go, 100); S.kort = null; S.liv = 1; S.fase = 'spil'; bid({ x: BORD, y: 700 }); S.faseT = .4; }; go(); },
     /* tryl et tegn uden at tegne det (går gennem genkendelsen som en rigtig streg) */
     kast(sym){ if (!S || !S.klar || !TG[sym]) return; const P = TG[sym].p, pts = []; for (let i = 1; i < P.length; i++) for (let k = 0; k < 6; k++) pts.push([800 + (P[i - 1][0] + (P[i][0] - P[i - 1][0]) * k / 6) * 90, 620 + (P[i - 1][1] + (P[i][1] - P[i - 1][1]) * k / 6) * 90]); pts.push([800 + P[P.length - 1][0] * 90, 620 + P[P.length - 1][1] * 90]); tegnet(pts); },
-    tilRunde(n){ if (!S || !S.klar) return; S.foes = []; S.koe = []; S.gave = null; S.runde = n - 1; naesteRunde(); },
-    state: () => S && { klar: S.klar, t: S.t, top: S.top, hudB: S.hudB, bane: [S.baneL, S.baneR], Z: S.Z, fase: S.fase, runde: S.runde, score: S.score, liv: S.liv, forvandlet: S.forvandlet, tegn: aktive(), kort: S.kort && S.fase === 'kort' ? S.kort.nyt.filter(k => !S.kort.ok[k]) : [], gave: S.gave ? { x: S.gave.x } : null,
+    tilRunde(n){ if (!S || !S.klar) return; S.foes = []; S.koe = []; S.gave = null; S.runde = n - 1; S.bossNr = Math.floor((n - 1) / 5); naesteRunde(); },
+    state: () => S && { bossNr: S.bossNr, boss: S.boss ? { k: S.boss.def.k, fase: S.boss.fase, hp: S.boss.hp, next: S.boss.fase === 'saarbar' ? S.boss.kombo[S.boss.komboI] : null } : null,
+      skud: S.skud.filter(k => !k.plan).map(k => ({ sym: k.sym, rest: k.T - k.t })), klar: S.klar, t: S.t, top: S.top, hudB: S.hudB, bane: [S.baneL, S.baneR], Z: S.Z, fase: S.fase, runde: S.runde, score: S.score, liv: S.liv, forvandlet: S.forvandlet, tegn: aktive(), kort: S.kort && S.fase === 'kort' ? S.kort.nyt.filter(k => !S.kort.ok[k]) : [], gave: S.gave ? { x: S.gave.x } : null,
       foes: S.foes.map(f => ({ k: f.k, st: f.st, x: f.x, y: f.y, land: f.land, bal: f.bal.filter(b => !b.pop && !b.plan).map(b => ({ sym: b.sym, y: f.y + b.dy })) })) } };
 })();
 

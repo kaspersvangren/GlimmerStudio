@@ -283,6 +283,42 @@
     "navn": "Ny etage på kagen",
     "hvor": "Efter hver tredje runde bager heksen en etage, hvis der mangler en",
     "forslag": "En glad lille fanfare eller et \"ta-daa\"."
+   },
+   {
+    "key": "tryl.boss",
+    "navn": "Bossen kommer",
+    "hvor": "Hver 5. runde, når bossen flyver ind",
+    "forslag": "Noget stort og lidt dramatisk, men fjollet, fx en tuba-fanfare eller en trommehvirvel. Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "tryl.kast",
+    "navn": "Bossen kaster",
+    "hvor": "Hver gang bossen kaster en bombe, ildkugle, iskrystal eller blækklat (kommer tit)",
+    "forslag": "Et kort \"hiv\" eller \"svup\". Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "tryl.svimmel",
+    "navn": "Bossen bliver svimmel",
+    "hvor": "Når bossen har kastet færdig og er sårbar",
+    "forslag": "En nedadgående \"øøøh\"-glide, som når nogen bliver tummelumsk. Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "tryl.ramt",
+    "navn": "Bossen får pynt på",
+    "hvor": "Når man har tegnet alle tegnene, og bossen får en sløjfe eller en blomst på",
+    "forslag": "Et glad pling med lidt glimmer. Låner lige nu fanfaren."
+   },
+   {
+    "key": "tryl.grin",
+    "navn": "Bossen griner",
+    "hvor": "Når man ikke nåede tegnene, og bossen kommer til sig selv igen",
+    "forslag": "Et frækt \"mwahaha\". Agnes eller du kunne indtale den. Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "tryl.besejret",
+    "navn": "Bossen forvandles",
+    "hvor": "Når bossen er besejret og bliver til et lille, sødt dyr",
+    "forslag": "Et stort trylle-brag med klokker. Låner lige nu fanfaren."
    }
   ]
  },
