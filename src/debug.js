@@ -2,8 +2,7 @@
    Når den er slået til, måles billeder pr. sekund, lange hak og fejl på hver skærm, og hvert 30. sekund
    sendes en kort opsummering til tabellen spil_log, hvor Claude kan læse den. Intet sendes, når den er slået fra.
    Hver måling dækker 5 sekunder og har også tallet for hvert enkelt sekund (fps1), de længste billeder (vaerste)
-   og, for billeder over 50 ms, hvad tiden gik med (laf: kode, tegning, og den funktion der brugte mest).
-   I byen kan man holde fingeren på det røde LOG-mærke i et sekund for at måle lærreds-byen (se laerred.js). */
+   og, for billeder over 50 ms, hvad tiden gik med (laf: kode, tegning, og den funktion der brugte mest). */
 const DBG = (() => {
   const URL = 'https://kargzxpaaganyfnpyvmb.supabase.co/rest/v1/spil_log';
   const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthcmd6eHBhYWdhbnlmbnB5dm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTY2NTEsImV4cCI6MjEwMDg5MjY1MX0.V3bb0XVkHvuQEqDqhn1nRprIa2ooA4Se6AYR5J32r54';
@@ -53,11 +52,11 @@ const DBG = (() => {
         (e.scripts || []).forEach(sc => { L.kode += sc.duration; const k = String(sc.sourceFunctionName || sc.invoker || '?').slice(0, 40); L.top[k] = (L.top[k] || 0) + sc.duration; }); }));
       laf.observe({ type: 'long-animation-frame', buffered: false }); } catch (e){ laf = null; }
     badge = document.createElement('div'); badge.className = 'dbg-badge'; badge.textContent = 'LOG'; document.body.append(badge);
-    /* i byen: tryk på mærket for at måle lærreds-byen */
+    /* i byen: hold på mærket for at måle, hvad hver del af byen koster (laerred.js) */
     /* (et langt tryk, så man ikke rammer det ved et uheld, når man vil ind i Koncertsalen lige ved siden af) */
     let hold = 0; const slip = () => { clearTimeout(hold); hold = 0; };
     badge.addEventListener('pointerdown', () => { slip(); hold = setTimeout(() => { hold = 0; if (screen !== 'town' || LAERRED.running) return;
-      showModal('Mål byen?', 'Jeg prøver fire måder at tegne byen på. Det tager under et minut, og bagefter er alt som før.', [ { label: 'Nej' }, { label: 'Ja, mål', hot: true, fn: () => LAERRED.test() } ]); }, 800); });
+      showModal('Mål byen?', 'Jeg slår byens dele fra én ad gangen og måler. Det tager under et minut, og bagefter er alt som før.', [ { label: 'Nej' }, { label: 'Ja, mål', hot: true, fn: () => LAERRED.test() } ]); }, 800); });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => badge.addEventListener(ev, slip)); badge.addEventListener('contextmenu', e => e.preventDefault());
     last = 0; frames = []; screen = ''; flushT = performance.now(); raf = requestAnimationFrame(loop);
   }

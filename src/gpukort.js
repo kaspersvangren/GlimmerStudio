@@ -227,6 +227,26 @@ async function gpuMarkEmpty(svg, all, sc){
 }
 async function gpuMount(svg, gen, rec, st){
   const g = rec.gpu, host = svg.parentElement;
+  /* helst ét lærred (se laerred.js); lykkes det ikke, bruges HTML-lagene herunder */
+  let cvs = null;
+  if (laerredWanted()){ try { cvs = await LAERRED.mount(svg, gen, rec, st); } catch (e){ DBG.row('fejl', { besked: 'lærred: ' + (e && e.message || e) }); cvs = null; LAERRED.reset(); }
+    if (gen !== BAKE.gen || !svg.isConnected){ LAERRED.reset(); return false; } }
+  if (cvs) DRIVE.dash = [];
+  const layer = cvs || await gpuLayer(svg, gen, rec, st); if (!layer) return false;
+  /* skjul originalerne i SVG'en og fjern deres animationer, så de ikke tikker videre */
+  g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place,[data-tap]')) r.style.pointerEvents = 'painted';
+    /* tekst og billeder i roden bliver vist i SVG'en */
+    r.querySelectorAll('text,image,foreignObject').forEach(t => { t.style.visibility = 'visible'; }); });
+  const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
+  /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
+  host.prepend(layer); host.classList.add('gpu-host');
+  GPU.layer = layer; GPU.cam = cvs ? null : layer.firstChild; GPU.cv = !!cvs; GPU.svg = svg; GPU.on = true; gpuSync();
+  smilDrive(svg);
+  return true;
+}
+/* HTML-lagene (den gamle måde): hvert stykke er sit eget lag, som grafikchippen flytter */
+async function gpuLayer(svg, gen, rec, st){
+  const g = rec.gpu;
   /* arkene bruges direkte som baggrundsbillede for hvert stykke (et udsnit af arket). Før var hvert stykke sit eget lærred,
      og så skulle browseren aflevere alle ~240 lærreder til grafikchippen i hvert eneste billede; det kostede halvdelen af
      tiden på tabletten. Et billedudsnit males én gang og genbruges */
@@ -234,7 +254,7 @@ async function gpuMount(svg, gen, rec, st){
   const sheets = await Promise.all(g.sheets.map(async b => { const v = new DataView(await b.slice(16, 24).arrayBuffer()); return { width: v.getUint32(0), height: v.getUint32(4) }; }));
   const sheetUrl = g.sheets.map(b => URL.createObjectURL(b));
   (GPU.urls || []).forEach(u => URL.revokeObjectURL(u)); GPU.urls = sheetUrl;
-  if (gen !== BAKE.gen || !svg.isConnected) return false;
+  if (gen !== BAKE.gen || !svg.isConnected) return null;
   const layer = document.createElement('div'); layer.className = 'gpu-layer';
   /* én billedpixel pr. skærmpixel: billedet og lapperne vises pixel for pixel, så deres kanter mødes uden striber */
   if (CAM.on && g.px && Math.abs(g.px - CAM.k * (window.devicePixelRatio || 1)) < 1e-3) layer.classList.add('px1');
@@ -266,16 +286,7 @@ async function gpuMount(svg, gen, rec, st){
     /* ting man kan trykke på: et hop eller et skjul på originalen i SVG'en spejles over på laget */
     if (it.mir) it.mir.forEach(i => { const A = st[i]; if (!A) return; const w = document.createElement('div'); w.className = 'gpu-n'; w.append(el); el = w; gpuMirror(svg, A, w); });
     cam.append(el); }
-  /* skjul originalerne i SVG'en og fjern deres animationer, så de ikke tikker videre */
-  g.roots.forEach(i => { const r = st[i]; if (!r) return; r.querySelectorAll(SMIL_SEL).forEach(a => a.remove()); smilKids(r).forEach(a => a.remove()); r.style.visibility = 'hidden'; if (r.closest('.place,[data-tap]')) r.style.pointerEvents = 'painted';
-    /* tekst og billeder i roden bliver vist i SVG'en */
-    r.querySelectorAll('text,image,foreignObject').forEach(t => { t.style.visibility = 'visible'; }); });
-  const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
-  /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
-  host.prepend(layer); host.classList.add('gpu-host');
-  GPU.layer = layer; GPU.cam = cam; GPU.svg = svg; GPU.on = true; gpuSync();
-  smilDrive(svg);
-  return true;
+  return layer;
 }
 /* spejl: holder øje med et element i SVG'en (klasser og stil) og gør det samme ved laget w:
    skjult -> skjult, og CSS-animationer (hop, fund) genskabes med samme forløb omkring samme punkt */
@@ -308,12 +319,13 @@ function gpuMirror(svg, A, w, local){
    På store skærme fylder kortet skærmen, og laget får SVG'ens matrix. */
 function gpuSync(){
   if (!GPU.on || !GPU.svg || !GPU.svg.isConnected) return;
+  if (GPU.cv){ LAERRED.sync(); return; }
   let t;
   if (CAM.on) t = `matrix(${CAM.k},0,0,${CAM.k},${-CAM_X[0] * CAM.k},${-CAM_Y[0] * CAM.k})`;
   else { const m = GPU.svg.getScreenCTM(), r = GPU.layer.getBoundingClientRect(); if (!m) return; t = `matrix(${m.a},${m.b},${m.c},${m.d},${m.e - r.left},${m.f - r.top})`; }
   if (t !== GPU.t){ GPU.t = t; GPU.cam.style.transform = t; }
 }
-function gpuReset(){ if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.layer = GPU.cam = GPU.svg = null; GPU.t = ''; }
+function gpuReset(){ LAERRED.reset(); if (GPU.layer){ if (GPU.layer.parentElement) GPU.layer.parentElement.classList.remove('gpu-host'); GPU.layer.remove(); } GPU.on = false; GPU.cv = false; GPU.layer = GPU.cam = GPU.svg = null; GPU.t = ''; }
 
 /* ---------- de sidste SVG-animationer drives af et lille ur i koden ----------
    Det, der ikke kan flyttes til grafikchippen (det man kan trykke på, åen, tekst), bliver i SVG'en.

@@ -826,8 +826,8 @@ function camApply(){
   CAM.cy = Math.max(CAM_Y[0] + hh, Math.min(CAM_Y[1] - hh, CAM.cy));
   /* hele skærmpixels, så laget ikke bliver uskarpt */
   const d = window.devicePixelRatio || 1, px = v => Math.round(v * d) / d;
-  const t = `translate3d(${px(CAM.ox - (CAM.cx - hw - CAM_X[0]) * CAM.k)}px,${px(CAM.oy - (CAM.cy - hh - CAM_Y[0]) * CAM.k)}px,0)`;
-  if (t !== CAM.t){ CAM.t = t; w.style.transform = t; DBG.count('kamera'); }
+  const tx = px(CAM.ox - (CAM.cx - hw - CAM_X[0]) * CAM.k), ty = px(CAM.oy - (CAM.cy - hh - CAM_Y[0]) * CAM.k), t = `translate3d(${tx}px,${ty}px,0)`;
+  if (t !== CAM.t){ CAM.t = t; CAM.tx = tx; CAM.ty = ty; w.style.transform = t; DBG.count('kamera'); }
   gpuSync();
 }
 const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];

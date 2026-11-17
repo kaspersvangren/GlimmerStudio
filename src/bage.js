@@ -88,7 +88,7 @@ function bakeApply(svg, gen, rec, cached){
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
     const tM = performance.now();
-    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, ms: Math.round(performance.now() - tM), lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
+    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, laerred: !!GPU.cv, ms: Math.round(performance.now() - tM), lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
       .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message })).finally(() => { BAKE.ok = gen; });
     else BAKE.ok = gen;
     DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms, faser: cached ? undefined : rec.faser });
