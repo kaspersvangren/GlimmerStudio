@@ -538,7 +538,7 @@ const Koncert = (() => {
     updateAudioBtns();
     scaleFn = () => { const r = scene.getBoundingClientRect(), s = Math.max(r.width / 1600, r.height / 1000); st.style.transform = `translate(-50%,-50%) scale(${s})`; };
     scaleFn(); window.removeEventListener('resize', skaler); window.addEventListener('resize', skaler);
-    playMusic('koncert.' + stil);
+    spilSang();
   }
   function skaler(){ if (scaleFn && !$('#koncert').hidden) scaleFn(); }
   const pic = (src, x, y, w, h, cls = '') => el('img', { class: 'kz-pic ' + cls, src, alt: '', draggable: 'false', style: `left:${x}px;top:${y}px;width:${w}px;height:${h}px` });
@@ -597,8 +597,8 @@ const Koncert = (() => {
 
   /* ---------- skiftet: ud i kulissen, tæppet for, nyt tøj, tæppet fra, ind igen ---------- */
   const vent = ms => new Promise(r => setTimeout(r, ms));
-  async function skift(ny){
-    if (busy) return; busy = true;
+  async function skift(ny, stille){
+    if (busy) return; busy = true; sangGen++; clearTimeout(sangT);
     const stage = root, gen = stage, ok = () => root === gen && !$('#koncert').hidden;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.ud', () => sfx.pick());
@@ -623,9 +623,34 @@ const Koncert = (() => {
     BAND.forEach(m => { const g = stage.querySelector(`[data-m="${m.id}"]`); g.classList.add('gaa'); g.classList.remove('ud'); });
     await vent(1500); if (!ok()) { busy = false; return; }
     BAND.forEach(m => stage.querySelector(`[data-m="${m.id}"]`).classList.remove('gaa'));
-    SND.play('koncert.klap', () => sfx.fanfare());
-    playMusic('koncert.' + stil);
+    if (!stille) SND.play('koncert.klap', () => sfx.fanfare());
+    spilSang();
     busy = false;
+  }
+
+  /* ---------- en sang er færdig: klapsalve, bandet bukker, går ud og kommer tilbage i det almindelige tøj ---------- */
+  let sangGen = 0, sangT = 0;
+  function spilSang(){
+    const g = ++sangGen, navn = 'koncert.' + stil; clearTimeout(sangT);
+    if (stil === 'hygge'){ playMusic(navn); return; }   /* den rolige sang bliver ved */
+    playMusic(navn, { engang: true, slut: () => { if (g === sangGen) sangSlut(); } });
+    /* findes lydfilen ikke (fx i forhåndsvisningen), spiller den lille synth-melodi; den slutter efter et minuts tid */
+    sangT = setTimeout(() => { if (g === sangGen && MUSIC.timer) sangT = setTimeout(() => { if (g === sangGen) sangSlut(); }, 42000); }, 3000);
+  }
+  async function sangSlut(){
+    if (busy || !root || $('#koncert').hidden) return;
+    busy = true; const stage = root;
+    stopMusic(); MUSIC.track = null;
+    SND.play('koncert.klap', () => sfx.fanfare());
+    /* hjerter og blomster flyver op fra publikum */
+    for (let i = 0; i < 14; i++){ const n = el('div', { class: 'kz-kast', style: `left:${200 + Math.random() * 1200}px;top:930px;animation-delay:${(Math.random() * 1.4).toFixed(2)}s;--dx:${Math.round(Math.random() * 160 - 80)}px` }, ['♥', '✿', '★'][i % 3]);
+      n.style.color = ['#FF5FA8', '#FFE45F', '#FF8FD0', '#FFFFFF'][i % 4]; stage.append(n); setTimeout(() => n.remove(), 3600); }
+    stage.classList.add('buk');
+    await vent(2600);
+    stage.classList.remove('buk');
+    busy = false;
+    if (root !== stage || $('#koncert').hidden) return;
+    skift('hygge', true);
   }
 
   return { show, previewSvg, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };

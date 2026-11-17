@@ -60,7 +60,8 @@ const SND = (() => {
   /* musik med loop-punkter spilles gennem Web Audio, så hoppet tilbage er helt uden pause */
   const BUF = {}, BAD = {};
   let node = null, gain = null, gen = 0;
-  function music(name){
+  /* opts.engang: spil kun én gang og kald opts.slut, når den er færdig (koncertsalens sange) */
+  function music(name, opts){
     const m = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name];
     if (!m || BAD[name]) return false;
     stopSong(); songName = name;
@@ -73,6 +74,7 @@ const SND = (() => {
     getBuf(m, buf => {
       if (my !== gen) return;
       node = loopNode(ac, buf, m);
+      if (opts && opts.engang){ node.loop = false; node.onended = () => { if (my === gen && opts.slut) opts.slut(); }; }
       gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
       node.start(0);
     }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */

@@ -1130,6 +1130,13 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kz-oensk{display:inline-flex;align-items:center;gap:6px}
 .kz-oensk svg{width:22px;height:22px}
 .kz-sangkort .pic svg{width:100%;height:100%;display:block}
+/* koncertsalen: bandet bukker, og publikum kaster hjerter og blomster */
+.kz-stage.buk .kz-in{animation:kzbuk 1.2s ease-in-out 2}
+.kz-stage.buk .kz-in .f0{animation:none;opacity:1}.kz-stage.buk .kz-in .f1{animation:none;opacity:0}
+@keyframes kzbuk{0%,100%{transform:translateY(0) scaleY(1)}35%,60%{transform:translateY(22px) scaleY(.84) rotate(-2deg)}}
+.kz-stage.buk .kz-kegle{animation:kzpuls 1s ease-in-out infinite}
+.kz-kast{position:absolute;font-size:46px;text-shadow:0 0 6px #1A1238,0 3px 0 #1A1238;pointer-events:none;opacity:0;animation:kzkast 1.8s ease-out forwards}
+@keyframes kzkast{0%{opacity:0;transform:translate(0,0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-330px) scale(1.2) rotate(200deg)}}
 
 </style>
 </head>
@@ -2785,7 +2792,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.30.1';
+const VERSION = 'v0.30.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -10377,11 +10384,11 @@ function musicTick(){
   }
 }
 const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show', kost: 'show', fald: 'show', tryl: 'show' };
-function playMusic(name){
+function playMusic(name, opts){
   if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
   stopMusic(); MUSIC.track = name;
   if (!MUSIC.on) return;
-  if (SND.music(name)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
+  if (SND.music(name, opts)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
   if (!audioCtx()) return;
   MUSIC.out = AC.createGain(); MUSIC.out.gain.value = 0.55; MUSIC.out.connect(AC.destination);
   MUSIC.step = 0; MUSIC.nextT = AC.currentTime + 0.1;
@@ -11056,7 +11063,7 @@ const Koncert = (() => {
     updateAudioBtns();
     scaleFn = () => { const r = scene.getBoundingClientRect(), s = Math.max(r.width / 1600, r.height / 1000); st.style.transform = `translate(-50%,-50%) scale(${s})`; };
     scaleFn(); window.removeEventListener('resize', skaler); window.addEventListener('resize', skaler);
-    playMusic('koncert.' + stil);
+    spilSang();
   }
   function skaler(){ if (scaleFn && !$('#koncert').hidden) scaleFn(); }
   const pic = (src, x, y, w, h, cls = '') => el('img', { class: 'kz-pic ' + cls, src, alt: '', draggable: 'false', style: `left:${x}px;top:${y}px;width:${w}px;height:${h}px` });
@@ -11115,8 +11122,8 @@ const Koncert = (() => {
 
   /* ---------- skiftet: ud i kulissen, tæppet for, nyt tøj, tæppet fra, ind igen ---------- */
   const vent = ms => new Promise(r => setTimeout(r, ms));
-  async function skift(ny){
-    if (busy) return; busy = true;
+  async function skift(ny, stille){
+    if (busy) return; busy = true; sangGen++; clearTimeout(sangT);
     const stage = root, gen = stage, ok = () => root === gen && !$('#koncert').hidden;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.ud', () => sfx.pick());
@@ -11141,9 +11148,34 @@ const Koncert = (() => {
     BAND.forEach(m => { const g = stage.querySelector(`[data-m="${m.id}"]`); g.classList.add('gaa'); g.classList.remove('ud'); });
     await vent(1500); if (!ok()) { busy = false; return; }
     BAND.forEach(m => stage.querySelector(`[data-m="${m.id}"]`).classList.remove('gaa'));
-    SND.play('koncert.klap', () => sfx.fanfare());
-    playMusic('koncert.' + stil);
+    if (!stille) SND.play('koncert.klap', () => sfx.fanfare());
+    spilSang();
     busy = false;
+  }
+
+  /* ---------- en sang er færdig: klapsalve, bandet bukker, går ud og kommer tilbage i det almindelige tøj ---------- */
+  let sangGen = 0, sangT = 0;
+  function spilSang(){
+    const g = ++sangGen, navn = 'koncert.' + stil; clearTimeout(sangT);
+    if (stil === 'hygge'){ playMusic(navn); return; }   /* den rolige sang bliver ved */
+    playMusic(navn, { engang: true, slut: () => { if (g === sangGen) sangSlut(); } });
+    /* findes lydfilen ikke (fx i forhåndsvisningen), spiller den lille synth-melodi; den slutter efter et minuts tid */
+    sangT = setTimeout(() => { if (g === sangGen && MUSIC.timer) sangT = setTimeout(() => { if (g === sangGen) sangSlut(); }, 42000); }, 3000);
+  }
+  async function sangSlut(){
+    if (busy || !root || $('#koncert').hidden) return;
+    busy = true; const stage = root;
+    stopMusic(); MUSIC.track = null;
+    SND.play('koncert.klap', () => sfx.fanfare());
+    /* hjerter og blomster flyver op fra publikum */
+    for (let i = 0; i < 14; i++){ const n = el('div', { class: 'kz-kast', style: `left:${200 + Math.random() * 1200}px;top:930px;animation-delay:${(Math.random() * 1.4).toFixed(2)}s;--dx:${Math.round(Math.random() * 160 - 80)}px` }, ['♥', '✿', '★'][i % 3]);
+      n.style.color = ['#FF5FA8', '#FFE45F', '#FF8FD0', '#FFFFFF'][i % 4]; stage.append(n); setTimeout(() => n.remove(), 3600); }
+    stage.classList.add('buk');
+    await vent(2600);
+    stage.classList.remove('buk');
+    busy = false;
+    if (root !== stage || $('#koncert').hidden) return;
+    skift('hygge', true);
   }
 
   return { show, previewSvg, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
@@ -12922,7 +12954,8 @@ const SND = (() => {
   /* musik med loop-punkter spilles gennem Web Audio, så hoppet tilbage er helt uden pause */
   const BUF = {}, BAD = {};
   let node = null, gain = null, gen = 0;
-  function music(name){
+  /* opts.engang: spil kun én gang og kald opts.slut, når den er færdig (koncertsalens sange) */
+  function music(name, opts){
     const m = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name];
     if (!m || BAD[name]) return false;
     stopSong(); songName = name;
@@ -12935,6 +12968,7 @@ const SND = (() => {
     getBuf(m, buf => {
       if (my !== gen) return;
       node = loopNode(ac, buf, m);
+      if (opts && opts.engang){ node.loop = false; node.onended = () => { if (my === gen && opts.slut) opts.slut(); }; }
       gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
       node.start(0);
     }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */

@@ -48,11 +48,11 @@ function musicTick(){
   }
 }
 const MUSIC_SYNTH = { arkade: 'byen', gribe: 'byen', gnom: 'show', skjold: 'show', invader: 'show', kost: 'show', fald: 'show', tryl: 'show' };
-function playMusic(name){
+function playMusic(name, opts){
   if (MUSIC.track === name && (MUSIC.timer || SND.musicPlaying())) return;
   stopMusic(); MUSIC.track = name;
   if (!MUSIC.on) return;
-  if (SND.music(name)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
+  if (SND.music(name, opts)) return;            // egen musikfil (lyd/…) vinder over den indbyggede
   if (!audioCtx()) return;
   MUSIC.out = AC.createGain(); MUSIC.out.gain.value = 0.55; MUSIC.out.connect(AC.destination);
   MUSIC.step = 0; MUSIC.nextT = AC.currentTime + 0.1;
