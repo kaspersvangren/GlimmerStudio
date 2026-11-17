@@ -3,8 +3,7 @@
    Man kan ønske en sang: så går bandet ud i kulissen, tæppet går for, og de kommer tilbage i tøj, der passer
    til sangen (rock med ansigtsmaling, cowboyhatte, disko-afro, parykker og hawaiiskjorter).
    Scenen er lag af billeder (baggrund, band, tæppe, forgrund), så kun gnomerne bevæger sig, og det kører let på tabletten.
-   Står som "kommer snart" på kortet. Med forpremiere slået til (hold fingeren på versionsnummeret på forsiden)
-   kan den åbnes, så Kasper kan se den, før Agnes kan. */
+   Åbnet for alle i v0.32.0 (var før kun med forpremiere). */
 const KEY_FORP = 'glimmerstudiet.forpremiere';
 const Koncert = (() => {
   const E = '#1A1238', SK = '#F2C8A0', NOSE = '#EFA286';

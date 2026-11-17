@@ -74,9 +74,9 @@ function updateAudioBtns(){
   document.querySelectorAll('.iconbtn.sound').forEach(b => { b.classList.toggle('off', !soundOn); b.setAttribute('aria-pressed', String(soundOn)); });
 }
 
-/* forpremiere: hold fingeren på versionsnummeret i 2 sekunder, så kan steder, der ikke er færdige endnu (koncertsalen), åbnes */
+/* forpremiere: hold fingeren på versionsnummeret i 2 sekunder, så kan steder, der ikke er færdige endnu åbnes (sæt forp:true på stedet i PLACES) */
 let forpT = 0;
-function forpTryk(){ clearTimeout(forpT); forpT = setTimeout(() => { const on = !store.get(KEY_FORP, false); store.set(KEY_FORP, on); sfx.twinkle(); toast(on ? 'Forpremiere slået til: Koncertsalen kan åbnes' : 'Forpremiere slået fra'); }, 2000); }
+function forpTryk(){ clearTimeout(forpT); forpT = setTimeout(() => { const on = !store.get(KEY_FORP, false); store.set(KEY_FORP, on); sfx.twinkle(); toast(on ? 'Forpremiere slået til: steder, der ikke er færdige, kan åbnes' : 'Forpremiere slået fra'); }, 2000); }
 function forpSlip(){ clearTimeout(forpT); }
 
 /* ---------- tæppet mellem skærmene ---------- */

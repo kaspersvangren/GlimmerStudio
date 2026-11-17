@@ -64,7 +64,7 @@ const Kort = (() => {
   const pumpkin = (x, y, k = 1) => CM.season !== 'efteraar' ? '' : `<ellipse cx="${x}" cy="${y}" rx="${16 * k}" ry="${4 * k}" fill="#1A1238" opacity=".2"/><ellipse cx="${x - 6 * k}" cy="${y - 10 * k}" rx="${9 * k}" ry="${11 * k}" fill="#E07A2A"/><ellipse cx="${x + 6 * k}" cy="${y - 10 * k}" rx="${9 * k}" ry="${11 * k}" fill="#E07A2A"/><ellipse cx="${x}" cy="${y - 10 * k}" rx="${9 * k}" ry="${12 * k}" fill="#F08A3A" stroke="#A04A1A" stroke-width="1.5"/><path d="M ${x} ${y - 22 * k} q 2 -6 6 -6" stroke="#4A7A3A" stroke-width="${3 * k}" fill="none"/>`
     + (CM.dark ? `<path d="M ${x - 5 * k} ${y - 13 * k} l 2 -3 l 2 3 Z M ${x + 1 * k} ${y - 13 * k} l 2 -3 l 2 3 Z M ${x - 5 * k} ${y - 7 * k} q 5 4 10 0" fill="#FFE27A" stroke="#FFE27A" stroke-width="1"/>` : '');
   const signPost = (x, y, arrows) => { let s = `<ellipse cx="${x}" cy="${y}" rx="18" ry="5" fill="#1A1238" opacity=".2"/><path d="M ${x - 4} ${y} L ${x - 3} ${y - 150} L ${x + 3} ${y - 150} L ${x + 4} ${y} Z" fill="#7A5038" stroke="#3A2420" stroke-width="2"/><circle cx="${x}" cy="${y - 154}" r="7" fill="#F2C14E" stroke="#8A6420" stroke-width="2"/>`;
-    arrows.forEach(([t, d, rot, col], i) => { const yy = y - 140 + i * 22, w = t.length * 9 + 26;
+    arrows.forEach(([t, d, rot, col], i) => { const yy = y - 140 + i * (arrows.length > 6 ? 19.5 : 22), w = t.length * 9 + 26;
       s += `<g transform="rotate(${rot} ${x} ${yy})"><path d="${d > 0 ? `M ${x} ${yy - 9} H ${x + w} L ${x + w + 10} ${yy} L ${x + w} ${yy + 9} H ${x} Z` : `M ${x} ${yy - 9} H ${x - w} L ${x - w - 10} ${yy} L ${x - w} ${yy + 9} H ${x} Z`}" fill="${col}" stroke="#3A2420" stroke-width="2"/><text x="${x + d * (w / 2 + 2)}" y="${yy + 5}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="13" fill="#3A2420">${t}</text></g>`; });
     return s; };
 
@@ -386,7 +386,7 @@ const Kort = (() => {
   /* vejviseren på torvet med en krage på toppen; tegnes efter kollegiet, så pilene ligger foran huset */
   function signs(){
     let s = '';
-    s += signPost(604, 668, [['Kollegiet', -1, -3, '#E8D8B0'], ['Skolen', 1, -5, '#C79BFF'], ['Til dragen', -1, 3, '#9BE36A'], ['Dyreparken', 1, 2, '#F2C14E'], ['Bobler', 1, -2, '#7FD8FF'], ['Arkaden', 1, 4, '#FF8FC7']]);
+    s += signPost(604, 668, [['Kollegiet', -1, -3, '#E8D8B0'], ['Skolen', 1, -5, '#C79BFF'], ['Til dragen', -1, 3, '#9BE36A'], ['Dyreparken', 1, 2, '#F2C14E'], ['Bobler', 1, -2, '#7FD8FF'], ['Arkaden', 1, 4, '#FF8FC7'], ['Koncertsalen', -1, -2, '#F28A6A']]);
     s += `<g data-tap="krage" transform="translate(608 512)"><g class="tapjump"><ellipse cx="0" cy="0" rx="9" ry="6" fill="#2A2238"/><circle cx="8" cy="-6" r="5" fill="#2A2238"/><path d="M 12 -6 l 6 1 l -6 2 Z" fill="#F2C14E"/><circle cx="9" cy="-7" r="1.2" fill="#FFE27A"/><path d="M -8 0 l -8 3 l 7 2 Z" fill="#2A2238"/><path d="M -2 5 v 6 M 3 5 v 6" stroke="#F2C14E" stroke-width="1.5"/></g></g>`;
     return s;
   }
@@ -487,7 +487,7 @@ const Kort = (() => {
     s += `<g transform="translate(${x + 64} ${top + 50}) rotate(-6)"><rect x="-22" y="-28" width="44" height="58" fill="#F2E6C8" stroke="${cL}" stroke-width="1.5"/><text x="0" y="-12" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="8" fill="#6A1A2A">I AFTEN</text><text x="0" y="0" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="7" fill="#3A2420">De Falske</text><text x="0" y="10" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="7" fill="#3A2420">Toner</text><circle cx="0" cy="20" r="5" fill="#6B3FA0"/></g>`;
     s += `<g transform="translate(${x + 236} ${top + 46}) rotate(5)"><rect x="-20" y="-26" width="40" height="52" fill="#C9E8F2" stroke="${cL}" stroke-width="1.5"/><path d="M -10 -10 V 6 l 12 -4 V -14 Z" fill="#3A2E5A"/><ellipse cx="-12" cy="6" rx="4" ry="3" fill="#3A2E5A"/><ellipse cx="0" cy="2" rx="4" ry="3" fill="#3A2E5A"/></g>`;
     s += `<rect x="${x + 86}" y="${top + 18}" width="${w - 172 + 40}" height="26" rx="6" fill="#3A1A2A" stroke="#F2C14E" stroke-width="2"/><text x="${x + w / 2 + 6}" y="${top + 37}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFE9A0" letter-spacing="1">KONCERTSAL</text>`;
-    return placeG('koncert', 'Koncertsalen', true, hit(x - 10, top - 120, w + 20, h + 130) + s + soon(x + w / 2, top + 100));
+    return placeG('koncert', 'Koncertsalen', false, hit(x - 10, top - 120, w + 20, h + 130) + s);
   }
   /* ---------- Den Flyvende Støvle: caféen er en kæmpe snørestøvle, der svæver lidt over græsset ----------
      Tåen peger mod koncertsalen, hælen har to små vinger, der basker. Ude af skaftet stikker et skævt kakkelovnsrør,

@@ -414,7 +414,7 @@ const PLACES = [
   { id:'kugler', name:'Boblebutikken', open: () => showBalls() },
   { id:'cafe', name:'Den Flyvende Støvle', soon:true },
   { id:'dyr', name:'Dyreparken', soon:true },
-  { id:'koncert', name:'Koncertsalen', soon:true, forp:true, open: () => Koncert.show() },
+  { id:'koncert', name:'Koncertsalen', open: () => Koncert.show() },
   { id:'arkade', name:'Arkaden', open: () => Arkade.show() },
 ];
 let heroAt = 'hus', walking = false, SPR = null;
