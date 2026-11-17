@@ -85,7 +85,7 @@ const MALERIER = {
     let o = `<defs>${mGrad('mlSe', '#8AC8F0', '#C8E8FF')}</defs><rect width="200" height="200" fill="url(#mlSe)"/>`;
     o += `<path d="M 0 150 Q 50 120 100 140 Q 150 160 200 130 V 200 H 0 Z" fill="#7AC85A" opacity=".7"/>`;
     let me = '';
-    try { me = `<image href="${dollUrl(heroState(), { viewBox: '140 110 320 330', pet: false })}" x="10" y="16" width="180" height="180"/>`; } catch (e){}
+    try { me = `<image href="${dollUrl(heroState(), { viewBox: '160 30 460 520', pet: false })}" x="10" y="0" width="180" height="203"/>`; } catch (e){}
     return o + me;
   } },
   kunst: { label:'Moderne kunst', draw: () => {

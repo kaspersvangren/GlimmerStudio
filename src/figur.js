@@ -947,9 +947,7 @@ function waveArm(inner, ev, forever){
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
-  'acc:sommerfuglestav',
-  ...['maane','blomster','hav','svampe','enhjoerning','drage','kaeledyr','selv','kunst','gnoma','far'].map(k => 'maleri:' + k),
-  'rum:ting.teleskop', 'rum:ting.ovn',
+  'maleri:selv',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
 

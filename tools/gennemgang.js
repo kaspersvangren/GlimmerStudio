@@ -45,6 +45,8 @@ const V = { 'acc-bog': 6,
   /* v0.25.41: værelsets ting rettet efter gennemgangen */
   /* v0.27.1: sommerfuglen sidder inde i snirklen */
   'acc-sommerfuglestav': 2,
+  /* v0.28.1: hele hovedet med på selvportrættet */
+  'maleri-selv': 2,
   'rum-dyreseng-hundehus': 2, 'rum-dyreseng-muslingeskal': 2, 'rum-hylde-testel': 2, 'rum-lampe-kuppel': 2, 'rum-lampe-papir': 2, 'rum-seng-jern': 2, 'rum-seng-polstret': 2, 'rum-ting-grammofon': 2, 'rum-ting-ovn': 3, 'rum-ting-teleskop': 3,
   'kost-rytter': 4, 'fald-rytter': 2, 'fald-kort': 2, 'fald-lav': 2, 'fald-skaerm': 2, 'fald-frit': 2, 'sted-skole': 4 };
 
