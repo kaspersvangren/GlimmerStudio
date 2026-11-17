@@ -667,19 +667,28 @@ const Koncert = (() => {
   }
 
   /* ---------- ønskesedlen ---------- */
+  /* sangene, man har hørt, huskes i det gemte spil */
+  const hoert = g => !!(prog.koncert && prog.koncert.includes(g));
+  function huskHoert(g){ if (g === 'hygge' || hoert(g)) return; prog.koncert = (prog.koncert || []).concat(g); saveProg(); }
+  const NODE = svgDoc('0 0 120 120', `<defs><radialGradient id="ng" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE9A0" stop-opacity=".9"/><stop offset="1" stop-color="#FFE9A0" stop-opacity="0"/></radialGradient><linearGradient id="nf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD36E"/><stop offset="1" stop-color="#C9962E"/></linearGradient></defs>`
+    + `<circle cx="60" cy="62" r="50" fill="url(#ng)"/><path d="M 46 34 L 86 26 V 76" fill="none" stroke="${E}" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/><path d="M 46 34 L 86 26 V 76 M 46 34 V 84" fill="none" stroke="url(#nf)" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>`
+    + `<path d="M 46 34 L 86 26 V 40 L 46 48 Z" fill="url(#nf)" stroke="${E}" stroke-width="4" stroke-linejoin="round"/><ellipse cx="36" cy="86" rx="13" ry="10" transform="rotate(-20 36 86)" fill="url(#nf)" stroke="${E}" stroke-width="4"/><ellipse cx="76" cy="78" rx="13" ry="10" transform="rotate(-20 76 78)" fill="url(#nf)" stroke="${E}" stroke-width="4"/>`
+    + `<path d="M 96 22 l 3 7 l 7 3 l -7 3 l -3 7 l -3 -7 l -7 -3 l 7 -3 Z M 24 30 l 2 4 l 4 2 l -4 2 l -2 4 l -2 -4 l -4 -2 l 4 -2 Z" fill="#FFF6D0"/>`);
   function aabnOensker(){
     if (busy) return;
     sfx.open();
     /* lounge er det, bandet spiller mellem ønskesangene, så den kan ikke ønskes */
     const kort = STILE.filter(g => g !== 'hygge').map(g => {
       const b = el('button', { class: 'ak-prize kz-sangkort' + (g === stil ? ' own' : ''), type: 'button', on: { click: () => { luk(); if (g !== stil) skift(g); } } });
+      /* kun titlen: en sang, man ikke har hørt, har en node som billede, så det er en overraskelse, hvad gnomerne klæder sig ud som.
+         Har man hørt den, viser kortet sangeren i det tøj, der hører til */
       SLEEVE = farver(BAND[1], g).krop;
-      b.innerHTML = `<span class="pic">${svgDoc('-120 -380 240 290', gnom(BAND[1], g, 0))}</span><span class="nm">${STIL[g].sang}</span><span class="pris">${g === stil ? 'Spiller nu' : STIL[g].navn}</span>`;
+      b.innerHTML = `<span class="pic">${hoert(g) ? svgDoc('-120 -380 240 290', gnom(BAND[1], g, 0)) : NODE}</span><span class="nm">${STIL[g].sang}</span>`;
       return b;
     });
     const wrap = el('div', { class: 'ak-shopwrap kz-oenskwrap', on: { click: e => { if (e.target === wrap) luk(); } } }, [
       el('div', { class: 'ak-shop-panel' }, [
-        el('div', { class: 'ak-shop-top' }, [ el('p', { class: 'say' }, 'Hvilken sang vil du ønske? Så klæder gnomerne om og spiller den for dig.'),
+        el('div', { class: 'ak-shop-top' }, [ el('p', { class: 'say' }, 'Hvilken sang vil du ønske?'),
           el('button', { class: 'iconbtn', type: 'button', 'aria-label': 'Luk', on: { click: luk }, html: ic('<path d="M6 6l12 12M18 6L6 18"/>') }) ]),
         el('div', { class: 'ak-prizes' }, kort) ]) ]);
     function luk(){ wrap.remove(); }
@@ -740,6 +749,7 @@ const Koncert = (() => {
       return;
     }
     SND.ambience(null, 2.5);
+    huskHoert(stil);
     playMusic(navn, { engang: true, start: startet(g), slut: () => { if (g === sangGen) sangSlut(); } });
     /* findes lydfilen ikke (fx i forhåndsvisningen), spiller den lille synth-melodi; den slutter efter et minuts tid */
     sangT = setTimeout(() => { if (g === sangGen && MUSIC.timer) sangT = setTimeout(() => { if (g === sangGen) sangSlut(); }, 42000); }, 3000);
