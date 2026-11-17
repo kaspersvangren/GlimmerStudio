@@ -80,8 +80,28 @@ Arkade.praemie = (() => {
   function billede(p){
     /* uden hat og med kort hår, så staven ikke gemmer sig bag håret */
     if (p.cat === 'acc'){ const st = JSON.parse(JSON.stringify(heroState())); st.acc = { [p.id]: ACC[p.id].color }; st.hat = Object.assign({}, st.hat, { id:'ingen' }); st.back = 'kort'; return dollImg(st, { viewBox: ACC_VB[p.id] || VB.full, pet: false }); }
+    /* mesterværket er pakket ind i brunt papir med snor og et mærke, indtil man har købt det */
+    if (p.cat === 'maleri' && HEMMELIG.includes(p.id) && !ejer(p)) return el('span', { class:'mal', html: pakke() });
     if (p.cat === 'maleri') return el('span', { class:'mal', html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 228 228">${maleriRamme(p.id, -10, -10, 220, 220, 'm', 'sh' + p.id)}</svg>` });
     return el('span');
+  }
+  const HEMMELIG = ['far'];
+  function pakke(){
+    const P = '#C8A06A', PD = '#9A7440', S = '#B0306A';
+    let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 228 228"><rect x="-4" y="2" width="208" height="206" rx="8" fill="#000" opacity=".18"/>`;
+    o += `<rect x="-8" y="-6" width="208" height="206" rx="6" fill="${P}" stroke="${E}" stroke-width="3.5"/>`;
+    /* papirets folder og lidt struktur */
+    o += `<path d="M -8 30 L 30 -6 M 200 160 L 162 200 M -8 150 Q 40 140 60 200" stroke="${PD}" stroke-width="2" fill="none" opacity=".6"/>`;
+    o += [[20, 40], [140, 30], [60, 150], [170, 120], [110, 80], [30, 100]].map(([x, y]) => `<path d="M ${x} ${y} q 6 -3 12 0" stroke="${PD}" stroke-width="1.6" fill="none" opacity=".5"/>`).join('');
+    /* snoren på kryds og en stor sløjfe */
+    o += `<path d="M 92 -6 V 200 M -8 94 H 200" stroke="${E}" stroke-width="10"/><path d="M 92 -6 V 200 M -8 94 H 200" stroke="${S}" stroke-width="6"/>`;
+    o += `<path d="M 92 94 C 60 60 46 84 58 98 C 66 108 82 100 92 94 Z M 92 94 C 124 60 138 84 126 98 C 118 108 102 100 92 94 Z" fill="${S}" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`;
+    o += `<path d="M 92 94 L 78 132 L 88 128 L 92 138 Z M 92 94 L 106 132 L 96 128 L 92 138 Z" fill="${S}" stroke="${E}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="92" cy="94" r="9" fill="#FF6FA8" stroke="${E}" stroke-width="3"/>`;
+    /* et mærke med et spørgsmålstegn og et "rør ikke" stempel */
+    o += `<path d="M 150 120 L 186 112 L 192 150 L 156 158 Z" fill="#FFF6E0" stroke="${E}" stroke-width="2.6" stroke-linejoin="round"/><circle cx="158" cy="124" r="3" fill="${P}" stroke="${E}" stroke-width="1.5"/><path d="M 158 124 Q 128 110 112 102" stroke="${E}" stroke-width="1.5" fill="none"/>`;
+    o += `<text x="174" y="147" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="30" fill="#B0306A" transform="rotate(-12 174 136)">?</text>`;
+    o += `<g transform="rotate(-14 40 168)"><rect x="6" y="152" width="74" height="30" rx="4" fill="none" stroke="#C8302A" stroke-width="3" opacity=".75"/><text x="43" y="173" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#C8302A" opacity=".75">HEMMELIG</text></g>`;
+    return o + `</svg>`;
   }
   let box = null;
   function open(){
@@ -126,7 +146,7 @@ Arkade.praemie = (() => {
     const hang = p.cat === 'maleri' ? haengOp(p.id) : true;
     const hvor = p.cat === 'maleri' ? (hang ? 'Det hænger nu på din billedvæg i værelset.' : 'Tryk på en billedvæg i værelset for at hænge det op.') : 'Den ligger nu i skaberen under Tilbehør.';
     tegn(`Hu-hu! ${navn(p)} er din! ${hvor}`);
-    const card = el('div', { class:'ak-end' }, [ el('div', { class:'ak-card' }, [ el('h2', {}, 'Den er din!'), el('div', { class:'ak-art' }, [ billede(p) ]),
+    const card = el('div', { class:'ak-end' }, [ el('div', { class:'ak-card' }, [ el('h2', {}, HEMMELIG.includes(p.id) ? 'Pakket ud! Overraskelse!' : 'Den er din!'), el('div', { class:'ak-art' }, [ billede(p) ]),
       el('p', {}, p.cat === 'maleri' ? hvor : `${navn(p)} ligger nu i skaberen under Tilbehør.`),
       el('div', { class:'row' }, [ el('button', { class:'btn primary', type:'button', on:{ click: () => { sfx.pick(); card.remove(); } } }, 'Hurra!') ]) ]) ]);
     box.append(card); card.querySelector('.btn').focus();
