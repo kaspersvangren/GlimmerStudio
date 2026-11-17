@@ -2811,7 +2811,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.32.4';
+const VERSION = 'v0.32.5';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -11362,8 +11362,11 @@ const KEY_STAR = 'glimmerstudiet.gemtstjerne';
 function cityMood(){
   const d = new Date(), m = d.getMonth() + 1, h = d.getHours() + d.getMinutes() / 60;
   let season = (m === 12 || m <= 2) ? 'vinter' : m <= 5 ? 'foraar' : m <= 8 ? 'sommer' : 'efteraar', xmas = m === 12;
-  /* skolebyen er altid i skumringen eller om natten — det er der, magien sker */
-  let time = (h >= 20.5 || h < 6) ? 'nat' : 'aften';
+  /* skolebyen er altid i skumringen eller om natten — det er der, magien sker.
+     Tidspunktet låses, når spillet starter: skiftede byen til nat midt i spillet (kl. 20.30), skulle hele kortet bages
+     forfra, og det gav 16 sekunders hak på tabletten. Nu skifter den først ved næste opstart */
+  if (!cityMood.tid) cityMood.tid = (h >= 20.5 || h < 6) ? 'nat' : 'aften';
+  let time = cityMood.tid;
   if (CITY_OVR.season){ xmas = CITY_OVR.season === 'jul'; season = xmas ? 'vinter' : CITY_OVR.season; }
   if (CITY_OVR.time) time = CITY_OVR.time;
   return { season, xmas, time, night: time === 'nat', dark: time === 'nat' || time === 'aften', winter: season === 'vinter' };
