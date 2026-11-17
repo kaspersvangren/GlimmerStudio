@@ -41,7 +41,7 @@ const pic = (st, vb) => dollImg(st, mode === 'dyr' ? { viewBox: vb, petOnly: tru
 function pushHistory(){ history.push(JSON.stringify(cur.st)); if (history.length > 60) history.shift(); updateUndo(); }
 function change(fn, sound='pick'){ pushHistory(); fn(cur.st); sfx[sound] && sfx[sound](); saveSoon(); renderStage(); renderPanel(); }
 function updateUndo(){ $('#undoBtn').disabled = history.length === 0; }
-function lockedTap(){ sfx.nope(); toast('Den findes i overraskelseskuglerne'); }
+function lockedTap(cat, id){ sfx.nope(); toast(cat && isPraemie(cat, id) ? 'Den kan byttes for billetter i arkadens præmiebutik' : 'Den findes i overraskelseskuglerne'); }
 
 /* ---------- sektioner ---------- */
 function section(title, kids){ return el('div', { class:'sec' }, [ el('h3', {}, title), ...kids ]); }
@@ -54,7 +54,7 @@ function optionsSec(title, items, getVal, apply, vb, cat){
     if (fresh) grid.classList.add('has-fresh');
     const pv = clone(cur.st); apply(pv, id);
     grid.append(el('button', { class:'tile' + (locked ? ' locked' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-pressed': String(getVal()===id), 'aria-label': locked ? label + ' (låst)' : fresh ? label + ' (ny)' : label,
-      on:{ click: () => { if (locked) return lockedTap(); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
+      on:{ click: () => { if (locked) return lockedTap(cat, id); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
         if (getVal()!==id) change(st => apply(st, id)); else if (fresh) renderPanel(); } } },
       [ pic(pv, vb), el('span', {}, label), locked ? lockBadge() : null, fresh ? newTag() : null ]));
   }
@@ -85,7 +85,7 @@ function multiSec(title, cat, defs, holder, getActive, setActive, vbOf){
     const on = !!holder(cur.st)[id];
     const pv = clone(cur.st); holder(pv)[id] = holder(cur.st)[id] || a.color;
     grid.append(el('button', { class:'tile' + (on && getActive()===id ? ' active' : '') + (locked ? ' locked' : '') + (fresh ? ' fresh' : ''), type:'button', 'aria-pressed': String(on), 'aria-label': locked ? a.label + ' (låst)' : fresh ? a.label + ' (ny)' : a.label,
-      on:{ click: () => { if (locked) return lockedTap(); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
+      on:{ click: () => { if (locked) return lockedTap(cat, id); if (fresh){ clearFresh(cat, id); renderTabs(); renderModes(); }
         change(st => { const h = holder(st); if (on && getActive()===id){ delete h[id]; setActive(null); } else { if (!on){ h[id] = a.color;
           if (cat === 'acc' || cat === 'petacc'){ const off = (cat === 'acc' ? accConflicts : petAccConflicts)(id).filter(x => h[x]); off.forEach(x => delete h[x]); if (off.length) toast(`${a.label} tog ${off.map(x => defs[x].label.toLowerCase()).join(' og ')} af`); } }
           setActive(id); } }); } } },

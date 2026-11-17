@@ -196,6 +196,8 @@ const Arkade = (() => {
         + `<path d="M ${lx - 18} ${ly - 34} L ${lx - 22} ${ly - 4} H ${lx + 22} L ${lx + 18} ${ly - 34} Z" fill="#FFE9A8" opacity=".85" stroke="${WD}" stroke-width="2"/><path d="M ${lx} ${ly - 24} q -6 8 0 16 q 6 -8 0 -16" fill="#FFB347"/>`
         + `<path d="M ${lx - 24} ${ly - 4} H ${lx + 24} L ${lx + 16} ${ly + 6} H ${lx - 16} Z" fill="url(#akBrass)" stroke="${WD}" stroke-width="2"/><circle cx="${lx}" cy="${ly - 18}" r="44" fill="url(#akGlow)"/>`
         + (true ? `<path d="M ${lx - 170} ${ly + 690} L ${lx - 26} ${ly + 6} L ${lx + 26} ${ly + 6} L ${lx + 170} ${ly + 690} Z" fill="url(#akLamp)" opacity=".4"/>` : ''); });
+    /* præmiebutikkens luge i væggen oppe til højre */
+    if (Arkade.praemie) o += Arkade.praemie.luge();
     /* fem maskiner på række: de er gjort en anelse mindre, så alle kan være der, også på en tablet */
     o += `<g transform="translate(800 906) scale(.86) translate(-800 -906)"><g transform="translate(-132 0)">${gnomMachine()}</g>` + cabinet(CABS[1], 346, 1) + cabinet(CABS[2], 646, 2) + cabinet(CABS[3], 946, 3) + `<g transform="translate(168 0)">${clawMachine()}</g></g>`;
     return o + `</svg>`;
@@ -206,10 +208,10 @@ const Arkade = (() => {
     if (cur && cur.game.stop) cur.game.stop(); cur = null;
     showScreen('#arkade'); playMusic('arkade'); SND.ambience('stemning.arkade'); busy = false;   /* hallens musik, med summen fra maskiner og mennesker under */
     const box = $('#arkadeBody'); box.innerHTML = ''; box.classList.remove('ak-wood');
-    box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ starPill(), audioBtns() ]));
+    box.append(el('div', { class:'scene-wrap', id:'akScene' }), ...placeUi([ backBtn('Byen', showTown) ], [ billetPill(), starPill(), audioBtns() ]));
     $('#akScene').innerHTML = scene(); updateAudioBtns();
     const svg = $('#akSvg');
-    svg.addEventListener('click', e => { const g = e.target.closest('[data-cab]'); if (g) tapCab(g); });
+    svg.addEventListener('click', e => { if (e.target.closest('[data-shop]')){ if (!busy && Arkade.praemie) Arkade.praemie.open(); return; } const g = e.target.closest('[data-cab]'); if (g) tapCab(g); });
     svg.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-cab]')){ e.preventDefault(); tapCab(e.target.closest('[data-cab]')); } });
   }
   function tapCab(g){
@@ -246,14 +248,19 @@ const Arkade = (() => {
     game.start(stage, api);
   }
   /* opts (gribemaskinen): { title, big, art, again } i stedet for point og rekord */
+  /* billetter efter et spil: et almindeligt spil giver omkring 5-15. Pointene er meget forskellige fra spil til spil */
+  const BILLET = { gnom: n => n / 2, skjold: n => n / 20, invader: n => n / 70, tryl: n => n / 110 };
   function endCard(id, name, n, line, opts){
     const o = opts || {}, rec = !opts && hiSet(id, n), hi = hiOf(id);
+    const tix = !opts && BILLET[id] && n > 0 ? Math.max(1, Math.min(40, 1 + Math.floor(BILLET[id](n)))) : 0;
+    if (tix) addBilletter(tix);
     if (o.sound !== false){ if (rec && n > 0 || o.win) SND.play('arkade.rekord', () => sfx.fanfare()); else SND.play('arkade.slut', () => sfx.magic()); }
     const card = el('div', { class:'ak-end' }, [ el('div', { class:'ak-card' }, [
       el('h2', {}, o.title || (rec && n > 0 ? 'Ny rekord!' : 'Godt spillet!')),
       o.art ? el('div', { class:'ak-art', html: o.art }) : null,
       el('p', { class:'big' }, o.big != null ? o.big : `${n} point`),
       el('p', {}, line || (rec && n > 0 ? `Det er det bedste nogensinde i ${name}.` : `Rekorden er ${hi} point.`)),
+      tix ? el('p', { class:'ak-tix', html: TICKET_SVG + `<span>+${tix} ${tix === 1 ? 'billet' : 'billetter'}</span>` }) : null,
       el('div', { class:'row' }, [
         el('button', { class:'btn primary', type:'button', on:{ click: () => { sfx.coin(); if (cur && cur.game.stop) cur.game.stop(); openGame(id); } } }, o.again || 'Spil igen'),
         el('button', { class:'btn', type:'button', on:{ click: () => { sfx.undo(); show(); } } }, 'Til arkaden') ]) ]) ]);

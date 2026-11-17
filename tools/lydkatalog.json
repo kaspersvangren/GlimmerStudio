@@ -103,6 +103,18 @@
     "navn": "Spillet er slut",
     "hvor": "Slutkortet uden rekord",
     "forslag": "Blød harpe-opadgang. Venlig, ikke skuffet."
+   },
+   {
+    "key": "praemie.klokke",
+    "navn": "Præmiedisken",
+    "hvor": "Når man åbner præmiedisken, hvor uglen står",
+    "forslag": "En lille ringeklokke på en disk, ding!"
+   },
+   {
+    "key": "praemie.koeb",
+    "navn": "Byttet!",
+    "hvor": "Når man bytter billetter til en præmie",
+    "forslag": "Et glad kasseapparat-kling eller en kort fanfare."
    }
   ]
  },

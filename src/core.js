@@ -2,7 +2,7 @@
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.26.1';
+const VERSION = 'v0.27.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -36,7 +36,7 @@ const FUR = ['#FFFFFF','#F5EEFF','#FFE9D6','#F2D9B8','#E0B98A','#C68653','#8A5A3
 /* ---------- udsnit til miniaturer ---------- */
 const VB = { head:'170 40 460 460', hair:'150 50 500 740', eye:'320 340 160 120', lips:'350 420 100 72', face:'280 290 240 220',
   robe:'180 480 440 520', cape:'150 430 500 620', hat:'170 20 460 330', shoes:'290 890 220 170', neck:'310 470 180 150', pet:'520 750 280 310', full:'120 30 560 1050' };
-const ACC_VB = { stav:'420 280 280 420', tryllestav:'430 590 210 210', bog:'210 680 200 200', baelte:'320 600 170 160', toerklaede:VB.neck, halskaede:VB.neck, briller:'290 320 220 150', lanterne:'190 690 220 250', perler:VB.neck, lommeur:'380 650 150 150' };
+const ACC_VB = { stav:'420 280 280 420', stjernestav:'420 260 280 420', maanestav:'420 260 280 420', krystalstav:'420 240 280 420', blomsterstav:'420 260 280 420', vingestav:'420 260 280 420', sommerfuglestav:'420 240 280 420', slikstav:'420 260 280 420', hjertetryllestav:'440 440 200 240', regnbuestav:'440 430 200 240', tryllestav:'430 590 210 210', bog:'210 680 200 200', baelte:'320 600 170 160', toerklaede:VB.neck, halskaede:VB.neck, briller:'290 320 220 150', lanterne:'190 690 220 250', perler:VB.neck, lommeur:'380 650 150 150' };
 
 /* ---------- DOM ---------- */
 function el(tag, attrs={}, kids=[]){

@@ -89,6 +89,9 @@ async function run(w, h){
   { const c = await p.evaluate(() => { const r = document.querySelector('#akStage canvas').getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height * .6]; });
     await p.mouse.move(c[0] - 60, c[1]); await p.mouse.down(); for (let i = 1; i <= 8; i++) await p.mouse.move(c[0] - 60 + i * 15, c[1] + (i % 2)); await p.mouse.up(); await p.waitForTimeout(200);
     ok(await p.evaluate(() => !Arkade.GAMES.tryl.state().kort.includes('vand')), `${tag} trylletegning: en vandret streg blev ikke genkendt`); }
+  /* præmiebutikken: billetter efter et spil, og lugen kan åbnes og lukkes */
+  { const f = await p.evaluate(() => { const f0 = prog.billetter || 0; Arkade.show(); Arkade.praemie.open(); const ok = !!document.querySelector('.ak-shop-panel'); Arkade.praemie.luk(); return { f0, ok }; });
+    ok(f.ok, `${tag} præmiebutikken åbnede ikke`); }
   for (const id of ['gnom', 'skjold', 'invader', 'tryl', 'gribe']){
     await p.evaluate(id => { if (id === 'gribe') addStars(2); Arkade.openGame(id); }, id); await p.waitForTimeout(1500); await noScroll('arkade-' + id);
     if (id === 'gribe'){ await p.keyboard.press('Space'); await p.waitForTimeout(9000); }

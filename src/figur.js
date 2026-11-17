@@ -653,6 +653,145 @@ function armWand(c, col){
   s += [[SX-20,tipY-16,5],[SX+22,tipY-10,4],[SX+16,tipY+20,3.5],[SX-14,tipY+16,3]].map(([x,y,rr], i) => { const tw = twinkle(x, y, rr, lt(col,0.5)); return ANIM ? `<g>${tw}<animate attributeName="opacity" values="1;0.15;1" dur="${1.4+i*0.4}s" repeatCount="indefinite"/></g>` : tw; }).join('');
   return s + staffHand(c);
 }
+/* ---------- præmiestave fra arkadens præmiebutik ----------
+   Lange stave holdes som staven med kugle (hovedet omkring SX, OY), korte som tryllestaven (spidsen i SX, 458).
+   Hver stav har et skaft og et hoved; farven c er den, man vælger i skaberen. */
+const PST = 'stroke-linejoin="round" stroke-linecap="round"';
+function pStar(x, y, R, r, n = 5, rot = 0){ let d = ''; for (let i = 0; i < n * 2; i++){ const a = -Math.PI/2 + rot + i*Math.PI/n, rr = i % 2 ? r : R; d += (i ? 'L' : 'M') + (x + rr*Math.cos(a)).toFixed(1) + ' ' + (y + rr*Math.sin(a)).toFixed(1); } return d + 'Z'; }
+function pHeart(x, y, r){ return `M ${x} ${y + r} C ${x - r*1.7} ${y - r*0.2} ${x - r*0.75} ${y - r*1.45} ${x} ${y - r*0.45} C ${x + r*0.75} ${y - r*1.45} ${x + r*1.7} ${y - r*0.2} ${x} ${y + r} Z`; }
+/* halvmåne: en cirkel minus en forskudt cirkel, regnet ud som to buer */
+function pCrescent(cx, cy, R, dx, dy, r2){
+  const d = Math.hypot(dx, dy), ux = dx/d, uy = dy/d, a = (R*R - r2*r2 + d*d) / (2*d), h = Math.sqrt(Math.max(0, R*R - a*a));
+  const p1 = [cx + a*ux - h*uy, cy + a*uy + h*ux], p2 = [cx + a*ux + h*uy, cy + a*uy - h*ux], f = v => v.toFixed(1);
+  return `M ${f(p1[0])} ${f(p1[1])} A ${R} ${R} 0 1 1 ${f(p2[0])} ${f(p2[1])} A ${r2} ${r2} 0 1 0 ${f(p1[0])} ${f(p1[1])} Z`;
+}
+function pSparkles(list, col){ return list.map(([x, y, r], i) => { const t = twinkle(x, y, r, col); return ANIM ? `<g>${t}<animate attributeName="opacity" values="1;0.2;1" dur="${1.6 + i*0.37}s" repeatCount="indefinite"/></g>` : t; }).join(''); }
+function pGlow(x, y, r, col, id){
+  const g = `<defs><radialGradient id="${id}"><stop offset="0" stop-color="${lt(col,0.5)}" stop-opacity=".7"/><stop offset="1" stop-color="${lt(col,0.5)}" stop-opacity="0"/></radialGradient></defs>`;
+  const c = `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${id})"/>`;
+  return g + (ANIM ? `<g>${c}<animate attributeName="opacity" values="1;0.55;1" dur="2.6s" repeatCount="indefinite"/></g>` : c);
+}
+/* skaftet på en lang stav: træ, sølv, vinranke eller slikstang */
+function pShaft(SX, OY, kind){
+  const y0 = OY + 40, x1 = SX + 4, y1 = 852;
+  const line = (col, w, dx = 0, op = 1) => `<path d="M ${SX + dx} ${y0} L ${x1 + dx} ${y1}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`;
+  if (kind === 'slik'){
+    let o = line('#7A2A3A', 15) + line('#FFFFFF', 11);
+    for (let y = y0 + 6; y < y1 - 8; y += 24){ const k = (y - y0) / (y1 - y0), x = SX + 4*k; o += `<path d="M ${x - 5.5} ${y + 7} L ${x + 5.5} ${y - 4}" stroke="#FF4F7B" stroke-width="7" stroke-linecap="round"/>`; }
+    return o + line('#FFFFFF', 2.5, -3, .8);
+  }
+  if (kind === 'vin'){
+    let o = line('#2E6A2A', 13) + line('#5AB84A', 9) + line('#9BE36A', 2.5, -2, .8);
+    for (const [y, s] of [[440, -1], [520, 1], [700, -1], [780, 1]]){ const k = (y - y0) / (y1 - y0), x = SX + 4*k;
+      o += `<path d="M ${x} ${y} q ${s*18} -10 ${s*30} -2 q ${s*-12} 14 ${s*-30} 2 Z" fill="#6CCB5A" stroke="#2E6A2A" stroke-width="2.2" ${PST}/><path d="M ${x} ${y} q ${s*14} -4 ${s*24} -1" stroke="#2E6A2A" stroke-width="1.4" fill="none"/>`; }
+    return o;
+  }
+  const st = kind === 'soelv' ? '#C8CCE0' : kind === 'hvid' ? '#F7F4FF' : kind === 'lys' ? '#D9A868' : '#9C6B43';
+  let o = line(fdk(st, 0.45), 14) + line(st, 10) + line(sd(st, 0.3), 3.5, 3, .7) + line(lt(st, 0.4), 2.5, -3, .8);
+  if (kind === 'hvid' || kind === 'soelv') o += [430, 520, 760].map(y => { const k = (y - y0) / (y1 - y0), x = SX + 4*k; return `<rect x="${x - 8}" y="${y}" width="16" height="9" rx="3" fill="#F2C14E" stroke="#B98516" stroke-width="1.8"/>`; }).join('');
+  return o;
+}
+function pGrip(SX, col){ return Array.from({length:6}, (_, i) => `<path d="M ${SX-6} ${594+i*9} L ${SX+8} ${588+i*9}" stroke="${col}" stroke-width="5" stroke-linecap="round"/><path d="M ${SX-6} ${594+i*9} L ${SX+1} ${591+i*9}" stroke="${lt(col,0.4)}" stroke-width="2" stroke-linecap="round"/>`).join(''); }
+const P_HEADS = {
+  /* en stor stjerne med to bånd, der flagrer */
+  stjerne(SX, OY, col){
+    let o = pGlow(SX, OY, 78, col, 'psG1');
+    o += `<path d="M ${SX-2} ${OY+30} C ${SX-30} ${OY+50} ${SX-10} ${OY+80} ${SX-38} ${OY+108}" stroke="#2A1838" stroke-width="10" fill="none" ${PST}/><path d="M ${SX-2} ${OY+30} C ${SX-30} ${OY+50} ${SX-10} ${OY+80} ${SX-38} ${OY+108}" stroke="#FF8FC7" stroke-width="6" fill="none" ${PST}/>`;
+    o += `<path d="M ${SX+2} ${OY+30} C ${SX+30} ${OY+56} ${SX+12} ${OY+88} ${SX+34} ${OY+118}" stroke="#2A1838" stroke-width="10" fill="none" ${PST}/><path d="M ${SX+2} ${OY+30} C ${SX+30} ${OY+56} ${SX+12} ${OY+88} ${SX+34} ${OY+118}" stroke="#7FD8FF" stroke-width="6" fill="none" ${PST}/>`;
+    o += `<rect x="${SX-11}" y="${OY+28}" width="22" height="14" rx="4" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+    o += `<path d="${pStar(SX, OY - 4, 44, 20)}" fill="${col}" stroke="${fdk(col,0.35)}" stroke-width="3.5" ${PST}/><path d="${pStar(SX, OY - 4, 22, 10)}" fill="${lt(col,0.55)}"/>`;
+    o += `<path d="M ${SX-12} ${OY-30} L ${SX-4} ${OY-42}" stroke="#FFF" stroke-width="4" stroke-linecap="round" opacity=".85"/>`;
+    return o + pSparkles([[SX+52,OY-40,9],[SX-50,OY-30,6],[SX+44,OY+30,5],[SX-26,OY-62,5]], lt(col,0.55));
+  },
+  /* en gylden halvmåne, der holder en lille kugle, og en stjerne i en kæde */
+  maane(SX, OY, col){
+    const G = '#F2C14E', GD = '#B98516';
+    let o = pGlow(SX + 4, OY - 4, 74, col, 'psG2');
+    o += `<rect x="${SX-10}" y="${OY+30}" width="20" height="12" rx="3" fill="${G}" stroke="${GD}" stroke-width="2"/>`;
+    o += `<path d="${pCrescent(SX - 6, OY - 4, 42, 22, -14, 34)}" fill="${G}" stroke="${GD}" stroke-width="3"/><path d="${pCrescent(SX - 8, OY - 2, 34, 22, -14, 30)}" fill="${lt(G,0.35)}" opacity=".7"/>`;
+    o += `<defs><radialGradient id="psO2" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#FFF"/><stop offset=".4" stop-color="${lt(col,0.35)}"/><stop offset="1" stop-color="${col}"/></radialGradient></defs>`;
+    o += `<circle cx="${SX + 14}" cy="${OY - 14}" r="16" fill="url(#psO2)" stroke="${fdk(col,0.3)}" stroke-width="2.5"/><ellipse cx="${SX + 9}" cy="${OY - 20}" rx="4.5" ry="3.2" fill="#FFF" opacity=".9"/>`;
+    o += `<path d="M ${SX - 40} ${OY + 4} q -4 16 -2 30" stroke="${GD}" stroke-width="2" fill="none" stroke-dasharray="3 3"/><path d="${pStar(SX - 42, OY + 44, 11, 5)}" fill="${G}" stroke="${GD}" stroke-width="2" ${PST}/>`;
+    return o + pSparkles([[SX+50,OY-44,8],[SX-30,OY-54,5],[SX+40,OY+26,5]], lt(col,0.5));
+  },
+  /* tre krystaller i en sølvklo */
+  krystal(SX, OY, col){
+    const S = '#C8CCE0', SD = '#7A7E98';
+    const kr = (x, yb, h, w, rot) => `<g transform="rotate(${rot} ${x} ${yb})"><path d="M ${x-w} ${yb} V ${yb-h+w} L ${x} ${yb-h} L ${x+w} ${yb-h+w} V ${yb} Z" fill="${col}" fill-opacity=".9" stroke="${fdk(col,0.4)}" stroke-width="2.6" ${PST}/><path d="M ${x-w} ${yb-h+w} L ${x} ${yb-h} L ${x} ${yb} L ${x-w} ${yb} Z" fill="#FFF" opacity=".35"/><path d="M ${x} ${yb-h} V ${yb}" stroke="${fdk(col,0.25)}" stroke-width="1.6"/><path d="M ${x-w+4} ${yb-h+w+6} V ${yb-10}" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" opacity=".8"/></g>`;
+    let o = pGlow(SX, OY - 6, 80, col, 'psG3');
+    o += kr(SX - 16, OY + 30, 54, 11, -24) + kr(SX + 16, OY + 30, 58, 11, 22) + kr(SX, OY + 32, 86, 15, 0);
+    o += [-1, 1].map(s => `<path d="M ${SX + s*4} ${OY+40} C ${SX + s*26} ${OY+36} ${SX + s*28} ${OY+14} ${SX + s*22} ${OY+2}" stroke="${SD}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M ${SX + s*4} ${OY+40} C ${SX + s*26} ${OY+36} ${SX + s*28} ${OY+14} ${SX + s*22} ${OY+2}" stroke="${S}" stroke-width="4" fill="none" stroke-linecap="round"/>`).join('');
+    o += `<rect x="${SX-12}" y="${OY+34}" width="24" height="12" rx="3" fill="${S}" stroke="${SD}" stroke-width="2"/>`;
+    return o + pSparkles([[SX+44,OY-56,8],[SX-46,OY-36,6],[SX+40,OY+10,4],[SX-6,OY-82,5]], '#FFFFFF');
+  },
+  /* en stor blomst i toppen af en vinranke */
+  blomst(SX, OY, col){
+    let o = pGlow(SX, OY, 70, col, 'psG4');
+    o += [-1, 1].map(s => `<path d="M ${SX} ${OY+40} q ${s*30} -2 ${s*44} -22 q ${s*-26} -4 ${s*-44} 22 Z" fill="#6CCB5A" stroke="#2E6A2A" stroke-width="2.4" ${PST}/>`).join('');
+    for (let i = 0; i < 6; i++){ const a = i * 60; o += `<ellipse cx="${SX}" cy="${OY - 26}" rx="15" ry="25" transform="rotate(${a} ${SX} ${OY - 2})" fill="${col}" stroke="${fdk(col,0.35)}" stroke-width="2.6"/>`; }
+    for (let i = 0; i < 6; i++){ const a = i * 60; o += `<ellipse cx="${SX}" cy="${OY - 24}" rx="6" ry="13" transform="rotate(${a} ${SX} ${OY - 2})" fill="${lt(col,0.45)}" opacity=".8"/>`; }
+    o += `<circle cx="${SX}" cy="${OY - 2}" r="15" fill="#FFD23E" stroke="#C7920A" stroke-width="2.6"/>` + [[-5,-6],[5,-5],[0,3],[-6,4],[6,5]].map(([x, y]) => `<circle cx="${SX + x}" cy="${OY - 2 + y}" r="1.8" fill="#C7920A"/>`).join('');
+    return o + pSparkles([[SX+50,OY-40,7],[SX-48,OY-34,6],[SX+30,OY+34,4]], lt(col,0.55));
+  },
+  /* et hjerte med to fjervinger og en lille glorie */
+  vinger(SX, OY, col){
+    let o = pGlow(SX, OY, 80, col, 'psG5');
+    const wing = s => { let d = `M ${SX + s*14} ${OY - 6} C ${SX + s*40} ${OY - 40} ${SX + s*72} ${OY - 38} ${SX + s*78} ${OY - 20}`; for (const [x, y] of [[66, -6], [52, 8], [36, 16]]) d += ` Q ${SX + s*(x + 10)} ${OY + y - 8} ${SX + s*x} ${OY + y}`; d += ` Q ${SX + s*24} ${OY + 18} ${SX + s*14} ${OY + 10} Z`;
+      return `<path d="${d}" fill="#FFFFFF" stroke="#2A1838" stroke-width="3" ${PST}/><path d="M ${SX + s*24} ${OY - 4} Q ${SX + s*46} ${OY - 20} ${SX + s*66} ${OY - 20} M ${SX + s*24} ${OY + 4} Q ${SX + s*42} ${OY - 4} ${SX + s*56} ${OY - 2}" stroke="#C8C4E8" stroke-width="2.4" fill="none" stroke-linecap="round"/>`; };
+    o += wing(-1) + wing(1);
+    o += `<ellipse cx="${SX}" cy="${OY - 50}" rx="22" ry="6" fill="none" stroke="#F2C14E" stroke-width="5"/><ellipse cx="${SX}" cy="${OY - 50}" rx="22" ry="6" fill="none" stroke="#FFF6A0" stroke-width="1.8"/>`;
+    o += `<path d="${pHeart(SX, OY + 2, 30)}" fill="${col}" stroke="${fdk(col,0.35)}" stroke-width="3.2"/><path d="M ${SX - 22} ${OY - 6} q -4 10 2 18" stroke="${lt(col,0.55)}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    o += `<rect x="${SX-10}" y="${OY+30}" width="20" height="12" rx="3" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
+    return o + pSparkles([[SX+56,OY-50,7],[SX-56,OY-52,6],[SX+30,OY+42,4]], '#FFF6D0');
+  },
+  /* skaftet snor sig i en krølle, og en sommerfugl sidder øverst */
+  sommerfugl(SX, OY, col){
+    let o = pGlow(SX, OY - 10, 70, col, 'psG6');
+    o += `<path d="M ${SX} ${OY+44} C ${SX - 4} ${OY + 10} ${SX - 34} ${OY + 4} ${SX - 30} ${OY - 22} C ${SX - 26} ${OY - 44} ${SX + 4} ${OY - 40} ${SX + 2} ${OY - 20} C ${SX} ${OY - 6} ${SX - 16} ${OY - 8} ${SX - 14} ${OY - 20}" stroke="#7A5230" stroke-width="13" fill="none" ${PST}/><path d="M ${SX} ${OY+44} C ${SX - 4} ${OY + 10} ${SX - 34} ${OY + 4} ${SX - 30} ${OY - 22} C ${SX - 26} ${OY - 44} ${SX + 4} ${OY - 40} ${SX + 2} ${OY - 20} C ${SX} ${OY - 6} ${SX - 16} ${OY - 8} ${SX - 14} ${OY - 20}" stroke="#D9A868" stroke-width="8" fill="none" ${PST}/>`;
+    const bx = SX + 18, by = OY - 52, flap = ANIM ? `<animateTransform attributeName="transform" type="scale" values="1 1;0.35 1;1 1" dur="1.1s" repeatCount="indefinite" additive="sum"/>` : '';
+    const w = s => `<g transform="translate(${bx} ${by})"><g>${flap}<path d="M 0 -2 C ${s*-30} -38 ${s*-58} -16 ${s*-42} 2 C ${s*-50} 10 ${s*-40} 30 ${s*-20} 22 C ${s*-8} 18 ${s*-2} 8 0 2 Z" fill="${col}" stroke="#2A1838" stroke-width="2.6" ${PST}/><circle cx="${s*-30}" cy="-10" r="6" fill="${lt(col,0.6)}"/><circle cx="${s*-22}" cy="14" r="4" fill="${lt(col,0.6)}"/></g></g>`;
+    o += w(1) + w(-1) + `<ellipse cx="${bx}" cy="${by + 2}" rx="5" ry="16" fill="#3A2448" stroke="#2A1838" stroke-width="2"/><path d="M ${bx - 2} ${by - 12} q -6 -14 -12 -16 M ${bx + 2} ${by - 12} q 6 -14 12 -16" stroke="#2A1838" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+    return o + pSparkles([[SX+56,OY-24,7],[SX-50,OY-50,6],[SX+30,OY+30,4]], lt(col,0.55));
+  },
+  /* en kæmpe slikkepind med sløjfe */
+  slik(SX, OY, col){
+    let o = pGlow(SX, OY, 72, col, 'psG7');
+    o += `<circle cx="${SX}" cy="${OY - 4}" r="44" fill="#FFFFFF" stroke="#2A1838" stroke-width="3.5"/>`;
+    let d = ''; for (let i = 0; i <= 64; i++){ const t = i / 64 * Math.PI * 5.2, r = 3 + t * 2.5; d += (i ? 'L' : 'M') + (SX + Math.cos(t) * r).toFixed(1) + ' ' + (OY - 4 + Math.sin(t) * r).toFixed(1); }
+    o += `<path d="${d}" stroke="${col}" stroke-width="10" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${lt(col,0.45)}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>`;
+    o += `<circle cx="${SX}" cy="${OY - 4}" r="44" fill="none" stroke="#2A1838" stroke-width="3.5"/><path d="M ${SX - 30} ${OY - 26} A 36 36 0 0 1 ${SX - 6} ${OY - 40}" stroke="#FFF" stroke-width="6" fill="none" stroke-linecap="round" opacity=".85"/>`;
+    o += [-1, 1].map(s => `<path d="M ${SX} ${OY + 46} C ${SX + s*14} ${OY + 34} ${SX + s*30} ${OY + 40} ${SX + s*26} ${OY + 52} C ${SX + s*22} ${OY + 62} ${SX + s*8} ${OY + 54} ${SX} ${OY + 46} Z" fill="#FFD23E" stroke="#2A1838" stroke-width="2.6" ${PST}/><path d="M ${SX} ${OY + 48} L ${SX + s*12} ${OY + 72}" stroke="#2A1838" stroke-width="8" stroke-linecap="round"/><path d="M ${SX} ${OY + 48} L ${SX + s*12} ${OY + 72}" stroke="#FFD23E" stroke-width="4" stroke-linecap="round"/>`).join('') + `<circle cx="${SX}" cy="${OY + 47}" r="6" fill="#FFD23E" stroke="#2A1838" stroke-width="2.4"/>`;
+    return o + pSparkles([[SX+56,OY-44,7],[SX-54,OY-30,6]], '#FFF6D0');
+  },
+};
+const P_TIPS = {
+  /* hvid tryllestav med et hjerte og et bånd */
+  hjerte(SX, Y, col){
+    let o = `<path d="M ${SX - 2} ${Y + 18} C ${SX - 22} ${Y + 30} ${SX - 8} ${Y + 52} ${SX - 26} ${Y + 66}" stroke="#2A1838" stroke-width="8" fill="none" ${PST}/><path d="M ${SX - 2} ${Y + 18} C ${SX - 22} ${Y + 30} ${SX - 8} ${Y + 52} ${SX - 26} ${Y + 66}" stroke="#FF8FC7" stroke-width="4.5" fill="none" ${PST}/>`;
+    o += `<path d="${pHeart(SX, Y - 2, 22)}" fill="${col}" stroke="${fdk(col,0.35)}" stroke-width="3"/><path d="M ${SX - 15} ${Y - 9} q -3 8 1 13" stroke="${lt(col,0.55)}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+    return o + pSparkles([[SX-24,Y-18,5],[SX+24,Y-12,4],[SX+18,Y+22,3.5]], lt(col,0.5));
+  },
+  /* en lille sky med en regnbue over */
+  regnbue(SX, Y, col){ return `<g transform="translate(${SX} ${Y + 10}) scale(1.25) translate(${-SX} ${-Y - 10})">${P_TIPS.regnbue0(SX, Y, col)}</g>`; },
+  regnbue0(SX, Y, col){
+    const C = ['#FF5C7A', '#FFA040', '#FFE04A', '#6CCB5A', '#4AA8FF', '#9B6BFF'];
+    let o = C.map((c, i) => `<path d="M ${SX - 30 + i*4} ${Y + 2} A ${30 - i*4} ${30 - i*4} 0 0 1 ${SX + 30 - i*4} ${Y + 2}" stroke="${c}" stroke-width="4.6" fill="none"/>`).join('');
+    o += `<path d="M ${SX - 34} ${Y + 2} A 34 34 0 0 1 ${SX + 34} ${Y + 2}" stroke="#2A1838" stroke-width="2" fill="none"/><path d="M ${SX - 8} ${Y + 2} A 8 8 0 0 1 ${SX + 8} ${Y + 2}" stroke="#2A1838" stroke-width="2" fill="none"/>`;
+    o += `<path d="M ${SX - 22} ${Y + 18} C ${SX - 34} ${Y + 18} ${SX - 34} ${Y + 2} ${SX - 22} ${Y + 2} C ${SX - 20} ${Y - 10} ${SX - 4} ${Y - 12} ${SX} ${Y - 2} C ${SX + 6} ${Y - 10} ${SX + 24} ${Y - 6} ${SX + 22} ${Y + 4} C ${SX + 34} ${Y + 4} ${SX + 34} ${Y + 18} ${SX + 22} ${Y + 18} Z" fill="${col}" stroke="#2A1838" stroke-width="2.6" ${PST}/>`;
+    o += `<path d="M ${SX - 22} ${Y + 6} q 4 -8 12 -6" stroke="#FFF" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="${SX - 7}" cy="${Y + 10}" r="1.8" fill="#2A1838"/><circle cx="${SX + 7}" cy="${Y + 10}" r="1.8" fill="#2A1838"/><path d="M ${SX - 4} ${Y + 13} q 4 4 8 0" stroke="#2A1838" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    return o + pSparkles([[SX-38,Y-16,5],[SX+38,Y-14,4]], '#FFF6D0');
+  },
+};
+function armStaffP(c, col, head, shaft, grip){
+  const SX = 436, OY = 300;
+  return pShaft(SX, OY, shaft) + (grip ? pGrip(SX, grip) : '') + P_HEADS[head](SX, OY, col) + staffHand(c);
+}
+function armWandP(c, col, tip, wood){
+  const SX = 436, tipY = 458;
+  let s = `<path d="M ${SX} 604 L ${SX} ${tipY+16}" stroke="${fdk(wood,0.45)}" stroke-width="10" stroke-linecap="round"/><path d="M ${SX} 604 L ${SX} ${tipY+16}" stroke="${wood}" stroke-width="7" stroke-linecap="round"/><path d="M ${SX-1.6} 600 L ${SX-1.6} ${tipY+18}" stroke="${lt(wood,0.35)}" stroke-width="2" stroke-linecap="round"/>`;
+  s += `<rect x="${SX-5}" y="${tipY+14}" width="10" height="6" rx="2" fill="#F2C14E" stroke="#B98516" stroke-width="1.5"/>`;
+  return s + P_TIPS[tip](SX, tipY, col) + staffHand(c);
+}
 /* tryllestav i knytnæven (tegnes i venstre sides mål og spejles) */
 function wandHeld(col){
   const tip = [158, 520], w = '#5A3A2A';
@@ -692,8 +831,19 @@ const ACC = {
   lanterne: { label:'Lanterne', color:'#FFB347', hand:'L' },
   perler: { label:'Perlekæde', color:'#E0457A' },
   lommeur: { label:'Lommeur', color:'#F2C14E' },
+  /* præmiestave: kan kun fås i arkadens præmiebutik */
+  stjernestav: { label:'Stjernestav', color:'#FFD23E', hand:'R', draw: (c, col) => armStaffP(c, col, 'stjerne', 'hvid') },
+  maanestav: { label:'Månestav', color:'#7FD8FF', hand:'R', draw: (c, col) => armStaffP(c, col, 'maane', 'mork', '#7B4FD0') },
+  krystalstav: { label:'Krystalstav', color:'#B79BFF', hand:'R', draw: (c, col) => armStaffP(c, col, 'krystal', 'soelv') },
+  blomsterstav: { label:'Blomsterstav', color:'#FF8FC7', hand:'R', draw: (c, col) => armStaffP(c, col, 'blomst', 'vin') },
+  vingestav: { label:'Hjerte med vinger', color:'#FF5C8A', hand:'R', draw: (c, col) => armStaffP(c, col, 'vinger', 'hvid') },
+  sommerfuglestav: { label:'Sommerfuglestav', color:'#43D3BE', hand:'R', draw: (c, col) => armStaffP(c, col, 'sommerfugl', 'lys', '#FF8FC7') },
+  slikstav: { label:'Slikkepindestav', color:'#FF4F7B', hand:'R', draw: (c, col) => armStaffP(c, col, 'slik', 'slik') },
+  hjertetryllestav: { label:'Hjertetryllestav', color:'#FF5C8A', hand:'R', draw: (c, col) => armWandP(c, col, 'hjerte', '#F7F4FF') },
+  regnbuestav: { label:'Regnbuestav', color:'#FFFFFF', hand:'R', draw: (c, col) => armWandP(c, col, 'regnbue', '#7FD8FF') },
 };
-const ACC_SLOTS = [ ['stav','tryllestav'], ['toerklaede','halskaede','perler'], ['bog','lanterne'] ];
+const PRAEMIE_STAVE = ['stjernestav','maanestav','krystalstav','blomsterstav','vingestav','sommerfuglestav','slikstav','hjertetryllestav','regnbuestav'];
+const ACC_SLOTS = [ ['stav','tryllestav', ...PRAEMIE_STAVE], ['toerklaede','halskaede','perler'], ['bog','lanterne'] ];
 const ACC_HIDDEN_BY = {};
 function accConflicts(k){ const out = new Set(); for (const slot of ACC_SLOTS) if (slot.includes(k)) slot.forEach(x => { if (x !== k) out.add(x); }); return [...out]; }
 /* rydder op, så tegningen aldrig viser to ting oven i hinanden */
@@ -786,6 +936,7 @@ function waveArm(inner, ev, forever){
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
+  ...PRAEMIE_STAVE.map(k => 'acc:' + k),
   'rum:ting.teleskop', 'rum:ting.ovn',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
@@ -839,8 +990,10 @@ function figureSvg(st, c, hl, wave){
   else left = armOpen(c, false);
   s += HLW(hl === 'robe', left);
   /* højre arm: stav, tryllestav eller tom hånd */
+  const pk = PRAEMIE_STAVE.find(k => A(k));
   if (A('stav')) s += HLW(hl === 'acc:stav', armStaff(c, A('stav')));
   else if (A('tryllestav')) s += HLW(hl === 'acc:tryllestav', armWand(c, A('tryllestav')));
+  else if (pk) s += HLW(hl === 'acc:' + pk, ACC[pk].draw(c, A(pk)));
   else s += MIR(armOpen(c, true));
   /* hals, krave og skuldre (kappens skulderstykke, eller kjolens bærestykke) */
   s += `<path d="M 284 360 L 284 406 Q 300 416 316 406 L 316 360 Z" fill="${c.skin}"/><path d="M 284 360 L 284 404 M 316 360 L 316 404" stroke="${c.sk}" stroke-width="2.5"/>`;
