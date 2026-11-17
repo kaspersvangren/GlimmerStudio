@@ -40,6 +40,10 @@ const PRAEMIER = [
   { cat:'acc', id:'hjertetryllestav', pris:30 }, { cat:'acc', id:'regnbuestav', pris:30 }, { cat:'acc', id:'blomsterstav', pris:50 },
   { cat:'acc', id:'sommerfuglestav', pris:50 }, { cat:'acc', id:'slikstav', pris:60 }, { cat:'acc', id:'stjernestav', pris:70 },
   { cat:'acc', id:'maanestav', pris:80 }, { cat:'acc', id:'krystalstav', pris:90 }, { cat:'acc', id:'vingestav', pris:100 },
+  /* malerier til billedvæggene i værelset */
+  { cat:'maleri', id:'blomster', pris:40 }, { cat:'maleri', id:'maane', pris:40 }, { cat:'maleri', id:'hav', pris:50 }, { cat:'maleri', id:'svampe', pris:50 },
+  { cat:'maleri', id:'enhjoerning', pris:60 }, { cat:'maleri', id:'drage', pris:60 }, { cat:'maleri', id:'kunst', pris:70 }, { cat:'maleri', id:'kaeledyr', pris:80 },
+  { cat:'maleri', id:'selv', pris:80 }, { cat:'maleri', id:'gnoma', pris:90 }, { cat:'maleri', id:'far', pris:200 },
 ];
 const isPraemie = (cat, id) => PRAEMIER.some(p => p.cat === cat && p.id === id);
 const praemierNu = () => PRAEMIER.filter(p => !isKladde(p.cat, p.id));

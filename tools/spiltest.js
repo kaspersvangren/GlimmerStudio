@@ -92,6 +92,11 @@ async function run(w, h){
   /* præmiebutikken: billetter efter et spil, og lugen kan åbnes og lukkes */
   { const f = await p.evaluate(() => { const f0 = prog.billetter || 0; Arkade.show(); Arkade.praemie.open(); const ok = !!document.querySelector('.ak-shop-panel'); Arkade.praemie.luk(); return { f0, ok }; });
     ok(f.ok, `${tag} præmiebutikken åbnede ikke`); }
+  /* billedvæggene i værelset: et maleri hænges op og kan ses, og ophængningen kan åbnes */
+  { const g = await p.evaluate(() => { const was = new Set(KLADDE); KLADDE.delete('maleri:maane'); if (!prog.unlocked.includes('maleri:maane')) prog.unlocked.push('maleri:maane'); haengOp('maane'); showRoom();
+      const vist = !!document.querySelector('#roomScene [data-hit^="galleri-"] svg'); aabnGalleri('v'); const panel = !!document.querySelector('.gal-panel'); lukGalleri();
+      prog.unlocked = prog.unlocked.filter(k => k !== 'maleri:maane'); if (was.has('maleri:maane')) KLADDE.add('maleri:maane'); saveProg(); return { vist, panel }; });
+    ok(g.vist && g.panel, `${tag} billedvæggen: maleri vist ${g.vist}, ophængning ${g.panel}`); }
   for (const id of ['gnom', 'skjold', 'invader', 'tryl', 'gribe']){
     await p.evaluate(id => { if (id === 'gribe') addStars(2); Arkade.openGame(id); }, id); await p.waitForTimeout(1500); await noScroll('arkade-' + id);
     if (id === 'gribe'){ await p.keyboard.press('Space'); await p.waitForTimeout(9000); }

@@ -1030,3 +1030,32 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .ak-prize .pris.din{color:#2E8A3A}
 .ak-card .ak-art img{max-height:180px}
 @media (max-height:420px){.ak-prize .nm{overflow-wrap:anywhere}.ak-shop-top .owl{width:46px;height:62px}.ak-shop-top .say{font-size:14px;padding:6px 10px}.ak-prizes{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;padding:10px}.ak-prize .nm{font-size:14px}.ak-card .ak-art img{max-height:110px}}
+
+/* ---------- billedvæggene i værelset ---------- */
+.ak-prize .pic .mal,.ak-art .mal{display:block;width:100%;height:100%}
+.ak-art .mal{width:160px;height:160px}
+.ak-prize .pic .mal svg,.ak-art .mal svg{width:100%;height:100%;display:block}
+.gal-wrap{position:absolute;inset:0;z-index:15;background:rgba(10,6,20,.55);display:grid;place-items:center;padding:12px}
+.gal-panel{background:#FFF8EC;color:#33204F;border-radius:26px;width:min(940px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 10px 0 rgba(40,20,70,.35);border:4px solid #C9962E;overflow:hidden;animation:akpop .3s ease-out}
+.gal-top{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(#7A4224,#5A2E16);border-bottom:4px solid #C9962E}
+.gal-top h2{flex:1;margin:0;color:#FFF6E0;font-family:var(--display);font-size:24px}
+.gal-body{display:flex;gap:14px;padding:14px;min-height:0;overflow:auto}
+.gal-left{flex:0 0 36%;display:flex}
+.gal-pvbox{width:100%;border-radius:16px;overflow:hidden;border:3px solid #EADCF2;align-self:flex-start}
+.gal-pv{width:100%;height:auto;display:block;cursor:pointer}
+.gal-sel{animation:galpuls 1.2s ease-in-out infinite}
+@keyframes galpuls{50%{stroke-opacity:.35}}
+.gal-right{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.gal-help{margin:0;font-size:16px;font-weight:600}
+.gal-lays{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.gal-lay{display:flex;flex-direction:column;align-items:center;gap:4px;background:#FFF;border:3px solid #EADCF2;border-radius:14px;padding:8px 4px;color:#7A5AB0;font:inherit;cursor:pointer}
+.gal-lay svg{width:46px;height:62px}
+.gal-lay span{font-size:13px;font-weight:700;text-align:center;line-height:1.15;color:#33204F}
+.gal-lay.on{border-color:#FF5FA8;background:#FFF0F7;color:#FF5FA8}
+.gal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.gal-mal{display:flex;flex-direction:column;align-items:center;gap:4px;background:#FFF;border:3px solid #EADCF2;border-radius:14px;padding:6px;font:inherit;color:inherit;cursor:pointer}
+.gal-mal svg{width:100%;aspect-ratio:1;border-radius:8px;display:block}
+.gal-mal span{font-size:12px;font-weight:700;text-align:center;line-height:1.15}
+.gal-mal.on{border-color:#FF5FA8;box-shadow:0 0 0 3px #FFE0EF}
+.gal-mal.brugt{opacity:.55}
+@media (max-height:420px){.gal-top{padding:6px 12px}.gal-top h2{font-size:18px}.gal-body{padding:10px;gap:10px}.gal-left{flex-basis:28%}.gal-help{font-size:13px}.gal-lay svg{width:30px;height:40px}.gal-lay span{font-size:11px}.gal-list{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}}

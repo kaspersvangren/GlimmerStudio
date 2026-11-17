@@ -706,9 +706,14 @@ function roomScene(room){
   const win = VINDUE[room.vindue] || {};
   const bed = PET_BED[room.dyreseng] || PET_BED.kurv;
   const at = petInBed && hasPet ? bed : PET_SPOT;
-  let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid meet">`;
+  /* viewBox går lidt ud i siderne, så billedvæggene også kan ses på en tablet (på brede telefoner ændrer det intet) */
+  let o = `<svg class="scene" xmlns="http://www.w3.org/2000/svg" viewBox="-200 0 2000 1000" preserveAspectRatio="xMidYMid meet">`;
   o += roomBleed(room);
   o += `<g data-hit="vaeg"><rect x="-1700" y="0" width="5000" height="690" fill="transparent"/></g><g data-hit="gulv-bg"><rect x="-1700" y="712" width="5000" height="900" fill="transparent"/></g>`;
+  /* billedvæggene i siderne. Er en væg helt tom, ses et søm og en stiplet ramme, så man ved, man kan trykke der */
+  if (harMalerier()){ const gs = galleriState();
+    for (const side of ['v', 'h']){ const f = GALLERI_FELT[side], tom = !gs[side].p.some(Boolean);
+      o += `<g data-hit="galleri-${side}"><g class="anim">${tom ? `<circle cx="${f.x + 115}" cy="${f.y + 6}" r="5" fill="#C9962E" stroke="#2A1838" stroke-width="1.5"/><rect x="${f.x + 40}" y="${f.y + 30}" width="150" height="190" rx="8" fill="#FFFFFF" fill-opacity=".06" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="4" stroke-dasharray="12 10"/>` : galleriSvg(side, gs)}<rect x="${f.x}" y="${f.y - 30}" width="230" height="350" fill="#FFF" fill-opacity="0"/></g></g>`; } }
   o += `<g data-hit="vindue">${roomItem('vindue', room)}${win.curtain && roomCurtain ? `<rect x="236" y="70" width="428" height="16" rx="8" fill="#7A5236"/>` + closedCurtains(room.c.vindue, win.curtain === 2) : ''}</g>`;
   o += `<g data-hit="hylde"><g class="anim">${roomItem('hylde', room)}</g></g>`;
   o += `<g data-hit="gulv">${roomItem('gulv', room)}</g>`;
@@ -782,6 +787,7 @@ function roomTap(hit, g, p){
     case 'bamser': { const n = Arkade.myPlush().length; sfx.squeak(); replay(g, 'jiggle'); toast(n === 1 ? 'Din bamse fra gribemaskinen!' : `${n} bamser fra gribemaskinen!`); return; }
     case 'oekser': { const n = axeCount(); sfx.pick(); replay(g, 'jiggle'); toast(n >= AXE_MAX ? `${n} økser! Øksebrønden er udsolgt.` : n === 1 ? 'En økse fra Øksebrønden!' : `${n} økser fra Øksebrønden!`); return; }
     case 'lampe': sfx.pick(); roomLight = !roomLight; drawRoomScene(); return;
+    case 'galleri-v': case 'galleri-h': sfx.open(); aabnGalleri(hit.slice(-1)); return;
     case 'vindue': {
       const win = VINDUE[room.vindue] || {};
       if (win.curtain){ sfx.whoosh(); roomCurtain = !roomCurtain; drawRoomScene(); if (!roomCurtain) setTimeout(() => shootingStar($('#roomScene svg')), 400); }

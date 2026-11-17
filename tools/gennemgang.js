@@ -110,6 +110,7 @@ const V = { 'acc-bog': 6,
     out.push({ id: 'fald-frit', cat: 'Faldskærm', title: 'Frit fald, set ovenfra', kind: 'sted', fn: 'fald:frit', vbT: '0 0 1600 1000', vbZ: '560 300 440 440' });
     out.push({ id: 'fald-skaerm', cat: 'Faldskærm', title: 'Skærmen over engen og målet', kind: 'sted', fn: 'fald:skaerm', vbT: '0 0 1600 1000', vbZ: '560 320 480 360' });
     out.push({ id: 'fald-lav', cat: 'Faldskærm', title: 'Lige før landing: målet tæt på', kind: 'sted', fn: 'fald:lav', vbT: '0 0 1600 1000', vbZ: '400 200 800 600' });
+    for (const k of MALERI_IDS) out.push({ id: 'maleri-' + k, cat: 'Malerier', title: 'Maleri: ' + MALERIER[k].label, kind: 'maleri', mid: k, vbT: '0 0 320 400', vbZ: '40 50 240 300' });
     out.push({ id: 'start-scene', cat: 'Startskærm', title: 'Nattehimmel og skolen', kind: 'start', vbT: '0 0 1600 1000', vbZ: '120 120 640 720' });
     return out;
   });
@@ -123,6 +124,7 @@ const V = { 'acc-bog': 6,
         let svg, bg = 'linear-gradient(#FFF3F8,#EBDDFF)';
         if (it.kind === 'pet'){ const st = JSON.parse(JSON.stringify(DEFAULT_STATE)); st.pet = Object.assign({}, st.pet, it.pet); svg = renderDoll(st, { viewBox: vb, petOnly: true }); }
         else if (it.kind === 'rum'){ const r = Object.assign({}, ROOM_DEFAULT, { [it.slot]: it.item }); r.c = Object.assign({}, ROOM_DEFAULT.c); svg = roomSvg(r, { viewBox: vb }); }
+        else if (it.kind === 'maleri'){ if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); } svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><rect x="-100" y="-100" width="600" height="700" fill="#35306A"/>${maleriRamme(it.mid, 40, 50, 240, 300, 'l', 'g')}</svg>`; }
         else if (it.kind === 'boble'){ svg = bubbleSvg(it.bub); bg = 'linear-gradient(#1E1660,#3E2A92 70%,#6A3AA6)'; }
         else if (it.kind === 'sted'){
           if (!figures.length){ const f = { id:'t', name:'Agnes', st: JSON.parse(JSON.stringify(DEFAULT_STATE)), t: 1 }; figures.push(f); }

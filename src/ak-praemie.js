@@ -74,11 +74,13 @@ Arkade.praemie = (() => {
   /* ---------- butikken ---------- */
   const SIG = { hej: 'Hu-hu! Velkommen ved præmiedisken. Hvad vil du bytte dine billetter til?', tom: 'Hu-hu! Jeg pakker de første præmier ud lige nu. Saml billetter imens, så er du klar!',
     fattig: 'Hu-hu! Du får billetter, hver gang du spiller i arkaden. Jo bedre det går, jo flere.', alle: 'Hu-hu! Du har dem allesammen. Der kommer flere præmier en dag!' };
-  const navn = p => p.cat === 'acc' ? ACC[p.id].label : p.id;
+  const navn = p => p.cat === 'acc' ? ACC[p.id].label : p.cat === 'maleri' ? MALERIER[p.id].label : p.id;
+  const hvorTekst = p => p.cat === 'maleri' ? 'Det hænger på din billedvæg i værelset.' : 'Du finder den i skaberen under Tilbehør.';
   const ejer = p => isFree(p.cat, p.id);
   function billede(p){
     /* uden hat og med kort hår, så staven ikke gemmer sig bag håret */
     if (p.cat === 'acc'){ const st = JSON.parse(JSON.stringify(heroState())); st.acc = { [p.id]: ACC[p.id].color }; st.hat = Object.assign({}, st.hat, { id:'ingen' }); st.back = 'kort'; return dollImg(st, { viewBox: ACC_VB[p.id] || VB.full, pet: false }); }
+    if (p.cat === 'maleri') return el('span', { class:'mal', html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 228 228">${maleriRamme(p.id, -10, -10, 220, 220, 'm', 'sh' + p.id)}</svg>` });
     return el('span');
   }
   let box = null;
@@ -106,7 +108,7 @@ Arkade.praemie = (() => {
       liste.length ? grid : null ]));
   }
   function vaelg(p){
-    if (ejer(p)){ sfx.pick(); tegn(`Hu-hu! ${navn(p)} er allerede din. Du finder den i skaberen under Tilbehør.`); return; }
+    if (ejer(p)){ sfx.pick(); tegn(`Hu-hu! ${navn(p)} er allerede din. ${hvorTekst(p)}`); return; }
     const har = prog.billetter || 0;
     if (har < p.pris){ sfx.nope(); tegn(`Hu-hu! ${navn(p)} koster ${p.pris} billetter. Du mangler ${p.pris - har}. Spil lidt mere, så gemmer jeg den til dig.`); return; }
     sfx.pick();
@@ -121,9 +123,11 @@ Arkade.praemie = (() => {
     addBilletter(-p.pris);
     const k = p.cat + ':' + p.id; if (!prog.unlocked.includes(k)) prog.unlocked.push(k); if (!prog.fresh.includes(k)) prog.fresh.push(k); saveProg();
     SND.play('praemie.koeb', () => sfx.fanfare());
-    tegn(`Hu-hu! ${navn(p)} er din! Du finder den i skaberen under Tilbehør.`);
+    const hang = p.cat === 'maleri' ? haengOp(p.id) : true;
+    const hvor = p.cat === 'maleri' ? (hang ? 'Det hænger nu på din billedvæg i værelset.' : 'Tryk på en billedvæg i værelset for at hænge det op.') : 'Den ligger nu i skaberen under Tilbehør.';
+    tegn(`Hu-hu! ${navn(p)} er din! ${hvor}`);
     const card = el('div', { class:'ak-end' }, [ el('div', { class:'ak-card' }, [ el('h2', {}, 'Den er din!'), el('div', { class:'ak-art' }, [ billede(p) ]),
-      el('p', {}, `${navn(p)} ligger nu i skaberen under Tilbehør.`),
+      el('p', {}, p.cat === 'maleri' ? hvor : `${navn(p)} ligger nu i skaberen under Tilbehør.`),
       el('div', { class:'row' }, [ el('button', { class:'btn primary', type:'button', on:{ click: () => { sfx.pick(); card.remove(); } } }, 'Hurra!') ]) ]) ]);
     box.append(card); card.querySelector('.btn').focus();
   }
