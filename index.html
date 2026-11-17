@@ -2785,7 +2785,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.29.1';
+const VERSION = 'v0.29.2';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -10423,6 +10423,10 @@ const Koncert = (() => {
   const limb = (d, c, w) => `<path d="${d}" stroke="${E}" stroke-width="${w + 9}" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
   const arm = (sx, sy, hx, hy, c, b = 0) => limb(`M ${sx} ${sy} Q ${(sx + hx) / 2 + b} ${(sy + hy) / 2 + 14} ${hx} ${hy}`, c, 22);
   const hand = (x, y, c = SK) => `<circle cx="${x}" cy="${y}" r="12.5" fill="${c}" ${st(4.5)}/>`;
+  /* et punkt L ude ad en hals, der er drejet a grader mod uret fra lodret, med udgangspunkt i x,y */
+  const hals0 = (x, y, a, L) => [+(x - Math.sin(a * Math.PI / 180) * L).toFixed(1), +(y - Math.cos(a * Math.PI / 180) * L).toFixed(1)];
+  /* en hånd, der griber om en hals: håndfladen og fire små fingre hen over */
+  const greb = (x, y, c = SK) => `<circle cx="${x}" cy="${y}" r="12.5" fill="${c}" ${st(4.5)}/>` + [-7, -2, 3, 8].map(d => `<ellipse cx="${x + d * .6 + 3}" cy="${y - 11 + Math.abs(d) * .2}" rx="3.6" ry="5.5" fill="${c}" ${st(2.5)} transform="rotate(-58 ${x} ${y})"/>`).join('');
   const mir = s => `<g transform="scale(-1 1)">${s}</g>`;
   const both = s => s + mir(s);
   const star = (x, y, r, c, w = 3, k = .45) => { let d = ''; for (let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * k : r; d += (i ? 'L' : 'M') + (x + Math.cos(a) * rr).toFixed(1) + ' ' + (y + Math.sin(a) * rr).toFixed(1); } return `<path d="${d}Z" fill="${c}" ${w ? st(w) : ''}/>`; };
@@ -10611,23 +10615,25 @@ const Koncert = (() => {
 
   /* ---------- instrumenterne og hvordan armene holder dem ---------- */
   function guitar(g, f){
-    if (g === 'klassisk'){   /* violin under hagen, buen går frem og tilbage */
-      const bx = f ? -10 : 30;
-      return { bag: '', for: `<g transform="translate(-30 -150) rotate(-28)"><path d="M 0 -40 C 22 -40 22 -18 12 -10 C 24 0 24 34 0 34 C -24 34 -24 0 -12 -10 C -22 -18 -22 -40 0 -40 Z" fill="#B8641E" ${st(4)}/><path d="M -8 -2 q 4 6 0 12 M 8 -2 q -4 6 0 12" stroke="${E}" stroke-width="2.5" fill="none"/><rect x="-4" y="-104" width="8" height="66" fill="#3A2008" ${st(3)}/><circle cx="0" cy="-108" r="7" fill="#8A4A1E" ${st(3)}/></g>`
-        + arm(-36, -150, -88, -196, '#24203A', -10) + hand(-88, -196)
-        + `<path d="M ${bx - 70} -120 L ${bx + 50} -176" stroke="${E}" stroke-width="6" stroke-linecap="round"/><path d="M ${bx - 70} -120 L ${bx + 50} -176" stroke="#E8D8B8" stroke-width="2.5"/>`
-        + arm(36, -150, bx + 34, -164, '#24203A', 16) + hand(bx + 34, -164) };
+    if (g === 'klassisk'){   /* violin under hagen på venstre skulder, buen går frem og tilbage */
+      const hx = f ? -6 : 24, hy = f ? -132 : -118;
+      const vio = `<g transform="translate(-48 -150) rotate(-62)"><path d="M 0 -40 C 22 -40 22 -18 12 -10 C 24 0 24 34 0 34 C -24 34 -24 0 -12 -10 C -22 -18 -22 -40 0 -40 Z" fill="#B8641E" ${st(4)}/><path d="M -8 -2 q 4 6 0 12 M 8 -2 q -4 6 0 12" stroke="${E}" stroke-width="2.5" fill="none"/><rect x="-5" y="-10" width="10" height="34" rx="3" fill="#3A2008"/><rect x="-4" y="-104" width="8" height="66" fill="#3A2008" ${st(3)}/><circle cx="0" cy="-108" r="7" fill="#8A4A1E" ${st(3)}/><path d="M -1.5 -100 V 20 M 1.5 -100 V 20" stroke="#E8E8F4" stroke-width="1"/></g>`;
+      const [nx, ny] = hals0(-48, -150, 62, 84);
+      const bue = `<path d="M ${hx + 22} ${hy + 8} L ${hx - 128} ${hy - 50}" stroke="${E}" stroke-width="7" stroke-linecap="round"/><path d="M ${hx + 22} ${hy + 8} L ${hx - 128} ${hy - 50}" stroke="#E8D8B8" stroke-width="3" stroke-linecap="round"/>`;
+      return { bag: '', for: vio + arm(-36, -146, nx, ny, '#24203A', 18) + greb(nx, ny) + bue + arm(36, -146, hx, hy, '#24203A', 22) + hand(hx, hy) };
     }
     const sh = g === 'banjo' ? 0 : 0;
     let inst;
-    if (g === 'rock') inst = `<g transform="translate(18 -96) rotate(-30)">${star(0, 0, 50, '#D8434A', 5, .55)}<circle r="10" fill="${E}"/><rect x="-6" y="-130" width="12" height="86" fill="#1A1626" ${st(3)}/><path d="M -12 -140 L 12 -140 L 8 -124 L -8 -124 Z" fill="#D8434A" ${st(3)}/><path d="M -3 -120 V 10 M 3 -120 V 10" stroke="#E8E8F4" stroke-width="1.5"/><path d="M -12 -20 l 8 -14 l -2 10 l 8 -2 l -10 16 Z" fill="#FFD36E"/></g>`;
-    else if (g === 'country') inst = `<g transform="translate(18 -96) rotate(-30)"><circle r="40" fill="#F7F4FF" ${st(5)}/><circle r="40" fill="none" stroke="#B9824A" stroke-width="7"/><circle r="40" fill="none" ${st(3)}/><rect x="-6" y="-150" width="12" height="112" fill="#8A5A3C" ${st(3)}/><rect x="-10" y="-160" width="20" height="14" rx="4" fill="#5A3A20" ${st(3)}/><path d="M -3 -146 V 30 M 3 -146 V 30" stroke="#C8C8DC" stroke-width="1.5"/></g>`;
-    else if (g === 'disko') inst = `<g transform="translate(18 -96) rotate(-30)"><path d="M -10 -40 C -40 -50 -46 -10 -30 6 C -46 30 -20 52 0 40 C 20 52 46 30 30 6 C 46 -10 40 -50 10 -40 Z" fill="#FF8FD0" ${st(5)}/>${[[-20, 10], [18, 22], [-8, 30], [22, -16]].map(([x, y]) => star(x, y, 5, '#FFF', 0)).join('')}<rect x="-6" y="-130" width="12" height="94" fill="#F7F4FF" ${st(3)}/><rect x="-11" y="-142" width="22" height="16" rx="4" fill="#FF8FD0" ${st(3)}/></g>`;
-    else if (g === 'hawaii') inst = `<g transform="translate(14 -104) rotate(-30)"><path d="M 0 -26 C 18 -26 20 -10 12 -4 C 24 4 24 30 0 30 C -24 30 -24 4 -12 -4 C -20 -10 -18 -26 0 -26 Z" fill="#E8A040" ${st(4.5)}/><circle cx="0" cy="4" r="7" fill="${E}"/><rect x="-5" y="-84" width="10" height="60" fill="#8A5A3C" ${st(3)}/>${blomst(10, 18, 7, '#FF6FA8')}</g>`;
-    else inst = `<g transform="translate(18 -96) rotate(-30)"><path d="M 0 -50 C 34 -50 40 -6 34 16 C 28 40 12 50 0 50 C -12 50 -28 40 -34 16 C -40 -6 -34 -50 0 -50 Z" fill="#D88A3A" ${st(5)}/><path d="M 20 -40 C 32 -20 32 20 18 40" stroke="#B8641E" stroke-width="6" fill="none" opacity=".6"/><circle cx="0" cy="-6" r="12" fill="${E}"/><circle cx="0" cy="-6" r="16" fill="none" stroke="#F2C14E" stroke-width="3"/><rect x="-6" y="-126" width="12" height="80" fill="#8A5A3C" ${st(3)}/><path d="M -8 -126 L -18 -146 L 8 -146 L 8 -126 Z" fill="#7A4A2A" ${st(3)}/><rect x="-12" y="22" width="24" height="7" rx="2" fill="#5A3A20"/></g>`;
-    const ry = f ? -74 : -98, rx = f ? 34 : 26;
+    if (g === 'rock') inst = `<g transform="translate(18 -96) rotate(-58)">${star(0, 0, 50, '#D8434A', 5, .55)}<circle r="10" fill="${E}"/><rect x="-6" y="-130" width="12" height="86" fill="#1A1626" ${st(3)}/><path d="M -12 -140 L 12 -140 L 8 -124 L -8 -124 Z" fill="#D8434A" ${st(3)}/><path d="M -3 -120 V 10 M 3 -120 V 10" stroke="#E8E8F4" stroke-width="1.5"/><path d="M -12 -20 l 8 -14 l -2 10 l 8 -2 l -10 16 Z" fill="#FFD36E"/></g>`;
+    else if (g === 'country') inst = `<g transform="translate(18 -96) rotate(-58)"><circle r="40" fill="#F7F4FF" ${st(5)}/><circle r="40" fill="none" stroke="#B9824A" stroke-width="7"/><circle r="40" fill="none" ${st(3)}/><rect x="-6" y="-150" width="12" height="112" fill="#8A5A3C" ${st(3)}/><rect x="-10" y="-160" width="20" height="14" rx="4" fill="#5A3A20" ${st(3)}/><path d="M -3 -146 V 30 M 3 -146 V 30" stroke="#C8C8DC" stroke-width="1.5"/></g>`;
+    else if (g === 'disko') inst = `<g transform="translate(18 -96) rotate(-58)"><path d="M -10 -40 C -40 -50 -46 -10 -30 6 C -46 30 -20 52 0 40 C 20 52 46 30 30 6 C 46 -10 40 -50 10 -40 Z" fill="#FF8FD0" ${st(5)}/>${[[-20, 10], [18, 22], [-8, 30], [22, -16]].map(([x, y]) => star(x, y, 5, '#FFF', 0)).join('')}<rect x="-6" y="-130" width="12" height="94" fill="#F7F4FF" ${st(3)}/><rect x="-11" y="-142" width="22" height="16" rx="4" fill="#FF8FD0" ${st(3)}/></g>`;
+    else if (g === 'hawaii') inst = `<g transform="translate(14 -104) rotate(-58)"><path d="M 0 -26 C 18 -26 20 -10 12 -4 C 24 4 24 30 0 30 C -24 30 -24 4 -12 -4 C -20 -10 -18 -26 0 -26 Z" fill="#E8A040" ${st(4.5)}/><circle cx="0" cy="4" r="7" fill="${E}"/><rect x="-5" y="-84" width="10" height="60" fill="#8A5A3C" ${st(3)}/>${blomst(10, 18, 7, '#FF6FA8')}</g>`;
+    else inst = `<g transform="translate(18 -96) rotate(-58)"><path d="M 0 -50 C 34 -50 40 -6 34 16 C 28 40 12 50 0 50 C -12 50 -28 40 -34 16 C -40 -6 -34 -50 0 -50 Z" fill="#D88A3A" ${st(5)}/><path d="M 20 -40 C 32 -20 32 20 18 40" stroke="#B8641E" stroke-width="6" fill="none" opacity=".6"/><circle cx="0" cy="-6" r="12" fill="${E}"/><circle cx="0" cy="-6" r="16" fill="none" stroke="#F2C14E" stroke-width="3"/><rect x="-6" y="-126" width="12" height="80" fill="#8A5A3C" ${st(3)}/><path d="M -8 -126 L -18 -146 L 8 -146 L 8 -126 Z" fill="#7A4A2A" ${st(3)}/><rect x="-12" y="22" width="24" height="7" rx="2" fill="#5A3A20"/></g>`;
+    const ry = f ? -78 : -100, rx = f ? 30 : 20;
     const sleeve = farverG(g);
-    return { bag: '', for: inst + arm(-36, -146, -60, -168, sleeve, -16) + hand(-60, -168) + arm(36, -146, rx, ry, sleeve, 18) + hand(rx, ry) };
+    /* gribehånden om halsen: et punkt på halsen, regnet ud fra instrumentets drejning */
+    const [nx, ny] = g === 'hawaii' ? hals0(14, -104, 58, 64) : hals0(18, -96, 58, { rock: 104, country: 116, disko: 104 }[g] || 100);
+    return { bag: '', for: inst + arm(-36, -146, nx, ny, sleeve, 14) + greb(nx, ny) + arm(36, -146, rx, ry, sleeve, 18) + hand(rx, ry) };
   }
   /* ærmernes farve: samme som kroppen (sættes pr. gnom i poseFor) */
   let SLEEVE = '#4FA36B';
@@ -10657,9 +10663,9 @@ const Koncert = (() => {
     const sl = SLEEVE;
     if (g === 'rock' || g === 'disko'){   /* elbas om halsen som en guitar */
       const k = g === 'rock' ? '#1A1626' : '#C8C8DC', k2 = g === 'rock' ? '#7A3AB8' : '#FFFFFF';
-      const inst = `<g transform="translate(16 -94) rotate(-34)"><path d="M -38 -30 L 0 50 L 38 -30 L 18 -30 L 0 10 L -18 -30 Z" fill="${k}" ${st(5)}/><path d="M -28 -26 L 0 34 L 28 -26" stroke="${k2}" stroke-width="4" fill="none"/><rect x="-6" y="-150" width="12" height="160" fill="#3A3450" ${st(3)}/><rect x="-11" y="-164" width="22" height="18" rx="4" fill="${k}" ${st(3)}/></g>`;
-      const ry = f ? -76 : -96;
-      return { bag: '', for: inst + arm(-36, -146, -70, -186, sl, -16) + hand(-70, -186) + arm(36, -146, 30, ry, sl, 18) + hand(30, ry) };
+      const inst = `<g transform="translate(16 -94) rotate(-58)"><path d="M -38 -30 L 0 50 L 38 -30 L 18 -30 L 0 10 L -18 -30 Z" fill="${k}" ${st(5)}/><path d="M -28 -26 L 0 34 L 28 -26" stroke="${k2}" stroke-width="4" fill="none"/><rect x="-6" y="-150" width="12" height="160" fill="#3A3450" ${st(3)}/><rect x="-11" y="-164" width="22" height="18" rx="4" fill="${k}" ${st(3)}/></g>`;
+      const ry = f ? -78 : -98, [nx, ny] = hals0(16, -94, 58, 112);
+      return { bag: '', for: inst + arm(-36, -146, nx, ny, sl, 14) + greb(nx, ny) + arm(36, -146, 24, ry, sl, 18) + hand(24, ry) };
     }
     /* kontrabas: står ved siden af, større end gnomen */
     const pyn = g === 'hawaii' ? blomst(-60, -170, 12, '#FF6FA8') + blomst(-36, -40, 10, '#FFE45F') : g === 'country' ? star(-50, -64, 12, '#FFD36E', 2.5) : '';
@@ -10668,7 +10674,7 @@ const Koncert = (() => {
       + `<rect x="-60" y="-352" width="12" height="190" fill="#3A2008" ${st(3)}/><path d="M -54 -350 C -40 -350 -40 -374 -54 -372 C -64 -370 -60 -360 -54 -362" fill="#3A2008" ${st(3)}/>`
       + `<path d="M -56 -340 V -36 M -52 -340 V -36" stroke="#E8E8F4" stroke-width="1.4"/><path d="M -54 0 V 8" ${st(5)}/>${pyn}</g>`;
     const rx = f ? -30 : -40, ry = f ? -96 : -110;
-    return { bag: inst, for: arm(-36, -146, -64, -232, sl, -20) + hand(-60, -234) + arm(36, -146, rx, ry, sl, 30) + hand(rx, ry) };
+    return { bag: '', for: inst + arm(-36, -146, -58, -236, sl, -20) + greb(-54, -236) + arm(36, -146, rx, ry, sl, 30) + hand(rx, ry) };
   }
   const POSER = { lut: guitar, sang: sanger, trommer: trommeslager, bas: bassist };
   function gnomSvg(m, g, f){
@@ -10905,12 +10911,13 @@ const Koncert = (() => {
     let o = img(bag(g), 0, 0, 1600, 1000);
     const S = STIL[g];
     o += BAND.map((m, k) => `<image href="${svgUrl(kegle(k % 2 ? S.lys2 : S.lys))}" x="${m.x - 140}" y="${AY + 40}" width="280" height="${m.y - AY - 10}" opacity=".7"/>`).join('');
+    o += pynt(g).filter(p => p.k !== 'kz-flak').map(p => img(p.svg, p.x, p.y, p.w, p.h)).join('');
     for (const m of BAND){
       const big = m.id === 'bas';
       o += img(gnomSvg(m, g, 0), m.x - (big ? 200 : 150), m.y - (big ? 400 : 390), big ? 360 : 300, big ? 410 : 400);
       if (m.id === 'trommer') o += img(trommer(g), m.x - 170, m.y - 210 + 4, 340, 220);
     }
-    o += pynt(g).map(p => img(p.svg, p.x, p.y, p.w, p.h)).join('');
+    o += pynt(g).filter(p => p.k === 'kz-flak').map(p => img(p.svg, p.x, p.y, p.w, p.h)).join('');
     o += img(forgrund(), 0, 0, 1600, 1000) + img(publikum(), 0, 0, 1600, 1000);
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">${o}</svg>`;
   }
@@ -10920,7 +10927,7 @@ const Koncert = (() => {
     if (g === 'disko') return [{ svg: diskokugle(), x: 700, y: 150, w: 200, h: 210, k: 'kz-kugle' }];
     if (g === 'klassisk') return [{ svg: lysekrone(), x: 650, y: 150, w: 300, h: 200, k: 'kz-sving' }];
     if (g === 'hawaii') return [{ svg: fakkel(), x: 245, y: 590, w: 120, h: 240, k: 'kz-flak' }, { svg: fakkel(), x: 1235, y: 590, w: 120, h: 240, k: 'kz-flak' }];
-    if (g === 'country') return [{ svg: busk(), x: 300, y: 560, w: 100, h: 100, k: 'kz-busk' }];
+    if (g === 'country') return [{ svg: busk(), x: 300, y: 540, w: 80, h: 80, k: 'kz-busk' }];
     return [];
   }
 

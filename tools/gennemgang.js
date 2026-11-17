@@ -10,6 +10,8 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
 const V = { 'acc-bog': 6,
+  /* koncertsalen v2: gribehænder på halsen, kontrabassen foran gnomen, violinen på skulderen */
+  'koncert-hygge': 2, 'koncert-rock': 2, 'koncert-country': 2, 'koncert-disko': 2, 'koncert-klassisk': 2, 'koncert-hawaii': 2,
   /* kortskitse v2: rettet efter noterne */
   'kort-ny': 4, 'kort-dragen': 3, 'kort-kollegiet': 4, 'kort-torvet': 3, 'kort-dyrepark': 5, 'kort-forrest': 4,
   /* v0.9.2: rettet efter første gennemgang */
