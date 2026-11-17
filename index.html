@@ -2792,7 +2792,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.30.2';
+const VERSION = 'v0.30.3';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -2858,7 +2858,7 @@ function smilOpacityToCss(root){
 }
 /* skjulte skærme får deres SVG-animationer sat på pause; ellers kører de videre usynligt og koster i hvert billede */
 function showScreen(id){
-  if (id !== '#arkade' && typeof SND === 'object') SND.ambience(null);
+  if (id !== '#arkade' && id !== '#koncert' && typeof SND === 'object') SND.ambience(null);
   if (typeof kbClose === 'function') kbClose();
   for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
     e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
@@ -10553,7 +10553,7 @@ const Koncert = (() => {
 
   /* ---------- sangene: én pr. stil ---------- */
   const STIL = {
-    hygge:    { navn: 'Hyggeligt', sang: 'Svampevisen', lys: '#FFE3A0', lys2: '#FFC6E0' },
+    hygge:    { navn: 'Hyggeligt', sang: 'Lounge', lys: '#FFE3A0', lys2: '#FFC6E0' },
     rock:     { navn: 'Rock', sang: 'Stop Volden', lys: '#FF3D6E', lys2: '#8A5CFF' },
     country:  { navn: 'Country', sang: 'Hun kom aldrig', lys: '#FFB25A', lys2: '#FFE08A' },
     disko:    { navn: 'Disko', sang: "Gi' mig, gi' mig!", lys: '#FF5FD2', lys2: '#5FE0FF' },
@@ -11124,6 +11124,7 @@ const Koncert = (() => {
   const vent = ms => new Promise(r => setTimeout(r, ms));
   async function skift(ny, stille){
     if (busy) return; busy = true; sangGen++; clearTimeout(sangT);
+    SND.ambience('stemning.koncert', 2);   /* publikum mumler, mens bandet klæder om */
     const stage = root, gen = stage, ok = () => root === gen && !$('#koncert').hidden;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.ud', () => sfx.pick());
@@ -11149,15 +11150,23 @@ const Koncert = (() => {
     await vent(1500); if (!ok()) { busy = false; return; }
     BAND.forEach(m => stage.querySelector(`[data-m="${m.id}"]`).classList.remove('gaa'));
     if (!stille) SND.play('koncert.klap', () => sfx.fanfare());
+    /* en ønskesang: mumlen toner ud, mens bandet stiller sig klar, og så går sangen i gang */
+    if (stil !== 'hygge'){ SND.ambience(null, 2.5); await vent(1600); if (!ok()) { busy = false; return; } }
     spilSang();
     busy = false;
   }
 
   /* ---------- en sang er færdig: klapsalve, bandet bukker, går ud og kommer tilbage i det almindelige tøj ---------- */
-  let sangGen = 0, sangT = 0;
+  let sangGen = 0, sangT = 0, lounge = 0;
   function spilSang(){
     const g = ++sangGen, navn = 'koncert.' + stil; clearTimeout(sangT);
-    if (stil === 'hygge'){ playMusic(navn); return; }   /* den rolige sang bliver ved */
+    if (stil === 'hygge'){   /* lounge: fire numre på skift (aldrig det samme to gange i træk), med mumlen fra publikum under */
+      SND.ambience('stemning.koncert', 2);
+      let k; do { k = 1 + Math.floor(Math.random() * 4); } while (k === lounge && LYD_MUSIK['koncert.lounge2']); lounge = k;
+      playMusic('koncert.lounge' + k, { engang: true, slut: () => { if (g === sangGen) spilSang(); } });
+      return;
+    }
+    SND.ambience(null, 2.5);
     playMusic(navn, { engang: true, slut: () => { if (g === sangGen) sangSlut(); } });
     /* findes lydfilen ikke (fx i forhåndsvisningen), spiller den lille synth-melodi; den slutter efter et minuts tid */
     sangT = setTimeout(() => { if (g === sangGen && MUSIC.timer) sangT = setTimeout(() => { if (g === sangGen) sangSlut(); }, 42000); }, 3000);
@@ -11167,6 +11176,7 @@ const Koncert = (() => {
     busy = true; const stage = root;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.klap', () => sfx.fanfare());
+    SND.ambience('stemning.koncert', 3);   /* efter klapsalven begynder publikum at mumle igen */
     /* hjerter og blomster flyver op fra publikum */
     for (let i = 0; i < 14; i++){ const n = el('div', { class: 'kz-kast', style: `left:${200 + Math.random() * 1200}px;top:930px;animation-delay:${(Math.random() * 1.4).toFixed(2)}s;--dx:${Math.round(Math.random() * 160 - 80)}px` }, ['♥', '✿', '★'][i % 3]);
       n.style.color = ['#FF5FA8', '#FFE45F', '#FF8FD0', '#FFFFFF'][i % 4]; stage.append(n); setTimeout(() => n.remove(), 3600); }
@@ -11181,6 +11191,7 @@ const Koncert = (() => {
   return { show, previewSvg, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
 })();
 
+Object.assign(MUSIC_SYNTH, { 'koncert.lounge1': 'koncert.hygge', 'koncert.lounge2': 'koncert.hygge', 'koncert.lounge3': 'koncert.hygge', 'koncert.lounge4': 'koncert.hygge' });
 /* den midlertidige musik til hver sang, indtil Kaspers egen er lagt ind (spilles af den indbyggede synth) */
 Object.assign(TRACKS, {
   'koncert.hygge': { bpm: 84, chords: [[60,64,67,72],[57,60,64,69],[53,57,60,65],[55,59,62,67]], arpT: 'sine', melT: 'sine', melV: .06,
@@ -12884,7 +12895,13 @@ const LYD_MUSIK = {
   gribe: { src: 'lyd/moonbyte-drift.mp3', loop: [31.27969, 106.37303], xf: 0.01 },   // "Moonbyte Drift". Loop B, valgt af Kasper. Gribemaskinen
   'stemning.arkade': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.5 },   // "casino ambiance" (freesound): summen i arkadehallen, under hallens musik. 3 s overtoning
   tryl: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // lånt fra kosteflyvningen, indtil Trylletegning får sin egen musik
-  /* koncertsalen: Kaspers egne sange, spilles hele og forfra igen */
+  /* koncertsalen: lounge-musikken i baggrunden, fire numre på skift, med mumlen fra publikum under */
+  'koncert.lounge1': { src: 'lyd/koncert-lounge-1.mp3', loop: [0, 217.5], vol: 0.45 },   // "Velvet Loop"
+  'koncert.lounge2': { src: 'lyd/koncert-lounge-2.mp3', loop: [0, 213.8], vol: 0.45 },   // "Velvet Loop 1"
+  'koncert.lounge3': { src: 'lyd/koncert-lounge-3.mp3', loop: [0, 201.9], vol: 0.45 },   // "Velvet Loop 2"
+  'koncert.lounge4': { src: 'lyd/koncert-lounge-4.mp3', loop: [0, 207.5], vol: 0.45 },   // "Velvet Loop 3"
+  'stemning.koncert': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.32 },   // samme mumlen som i arkaden, lidt svagere
+  /* koncertsalens ønskesange: Kaspers egne, spilles én gang, så klapper publikum */
   'koncert.rock': { src: 'lyd/koncert-rock.mp3', loop: [0, 206.35] },   // "Stop Volden"
   'koncert.country': { src: 'lyd/koncert-country.mp3', loop: [0, 185.1] },   // "Hun kom aldrig"
   'koncert.disko': { src: 'lyd/koncert-disko.mp3', loop: [0, 127.58] },   // "Gi' mig, gi' mig!"
@@ -12999,12 +13016,14 @@ const SND = (() => {
   }
   /* stemningslyd: et ekstra lag under musikken (fx summen i arkadehallen). Følger musik-knappen */
   let amb = null, ambGain = null, ambOn = null, ambWant = null, ambGen = 0;
-  function ambience(name){ ambWant = name || null; ambRefresh(); }
+  /* fade: sekunder om at tone ud eller ind (koncertsalens mumlen glider langsomt) */
+  let ambFade = 0;
+  function ambience(name, fade){ ambWant = name || null; ambFade = fade || 0; ambRefresh(); }
   function ambRefresh(){
     const want = MUSIC.on ? ambWant : null;
     if (want === ambOn) return;
     ambGen++;
-    if (amb){ try { ambGain.gain.setTargetAtTime(0, amb.context.currentTime, 0.15); amb.stop(amb.context.currentTime + 0.8); } catch (e){} amb = null; ambGain = null; }
+    if (amb){ const ud = ambFade || .45; try { ambGain.gain.setTargetAtTime(0, amb.context.currentTime, ud / 3); amb.stop(amb.context.currentTime + ud + .4); } catch (e){} amb = null; ambGain = null; }
     ambOn = want;
     const m = want && typeof LYD_MUSIK === 'object' && LYD_MUSIK[want], ac = m && audioCtx();
     if (!ac) return;
@@ -13012,7 +13031,7 @@ const SND = (() => {
     getBuf(m, buf => {
       if (my !== ambGen) return;
       amb = loopNode(ac, buf, m); ambGain = ac.createGain();
-      ambGain.gain.setValueAtTime(0, ac.currentTime); ambGain.gain.linearRampToValueAtTime(m.vol || 0.5, ac.currentTime + 1.2);
+      ambGain.gain.setValueAtTime(0, ac.currentTime); ambGain.gain.linearRampToValueAtTime(m.vol || 0.5, ac.currentTime + (ambFade || 1.2));
       amb.connect(ambGain); ambGain.connect(ac.destination); amb.start(0);
     });
   }

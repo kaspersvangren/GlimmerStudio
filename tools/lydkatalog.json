@@ -555,30 +555,51 @@
   "id": "koncert",
   "slots": [
    {
-    "key": "koncert.hygge",
+    "key": "koncert.lounge1",
     "musik": true,
-    "navn": "Koncert: Svampevisen (hyggelig)",
-    "hvor": "Koncertsalen, når man kommer ind. Bandet spiller den, indtil man ønsker en anden sang",
-    "forslag": "Rolig og hyggelig, fx lut, kontrabas, børstetrommer og en gnom der nynner. Ca. 80-90 slag i minuttet. Skal kunne køre længe."
+    "navn": "Koncert: lounge 1",
+    "hvor": "Baggrundsmusik i Koncertsalen, når bandet ikke spiller en ønskesang. De fire numre spilles på skift, med publikums mumlen under",
+    "forslag": "Rolig lounge, ca. 3-4 minutter."
+   },
+   {
+    "key": "koncert.lounge2",
+    "musik": true,
+    "navn": "Koncert: lounge 2",
+    "hvor": "Baggrundsmusik i Koncertsalen, når bandet ikke spiller en ønskesang. De fire numre spilles på skift, med publikums mumlen under",
+    "forslag": "Rolig lounge, ca. 3-4 minutter."
+   },
+   {
+    "key": "koncert.lounge3",
+    "musik": true,
+    "navn": "Koncert: lounge 3",
+    "hvor": "Baggrundsmusik i Koncertsalen, når bandet ikke spiller en ønskesang. De fire numre spilles på skift, med publikums mumlen under",
+    "forslag": "Rolig lounge, ca. 3-4 minutter."
+   },
+   {
+    "key": "koncert.lounge4",
+    "musik": true,
+    "navn": "Koncert: lounge 4",
+    "hvor": "Baggrundsmusik i Koncertsalen, når bandet ikke spiller en ønskesang. De fire numre spilles på skift, med publikums mumlen under",
+    "forslag": "Rolig lounge, ca. 3-4 minutter."
    },
    {
     "key": "koncert.rock",
     "musik": true,
-    "navn": "Koncert: Spidshue-rock",
+    "navn": "Koncert: Stop Volden (rock)",
     "hvor": "Når man ønsker rock: bandet har ansigtsmaling, nittejakker og lyn",
     "forslag": "Glad børne-rock med el-guitar og trommer, ca. 130-150 slag i minuttet. Gerne lidt fjollet."
    },
    {
     "key": "koncert.country",
     "musik": true,
-    "navn": "Koncert: Støvlestamp",
+    "navn": "Koncert: Hun kom aldrig (country)",
     "hvor": "Når man ønsker country: cowboyhatte, banjo og høballer",
     "forslag": "Banjo, kontrabas og \"bum-tjak\"-rytme, ca. 110-120 slag i minuttet."
    },
    {
     "key": "koncert.disko",
     "musik": true,
-    "navn": "Koncert: Glimmer-disko",
+    "navn": "Koncert: Gi' mig, gi' mig! (disko)",
     "hvor": "Når man ønsker disko: afro, stjernebriller og diskokugle",
     "forslag": "Fire-på-gulvet disko med oktav-bas og strygere, ca. 120 slag i minuttet."
    },
@@ -592,7 +613,7 @@
    {
     "key": "koncert.hawaii",
     "musik": true,
-    "navn": "Koncert: Hula i hængekøjen",
+    "navn": "Koncert: Frøgt mig ikke! (Hawaii)",
     "hvor": "Når man ønsker Hawaii: blomsterkranse, ukulele og tikifakler",
     "forslag": "Ukulele, steel-guitar og bongotrommer, afslappet, ca. 95-105 slag i minuttet."
    },

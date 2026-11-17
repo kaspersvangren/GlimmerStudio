@@ -55,7 +55,13 @@ const LYD_MUSIK = {
   gribe: { src: 'lyd/moonbyte-drift.mp3', loop: [31.27969, 106.37303], xf: 0.01 },   // "Moonbyte Drift". Loop B, valgt af Kasper. Gribemaskinen
   'stemning.arkade': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.5 },   // "casino ambiance" (freesound): summen i arkadehallen, under hallens musik. 3 s overtoning
   tryl: { src: 'lyd/broomstick-dash.mp3', loop: [13.56734, 40.2358], xf: 0.01 },   // lånt fra kosteflyvningen, indtil Trylletegning får sin egen musik
-  /* koncertsalen: Kaspers egne sange, spilles hele og forfra igen */
+  /* koncertsalen: lounge-musikken i baggrunden, fire numre på skift, med mumlen fra publikum under */
+  'koncert.lounge1': { src: 'lyd/koncert-lounge-1.mp3', loop: [0, 217.5], vol: 0.45 },   // "Velvet Loop"
+  'koncert.lounge2': { src: 'lyd/koncert-lounge-2.mp3', loop: [0, 213.8], vol: 0.45 },   // "Velvet Loop 1"
+  'koncert.lounge3': { src: 'lyd/koncert-lounge-3.mp3', loop: [0, 201.9], vol: 0.45 },   // "Velvet Loop 2"
+  'koncert.lounge4': { src: 'lyd/koncert-lounge-4.mp3', loop: [0, 207.5], vol: 0.45 },   // "Velvet Loop 3"
+  'stemning.koncert': { src: 'lyd/arkade-stemning.mp3', loop: [3, 153], xf: 3, vol: 0.32 },   // samme mumlen som i arkaden, lidt svagere
+  /* koncertsalens ønskesange: Kaspers egne, spilles én gang, så klapper publikum */
   'koncert.rock': { src: 'lyd/koncert-rock.mp3', loop: [0, 206.35] },   // "Stop Volden"
   'koncert.country': { src: 'lyd/koncert-country.mp3', loop: [0, 185.1] },   // "Hun kom aldrig"
   'koncert.disko': { src: 'lyd/koncert-disko.mp3', loop: [0, 127.58] },   // "Gi' mig, gi' mig!"

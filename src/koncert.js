@@ -28,7 +28,7 @@ const Koncert = (() => {
 
   /* ---------- sangene: én pr. stil ---------- */
   const STIL = {
-    hygge:    { navn: 'Hyggeligt', sang: 'Svampevisen', lys: '#FFE3A0', lys2: '#FFC6E0' },
+    hygge:    { navn: 'Hyggeligt', sang: 'Lounge', lys: '#FFE3A0', lys2: '#FFC6E0' },
     rock:     { navn: 'Rock', sang: 'Stop Volden', lys: '#FF3D6E', lys2: '#8A5CFF' },
     country:  { navn: 'Country', sang: 'Hun kom aldrig', lys: '#FFB25A', lys2: '#FFE08A' },
     disko:    { navn: 'Disko', sang: "Gi' mig, gi' mig!", lys: '#FF5FD2', lys2: '#5FE0FF' },
@@ -599,6 +599,7 @@ const Koncert = (() => {
   const vent = ms => new Promise(r => setTimeout(r, ms));
   async function skift(ny, stille){
     if (busy) return; busy = true; sangGen++; clearTimeout(sangT);
+    SND.ambience('stemning.koncert', 2);   /* publikum mumler, mens bandet klæder om */
     const stage = root, gen = stage, ok = () => root === gen && !$('#koncert').hidden;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.ud', () => sfx.pick());
@@ -624,15 +625,23 @@ const Koncert = (() => {
     await vent(1500); if (!ok()) { busy = false; return; }
     BAND.forEach(m => stage.querySelector(`[data-m="${m.id}"]`).classList.remove('gaa'));
     if (!stille) SND.play('koncert.klap', () => sfx.fanfare());
+    /* en ønskesang: mumlen toner ud, mens bandet stiller sig klar, og så går sangen i gang */
+    if (stil !== 'hygge'){ SND.ambience(null, 2.5); await vent(1600); if (!ok()) { busy = false; return; } }
     spilSang();
     busy = false;
   }
 
   /* ---------- en sang er færdig: klapsalve, bandet bukker, går ud og kommer tilbage i det almindelige tøj ---------- */
-  let sangGen = 0, sangT = 0;
+  let sangGen = 0, sangT = 0, lounge = 0;
   function spilSang(){
     const g = ++sangGen, navn = 'koncert.' + stil; clearTimeout(sangT);
-    if (stil === 'hygge'){ playMusic(navn); return; }   /* den rolige sang bliver ved */
+    if (stil === 'hygge'){   /* lounge: fire numre på skift (aldrig det samme to gange i træk), med mumlen fra publikum under */
+      SND.ambience('stemning.koncert', 2);
+      let k; do { k = 1 + Math.floor(Math.random() * 4); } while (k === lounge && LYD_MUSIK['koncert.lounge2']); lounge = k;
+      playMusic('koncert.lounge' + k, { engang: true, slut: () => { if (g === sangGen) spilSang(); } });
+      return;
+    }
+    SND.ambience(null, 2.5);
     playMusic(navn, { engang: true, slut: () => { if (g === sangGen) sangSlut(); } });
     /* findes lydfilen ikke (fx i forhåndsvisningen), spiller den lille synth-melodi; den slutter efter et minuts tid */
     sangT = setTimeout(() => { if (g === sangGen && MUSIC.timer) sangT = setTimeout(() => { if (g === sangGen) sangSlut(); }, 42000); }, 3000);
@@ -642,6 +651,7 @@ const Koncert = (() => {
     busy = true; const stage = root;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.klap', () => sfx.fanfare());
+    SND.ambience('stemning.koncert', 3);   /* efter klapsalven begynder publikum at mumle igen */
     /* hjerter og blomster flyver op fra publikum */
     for (let i = 0; i < 14; i++){ const n = el('div', { class: 'kz-kast', style: `left:${200 + Math.random() * 1200}px;top:930px;animation-delay:${(Math.random() * 1.4).toFixed(2)}s;--dx:${Math.round(Math.random() * 160 - 80)}px` }, ['♥', '✿', '★'][i % 3]);
       n.style.color = ['#FF5FA8', '#FFE45F', '#FF8FD0', '#FFFFFF'][i % 4]; stage.append(n); setTimeout(() => n.remove(), 3600); }
@@ -656,6 +666,7 @@ const Koncert = (() => {
   return { show, previewSvg, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
 })();
 
+Object.assign(MUSIC_SYNTH, { 'koncert.lounge1': 'koncert.hygge', 'koncert.lounge2': 'koncert.hygge', 'koncert.lounge3': 'koncert.hygge', 'koncert.lounge4': 'koncert.hygge' });
 /* den midlertidige musik til hver sang, indtil Kaspers egen er lagt ind (spilles af den indbyggede synth) */
 Object.assign(TRACKS, {
   'koncert.hygge': { bpm: 84, chords: [[60,64,67,72],[57,60,64,69],[53,57,60,65],[55,59,62,67]], arpT: 'sine', melT: 'sine', melV: .06,

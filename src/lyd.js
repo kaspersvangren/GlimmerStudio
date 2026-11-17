@@ -105,12 +105,14 @@ const SND = (() => {
   }
   /* stemningslyd: et ekstra lag under musikken (fx summen i arkadehallen). Følger musik-knappen */
   let amb = null, ambGain = null, ambOn = null, ambWant = null, ambGen = 0;
-  function ambience(name){ ambWant = name || null; ambRefresh(); }
+  /* fade: sekunder om at tone ud eller ind (koncertsalens mumlen glider langsomt) */
+  let ambFade = 0;
+  function ambience(name, fade){ ambWant = name || null; ambFade = fade || 0; ambRefresh(); }
   function ambRefresh(){
     const want = MUSIC.on ? ambWant : null;
     if (want === ambOn) return;
     ambGen++;
-    if (amb){ try { ambGain.gain.setTargetAtTime(0, amb.context.currentTime, 0.15); amb.stop(amb.context.currentTime + 0.8); } catch (e){} amb = null; ambGain = null; }
+    if (amb){ const ud = ambFade || .45; try { ambGain.gain.setTargetAtTime(0, amb.context.currentTime, ud / 3); amb.stop(amb.context.currentTime + ud + .4); } catch (e){} amb = null; ambGain = null; }
     ambOn = want;
     const m = want && typeof LYD_MUSIK === 'object' && LYD_MUSIK[want], ac = m && audioCtx();
     if (!ac) return;
@@ -118,7 +120,7 @@ const SND = (() => {
     getBuf(m, buf => {
       if (my !== ambGen) return;
       amb = loopNode(ac, buf, m); ambGain = ac.createGain();
-      ambGain.gain.setValueAtTime(0, ac.currentTime); ambGain.gain.linearRampToValueAtTime(m.vol || 0.5, ac.currentTime + 1.2);
+      ambGain.gain.setValueAtTime(0, ac.currentTime); ambGain.gain.linearRampToValueAtTime(m.vol || 0.5, ac.currentTime + (ambFade || 1.2));
       amb.connect(ambGain); ambGain.connect(ac.destination); amb.start(0);
     });
   }
