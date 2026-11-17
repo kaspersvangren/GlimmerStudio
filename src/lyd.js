@@ -58,7 +58,7 @@ const SND = (() => {
     catch (e){ if (fallback) fallback(); }
   }
   /* musik med loop-punkter spilles gennem Web Audio, så hoppet tilbage er helt uden pause */
-  const BUF = {}, BAD = {};
+  const BUF = {}, BAD = {}, BRUGT = [];
   let node = null, gain = null, gen = 0;
   /* opts.engang: spil kun én gang og kald opts.slut, når den er færdig (koncertsalens sange) */
   function music(name, opts){
@@ -77,15 +77,23 @@ const SND = (() => {
       if (opts && opts.engang){ node.loop = false; node.onended = () => { if (my === gen && opts.slut) opts.slut(); }; }
       gain = ac.createGain(); gain.gain.value = m.vol || 0.6; node.connect(gain); gain.connect(ac.destination);
       node.start(0);
-    }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
+      if (opts && opts.start) opts.start();
+    }, () => { BAD[name] = true; if (my === gen && MUSIC.track === name){ songName = null; MUSIC.track = null; playMusic(name, opts && opts.start ? { start: opts.start } : undefined); } });   /* filen findes ikke (fx i forhåndsvisningen): spillets egen melodi */
     return true;
   }
+  const VENT = {};
   function getBuf(m, ok, fail){
-    if (BUF[m.src]) return ok(BUF[m.src]);
-    const ac = audioCtx();
+    if (BUF[m.src]){ const i = BRUGT.indexOf(m.src); if (i >= 0){ BRUGT.splice(i, 1); BRUGT.push(m.src); } return ok(BUF[m.src]); }
+    /* er den allerede ved at blive hentet (fx forhentet), venter vi bare på den */
+    if (VENT[m.src]){ VENT[m.src].push([ok, fail]); return; }
+    VENT[m.src] = [[ok, fail]];
+    const ac = audioCtx(), alle = (i, v) => { const l = VENT[m.src] || []; delete VENT[m.src]; l.forEach(f => { if (f[i]) f[i](v); }); };
     fetch(m.src).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
       .then(a => new Promise((res, rej) => ac.decodeAudioData(a, res, rej)))
-      .then(b => { BUF[m.src] = b; ok(b); }).catch(() => { if (fail) fail(); });
+      .then(b => { BUF[m.src] = b; BRUGT.push(m.src);
+        /* udpakket musik fylder meget (en sang på 3 minutter er omkring 70 MB), så kun de tre senest brugte huskes */
+        while (BRUGT.length > 3){ const k = BRUGT.shift(); if (!BRUGT.includes(k)) delete BUF[k]; }
+        alle(0, b); }).catch(() => alle(1));
   }
   function loopNode(ac, buf, m){
     const n = ac.createBufferSource(); n.buffer = buf; n.loop = true;
@@ -138,5 +146,7 @@ const SND = (() => {
     if (song){ if (document.hidden) song.pause(); else if (MUSIC.on) song.play().catch(() => {}); }
     if ((node || amb) && AC){ try { if (document.hidden) AC.suspend(); else AC.resume(); } catch (e){} }
   });
-  return { play, hold, music, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
+  /* hent og pak en sang ud i forvejen, så den kan starte med det samme */
+  function forhent(name){ const m = typeof LYD_MUSIK === 'object' && LYD_MUSIK[name]; if (m && typeof m === 'object' && !BAD[name] && audioCtx()) getBuf(m, () => {}, () => { BAD[name] = true; }); }
+  return { play, hold, music, forhent, ambience, ambRefresh, stopMusic: stopSong, musicPlaying, keys: () => Object.keys(LYD_FILER || {}) };
 })();

@@ -57,6 +57,7 @@ function playMusic(name, opts){
   MUSIC.out = AC.createGain(); MUSIC.out.gain.value = 0.55; MUSIC.out.connect(AC.destination);
   MUSIC.step = 0; MUSIC.nextT = AC.currentTime + 0.1;
   MUSIC.timer = setInterval(musicTick, 120); musicTick();
+  if (opts && opts.start) opts.start();
 }
 function stopMusic(){ SND.stopMusic(); clearInterval(MUSIC.timer); MUSIC.timer = null; if (MUSIC.out){ try { MUSIC.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch(e){} MUSIC.out = null; } }
 function setMusic(on){ MUSIC.on = on; store.set(KEY_MUSIC, on); const t = MUSIC.track; if (!on) stopMusic(); else if (t){ MUSIC.track = null; playMusic(t); } SND.ambRefresh(); updateAudioBtns(); }

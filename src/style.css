@@ -1122,3 +1122,17 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kz-stage.buk .kz-kegle{animation:kzpuls 1s ease-in-out infinite}
 .kz-kast{position:absolute;font-size:46px;text-shadow:0 0 6px #1A1238,0 3px 0 #1A1238;pointer-events:none;opacity:0;animation:kzkast 1.8s ease-out forwards}
 @keyframes kzkast{0%{opacity:0;transform:translate(0,0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-330px) scale(1.2) rotate(200deg)}}
+/* koncertsalen: salen med borde rundt om scenen; bandet og publikum bevæger sig kun, mens musikken spiller */
+.kz-sal{position:absolute;left:50%;top:50%;width:1600px;height:1000px;transform-origin:50% 50%}
+.kz-sal > .kz-stage{transform-origin:0 0}
+.kz-stage:not(.spiller) .kz-in{animation:none}
+.kz-stage:not(.spiller) .kz-in .f0{animation:none;opacity:1}
+.kz-stage:not(.spiller) .kz-in .f1{animation:none;opacity:0}
+.kz-stage .kz-g.gaa .kz-in{animation:kzwalk .38s ease-in-out infinite}
+.kz-stage .kz-g.gaa .kz-in .f0{animation:none;opacity:1}.kz-stage .kz-g.gaa .kz-in .f1{animation:none;opacity:0}
+.kz-stage .kz-g .kz-in.hop{animation:kzhop .7s ease-out}
+.kz-stage.buk .kz-g .kz-in{animation:kzbuk 1.2s ease-in-out 2}
+.kz-borde{will-change:transform}
+.kz-sal.spiller .kz-borde.b1{animation:kzpub 1.4s ease-in-out infinite}
+.kz-sal.spiller .kz-borde.b2{animation:kzpub 1.4s ease-in-out infinite;animation-delay:-.5s}
+@keyframes kzpub{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}

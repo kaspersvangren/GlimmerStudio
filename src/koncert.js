@@ -407,7 +407,7 @@ const Koncert = (() => {
       + `<radialGradient id="gas" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE8A0" stop-opacity=".9"/><stop offset="1" stop-color="#FFE8A0" stop-opacity="0"/></radialGradient>`;
     let o = '';
     /* væggen rundt om buen (hullet i midten er åbningen ind til scenen) */
-    o += `<path d="M -400 -200 H 2000 V 1200 H -400 Z M ${AX} 820 V ${AY + 120} Q ${AX} ${AY} ${AX + 160} ${AY} H ${AX + AW - 160} Q ${AX + AW} ${AY} ${AX + AW} ${AY + 120} V 820 Z" fill="url(#dam)" fill-rule="evenodd"/>`;
+    o += `<path d="M ${KLIP[0]} ${KLIP[1]} H ${KLIP[2]} V ${KLIP[3]} H ${KLIP[0]} Z M ${AX} 820 V ${AY + 120} Q ${AX} ${AY} ${AX + 160} ${AY} H ${AX + AW - 160} Q ${AX + AW} ${AY} ${AX + AW} ${AY + 120} V 820 Z" fill="url(#dam)" fill-rule="evenodd"/>`;
     /* sidetæpperne, bundet op med guldsnor */
     for (const s of [1, -1]){
       const x = s > 0 ? AX - 10 : AX + AW + 10, w = 200 * s;
@@ -435,7 +435,7 @@ const Koncert = (() => {
     /* sceneforkanten: træ med messingliste og gaslamper */
     o += `<path d="M 130 820 H 1470 L 1490 872 H 110 Z" fill="url(#tr)" stroke="${E}" stroke-width="5"/><path d="M 130 824 H 1470" stroke="url(#guld)" stroke-width="10"/>`;
     for (let k = 0; k < 7; k++){ const x = 300 + k * 166; o += `<ellipse cx="${x}" cy="812" rx="60" ry="30" fill="url(#gas)"/><path d="M ${x - 28} 830 L ${x - 20} 808 H ${x + 20} L ${x + 28} 830 Z" fill="url(#guldv)" ${st(4)}/><ellipse cx="${x}" cy="806" rx="12" ry="8" fill="#FFF6C8"/>`; }
-    o += `<path d="M 110 872 H 1490 V 1100 H 110 Z" fill="#140A14"/>`;
+    o += `<path d="M 110 872 H 1490 V 880 H 110 Z" fill="#140A14"/>`;
     return svgDoc('0 0 1600 1000', o, d);
   }
 
@@ -468,6 +468,78 @@ const Koncert = (() => {
     o = `<g>${o}</g><g opacity=".5" transform="translate(0 -4)">${''}</g>`;
     o += `<path d="M 0 1000 H 1600" stroke="${R}" stroke-width="2"/>`;
     return svgDoc('0 0 1600 1000', o);
+  }
+
+  /* ---------- salen rundt om scenen: scenen sidder længere væk, og foran den sidder publikum ved små borde ---------- */
+  const SAL = { s: .6, x: 320, y: 62 };   /* hvor scenen (1600 x 1000) sidder i salen, og hvor stor */
+  const KLIP = [90, 30, 1510, 880];         /* den del af scenebilledet, der vises: buen med lidt væg og scenekanten */
+  function salBag(){
+    const d = `<linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E0E22"/><stop offset="1" stop-color="#3A1A34"/></linearGradient>`
+      + `<pattern id="str" width="44" height="44" patternUnits="userSpaceOnUse"><rect width="44" height="44" fill="url(#vg)"/><rect x="0" width="6" height="44" fill="#000" opacity=".12"/><circle cx="22" cy="22" r="4" fill="#5A2A4A" opacity=".5"/></pattern>`
+      + `<linearGradient id="trv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A2E18"/><stop offset="1" stop-color="#2A140A"/></linearGradient>`
+      + `<linearGradient id="gulv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A1420"/><stop offset="1" stop-color="#6A2232"/></linearGradient>`
+      + `<linearGradient id="gld" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8A6420"/><stop offset=".4" stop-color="#F7E2A0"/><stop offset="1" stop-color="#8A6420"/></linearGradient>`
+      + `<radialGradient id="lg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE0A0" stop-opacity=".55"/><stop offset="1" stop-color="#FFE0A0" stop-opacity="0"/></radialGradient>`;
+    let o = `<rect x="-200" y="-200" width="2000" height="1400" fill="url(#str)"/>`;
+    /* panel af træ nederst på væggene */
+    o += `<path d="M -200 470 H 1800 V 640 H -200 Z" fill="url(#trv)"/><path d="M -200 470 H 1800" stroke="url(#gld)" stroke-width="6"/>`;
+    for (let k = 0; k < 12; k++) o += `<rect x="${-180 + k * 170}" y="492" width="130" height="126" rx="6" fill="none" stroke="#1A0A06" stroke-width="4" opacity=".5"/>`;
+    /* søjler med gaslamper */
+    for (const x of [300, 1300]){ o += `<rect x="${x - 26}" y="0" width="52" height="640" fill="#4A1A2A" stroke="#1A0A10" stroke-width="4"/><rect x="${x - 26}" y="0" width="52" height="640" fill="url(#gld)" opacity=".25"/>`
+      + `<circle cx="${x}" cy="300" r="90" fill="url(#lg)"/><path d="M ${x - 14} 310 L ${x - 10} 286 H ${x + 10} L ${x + 14} 310 Z" fill="url(#gld)" stroke="${E}" stroke-width="3"/><ellipse cx="${x}" cy="282" rx="12" ry="16" fill="#FFF0C0" opacity=".9"/>`; }
+    /* loger i siderne med publikum */
+    for (const [x, sp] of [[150, 1], [1450, -1]]){
+      o += `<path d="M ${x - 120} 230 Q ${x} 170 ${x + 120} 230 V 400 H ${x - 120} Z" fill="#1A0812"/>`;
+      o += [-70, -10, 50].map((dx, i) => `<circle cx="${x + dx * sp}" cy="${330 - i % 2 * 6}" r="${20 - i * 2}" fill="#0E0610"/><path d="M ${x + dx * sp - 30} 400 Q ${x + dx * sp} ${340 - i % 2 * 6} ${x + dx * sp + 30} 400 Z" fill="#0E0610"/>`).join('');
+      o += `<path d="M ${x - 130} 380 Q ${x} 420 ${x + 130} 380 L ${x + 120} 440 Q ${x} 470 ${x - 120} 440 Z" fill="#8A1830" stroke="url(#gld)" stroke-width="7"/>`;
+      o += `<path d="M ${x - 132} 228 Q ${x} 160 ${x + 132} 228" stroke="url(#gld)" stroke-width="8" fill="none"/><circle cx="${x}" cy="196" r="10" fill="url(#gld)" stroke="${E}" stroke-width="2"/>`;
+    }
+    /* lysekroner */
+    for (const x of [180, 1420]){ o += `<path d="M ${x} -10 V 40" stroke="#C99A12" stroke-width="4"/><circle cx="${x}" cy="70" r="110" fill="url(#lg)"/><path d="M ${x - 60} 70 Q ${x} 100 ${x + 60} 70" stroke="url(#gld)" stroke-width="7" fill="none"/>`
+      + [-60, -30, 0, 30, 60].map(dx => `<rect x="${x + dx - 4}" y="${54 + Math.abs(dx) * .2}" width="8" height="18" fill="#FFF6E8"/><circle cx="${x + dx}" cy="${50 + Math.abs(dx) * .2}" r="5" fill="#FFE08A"/>`).join(''); }
+    /* gulvet i salen */
+    o += `<path d="M -200 600 H 1800 V 1200 H -200 Z" fill="url(#gulv)"/>`;
+    for (let k = 0; k <= 16; k++){ const x0 = 400 + k * 50, x1 = -500 + k * 162; o += `<path d="M ${x0} 600 L ${x1} 1000" stroke="#000" stroke-width="2" opacity=".15"/>`; }
+    o += `<ellipse cx="800" cy="640" rx="560" ry="70" fill="#FFB0D0" opacity=".08"/>`;
+    return svgDoc('0 0 1600 1000', o, d);
+  }
+  /* et menneske set bagfra (silhuet): skuldre, hoved og en hat eller frisure */
+  function silhuet(x, y, s, type, c = '#140A16', kant = '#5A3A7A'){
+    let o = `<g transform="translate(${x} ${y}) scale(${s})">`;
+    o += `<path d="M -46 40 Q -48 -6 -22 -14 Q 0 -20 22 -14 Q 48 -6 46 40 Z" fill="${c}"/>`;
+    o += `<circle cx="0" cy="-36" r="24" fill="${c}"/>`;
+    const H = {
+      gnom: `<path d="M -26 -48 L 4 -118 L 26 -48 Z" fill="${c}"/>`,
+      heks: `<path d="M -46 -48 Q 0 -60 46 -48 Q 0 -40 -46 -48 Z M -22 -52 L 14 -116 L 22 -52 Z" fill="${c}"/>`,
+      top: `<rect x="-20" y="-104" width="40" height="50" fill="${c}"/><path d="M -32 -54 H 32" stroke="${c}" stroke-width="7" stroke-linecap="round"/>`,
+      fjer: `<path d="M -30 -50 Q 0 -74 30 -50 Z" fill="${c}"/><path d="M 14 -62 Q 40 -100 22 -116 Q 28 -86 8 -64 Z" fill="${c}"/>`,
+      elver: `<path d="M -22 -40 L -44 -64 L -18 -50 Z M 22 -40 L 44 -64 L 18 -50 Z" fill="${c}"/><circle cx="0" cy="-64" r="13" fill="${c}"/>`,
+      dvaerg: `<path d="M -28 -42 Q -30 -76 0 -78 Q 30 -76 28 -42 Z" fill="${c}"/><path d="M -24 -60 L -40 -78 M 24 -60 L 40 -78" stroke="${c}" stroke-width="8" stroke-linecap="round"/>`,
+      fletning: `<path d="M -22 -30 Q -34 0 -26 20 M 22 -30 Q 34 0 26 20" stroke="${c}" stroke-width="12" fill="none" stroke-linecap="round"/>`,
+      bowler: `<path d="M -22 -50 Q -22 -80 0 -80 Q 22 -80 22 -50 Z" fill="${c}"/><path d="M -30 -50 H 30" stroke="${c}" stroke-width="7" stroke-linecap="round"/>`,
+    };
+    o += H[type] || '';
+    /* svagt lys fra scenen langs kanten */
+    o += `<path d="M -40 -6 Q -22 -14 0 -16 Q 22 -14 40 -6" stroke="${kant}" stroke-width="3" fill="none" opacity=".7"/><path d="M -20 -48 Q 0 -60 20 -48" stroke="${kant}" stroke-width="3" fill="none" opacity=".7"/>`;
+    return o + '</g>';
+  }
+  const TYPER = ['gnom', 'heks', 'top', 'fjer', 'elver', 'dvaerg', 'fletning', 'bowler'];
+  /* en række borde: hvert bord med dug, en lille lampe og to-tre gæster */
+  function borde(raekke){
+    const R = [ { y: 660, s: .55, xs: [150, 420, 1180, 1450] }, { y: 790, s: .8, xs: [240, 600, 1000, 1360] }, { y: 960, s: 1.15, xs: [90, 520, 1080, 1510] } ][raekke];
+    let o = '', n = raekke * 7;
+    for (const x of R.xs){
+      const s = R.s, pl = [[-70, -10], [70, -10], [0, 4]];
+      /* gæsterne bag bordet (to i siderne) */
+      for (const [dx, dy] of pl.slice(0, 2)) o += silhuet(x + dx * s, R.y + dy * s - 40 * s, s, TYPER[(n++) % TYPER.length], raekke === 2 ? '#0C060E' : '#140A16');
+      /* bordet med dug og lampe */
+      o += `<ellipse cx="${x}" cy="${R.y}" rx="${90 * s}" ry="${24 * s}" fill="#D8C8D8" opacity=".55"/><path d="M ${x - 90 * s} ${R.y} Q ${x - 92 * s} ${R.y + 50 * s} ${x - 80 * s} ${R.y + 60 * s} H ${x + 80 * s} Q ${x + 92 * s} ${R.y + 50 * s} ${x + 90 * s} ${R.y} Z" fill="#3A2440"/>`;
+      o += `<circle cx="${x}" cy="${R.y - 30 * s}" r="${70 * s}" fill="url(#lg)"/><rect x="${x - 6 * s}" y="${R.y - 44 * s}" width="${12 * s}" height="${30 * s}" fill="#C99A12"/><path d="M ${x - 18 * s} ${R.y - 40 * s} L ${x - 12 * s} ${R.y - 62 * s} H ${x + 12 * s} L ${x + 18 * s} ${R.y - 40 * s} Z" fill="#FF8F6A"/>`;
+      /* den forreste gæst (med ryggen til) */
+      o += silhuet(x + pl[2][0], R.y + 40 * s, s * 1.05, TYPER[(n++) % TYPER.length], raekke === 2 ? '#0A050C' : '#120814');
+    }
+    const d = `<radialGradient id="lg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFC080" stop-opacity=".5"/><stop offset="1" stop-color="#FFC080" stop-opacity="0"/></radialGradient>`;
+    return svgDoc('0 0 1600 1000', o, d);
   }
 
   /* ---------- lys og pynt der bevæger sig ---------- */
@@ -511,8 +583,16 @@ const Koncert = (() => {
       if (m.id === 'trommer') o += img(trommer(g), m.x - 170, m.y - 210 + 4, 340, 220);
     }
     o += pynt(g).filter(p => p.k === 'kz-flak').map(p => img(p.svg, p.x, p.y, p.w, p.h)).join('');
-    o += img(forgrund(), 0, 0, 1600, 1000) + img(publikum(), 0, 0, 1600, 1000);
+    o += img(forgrund(), 0, 0, 1600, 1000);
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">${o}</svg>`;
+  }
+  /* hele salen med scenen længere væk og bordene foran (Tegnebordet) */
+  function previewSal(g){
+    const img = (src, x, y, w, h) => `<image href="${svgUrl(src)}" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+    const [a, b, c, d] = KLIP, w = (c - a) * SAL.s, h = (d - b) * SAL.s;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">${img(salBag(), 0, 0, 1600, 1000)}`
+      + `<svg x="${SAL.x + a * SAL.s}" y="${SAL.y + b * SAL.s}" width="${w}" height="${h}" viewBox="${a} ${b} ${c - a} ${d - b}">${previewSvg(g).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</svg>`
+      + [0, 1, 2].map(r => img(borde(r), 0, 0, 1600, 1000)).join('') + `</svg>`;
   }
   /* pynt pr. stil: [svg, x, y, w, h, klasse] */
   function pynt(g){
@@ -525,18 +605,20 @@ const Koncert = (() => {
   }
 
   /* ---------- skærmen ---------- */
-  let stil = 'hygge', busy = false, root = null, scaleFn = null;
+  let stil = 'hygge', busy = false, root = null, salEl = null, scaleFn = null;
   const URL_CACHE = {};
   const url = (k, fn) => URL_CACHE[k] || (URL_CACHE[k] = svgUrl(fn()));
   function show(){
     showScreen('#koncert'); busy = false;
     const box = $('#koncertBody'); box.innerHTML = '';
-    const scene = el('div', { class: 'kz-wrap' }), st = el('div', { class: 'kz-stage' });
-    scene.append(st); root = st;
+    const scene = el('div', { class: 'kz-wrap' }), sal = el('div', { class: 'kz-sal' }), st = el('div', { class: 'kz-stage' });
+    st.style.cssText = `left:${SAL.x}px;top:${SAL.y}px;transform:scale(${SAL.s});clip-path:inset(${KLIP[1]}px ${1600 - KLIP[2]}px ${1000 - KLIP[3]}px ${KLIP[0]}px)`;
+    sal.append(pic(url('salbag', salBag), 0, 0, 1600, 1000), st, pic(url('borde0', () => borde(0)), 0, 0, 1600, 1000, 'kz-borde b0'), pic(url('borde1', () => borde(1)), 0, 0, 1600, 1000, 'kz-borde b1'), pic(url('borde2', () => borde(2)), 0, 0, 1600, 1000, 'kz-borde b2'));
+    scene.append(sal); root = st; salEl = sal;
     box.append(scene, ...placeUi([ backBtn('Byen', showTown) ], [ el('button', { class: 'btn kz-oensk', type: 'button', on: { click: aabnOensker } }, [ el('span', { html: NOTE_ICON }), 'Ønsk en sang' ]), audioBtns() ]));
     byg(st);
     updateAudioBtns();
-    scaleFn = () => { const r = scene.getBoundingClientRect(), s = Math.max(r.width / 1600, r.height / 1000); st.style.transform = `translate(-50%,-50%) scale(${s})`; };
+    scaleFn = () => { const r = scene.getBoundingClientRect(), s = Math.max(r.width / 1600, r.height / 1000); sal.style.transform = `translate(-50%,-50%) scale(${s})`; };
     scaleFn(); window.removeEventListener('resize', skaler); window.addEventListener('resize', skaler);
     spilSang();
   }
@@ -564,9 +646,10 @@ const Koncert = (() => {
       el('div', { class: 'kz-th', style: `left:${AX + AW / 2 - 40}px;top:${AY - 30}px;width:${AW / 2 + 40}px` }, [ pic(url('th', () => taeppe(1)), 0, 0, AW / 2 + 40, 730) ]));
     stage.append(el('div', { class: 'kz-skilt', hidden: true }));
     if (stil === 'hygge') for (let k = 0; k < 9; k++) stage.append(el('div', { class: 'kz-flue', style: `left:${300 + k * 120}px;top:${280 + (k * 137) % 300}px;animation-delay:${-k * 1.3}s` }));
-    stage.append(pic(url('forgrund', forgrund), 0, 0, 1600, 1000, 'kz-for'), pic(url('publikum', publikum), 0, 0, 1600, 1000, 'kz-pub'));
+    stage.append(pic(url('forgrund', forgrund), 0, 0, 1600, 1000, 'kz-for'));
     stage.style.setProperty('--slag', (60 / BPM[stil]).toFixed(3) + 's');
     stage.className = 'kz-stage kz-' + stil;
+    if (salEl) salEl.classList.remove('spiller');
   }
   const BPM = { hygge: 84, rock: 140, country: 118, disko: 120, klassisk: 96, hawaii: 100 };
   function solo(m, g){
@@ -601,6 +684,8 @@ const Koncert = (() => {
   async function skift(ny, stille){
     if (busy) return; busy = true; sangGen++; clearTimeout(sangT);
     SND.ambience('stemning.koncert', 2);   /* publikum mumler, mens bandet klæder om */
+    spiller(false);
+    if (ny !== 'hygge') SND.forhent('koncert.' + ny);   /* sangen pakkes ud, mens de klæder om */
     const stage = root, gen = stage, ok = () => root === gen && !$('#koncert').hidden;
     stopMusic(); MUSIC.track = null;
     SND.play('koncert.ud', () => sfx.pick());
@@ -634,28 +719,33 @@ const Koncert = (() => {
 
   /* ---------- en sang er færdig: klapsalve, bandet bukker, går ud og kommer tilbage i det almindelige tøj ---------- */
   let sangGen = 0, sangT = 0, lounge = 0;
+  /* bandet (og publikum) bevæger sig kun, mens musikken faktisk spiller */
+  function spiller(on){ if (root) root.classList.toggle('spiller', !!on); if (salEl) salEl.classList.toggle('spiller', !!on); }
+  function startet(g){ return () => { if (g === sangGen) spiller(true); }; }
   function spilSang(){
     const g = ++sangGen, navn = 'koncert.' + stil; clearTimeout(sangT);
+    /* er musikken slået fra, spiller bandet alligevel (bare uden lyd); kører den lille synth-melodi, er den allerede i gang */
+    setTimeout(() => { if (g === sangGen && (!MUSIC.on || MUSIC.timer)) spiller(true); }, 250);
     if (stil === 'hygge'){   /* lounge: fire numre på skift (aldrig det samme to gange i træk), med mumlen fra publikum under */
       SND.ambience('stemning.koncert', 2);
       let k; do { k = 1 + Math.floor(Math.random() * 4); } while (k === lounge && LYD_MUSIK['koncert.lounge2']); lounge = k;
-      playMusic('koncert.lounge' + k, { engang: true, slut: () => { if (g === sangGen) spilSang(); } });
+      playMusic('koncert.lounge' + k, { engang: true, start: startet(g), slut: () => { if (g === sangGen) spilSang(); } });
       return;
     }
     SND.ambience(null, 2.5);
-    playMusic(navn, { engang: true, slut: () => { if (g === sangGen) sangSlut(); } });
+    playMusic(navn, { engang: true, start: startet(g), slut: () => { if (g === sangGen) sangSlut(); } });
     /* findes lydfilen ikke (fx i forhåndsvisningen), spiller den lille synth-melodi; den slutter efter et minuts tid */
     sangT = setTimeout(() => { if (g === sangGen && MUSIC.timer) sangT = setTimeout(() => { if (g === sangGen) sangSlut(); }, 42000); }, 3000);
   }
   async function sangSlut(){
     if (busy || !root || $('#koncert').hidden) return;
     busy = true; const stage = root;
-    stopMusic(); MUSIC.track = null;
+    stopMusic(); MUSIC.track = null; spiller(false);
     SND.play('koncert.klap', () => sfx.fanfare());
     SND.ambience('stemning.koncert', 3);   /* efter klapsalven begynder publikum at mumle igen */
     /* hjerter og blomster flyver op fra publikum */
-    for (let i = 0; i < 14; i++){ const n = el('div', { class: 'kz-kast', style: `left:${200 + Math.random() * 1200}px;top:930px;animation-delay:${(Math.random() * 1.4).toFixed(2)}s;--dx:${Math.round(Math.random() * 160 - 80)}px` }, ['♥', '✿', '★'][i % 3]);
-      n.style.color = ['#FF5FA8', '#FFE45F', '#FF8FD0', '#FFFFFF'][i % 4]; stage.append(n); setTimeout(() => n.remove(), 3600); }
+    for (let i = 0; i < 14; i++){ const n = el('div', { class: 'kz-kast', style: `left:${150 + Math.random() * 1300}px;top:930px;animation-delay:${(Math.random() * 1.4).toFixed(2)}s;--dx:${Math.round(Math.random() * 160 - 80)}px` }, ['♥', '✿', '★'][i % 3]);
+      n.style.color = ['#FF5FA8', '#FFE45F', '#FF8FD0', '#FFFFFF'][i % 4]; n.style.top = (700 + Math.random() * 200) + 'px'; (salEl || stage).append(n); setTimeout(() => n.remove(), 3600); }
     stage.classList.add('buk');
     await vent(2600);
     stage.classList.remove('buk');
@@ -664,7 +754,7 @@ const Koncert = (() => {
     skift('hygge', true);
   }
 
-  return { show, previewSvg, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
+  return { show, previewSvg, previewSal, STIL, STILE, get stil(){ return stil; }, skift, gnomSvg, BAND };
 })();
 
 Object.assign(MUSIC_SYNTH, { 'koncert.lounge1': 'koncert.hygge', 'koncert.lounge2': 'koncert.hygge', 'koncert.lounge3': 'koncert.hygge', 'koncert.lounge4': 'koncert.hygge' });
