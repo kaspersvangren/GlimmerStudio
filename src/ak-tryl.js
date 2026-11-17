@@ -99,14 +99,25 @@ const trylGenkend = (() => {
   const eye = (x, y, r, ups) => ups ? `<circle cx="${x}" cy="${y}" r="${r * 1.6}" fill="#FFF" ${st(3.5)}/><circle cx="${x}" cy="${y + 1}" r="${r * .5}" fill="${E}"/>`
     : `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 1.25}" fill="${E}"/><circle cx="${x + r * .3}" cy="${y - r * .45}" r="${r * .36}" fill="#FFF"/>`;
   const blush = (x, y, r = 7) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .7}" fill="#FF8FB0" opacity=".7"/>`;
-  const hands = c => both(`<circle cx="-8" cy="-91" r="9.5" fill="${c}" ${st(4)}/>`);
+  /* armene: i luften holder de om ballonsnoren over hovedet. På jorden (JORD 1 og 2) svinger de, som når man løber:
+     den ene arm fremme og oppe, den anden nede, og så skifter de */
+  let JORD = 0, HND = [];
+  function arm(d, c, w){
+    if (!JORD) return both(limb(d, c, w));
+    const [sx, sy] = d.match(/-?[\d.]+/g).slice(0, 2).map(Number), op = [sx - 32, sy + 12], ned = [sx - 8, sy + 46];
+    const L = JORD === 1 ? op : ned, Rr = JORD === 1 ? [-ned[0], ned[1]] : [-op[0], op[1]];
+    HND = [L, Rr];
+    const a = (x0, y0, [x, y], u) => limb(`M ${x0} ${y0} Q ${(x0 + x) / 2 + u * 10} ${(y0 + y) / 2 - 6} ${x} ${y}`, c, w);
+    return a(sx, sy, L, -1) + a(-sx, sy, Rr, 1);
+  }
+  const hands = c => JORD ? HND.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9.5" fill="${c}" ${st(4)}/>`).join('') : both(`<circle cx="-8" cy="-91" r="9.5" fill="${c}" ${st(4)}/>`);
   const star5 = (x, y, r, c, w = 3) => { let d = ''; for (let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; d += (i ? 'L' : 'M') + (x + Math.cos(a) * rr).toFixed(1) + ' ' + (y + Math.sin(a) * rr).toFixed(1); } return `<path d="${d}Z" fill="${c}" ${w ? st(w) : ''}/>`; };
 
   /* ---------- væsnerne: tegnet i en kasse på 220, hængende i hænderne (grebet er i 0,-92) ---------- */
   function gnom(ups){
     const J = '#2E9C8A', SK = '#F2C8A0';
     let o = both(limb('M -13 56 V 82', '#3A3F8A', 12)) + both(`<path d="M -29 96 Q -31 80 -14 80 Q -3 80 -4 96 Z" fill="#7A4A2A" ${st(4)}/>`);
-    o += both(limb('M -27 14 C -46 -18 -32 -60 -9 -88', J, 12));
+    o += arm('M -27 14 C -46 -18 -32 -60 -9 -88', J, 12);
     o += `<path d="M -31 6 Q -38 60 -26 66 H 26 Q 38 60 31 6 Q 0 -8 -31 6 Z" fill="${J}" ${st()}/><path d="M 14 2 Q 30 20 24 63 H 27 Q 37 58 30 8 Z" fill="#1F7A6A" opacity=".75"/>`;
     o += `<path d="M -32 47 H 32" stroke="${E}" stroke-width="14"/><path d="M -31 47 H 31" stroke="#6A4020" stroke-width="8"/><rect x="-8" y="39" width="16" height="16" rx="3.5" fill="#F2C14E" ${st(3.5)}/>`;
     o += `<circle cx="0" cy="-16" r="29" fill="${SK}" ${st()}/>` + both(blush(-20, -9, 6));
@@ -120,7 +131,7 @@ const trylGenkend = (() => {
   }
   function spoeg(ups){
     const W = '#F7F4FF', SH = '#DAD2F2';
-    let o = both(limb('M -34 -4 C -48 -36 -30 -66 -9 -88', W, 13));
+    let o = arm('M -34 -4 C -48 -36 -30 -66 -9 -88', W, 13);
     o += `<path d="M -45 74 C -52 20 -48 -54 0 -56 C 48 -54 52 20 45 74 Q 34 58 22.5 74 Q 11 58 0 74 Q -11 58 -22.5 74 Q -34 58 -45 74 Z" fill="${W}" ${st()}/>`;
     o += `<path d="M 22 -47 C 44 -34 46 20 42 62 Q 37 57 31 63 C 34 20 36 -28 22 -47 Z" fill="${SH}"/>` + both(blush(-28, 3, 8));
     o += eye(-15, -16, 6.5, ups) + eye(15, -16, 6.5, ups);
@@ -131,7 +142,7 @@ const trylGenkend = (() => {
   function froe(ups){
     const G = '#6CCB5A', G2 = '#4AA83E', B = '#D8F5B0';
     let o = both(limb('M -16 44 C -32 58 -34 74 -26 88', G, 9)) + both(`<path d="M -27 85 L -46 97 Q -34 103 -28 96 Q -22 104 -9 98 Z" fill="#F2A040" ${st(3.5)}/>`);
-    o += both(limb('M -22 6 C -44 -22 -30 -62 -9 -88', G, 9));
+    o += arm('M -22 6 C -44 -22 -30 -62 -9 -88', G, 9);
     o += `<ellipse cx="0" cy="22" rx="27" ry="27" fill="${G}" ${st()}/><ellipse cx="0" cy="22" rx="16" ry="17" fill="${B}"/>`;
     o += `<path d="M -30 28 Q -58 40 -50 56 Q -40 50 -34 60 Q -24 52 -16 62 Q -8 54 0 64 Q 8 54 16 62 Q 24 52 34 60 Q 40 50 50 56 Q 58 40 30 28 Q 0 38 -30 28 Z" fill="#FF8FC7" ${st(4.5)}/>`;
     o += `<path d="M -28 31 Q -44 38 -40 47 Q -30 42 -24 50 Q -14 44 -8 52 Q 0 46 8 52 Q 14 44 24 50 Q 30 42 40 47 Q 44 38 28 31 Q 0 40 -28 31 Z" fill="#FFC8E4"/>`;
@@ -146,7 +157,7 @@ const trylGenkend = (() => {
   function gris(ups){
     const P = '#FFB4C8', P2 = '#FF8FB0', PJ = '#8FC4FF', PJ2 = '#5E9BE8', body = 'M 0 -12 C 50 -12 50 72 0 72 C -50 72 -50 -12 0 -12 Z';
     let o = both(limb('M -19 62 V 84', PJ, 16)) + both(`<ellipse cx="-19" cy="93" rx="13" ry="8" fill="${P2}" ${st(4)}/>`);
-    o += both(limb('M -34 6 C -54 -24 -34 -62 -9 -88', PJ, 14));
+    o += arm('M -34 6 C -54 -24 -34 -62 -9 -88', PJ, 14);
     o += `<clipPath id="gb"><path d="${body}"/></clipPath><path d="${body}" fill="${PJ}"/><g clip-path="url(#gb)">${[-30, -10, 10, 30].map(x => `<rect x="${x - 4}" y="-20" width="8" height="100" fill="${PJ2}" opacity=".55"/>`).join('')}<path d="M 18 -12 C 60 0 50 72 0 72 C 30 60 36 10 18 -12 Z" fill="#3A6AC8" opacity=".22"/></g><path d="${body}" fill="none" ${st()}/>`;
     o += [12, 31, 50].map(y => `<circle cx="0" cy="${y}" r="4" fill="#FFF" ${st(2.5)}/>`).join('');
     o += both(`<path d="M -30 -42 L -37 -66 L -12 -55 Z" fill="${P}" ${st()}/><path d="M -29 -47 L -32 -59 L -20 -53 Z" fill="${P2}"/>`);
@@ -163,7 +174,7 @@ const trylGenkend = (() => {
     let o = both(`<path d="M -24 4 L -62 -22 L -56 0 L -68 6 L -52 14 L -58 26 L -26 22 Z" fill="${D2}" ${st(4.5)}/>`);
     o += `<path d="M 20 52 C 50 56 62 76 48 90 C 46 78 36 70 18 68 Z" fill="${D}" ${st(4.5)}/><path d="M 48 90 l 10 -6 l -2 12 Z" fill="#FFD86B" ${st(3)}/>`;
     o += both(limb('M -16 58 V 82', D, 14)) + both(`<path d="M -32 96 Q -32 82 -16 82 Q -4 82 -4 96 Z" fill="${D2}" ${st(4)}/>`);
-    o += both(limb('M -26 8 C -46 -22 -32 -62 -9 -88', D, 12));
+    o += arm('M -26 8 C -46 -22 -32 -62 -9 -88', D, 12);
     o += `<ellipse cx="0" cy="30" rx="33" ry="36" fill="${D}" ${st()}/><ellipse cx="0" cy="36" rx="19" ry="25" fill="${B}"/><path d="M -15 26 H 15 M -17 38 H 17 M -14 50 H 14" stroke="#D8C2F2" stroke-width="3" stroke-linecap="round"/>`;
     o += both(`<path d="M -22 -50 L -30 -74 L -10 -58 Z" fill="#FFD86B" ${st(4)}/>`);
     o += `<path d="M -34 -22 C -36 -64 36 -64 34 -22 C 34 -2 20 6 0 6 C -20 6 -34 -2 -34 -22 Z" fill="${D}" ${st()}/>` + both(blush(-26, -10, 7));
@@ -306,7 +317,8 @@ const trylGenkend = (() => {
   /* alle billeder spillet bruger, som SVG. Bruges også af værktøjerne til at se grafikken igennem */
   function billeder(){
     const B = {};
-    for (const k of Object.keys(ART)){ B[k] = svgW(`-110 -112 ${KASSE} ${KASSE}`, ART[k](false)); B[k + '!'] = svgW(`-110 -112 ${KASSE} ${KASSE}`, ART[k](true)); }
+    for (const k of Object.keys(ART)){ B[k] = svgW(`-110 -112 ${KASSE} ${KASSE}`, ART[k](false)); B[k + '!'] = svgW(`-110 -112 ${KASSE} ${KASSE}`, ART[k](true));
+      for (const j of [1, 2]){ JORD = j; B[k + '_' + j] = svgW(`-110 -112 ${KASSE} ${KASSE}`, ART[k](false)); } JORD = 0; }
     B.sommerfugl1 = svgW('-70 -60 140 120', sommerfugl('#FF8FC7', '#C79BFF')); B.sommerfugl2 = svgW('-70 -60 140 120', sommerfugl('#7FD8FF', '#FFE27A'));
     B.cupcake = svgW('-70 -60 140 120', cupcake()); B.and = svgW('-70 -70 140 130', and()); B.hjertevinge = svgW('-70 -60 140 120', hjertevinge());
     B.gave = svgW('-60 -60 120 120', gave());
@@ -329,7 +341,7 @@ const trylGenkend = (() => {
   const DYR = ['sommerfugl1', 'sommerfugl2', 'cupcake', 'and', 'hjertevinge'];
   /* hvor stort hvert billede tegnes (spillets mål pr. mål i billedet) og hvilket punkt i billedet, der er dets fod */
   const MAAL = { bg: [1, 0, 0], heks: [.31, 400, 1052], kaeledyr: [.5, 660, 1050], gave: [.86, 0, -50], kage0: [.7, 0, 0], kage1: [.7, 0, 0], kage2: [.7, 0, 0], kage3: [.7, 0, 0] };
-  for (const k of Object.keys(SLAGS)){ MAAL[k] = MAAL[k + '!'] = [SLAGS[k].sk, 0, GREB]; }
+  for (const k of Object.keys(SLAGS)){ MAAL[k] = MAAL[k + '!'] = MAAL[k + '_1'] = MAAL[k + '_2'] = [SLAGS[k].sk, 0, GREB]; }
   for (const k of DYR) MAAL[k] = [.62, 0, 0];
 
   function rundeplan(w){
@@ -639,12 +651,12 @@ const trylGenkend = (() => {
     put(ctx, 'heks', HEKS_X, GULV + 8 - hh * 36, { r: Math.sin(t * 1.6) * .012 + hh * .05, sy: 1 + Math.sin(t * 2.2) * .008 });
     if (S.harDyr){ ctx.beginPath(); ctx.ellipse(DYR_X, GULV + 8, 46 - dh * 10, 9, 0, 0, 7); ctx.fill(); put(ctx, 'kaeledyr', DYR_X, GULV + 10 - dh * 30, { sy: 1 + Math.sin(t * 2.6) * .012, r: dh * -.06 }); }
     /* dem, der er landet */
-    for (const f of S.foes){ if (f.st === 'ned') continue; const sk = SLAGS[f.k].sk; let y = f.y + (96 - GREB) * sk, r = 0, sy = 1;
+    for (const f of S.foes){ if (f.st === 'ned') continue; const sk = SLAGS[f.k].sk; let y = f.y + (96 - GREB) * sk, r = 0, sy = 1, bil = f.k + (Math.sin(f.t * 13) > 0 ? '_1' : '_2');
       if (f.st === 'loeb' || f.st === 'flygt'){ y -= Math.abs(Math.sin(f.t * 13)) * 16; r = Math.sin(f.t * 13) * .12; }
-      else if (f.st === 'spis'){ sy = 1 + Math.sin(f.t * 22) * .06; r = Math.sin(f.t * 9) * .05; }
-      else if (f.st === 'jubel') y -= Math.abs(Math.sin(f.t * 8 + f.ph)) * 26;
+      else if (f.st === 'spis'){ sy = 1 + Math.sin(f.t * 22) * .06; r = Math.sin(f.t * 9) * .05; bil = f.k + (Math.sin(f.t * 11) > 0 ? '_1' : '_2'); }
+      else if (f.st === 'jubel'){ y -= Math.abs(Math.sin(f.t * 8 + f.ph)) * 26; bil = f.k; }   /* jubel: armene i vejret */
       ctx.fillStyle = 'rgba(8,30,24,.35)'; ctx.beginPath(); ctx.ellipse(f.x, GULV + 4, 40 * sk / .66, 8, 0, 0, 7); ctx.fill();
-      put(ctx, f.k, f.x, y, { r, sy, ay: 96 }); }
+      put(ctx, bil, f.x, y, { r, sy, ay: 96 }); }
     /* gnister, krummer og skyer */
     for (const p of S.parts){ const k = p.t / p.life, a = 1 - k;
       if (p.type === 'ring'){ ctx.globalAlpha = a; ctx.strokeStyle = p.c; ctx.lineWidth = 7 * a + 1; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (.6 + k * .9), 0, 7); ctx.stroke(); }
