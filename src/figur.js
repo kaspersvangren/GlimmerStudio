@@ -613,14 +613,21 @@ function armFist(c, held, flip){
   s += clipG(SLEEVE_L, `<path d="M 230 430 C 222 480 226 530 240 580 L 280 580 L 280 430 Z" fill="${r.D}" opacity=".45"/><path d="M 180 420 L 280 420 L 280 600 L 180 600 Z" fill="${r.D}" opacity=".3"/><path d="M 214 500 Q 228 506 236 500 M 210 520 Q 226 528 238 520" stroke="${r.D}" stroke-width="3" fill="none" opacity=".7"/>`);
   return s + cuffBand(c, [192.6,550.3], [248.6,558.3], [190,562], [246,570], [220,560], [218,590]);
 }
-/* højre arm med stav (som piloten) */
-function staffHand(c){
+/* højre arm med stav (som piloten). Armen tegnes på sin plads i kroppen, men staven og hånden om den tegnes til sidst,
+   så staven altid står foran håret og hatten */
+function staffArm(c){
   const r = c.robe, SX = 436;
   let s = '';
   s += `<path d="M 396 532 L 414 524 L 432 552 L 418 566 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><path d="M 404 548 L 424 538 L 428 548 L 414 560 Z" fill="${c.skS}" opacity=".55"/>`;
   s += `<path d="${SLEEVE_R}" fill="${r.a}" stroke="${r.s}" stroke-width="3" stroke-linejoin="round"/>`;
   s += clipG(SLEEVE_R, `<path d="M 352 420 C 380 450 396 490 404 540 L 440 540 L 440 420 Z" fill="${r.D}" opacity=".55"/><path d="M 370 480 Q 384 476 392 486 M 376 500 Q 390 496 400 506" stroke="${r.D}" stroke-width="3" fill="none" opacity=".7"/>`);
   s += cuffBand(c, [422.6,519.3], [382.6,537.3], [428,530], [388,548], [404,532], [416,558]);
+  return s;
+}
+/* knytnæven om staven: tegnes oven på staven */
+function staffFist(c){
+  const SX = 436;
+  let s = '';
   s += `<path d="M ${SX-16} 548 Q ${SX-16} 538 ${SX-6} 538 L ${SX+10} 540 Q ${SX+20} 542 ${SX+19} 551 Q ${SX+23} 556 ${SX+19} 561 Q ${SX+23} 566 ${SX+19} 571 Q ${SX+20} 580 ${SX+10} 580 L ${SX-6} 580 Q ${SX-17} 579 ${SX-17} 569 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.4" stroke-linejoin="round"/>`;
   s += `<path d="M ${SX+11} 551 h 9 M ${SX+11} 561 h 9 M ${SX+11} 571 h 8" stroke="${c.sk}" stroke-width="2" stroke-linecap="round" opacity=".7"/><path d="M ${SX-14} 572 Q ${SX+2} 582 ${SX+16} 574 L ${SX+16} 578 Q ${SX+2} 584 ${SX-14} 576 Z" fill="${c.skS}" opacity=".55"/>`;
   s += `<path d="M ${SX-12} 546 Q ${SX-4} 536 ${SX+10} 543 Q ${SX+8} 551 ${SX-4} 551 Q ${SX-11} 551 ${SX-12} 546 Z" fill="${c.skin}" stroke="${c.sk}" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="${SX+5}" cy="545" rx="3" ry="2.2" fill="${lt(c.skin,0.4)}"/>`;
@@ -641,7 +648,7 @@ function armStaff(c, orb){
   s += `<rect x="${SX-10}" y="${OY+38}" width="20" height="10" rx="3" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
   const sp = [[SX+48,OY-36,9],[SX-48,OY-50,6],[SX+40,OY+36,5],[SX-42,OY+28,4],[SX+20,OY-62,4]].map(([x,y,rr], i) => { const t = twinkle(x, y, rr, lt(orb,0.55)); return ANIM ? `<g>${t}<animate attributeName="opacity" values="1;0.2;1" dur="${1.8+i*0.37}s" repeatCount="indefinite"/></g>` : t; }).join('');
   s += sp;
-  s += staffHand(c);
+  s += staffFist(c);
   return s;
 }
 /* højre arm med tryllestav: samme arm og greb som staven, tryllestaven står lodret i hånden */
@@ -651,7 +658,7 @@ function armWand(c, col){
   s += `<rect x="${SX-5}" y="${tipY+8}" width="10" height="6" rx="2" fill="#F2C14E" stroke="#B98516" stroke-width="1.5"/>`;
   s += starP(SX, tipY, 14, col) + starP(SX, tipY, 6.5, lt(col,0.6));
   s += [[SX-20,tipY-16,5],[SX+22,tipY-10,4],[SX+16,tipY+20,3.5],[SX-14,tipY+16,3]].map(([x,y,rr], i) => { const tw = twinkle(x, y, rr, lt(col,0.5)); return ANIM ? `<g>${tw}<animate attributeName="opacity" values="1;0.15;1" dur="${1.4+i*0.4}s" repeatCount="indefinite"/></g>` : tw; }).join('');
-  return s + staffHand(c);
+  return s + staffFist(c);
 }
 /* ---------- præmiestave fra arkadens præmiebutik ----------
    Lange stave holdes som staven med kugle (hovedet omkring SX, OY), korte som tryllestaven (spidsen i SX, 458).
@@ -738,7 +745,7 @@ const P_HEADS = {
     let o = pGlow(SX, OY, 80, col, 'psG5');
     const wing = s => { let d = `M ${SX + s*14} ${OY - 6} C ${SX + s*40} ${OY - 40} ${SX + s*72} ${OY - 38} ${SX + s*78} ${OY - 20}`; for (const [x, y] of [[66, -6], [52, 8], [36, 16]]) d += ` Q ${SX + s*(x + 10)} ${OY + y - 8} ${SX + s*x} ${OY + y}`; d += ` Q ${SX + s*24} ${OY + 18} ${SX + s*14} ${OY + 10} Z`;
       return `<path d="${d}" fill="#FFFFFF" stroke="#2A1838" stroke-width="3" ${PST}/><path d="M ${SX + s*24} ${OY - 4} Q ${SX + s*46} ${OY - 20} ${SX + s*66} ${OY - 20} M ${SX + s*24} ${OY + 4} Q ${SX + s*42} ${OY - 4} ${SX + s*56} ${OY - 2}" stroke="#C8C4E8" stroke-width="2.4" fill="none" stroke-linecap="round"/>`; };
-    o += wing(-1) + wing(1);
+    o += `<g transform="translate(${SX} ${OY}) scale(.8) translate(${-SX} ${-OY})">${wing(-1) + wing(1)}</g>`;
     o += `<ellipse cx="${SX}" cy="${OY - 50}" rx="22" ry="6" fill="none" stroke="#F2C14E" stroke-width="5"/><ellipse cx="${SX}" cy="${OY - 50}" rx="22" ry="6" fill="none" stroke="#FFF6A0" stroke-width="1.8"/>`;
     o += `<path d="${pHeart(SX, OY + 2, 30)}" fill="${col}" stroke="${fdk(col,0.35)}" stroke-width="3.2"/><path d="M ${SX - 22} ${OY - 6} q -4 10 2 18" stroke="${lt(col,0.55)}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
     o += `<rect x="${SX-10}" y="${OY+30}" width="20" height="12" rx="3" fill="#F2C14E" stroke="#B98516" stroke-width="2"/>`;
@@ -746,12 +753,16 @@ const P_HEADS = {
   },
   /* skaftet snor sig i en krølle, og en sommerfugl sidder øverst */
   sommerfugl(SX, OY, col){
-    let o = pGlow(SX, OY - 10, 70, col, 'psG6');
-    o += `<path d="M ${SX} ${OY+44} C ${SX - 4} ${OY + 10} ${SX - 34} ${OY + 4} ${SX - 30} ${OY - 22} C ${SX - 26} ${OY - 44} ${SX + 4} ${OY - 40} ${SX + 2} ${OY - 20} C ${SX} ${OY - 6} ${SX - 16} ${OY - 8} ${SX - 14} ${OY - 20}" stroke="#7A5230" stroke-width="13" fill="none" ${PST}/><path d="M ${SX} ${OY+44} C ${SX - 4} ${OY + 10} ${SX - 34} ${OY + 4} ${SX - 30} ${OY - 22} C ${SX - 26} ${OY - 44} ${SX + 4} ${OY - 40} ${SX + 2} ${OY - 20} C ${SX} ${OY - 6} ${SX - 16} ${OY - 8} ${SX - 14} ${OY - 20}" stroke="#D9A868" stroke-width="8" fill="none" ${PST}/>`;
-    const bx = SX + 18, by = OY - 52, flap = ANIM ? `<animateTransform attributeName="transform" type="scale" values="1 1;0.35 1;1 1" dur="1.1s" repeatCount="indefinite" additive="sum"/>` : '';
-    const w = s => `<g transform="translate(${bx} ${by})"><g>${flap}<path d="M 0 -2 C ${s*-30} -38 ${s*-58} -16 ${s*-42} 2 C ${s*-50} 10 ${s*-40} 30 ${s*-20} 22 C ${s*-8} 18 ${s*-2} 8 0 2 Z" fill="${col}" stroke="#2A1838" stroke-width="2.6" ${PST}/><circle cx="${s*-30}" cy="-10" r="6" fill="${lt(col,0.6)}"/><circle cx="${s*-22}" cy="14" r="4" fill="${lt(col,0.6)}"/></g></g>`;
-    o += w(1) + w(-1) + `<ellipse cx="${bx}" cy="${by + 2}" rx="5" ry="16" fill="#3A2448" stroke="#2A1838" stroke-width="2"/><path d="M ${bx - 2} ${by - 12} q -6 -14 -12 -16 M ${bx + 2} ${by - 12} q 6 -14 12 -16" stroke="#2A1838" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
-    return o + pSparkles([[SX+56,OY-24,7],[SX-50,OY-50,6],[SX+30,OY+30,4]], lt(col,0.55));
+    /* skaftet snor sig op i en stor spiral, og sommerfuglen sidder inde midt i den */
+    const cx = SX - 6, cy = OY - 34, pts = [];
+    for (let i = 0; i <= 44; i++){ const t = i / 44, a = Math.PI * (0.42 - 1.9 * t), r = 40 - 12 * t; pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]); }
+    const d = `M ${SX} ${OY + 44} C ${SX} ${OY + 20} ${pts[0][0].toFixed(1)} ${(pts[0][1] + 18).toFixed(1)} ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)} ` + pts.slice(1).map(p => `L ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+    let o = pGlow(cx, cy, 72, col, 'psG6');
+    o += `<path d="${d}" stroke="#7A5230" stroke-width="13" fill="none" ${PST}/><path d="${d}" stroke="#D9A868" stroke-width="8" fill="none" ${PST}/><circle cx="${pts[44][0].toFixed(1)}" cy="${pts[44][1].toFixed(1)}" r="6" fill="#D9A868" stroke="#7A5230" stroke-width="2.5"/>`;
+    const bx = cx + 2, by = cy + 2, flap = ANIM ? `<animateTransform attributeName="transform" type="scale" values="1 1;0.35 1;1 1" dur="1.1s" repeatCount="indefinite" additive="sum"/>` : '';
+    const w = s => `<g transform="translate(${bx} ${by}) scale(.62)"><g>${flap}<path d="M 0 -2 C ${s*-30} -38 ${s*-58} -16 ${s*-42} 2 C ${s*-50} 10 ${s*-40} 30 ${s*-20} 22 C ${s*-8} 18 ${s*-2} 8 0 2 Z" fill="${col}" stroke="#2A1838" stroke-width="3.6" stroke-linejoin="round"/><circle cx="${s*-30}" cy="-10" r="6" fill="${lt(col,0.6)}"/><circle cx="${s*-22}" cy="14" r="4" fill="${lt(col,0.6)}"/></g></g>`;
+    o += w(1) + w(-1) + `<ellipse cx="${bx}" cy="${by + 1}" rx="3.4" ry="11" fill="#3A2448" stroke="#2A1838" stroke-width="1.6"/><path d="M ${bx - 1.5} ${by - 8} q -4 -9 -8 -10 M ${bx + 1.5} ${by - 8} q 4 -9 8 -10" stroke="#2A1838" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    return o + pSparkles([[SX+48,OY-30,7],[SX-50,OY-56,6],[SX+30,OY+30,4]], lt(col,0.55));
   },
   /* en kæmpe slikkepind med sløjfe */
   slik(SX, OY, col){
@@ -784,13 +795,13 @@ const P_TIPS = {
 };
 function armStaffP(c, col, head, shaft, grip){
   const SX = 436, OY = 300;
-  return pShaft(SX, OY, shaft) + (grip ? pGrip(SX, grip) : '') + P_HEADS[head](SX, OY, col) + staffHand(c);
+  return pShaft(SX, OY, shaft) + (grip ? pGrip(SX, grip) : '') + P_HEADS[head](SX, OY, col) + staffFist(c);
 }
 function armWandP(c, col, tip, wood){
   const SX = 436, tipY = 458;
   let s = `<path d="M ${SX} 604 L ${SX} ${tipY+16}" stroke="${fdk(wood,0.45)}" stroke-width="10" stroke-linecap="round"/><path d="M ${SX} 604 L ${SX} ${tipY+16}" stroke="${wood}" stroke-width="7" stroke-linecap="round"/><path d="M ${SX-1.6} 600 L ${SX-1.6} ${tipY+18}" stroke="${lt(wood,0.35)}" stroke-width="2" stroke-linecap="round"/>`;
   s += `<rect x="${SX-5}" y="${tipY+14}" width="10" height="6" rx="2" fill="#F2C14E" stroke="#B98516" stroke-width="1.5"/>`;
-  return s + P_TIPS[tip](SX, tipY, col) + staffHand(c);
+  return s + P_TIPS[tip](SX, tipY, col) + staffFist(c);
 }
 /* tryllestav i knytnæven (tegnes i venstre sides mål og spejles) */
 function wandHeld(col){
@@ -936,7 +947,7 @@ function waveArm(inner, ev, forever){
    Nye ting, der venter på Kaspers godkendelse på Tegnebordet. De kan tegnes (og ses på Tegnebordet),
    men vises ikke i spillet: ikke i skaberen, ikke på gæster og ikke i kuglerne. Godkendt = slet linjen her. */
 const KLADDE = new Set([
-  ...PRAEMIE_STAVE.map(k => 'acc:' + k),
+  'acc:sommerfuglestav',
   'rum:ting.teleskop', 'rum:ting.ovn',
 ]);
 const isKladde = (cat, id) => KLADDE.has(cat + ':' + id);
@@ -991,9 +1002,10 @@ function figureSvg(st, c, hl, wave){
   s += HLW(hl === 'robe', left);
   /* højre arm: stav, tryllestav eller tom hånd */
   const pk = PRAEMIE_STAVE.find(k => A(k));
-  if (A('stav')) s += HLW(hl === 'acc:stav', armStaff(c, A('stav')));
-  else if (A('tryllestav')) s += HLW(hl === 'acc:tryllestav', armWand(c, A('tryllestav')));
-  else if (pk) s += HLW(hl === 'acc:' + pk, ACC[pk].draw(c, A(pk)));
+  /* staven (og hånden om den) gemmes til sidst, så den står foran håret */
+  const rk = A('stav') ? 'stav' : A('tryllestav') ? 'tryllestav' : pk;
+  let stavForan = '';
+  if (rk){ s += HLW(hl === 'acc:' + rk, staffArm(c)); stavForan = HLW(hl === 'acc:' + rk, rk === 'stav' ? armStaff(c, A('stav')) : rk === 'tryllestav' ? armWand(c, A('tryllestav')) : ACC[rk].draw(c, A(rk))); }
   else s += MIR(armOpen(c, true));
   /* hals, krave og skuldre (kappens skulderstykke, eller kjolens bærestykke) */
   s += `<path d="M 284 360 L 284 406 Q 300 416 316 406 L 316 360 Z" fill="${c.skin}"/><path d="M 284 360 L 284 404 M 316 360 L 316 404" stroke="${c.sk}" stroke-width="2.5"/>`;
@@ -1027,7 +1039,7 @@ function figureSvg(st, c, hl, wave){
   if (hat.draw) head += HLW(hl === 'hat', `<g transform="translate(0 10) rotate(-6 300 214)">${hat.draw(c)}</g>`);
   const look = IDLE && ANIM ? (() => { const pts = trackPoints('look', e => e.d * 4); return `<animateTransform attributeName="transform" type="translate" values="${pts.map(p => p[1].toFixed(1)+' 0').join(';')}" keyTimes="${pts.map(p => (p[0]/IDLE.T).toFixed(4)).join(';')}" dur="${IDLE.T}s" repeatCount="indefinite"/>`; })() : '';
   s += sway(`<g>${look}<g transform="${HEAD_T}">${head}</g></g>`);
-  return s;
+  return s + stavForan;
 }
 
 function renderDoll(st, opts={}){
