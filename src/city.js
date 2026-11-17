@@ -414,7 +414,7 @@ const PLACES = [
   { id:'kugler', name:'Boblebutikken', open: () => showBalls() },
   { id:'cafe', name:'Den Flyvende Støvle', soon:true },
   { id:'dyr', name:'Dyreparken', soon:true },
-  { id:'koncert', name:'Koncertsalen', soon:true },
+  { id:'koncert', name:'Koncertsalen', soon:true, forp:true, open: () => Koncert.show() },
   { id:'arkade', name:'Arkaden', open: () => Arkade.show() },
 ];
 let heroAt = 'hus', walking = false, SPR = null;
@@ -578,7 +578,7 @@ function heroPetFollow(){
 }
 function visit(id){
   const p = PLACES.find(x => x.id === id); if (!p) return;
-  if (p.soon){ sfx.nope(); toast(p.name + ' kommer snart!'); return; }
+  if (p.soon && !(p.forp && store.get(KEY_FORP, false))){ sfx.nope(); toast(p.name + ' kommer snart!'); return; }
   if (walking && LIFE.hero.dest === id) return;
   sfx.pick();
   const done = () => { sfx.open(); goTo(() => p.open()); };
@@ -608,7 +608,7 @@ function tapThing0(t){
   }
   if (kind === 'doll'){   // hendes egen dukke: står hun ved et sted, går hun ind; ellers vinker hun
     if (walking) return;
-    if (PLACES.find(p => p.id === heroAt && !p.soon)) return visit(heroAt);
+    if (PLACES.find(p => p.id === heroAt && (!p.soon || (p.forp && store.get(KEY_FORP, false))))) return visit(heroAt);
     if (now < (LIFE.heroGreet || 0)) return;
     LIFE.heroGreet = now + 2900; sfx.hello();
     SPR.greet = SPR.greet || svgUrl(renderDoll(heroState(), { viewBox: VB_DOLL, anim: !calm, greet: true, pet: false }));

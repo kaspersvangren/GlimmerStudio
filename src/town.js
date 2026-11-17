@@ -16,6 +16,18 @@ function mNote(freq, t, dur, type, vol){
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(g); g.connect(MUSIC.out); o.start(t); o.stop(t + dur + 0.05);
 }
+/* små trommer af støj og en faldende tone (bruges kun af melodier med 'slag') */
+let NOISE = null;
+function mDrum(k, t){
+  if (!k || k === '.') return;
+  if (k === 'k'){ const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+    g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); o.connect(g); g.connect(MUSIC.out); o.start(t); o.stop(t + 0.2); return; }
+  if (!NOISE){ NOISE = AC.createBuffer(1, AC.sampleRate * 0.3, AC.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const n = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), dur = k === 's' ? 0.12 : 0.035;
+  n.buffer = NOISE; f.type = k === 's' ? 'bandpass' : 'highpass'; f.frequency.value = k === 's' ? 1800 : 7000;
+  g.gain.setValueAtTime(k === 's' ? 0.07 : 0.025, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  n.connect(f); f.connect(g); g.connect(MUSIC.out); n.start(t); n.stop(t + dur + 0.02);
+}
 function musicTick(){
   if (!AC || !MUSIC.track) return;
   const tr = TRACKS[MUSIC.track] || TRACKS[MUSIC_SYNTH[MUSIC.track]] || TRACKS.byen, eighth = 60 / tr.bpm / 2;
@@ -23,9 +35,15 @@ function musicTick(){
   if (MUSIC.nextT < AC.currentTime - 0.05){ const miss = Math.ceil((AC.currentTime - MUSIC.nextT) / eighth); MUSIC.step += miss; MUSIC.nextT += miss * eighth; DBG.count('musikBagud'); }
   while (MUSIC.nextT < AC.currentTime + 0.6){
     const st = MUSIC.step, bar = Math.floor(st / 8) % 4, pos = st % 8, ch = tr.chords[bar], t = MUSIC.nextT;
-    if (pos % 4 === 0) mNote(mtof(ch[0] - 24), t, eighth * 3.2, 'triangle', 0.09);
-    mNote(mtof(ch[[0,1,2,3,2,1,2,3][pos]]), t, eighth * 0.9, 'square', 0.018);
-    const m = tr.melody[st % 32]; if (m) mNote(mtof(m), t, eighth * 1.6, 'triangle', 0.05);
+    /* valgfrit pr. melodi: basM (bastoner pr. ottendedel, i halvtoner over grundtonen), arpM (akkordtone pr. ottendedel, 'c' = hele akkorden),
+       bølgeformer basT/arpT/melT, og slag (trommer: k = stortromme, s = lilletromme, h = hi-hat) */
+    const bm = tr.basM ? tr.basM[pos] : (pos % 4 === 0 ? 0 : null);
+    if (bm != null) mNote(mtof(ch[0] - 24 + bm), t, eighth * (tr.basM ? 1.6 : 3.2), tr.basT || 'triangle', 0.09);
+    const am = (tr.arpM || [0,1,2,3,2,1,2,3])[pos];
+    if (am === 'c') ch.slice(1).forEach(n => mNote(mtof(n), t, eighth * 0.8, tr.arpT || 'square', 0.012));
+    else if (am != null) mNote(mtof(ch[am]), t, eighth * 0.9, tr.arpT || 'square', 0.018);
+    const m = tr.melody[st % 32]; if (m) mNote(mtof(m), t, eighth * 1.6, tr.melT || 'triangle', tr.melV || 0.05);
+    if (tr.slag) mDrum(tr.slag[pos], t);
     MUSIC.step++; MUSIC.nextT += eighth;
   }
 }
@@ -54,6 +72,11 @@ function updateAudioBtns(){
   document.querySelectorAll('.iconbtn.music').forEach(b => { b.classList.toggle('off', !MUSIC.on); b.setAttribute('aria-pressed', String(MUSIC.on)); });
   document.querySelectorAll('.iconbtn.sound').forEach(b => { b.classList.toggle('off', !soundOn); b.setAttribute('aria-pressed', String(soundOn)); });
 }
+
+/* forpremiere: hold fingeren på versionsnummeret i 2 sekunder, så kan steder, der ikke er færdige endnu (koncertsalen), åbnes */
+let forpT = 0;
+function forpTryk(){ clearTimeout(forpT); forpT = setTimeout(() => { const on = !store.get(KEY_FORP, false); store.set(KEY_FORP, on); sfx.twinkle(); toast(on ? 'Forpremiere slået til: Koncertsalen kan åbnes' : 'Forpremiere slået fra'); }, 2000); }
+function forpSlip(){ clearTimeout(forpT); }
 
 /* ---------- tæppet mellem skærmene ---------- */
 let curtainBusy = false;
@@ -155,7 +178,7 @@ function showTitle(){
       /* knappen griber fingeren, så trykket tæller, selvom skærmen hopper (fx når telefonens bjælker dukker op) */
       pointerdown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} },
       pointerup: () => startPlay(), click: () => startPlay() } }),
-    el('p', { class:'ver', on:{ click: () => DBG.tap() } }, GAME_NAME + ' ' + VERSION),
+    el('p', { class:'ver', on:{ click: () => DBG.tap(), pointerdown: forpTryk, pointerup: forpSlip, pointerleave: forpSlip, pointercancel: forpSlip } }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);
   smilOpacityToCss($('#titleBody'));

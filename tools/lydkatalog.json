@@ -531,5 +531,77 @@
     "forslag": "Hæle på et gulv."
    }
   ]
+ },
+ {
+  "gruppe": "Koncertsalen",
+  "id": "koncert",
+  "slots": [
+   {
+    "key": "koncert.hygge",
+    "musik": true,
+    "navn": "Koncert: Svampevisen (hyggelig)",
+    "hvor": "Koncertsalen, når man kommer ind. Bandet spiller den, indtil man ønsker en anden sang",
+    "forslag": "Rolig og hyggelig, fx lut, kontrabas, børstetrommer og en gnom der nynner. Ca. 80-90 slag i minuttet. Skal kunne køre længe."
+   },
+   {
+    "key": "koncert.rock",
+    "musik": true,
+    "navn": "Koncert: Spidshue-rock",
+    "hvor": "Når man ønsker rock: bandet har ansigtsmaling, nittejakker og lyn",
+    "forslag": "Glad børne-rock med el-guitar og trommer, ca. 130-150 slag i minuttet. Gerne lidt fjollet."
+   },
+   {
+    "key": "koncert.country",
+    "musik": true,
+    "navn": "Koncert: Støvlestamp",
+    "hvor": "Når man ønsker country: cowboyhatte, banjo og høballer",
+    "forslag": "Banjo, kontrabas og \"bum-tjak\"-rytme, ca. 110-120 slag i minuttet."
+   },
+   {
+    "key": "koncert.disko",
+    "musik": true,
+    "navn": "Koncert: Glimmer-disko",
+    "hvor": "Når man ønsker disko: afro, stjernebriller og diskokugle",
+    "forslag": "Fire-på-gulvet disko med oktav-bas og strygere, ca. 120 slag i minuttet."
+   },
+   {
+    "key": "koncert.klassisk",
+    "musik": true,
+    "navn": "Koncert: Gnomernes symfoni",
+    "hvor": "Når man ønsker klassisk: parykker, violin, pauker og en operasanger med vikinghjelm",
+    "forslag": "Lille kammermusik, fx strygere og pauker, eller en fjollet opera-arie. Ca. 90-100 slag i minuttet."
+   },
+   {
+    "key": "koncert.hawaii",
+    "musik": true,
+    "navn": "Koncert: Hula i hængekøjen",
+    "hvor": "Når man ønsker Hawaii: blomsterkranse, ukulele og tikifakler",
+    "forslag": "Ukulele, steel-guitar og bongotrommer, afslappet, ca. 95-105 slag i minuttet."
+   },
+   {
+    "key": "koncert.gnom",
+    "navn": "En gnom spiller solo",
+    "hvor": "Man trykker på en af gnomerne, og den hopper og spiller en lille stump",
+    "forslag": "En kort, glad lille melodi-stump eller et \"tadaa\". Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "koncert.ud",
+    "navn": "Bandet går ud",
+    "hvor": "Man har ønsket en sang, og gnomerne trisser ud i kulissen for at klæde om",
+    "forslag": "Små hurtige fodtrin eller et \"så går vi!\". Låner lige nu et klik."
+   },
+   {
+    "key": "koncert.taeppe",
+    "navn": "Tæppet",
+    "hvor": "Tæppet går for og fra igen, mens gnomerne klæder om",
+    "forslag": "Et blødt sus af fløjl. Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "koncert.klap",
+    "navn": "Publikum klapper",
+    "hvor": "Bandet kommer ind i det nye tøj, lige før sangen begynder",
+    "forslag": "Kort klapsalve og et par jubelråb. Låner lige nu fanfaren."
+   }
+  ]
  }
 ]

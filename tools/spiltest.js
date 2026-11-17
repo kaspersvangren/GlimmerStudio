@@ -112,6 +112,11 @@ async function run(w, h){
     ok(arc[id], `${tag} arkaden: ${id} viste ikke slutkortet`);
   }
   await p.evaluate(() => Arkade.show());
+  /* koncertsalen (forpremiere): scenen bygges, siden kan ikke rulle, og et sangskift ender med hele bandet på plads i det nye tøj */
+  { await p.evaluate(() => Koncert.show()); await p.waitForTimeout(500); await noScroll('koncertsalen');
+    const k = await p.evaluate(async () => { const n = document.querySelectorAll('#koncert .kz-g').length; await Koncert.skift('rock'); const r = { n, stil: Koncert.stil, ude: document.querySelectorAll('#koncert .kz-g.ud').length }; await Koncert.skift('hygge'); return r; });
+    ok(k.n === 4 && k.stil === 'rock' && k.ude === 0, `${tag} koncertsalen: ${JSON.stringify(k)}`);
+    await p.evaluate(() => Arkade.show()); }
   ok(!errs.length, `${tag} fejl på siden:\n    ` + errs.join('\n    '));
   await b.close();
   console.log(`${tag}: eliksir ok, kost ${res ? `nr. ${res.place}, ${res.rings} ringe` : 'ikke færdig'}, faldskærm ${fr && fr.done ? `${fr.d} m fra midten, ${fr.bubbles} bobler` : 'ikke færdig'}`);

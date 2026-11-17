@@ -1059,3 +1059,59 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .gal-mal.on{border-color:#FF5FA8;box-shadow:0 0 0 3px #FFE0EF}
 .gal-mal.brugt{opacity:.55}
 @media (max-height:420px){.gal-top{padding:6px 12px}.gal-top h2{font-size:18px}.gal-body{padding:10px;gap:10px}.gal-left{flex-basis:28%}.gal-help{font-size:13px}.gal-lay svg{width:30px;height:40px}.gal-lay span{font-size:11px}.gal-list{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}}
+
+/* ---------- koncertsalen ---------- */
+.kz-wrap{position:absolute;inset:0;overflow:hidden;background:#140A14}
+.kz-stage{position:absolute;left:50%;top:50%;width:1600px;height:1000px;transform-origin:50% 50%;--slag:.7s}
+.kz-pic{position:absolute;display:block;pointer-events:none;user-select:none;-webkit-user-select:none}
+.kz-g{position:absolute;cursor:pointer;touch-action:manipulation;will-change:transform}
+.kz-g.gaa{transition:transform 1.5s linear}
+.kz-g.ud{transform:translateX(var(--dx))}
+.kz-in{position:absolute;inset:0;transform-origin:50% 100%;animation:kzbob var(--slag) ease-in-out infinite;will-change:transform}
+.kz-in .kz-pic{will-change:opacity}
+.kz-in .f0{animation:kzA calc(var(--slag) * 2) step-end infinite}
+.kz-in .f1{animation:kzB calc(var(--slag) * 2) step-end infinite}
+@keyframes kzA{0%{opacity:1}50%{opacity:0}}
+@keyframes kzB{0%{opacity:0}50%{opacity:1}}
+@keyframes kzbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes kzsway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+@keyframes kzbang{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-14px) rotate(-3deg)}60%{transform:translateY(2px) rotate(2deg)}}
+@keyframes kzwalk{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-16px) rotate(4deg)}}
+@keyframes kzhop{0%,100%{transform:translateY(0)}40%{transform:translateY(-60px) rotate(-6deg)}70%{transform:translateY(0) scale(1.06,.94)}}
+.kz-hygge .kz-in,.kz-klassisk .kz-in{animation-name:kzsway;animation-duration:calc(var(--slag) * 2)}
+.kz-rock .kz-in{animation-name:kzbang}
+.kz-sang .kz-in{animation-delay:calc(var(--slag) * -.5)}
+.kz-bas .kz-in{animation-delay:calc(var(--slag) * -.25)}
+.kz-g.gaa .kz-in{animation:kzwalk .38s ease-in-out infinite}
+.kz-g.gaa .kz-in .f0{animation:none;opacity:1}.kz-g.gaa .kz-in .f1{animation:none;opacity:0}
+.kz-in.hop{animation:kzhop .7s ease-out}
+.kz-tv,.kz-th{position:absolute;height:730px;transition:transform .9s ease-in-out;will-change:transform;pointer-events:none}
+.kz-tv{transform:translateX(-600px)}.kz-th{transform:translateX(600px)}
+.kz-stage.lukket .kz-tv,.kz-stage.lukket .kz-th{transform:none}
+.kz-skilt{position:absolute;left:800px;top:420px;transform:translate(-50%,-50%);z-index:2;pointer-events:none}
+.kz-skilt-in{background:linear-gradient(#F7E2A0,#D9A848);border:6px solid #1A1238;border-radius:26px;padding:22px 44px;text-align:center;color:#3A2008;box-shadow:0 10px 0 rgba(0,0,0,.35);animation:akpop .35s ease-out}
+.kz-skilt-in small{display:block;font-size:30px;font-weight:700;opacity:.8}
+.kz-skilt-in b{display:block;font-family:var(--display);font-size:58px;line-height:1.1}
+.kz-lys{position:absolute;inset:0;pointer-events:none}
+.kz-kegle{transform-origin:50% 0;opacity:.75;will-change:transform,opacity}
+.kz-lys-hygge .kz-kegle,.kz-lys-klassisk .kz-kegle{animation:kzpuls 4s ease-in-out infinite}
+.kz-lys-rock .kz-kegle{animation:kzfej 1.7s ease-in-out infinite alternate}
+.kz-lys-disko .kz-kegle{animation:kzfej 2.4s ease-in-out infinite alternate}
+.kz-lys-hawaii .kz-kegle{animation:kzfej 5s ease-in-out infinite alternate}
+.kz-kegle.k1,.kz-kegle.k3{animation-direction:alternate-reverse !important}
+@keyframes kzpuls{0%,100%{opacity:.55}50%{opacity:.85}}
+@keyframes kzfej{0%{transform:rotate(-14deg)}100%{transform:rotate(14deg)}}
+.kz-flak{transform-origin:50% 100%;animation:kzflak .5s ease-in-out infinite alternate}
+@keyframes kzflak{0%{transform:scale(1,1)}100%{transform:scale(.94,1.08)}}
+.kz-kugle{transform-origin:50% 0;animation:kzsving 3s ease-in-out infinite alternate}
+.kz-sving{transform-origin:50% 0;animation:kzsving 6s ease-in-out infinite alternate}
+@keyframes kzsving{0%{transform:rotate(-4deg)}100%{transform:rotate(4deg)}}
+.kz-busk{animation:kzrul 9s linear infinite}
+@keyframes kzrul{0%{transform:translateX(-160px) rotate(0)}100%{transform:translateX(1060px) rotate(1080deg)}}
+.kz-flue{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(#FFF6B0,rgba(255,240,140,0));pointer-events:none;animation:kzflue 7s ease-in-out infinite}
+@keyframes kzflue{0%,100%{transform:translate(0,0);opacity:.2}25%{transform:translate(40px,-30px);opacity:1}50%{transform:translate(-20px,-60px);opacity:.4}75%{transform:translate(-50px,-20px);opacity:1}}
+.kz-node{position:absolute;font-size:58px;color:#FFE45F;text-shadow:0 0 8px #1A1238,0 3px 0 #1A1238;pointer-events:none;animation:kznode 1.6s ease-out forwards;opacity:0}
+@keyframes kznode{0%{opacity:0;transform:translateY(0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translateY(-160px) scale(1.2) rotate(12deg)}}
+.kz-oensk{display:inline-flex;align-items:center;gap:6px}
+.kz-oensk svg{width:22px;height:22px}
+.kz-sangkort .pic svg{width:100%;height:100%;display:block}
