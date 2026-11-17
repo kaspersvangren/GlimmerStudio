@@ -377,6 +377,8 @@ const Kost = (() => {
        tegnes forfra, hver gang noget langt væk bliver vist eller skjult) */
     for (const L of scene.querySelectorAll('.kf-L[data-k="1"]')) L.append(mk('g', { 'pointer-events':'none' }, `<rect x="-2600" y="0" width="2" height="2" fill="#FFF" opacity=".01"/><rect x="${S.course.end + 4200}" y="0" width="2" height="2" fill="#FFF" opacity=".01"/>`));
     S.el = rider(hero, { trail: true }); scene.querySelector('.kf-me').append(S.el);
+    /* nedtælling under boost: hvor mange ringe boostet styrer igennem endnu (4, 3, 2, 1), glødende lige foran figuren */
+    S.tael = mk('text', { class:'kf-tael', style:'display:none' }); scene.querySelector('.kf-me').append(S.tael);
     S.rivals.forEach(rv => { rv.el = rider(rv.st, { cls:'kf-rival', trail: true }); scene.querySelector('.kf-rivals.l' + rv.li).append(rv.el); });
     /* kort tryk = flyv op, hold fingeren nede = loop */
     let holdT = 0;
@@ -567,6 +569,11 @@ const Kost = (() => {
     for (const c of S.cull){ const on = c.x1 > cam - 900 && c.x0 < cam + 2600; if (on !== c.on){ c.on = on; c.g.style.display = on ? '' : 'none'; } }
     S.el.setAttribute('transform', `translate(${(S.x - cam).toFixed(1)} ${S.y.toFixed(1)})`);
     S.el.firstChild.setAttribute('transform', `rotate(${(S.ang || 0).toFixed(1)})`);
+    if (S.tael){ const t = S.tael;
+      if (S.boost > 0){ t.setAttribute('x', (S.x - cam + 118).toFixed(1)); t.setAttribute('y', (S.y - 58).toFixed(1));
+        if (t.textContent !== String(S.boost)){ t.textContent = S.boost; t.classList.remove('pop'); t.getBoundingClientRect(); t.classList.add('pop'); }
+        if (t.style.display) t.style.display = ''; }
+      else if (!t.style.display){ t.style.display = 'none'; t.textContent = ''; } }
     /* klassekammeraterne på deres egen bane i baggrunden, i halv størrelse */
     S.rivals.forEach((rv, i) => {
       rv.el.setAttribute('transform', `translate(${(rv.x + rv.lane.dx).toFixed(1)} ${laneY(rv.lane, rv.y).toFixed(1)}) scale(${rv.lane.k})`);

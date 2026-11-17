@@ -1136,3 +1136,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kz-sal.spiller .kz-borde.b1{animation:kzpub 1.4s ease-in-out infinite}
 .kz-sal.spiller .kz-borde.b2{animation:kzpub 1.4s ease-in-out infinite;animation-delay:-.5s}
 @keyframes kzpub{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+/* kosteflyvning: nedtællingen under boost (ringe tilbage), glødende tal lige foran figuren */
+.kf-tael{font-family:var(--display);font-weight:700;font-size:58px;fill:#FFF6D8;stroke:#3A1F60;stroke-width:6px;paint-order:stroke;text-anchor:middle;dominant-baseline:middle;filter:drop-shadow(0 0 3px #FFF) drop-shadow(0 0 9px #FFD36E) drop-shadow(0 0 20px #C79BFF);pointer-events:none}
+.kf-tael.pop{animation:kftael .45s cubic-bezier(.2,1.6,.4,1);transform-box:fill-box;transform-origin:center}
+@keyframes kftael{0%{transform:scale(1.8);opacity:.3}100%{transform:scale(1);opacity:1}}
