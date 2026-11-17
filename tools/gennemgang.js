@@ -11,7 +11,7 @@ const PAGE = 'file://' + path.resolve(__dirname, '../dist/index.html');
 /* versioner: hæv tallet for en ting, når den er rettet efter en fejlmelding */
 const V = { 'acc-bog': 6,
   /* koncertsalen v2: gribehænder på halsen, kontrabassen foran gnomen, violinen på skulderen */
-  'koncert-hygge': 4, 'koncert-rock': 4, 'koncert-country': 4, 'koncert-disko': 4, 'koncert-klassisk': 4, 'koncert-hawaii': 4,   /* v4: gribearmen bag instrumentet, slagarmen foran; sangerens arme bag skægget */
+  'koncert-hygge': 4, 'koncert-rock': 4, 'koncert-country': 5, 'koncert-disko': 4, 'koncert-klassisk': 4, 'koncert-hawaii': 4,   /* v4: gribearmen bag instrumentet, slagarmen foran; sangerens arme bag skægget */
   /* kortskitse v2: rettet efter noterne */
   'kort-ny': 4, 'kort-dragen': 3, 'kort-kollegiet': 4, 'kort-torvet': 3, 'kort-dyrepark': 5, 'kort-forrest': 4,
   /* v0.9.2: rettet efter første gennemgang */

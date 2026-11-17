@@ -261,7 +261,7 @@ const Koncert = (() => {
       return { bag: '', for: inst + arm(-36, -146, nx, ny, sl, 14) + greb(nx, ny) + armF(36, -146, 24, ry, sl, 18) + hand(24, ry) };
     }
     /* kontrabas: står ved siden af, større end gnomen */
-    const pyn = g === 'hawaii' ? blomst(-60, -170, 12, '#FF6FA8') + blomst(-36, -40, 10, '#FFE45F') : g === 'country' ? star(-50, -64, 12, '#FFD36E', 2.5) : '';
+    const pyn = g === 'hawaii' ? blomst(-60, -170, 12, '#FF6FA8') + blomst(-36, -40, 10, '#FFE45F') : '';
     const inst = `<g><path d="M -54 -228 C -18 -228 -10 -190 -22 -166 C 10 -150 14 -60 -10 -20 C -24 0 -84 0 -98 -20 C -122 -60 -118 -150 -86 -166 C -98 -190 -90 -228 -54 -228 Z" fill="${g === 'klassisk' ? '#8A3A1E' : '#B8641E'}" ${st(5)}/>`
       + `<path d="M -66 -110 q -6 18 0 36 M -42 -110 q 6 18 0 36" stroke="${E}" stroke-width="4" fill="none"/><rect x="-74" y="-40" width="40" height="8" rx="3" fill="#3A2008"/>`
       + `<rect x="-60" y="-352" width="12" height="190" fill="#3A2008" ${st(3)}/><path d="M -54 -350 C -40 -350 -40 -374 -54 -372 C -64 -370 -60 -360 -54 -362" fill="#3A2008" ${st(3)}/>`
