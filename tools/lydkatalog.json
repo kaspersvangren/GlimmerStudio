@@ -319,6 +319,24 @@
     "navn": "Bossen forvandles",
     "hvor": "Når bossen er besejret og bliver til et lille, sødt dyr",
     "forslag": "Et stort trylle-brag med klokker. Låner lige nu fanfaren."
+   },
+   {
+    "key": "tryl.lad",
+    "navn": "Bossen lader op",
+    "hvor": "Bossen gør klar til sit superangreb: den ryster, lyser og suger gnister ind",
+    "forslag": "Noget der stiger og bygger op i ca. 1,7 sekunder, fx en snurren der går op i tone. Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "tryl.super",
+    "navn": "Superangrebet sendes af sted",
+    "hvor": "Kæmpekuglen bliver kastet, og skærmen blinker",
+    "forslag": "Et dybt, flot WUUSH eller BWAAM. Bliver lige nu lavet af en synth."
+   },
+   {
+    "key": "tryl.superpuf",
+    "navn": "Kæmpekuglen sprænges",
+    "hvor": "Man har tegnet alle tegnene på kæmpekuglen, og den bliver til hjerter og stjerner",
+    "forslag": "Et stort, glad glimmerbrag med klokker. Låner lige nu fanfaren."
    }
   ]
  },

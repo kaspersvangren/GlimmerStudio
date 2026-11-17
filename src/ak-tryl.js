@@ -442,15 +442,27 @@ const trylGenkend = (() => {
      skud: hvad den kaster. bane: hvordan det flyver (bue, ret eller zigzag). hp: hvor mange gange den skal rammes.
      kombo: hvor mange tegn, man skal tegne i træk, når den er svimmel. hand: hvor kastet starter, set fra midten af bossen. */
   const BOSSER = [
-    { k:'trold', navn:'Kongetrolden', skud:'bombe', bane:'bue', hp:2, kombo:2, antal:1, hand:[-150, 10], sod:'en lille bamsetrold',
+    { k:'trold', navn:'Kongetrolden', skud:'bombe', bane:'bue', hp:3, kombo:3, antal:1, hand:[-150, 10], sod:'en lille bamsetrold',
       snak:['Hø hø hø!', 'Den kage er MIN!', 'Stinkbombe på vej!', 'Hø hø, fang!'], av:['Av, min krone!', 'Hov hov hov!', 'Det kilder!'], grin:'Hø hø! For langsom!' },
     { k:'foenix', navn:'Ildfuglen', skud:'ild', bane:'ret', hp:3, kombo:3, antal:1, hand:[0, 110], sod:'en lille kylling',
       snak:['Kra-kraaa!', 'Varm kage, mums!', 'Ild og flammer!', 'Fjer-flammer!'], av:['Mine fjer!', 'Kraaa-av!', 'Puha, det svider!'], grin:'Kra-kra! Jeg vandt næsten!' },
-    { k:'isdrage', navn:'Isdragen', skud:'is', bane:'zigzag', hp:3, kombo:3, antal:1, hand:[0, 0], sod:'en lille babydrage',
+    { k:'isdrage', navn:'Isdragen', skud:'is', bane:'zigzag', hp:4, kombo:3, antal:1, hand:[0, 0], sod:'en lille babydrage',
       snak:['Brrr! Is-kage!', 'Frys, kage!', 'Hihi, glat!', 'Snefnug-stjerner!'], av:['Atjuu!', 'Det er for varmt!', 'Mine horn!'], grin:'Brrr-ha-ha!' },
-    { k:'kraken', navn:'Kæmpeblæksprutten', skud:'blaek', bane:'bue', hp:4, kombo:3, antal:2, hand:[0, 120], sod:'en lille blæksprutte',
+    { k:'kraken', navn:'Kæmpeblæksprutten', skud:'blaek', bane:'bue', hp:4, kombo:4, antal:2, hand:[0, 120], sod:'en lille blæksprutte',
       snak:['Blæk-blæk!', 'Otte arme til kagen!', 'Splat!', 'Blob-blob-blob!'], av:['Mine arme!', 'Blubb!', 'Av, min tiara!'], grin:'Blæk-hæ-hæ!' },
   ];
+  /* bølger: hver boss har sit eget mønster, hvor den kaster flere på én gang (eller lige efter hinanden)
+     n: hvor mange. spred: hvor langt fra hinanden de lander. forsink: sekunder mellem hvert. fra: hvor de sendes fra (set fra bossens midte) */
+  const MOENSTER = {
+    trold:   { n: 3, spred: 150, forsink: .12, navn: 'Bombe-regn!' },
+    foenix:  { n: 4, spred: 90, forsink: .32, fra: [[-210, 60], [-70, 90], [70, 90], [210, 60]], navn: 'Ildregn!' },
+    isdrage: { n: 3, spred: 130, forsink: 0, modfase: true, navn: 'Isstorm!' },
+    kraken:  { n: 4, spred: 110, forsink: .22, fra: [[-150, 110], [-50, 140], [50, 140], [150, 110]], navn: 'Blæksprøjt!' },
+  };
+  /* superangrebet: bossen lader op, og så kommer en kæmpekugle med flere tegn, der skal tegnes i rækkefølge */
+  const SUPER = { trold: 'KÆMPEBOMBE!', foenix: 'FLAMMEKUGLE!', isdrage: 'ISKÆMPE!', kraken: 'BLÆKBOBLE!' };
+  const SKUDFARVE = { bombe: '#FF7A3A', ild: '#FFB23E', is: '#7FD8FF', blaek: '#B07AFF' };
+  const LAD = 1.7;
   const PYNT = ['sloejfe', 'hjerte', 'blomst', 'hjerte', 'sloejfe'];
   /* hvor pynten sætter sig på hver boss, når den bliver ramt */
   const PYNT_AT = { trold: [[-60, -150], [-70, -60], [70, -60], [0, 60], [60, 20]], foenix: [[0, -150], [-34, -40], [34, -40], [0, 40], [-60, 0]],
@@ -542,7 +554,7 @@ const trylGenkend = (() => {
     const hero = heroState(), harDyr = !!(hero.pet && hero.pet.kind !== 'ingen');
     S = { api, C, t: 0, last: performance.now(), raf: 0, over: false, klar: false, score: 0, runde: 0, liv: 3, forvandlet: 0, cfg: null,
           foes: [], frie: [], dyr: [], parts: [], tekster: [], spor: [], streg: null, koe: [], tving: [], spawnT: 0, fase: 'hent', faseT: 0, kort: null,
-          gave: null, gaveT: 0, hop: 0, dyrHop: 0, kageHop: 0, ryst: 0, msg: '', msgT: 0, harDyr, boss: null, skud: [], bossNr: 0, Z: null, msg2: '',
+          gave: null, gaveT: 0, hop: 0, blitz: 0, superSet: false, dyrHop: 0, kageHop: 0, ryst: 0, msg: '', msgT: 0, harDyr, boss: null, skud: [], bossNr: 0, Z: null, msg2: '',
           blink: Array.from({ length: 26 }, () => ({ x: rnd(-380, 1980), y: rnd(20, 560), p: rnd(0, 6), r: rnd(1.6, 3.2) })),
           ild: Array.from({ length: 9 }, () => ({ x: rnd(-300, 1900), y: rnd(700, 930), p: rnd(0, 6) })) };
     const me = S, cv = C.cv;
@@ -589,28 +601,69 @@ const trylGenkend = (() => {
     S.koe = []; S.tving = []; S.kort = null; S.spawnT = 99;
     S.gaveT = Math.random() < .6 ? rnd(10, 22) : -1;
     S.boss = { def, nr, x: 800, y: -300, t: 0, fase: 'ind', faseT: 2.4, hp: def.hp + cyk, hpMax: def.hp + cyk, komboN: Math.min(5, def.kombo + cyk),
-      flyv: Math.max(2.4, 5.4 - .35 * (nr - 1)), gab: Math.max(.9, 2.5 - .22 * (nr - 1)), angreb: 5 + Math.min(4, nr), kastet: 0, kastT: 1.2,
+      flyv: Math.max(2.2, 4.6 - .3 * (nr - 1)), gab: Math.max(.8, 2.1 - .2 * (nr - 1)), plan: [], kastI: 0, kastT: 1.2, lad: 0,
       kombo: [], komboI: 0, saarT: 0, ramtT: 0, pynt: [], snak: null, snakT: 0, besejrT: 0, glimt: 0 };
+    S.boss.plan = lavPlan(S.boss);
     S.fase = 'spil'; S.msg = `BOSS: ${def.navn}!`; S.msg2 = `Tegn tegnene på det, den kaster, før det rammer kagen`; S.msgT = 3.2;
     SND.play('tryl.boss', () => { tone(110, .5, 'sawtooth', .05, 0, .6); tone(165, .5, 'sawtooth', .04, .15, .6); });
   }
   function bossSig(txt){ if (S.boss){ S.boss.snak = txt; S.boss.snakT = 2.2; } }
-  function bossKast(){
-    const B = S.boss, d = B.def, n = d.antal + (B.nr > 8 ? 1 : 0);
+  /* en angrebsrunde: enkeltskud og bølger på skift, og til sidst et superangreb. Senere bosser kaster flere bølger */
+  function lavPlan(B){
+    const n = 4 + Math.min(3, B.nr), p = [];
+    for (let i = 0; i < n - 1; i++) p.push(B.nr >= 5 ? (i % 3 === 2 ? 'enkelt' : 'boelge') : (i % 2 ? 'boelge' : 'enkelt'));
+    p.push('super');
+    return p;
+  }
+  function nytTegn(){ const brugt = new Set(S.skud.map(k => k.sym)), pulje = S.cfg.tegn.filter(t => !brugt.has(t)); return vaelg(pulje.length ? pulje : S.cfg.tegn); }
+  function bossKast(m){
+    const B = S.boss, d = B.def, M = MOENSTER[d.k], boelge = m === 'boelge';
+    const n = boelge ? M.n + (B.nr > 8 ? 1 : 0) : d.antal + (B.nr > 8 ? 1 : 0);
     for (let i = 0; i < n; i++){
-      const x0 = B.x + d.hand[0], y0 = B.y + d.hand[1], tx = BORD + rnd(-70, 70), ty = 760;
+      const fra = boelge && M.fra ? M.fra[i % M.fra.length] : d.hand, x0 = B.x + fra[0], y0 = B.y + fra[1];
+      const tx = BORD + (n > 1 ? (i - (n - 1) / 2) * (boelge ? M.spred : 120) : rnd(-70, 70)), ty = 760;
+      const forsink = boelge ? i * M.forsink : i * .5;
       /* tegnene: forskellige på skud, der flyver samtidig, når det kan lade sig gøre */
-      const brugt = new Set(S.skud.map(k => k.sym)), pulje = S.cfg.tegn.filter(t => !brugt.has(t)), sym = vaelg(pulje.length ? pulje : S.cfg.tegn);
-      S.skud.push({ k: d.skud, bane: d.bane, sym, x0, y0, tx: tx + (n > 1 ? (i - (n - 1) / 2) * 120 : 0), ty, x: x0, y: y0, T: B.flyv * (d.bane === 'ret' ? .9 : 1) * rnd(.95, 1.08) + i * .5, t: 0, plan: 0, rot: rnd(0, 6), ph: rnd(0, 6) });
+      S.skud.push({ k: d.skud, bane: d.bane, sym: nytTegn(), x0, y0, tx, ty, x: x0, y: y0, T: B.flyv * (d.bane === 'ret' ? .9 : 1) * rnd(.95, 1.08) * (boelge ? 1.12 : 1), t: -forsink, plan: 0, rot: rnd(0, 6),
+        ph: boelge && M.modfase ? i * Math.PI : rnd(0, 6) });
     }
-    B.kastet++; B.glimt = .3;
+    B.glimt = .3;
     SND.play('tryl.kast', () => tone(420, .14, 'triangle', .04, 0, .5));
-    if (Math.random() < .35) bossSig(vaelg(d.snak));
+    if (boelge){ bossSig(M.navn); tekst(B.x, B.y + 150, M.navn, SKUDFARVE[d.skud], 40); }
+    else if (Math.random() < .35) bossSig(vaelg(d.snak));
+  }
+  /* superangrebet: først lader bossen op (lys, gnister der suges ind), så sendes kæmpekuglen af sted */
+  function superStart(){
+    const B = S.boss; B.lad = LAD;
+    bossSig(SUPER[B.def.k]);
+    if (!S.superSet){ S.superSet = true; S.msg = 'SUPERANGREB!'; S.msg2 = 'Tegn alle tegnene på kæmpekuglen, i rækkefølge'; S.msgT = 2.6; }
+    SND.play('tryl.lad', () => [0, 1, 2, 3, 4, 5].forEach(i => tone(220 * Math.pow(1.19, i), .2, 'sawtooth', .025, i * .22, 1.05)));
+  }
+  function superKast(){
+    const B = S.boss, d = B.def, n = Math.min(5, 3 + Math.floor((B.nr - 1) / 2));
+    const p = S.cfg.tegn.slice(), syms = [];
+    for (let i = 0; i < n; i++){ let t; do { t = vaelg(p); } while (p.length > 1 && i > 0 && t === syms[i - 1]); syms.push(t); }
+    const x0 = B.x + d.hand[0], y0 = B.y + d.hand[1];
+    S.skud.push({ k: d.skud, bane: 'stor', stor: true, syms, idx: 0, sym: syms[0], x0, y0, tx: BORD, ty: 740, x: x0, y: y0, T: B.flyv * 1.9, t: 0, plan: 0, rot: rnd(0, 6), ph: rnd(0, 6), krymp: 0 });
+    B.glimt = .5; S.ryst = .35; S.blitz = .3;
+    SND.play('tryl.super', () => { tone(90, .6, 'sawtooth', .06, 0, .5); tone(140, .5, 'square', .03, .05, .6); });
+    for (let i = 0; i < 18; i++){ const a = i / 18 * 6.28; S.parts.push({ type: 'ring', x: x0, y: y0, t: 0, life: .5, r: 120, c: SKUDFARVE[d.skud] }); S.parts.push({ type: 'stjerne', x: x0, y: y0, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, t: 0, life: .6, r: rnd(8, 14), c: vaelg(['#FFF', '#FFE27A', SKUDFARVE[d.skud]]), rot: 0, g: 0 }); }
+  }
+  /* et tegn rammer kæmpekuglen: den skubbes lidt tilbage og bliver mindre; sidste tegn sprænger den */
+  function superRamt(k){
+    k.idx++; k.krymp = .25; k.t = Math.max(0, k.t - k.T * .1);
+    const c = SKUDFARVE[k.k];
+    S.parts.push({ type: 'ring', x: k.x, y: k.y, t: 0, life: .35, r: 110, c: '#FFF' }); gnist(k.x, k.y, c, 14, 380);
+    if (k.idx >= k.syms.length){
+      k.plan = S.t + .05; k.t0 = S.t; k.superPuf = true;
+      S.score += 60; S.api.score(S.score); tekst(k.x, k.y - 40, 'SUPER!', '#FFE27A', 60); tekst(k.x, k.y + 14, '+60', '#FFF6D0', 40);
+      S.blitz = .2; S.hop = .5;
+    } else { k.sym = k.syms[k.idx]; S.score += 10; S.api.score(S.score); tekst(k.x, k.y - 120, '+10', '#FFF6D0', 34); SND.play('tryl.pop', () => sfx.pop()); }
   }
   function bossSaarbar(){
     const B = S.boss; B.fase = 'saarbar'; B.komboI = 0;
     const p = S.cfg.tegn.slice(); B.kombo = Array.from({ length: B.komboN }, (_, i) => { let t; do { t = vaelg(p); } while (p.length > 1 && i > 0 && t === B.kombo[i - 1]); B.kombo[i] = t; return t; });
-    B.saarT = B.saarMax = 3.5 + 2.3 * B.komboN;
+    B.saarT = B.saarMax = 3 + 2.1 * B.komboN;
     S.msg = 'Den er svimmel!'; S.msg2 = 'Tegn tegnene over den, i rækkefølge'; S.msgT = 2.2;
     SND.play('tryl.svimmel', () => [660, 520, 400].forEach((f, i) => tone(f, .14, 'sine', .04, i * .12, .9)));
   }
@@ -622,7 +675,7 @@ const trylGenkend = (() => {
     tekst(B.x, B.y - 20, '+100', '#FFF6D0', 46); bossSig(vaelg(B.def.av));
   }
   function bossBesejret(){
-    const B = S.boss; B.fase = 'besejret'; B.besejrT = 1.6;
+    const B = S.boss; B.fase = 'besejret'; B.besejrT = 1.6; B.lad = 0;
     const p = 200 + 50 * B.nr; S.score += p; S.api.score(S.score); S.forvandlet++;
     SND.play('tryl.besejret', () => sfx.fanfare());
     for (let i = 0; i < 16; i++){ const a = i / 16 * 6.28; S.parts.push({ type: 'sky', x: B.x + Math.cos(a) * 80, y: B.y + Math.sin(a) * 80, vx: Math.cos(a) * 160, vy: Math.sin(a) * 160, t: 0, life: .9, r: rnd(40, 60), c: '#FFF' }); }
@@ -633,6 +686,9 @@ const trylGenkend = (() => {
   /* et kasteskud er ramt af det rigtige tegn: det bliver til noget sødt */
   function skudPuf(k){
     const c = { bombe: ['#FF8FC7', '#FFE27A', '#7FD8FF', '#9BE36A'], ild: ['#FF8FC7', '#FFC2DE', '#FFF'], is: ['#FFFFFF', '#BFE8FF', '#7FD8FF'], blaek: ['#E8D2FF', '#FFFFFF', '#C79BFF'] }[k.k];
+    if (k.stor){ SND.play('tryl.superpuf', () => sfx.fanfare()); for (let i = 0; i < 3; i++) S.parts.push({ type: 'ring', x: k.x, y: k.y, t: 0, life: .5 + i * .12, r: 120 + i * 50, c: i ? c[i % c.length] : '#FFF' });
+      for (let i = 0; i < 30; i++){ const a = rnd(0, 6.28), v = rnd(200, 620); S.parts.push({ type: vaelg(['hjerte', 'stjerne', 'flis']), x: k.x, y: k.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, t: 0, life: rnd(.7, 1.2), r: rnd(9, 16), c: vaelg(c.concat(['#FF8FC7', '#FFE27A'])), rot: rnd(0, 6), g: 320 }); }
+      return; }
     SND.play('tryl.pop', () => sfx.pop());
     S.parts.push({ type: 'ring', x: k.x, y: k.y, t: 0, life: .3, r: 50, c: '#FFF' });
     for (let i = 0; i < 14; i++){ const a = rnd(0, 6.28), v = rnd(120, 360); S.parts.push({ type: k.k === 'ild' ? 'hjerte' : k.k === 'is' ? 'stjerne' : k.k === 'blaek' ? 'sky' : 'flis', x: k.x, y: k.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, t: 0, life: rnd(.5, .9), r: k.k === 'blaek' ? rnd(6, 12) : rnd(6, 11), c: vaelg(c), rot: rnd(0, 6), g: 300 }); }
@@ -640,6 +696,7 @@ const trylGenkend = (() => {
   function skudPos(k){
     const p = Math.min(1, k.t / k.T), lx = k.x0 + (k.tx - k.x0) * p, ly = k.y0 + (k.ty - k.y0) * p;
     if (k.bane === 'bue') return [lx, ly - 220 * 4 * p * (1 - p)];
+    if (k.bane === 'stor') return [lx + Math.sin(k.t * 1.6 + k.ph) * 60 * (1 - p), ly - 90 * 4 * p * (1 - p)];
     if (k.bane === 'zigzag') return [lx + Math.sin(p * Math.PI * 4 + k.ph) * 150 * (1 - p), ly];
     return [lx + Math.sin(p * Math.PI * 3 + k.ph) * 40, ly];
   }
@@ -649,18 +706,26 @@ const trylGenkend = (() => {
     if (B.fase === 'ind'){ B.faseT -= dt; const k = Math.min(1, 1 - B.faseT / 2.4), e = 1 - Math.pow(1 - k, 3); B.y = -300 + (hoverY + 300) * e; B.x = 800; if (B.faseT <= 0){ B.fase = 'angreb'; bossSig(B.def.snak[1]); } return; }
     if (B.fase === 'besejret'){ B.besejrT -= dt; if (B.besejrT <= 0){ S.dyr.push({ k: 'sod_' + B.def.k, x: B.x, y: B.y, t: 0, vx: rnd(-40, 40), vy: -170, ph: 0 }); S.boss = null; } return; }
     /* den svæver frem og tilbage. Er den svimmel, står den stille og vugger */
-    const fart = B.fase === 'saarbar' ? 0 : 1; B.vt = (B.vt || 0) + dt * fart;
+    const fart = B.fase === 'saarbar' || B.lad > 0 ? 0 : 1; B.vt = (B.vt || 0) + dt * fart;
     B.x = 800 + Math.sin(B.vt * .45) * span; B.y = hoverY + Math.sin(B.t * 1.3) * 14;
     if (B.fase === 'angreb'){
-      B.kastT -= dt;
-      if (B.kastet < B.angreb && B.kastT <= 0){ bossKast(); B.kastT = B.gab * rnd(.8, 1.2); }
-      if (B.kastet >= B.angreb && !S.skud.length){ bossSaarbar(); }
+      if (B.lad > 0){
+        B.lad -= dt;
+        /* gnister suges ind mod hånden, mens den lader op */
+        if (Math.random() < dt * 40){ const a = rnd(0, 6.28), r = rnd(180, 300), hx = B.x + B.def.hand[0], hy = B.y + B.def.hand[1];
+          S.parts.push({ type: 'stjerne', x: hx + Math.cos(a) * r, y: hy + Math.sin(a) * r, vx: -Math.cos(a) * r * 2.2, vy: -Math.sin(a) * r * 2.2, t: 0, life: .42, r: rnd(6, 11), c: vaelg(['#FFF', '#FFE27A', SKUDFARVE[B.def.skud]]), rot: 0, g: 0 }); }
+        if (B.lad <= 0){ B.lad = 0; superKast(); B.kastT = B.gab; }
+      } else {
+        B.kastT -= dt;
+        if (B.kastI < B.plan.length && B.kastT <= 0){ const m = B.plan[B.kastI++]; if (m === 'super') superStart(); else { bossKast(m); B.kastT = B.gab * (m === 'boelge' ? 1.7 : 1) * rnd(.85, 1.15); } }
+        if (B.kastI >= B.plan.length && !S.skud.length){ bossSaarbar(); }
+      }
     } else if (B.fase === 'saarbar'){
       B.saarT -= dt;
-      if (B.saarT <= 0){ B.fase = 'angreb'; B.kastet = 0; B.kastT = 1; bossSig(B.def.grin); SND.play('tryl.grin', () => [300, 360, 300].forEach((f, i) => tone(f, .1, 'square', .03, i * .1, 1))); }
+      if (B.saarT <= 0){ B.fase = 'angreb'; B.plan = lavPlan(B); B.kastI = 0; B.kastT = 1; bossSig(B.def.grin); SND.play('tryl.grin', () => [300, 360, 300].forEach((f, i) => tone(f, .1, 'square', .03, i * .1, 1))); }
     } else if (B.fase === 'ramt'){
       B.ramtT -= dt;
-      if (B.ramtT <= 0){ if (B.hp <= 0) bossBesejret(); else { B.fase = 'angreb'; B.kastet = 0; B.kastT = 1.2; B.gab = Math.max(.8, B.gab * .9); } }
+      if (B.ramtT <= 0){ if (B.hp <= 0) bossBesejret(); else { B.fase = 'angreb'; B.plan = lavPlan(B); B.kastI = 0; B.kastT = 1.2; B.gab = Math.max(.75, B.gab * .9); } }
     }
   }
 
@@ -693,12 +758,14 @@ const trylGenkend = (() => {
       const B = S.boss; B.komboI++; bossOk = true; S.hop = .4; gnist(B.x, B.y - 120, c, 12, 280); SND.play('tryl.puf', () => sfx.twinkle());
       if (B.komboI >= B.kombo.length) bossRamt();
     }
-    const skud = S.skud.filter(k => !k.plan && k.sym === sym);
+    const store = S.skud.filter(k => k.stor && !k.plan && k.t >= 0 && k.sym === sym);
+    store.forEach(superRamt);
+    const skud = S.skud.filter(k => !k.stor && !k.plan && k.t >= 0 && k.sym === sym);
     skud.forEach((k, i) => { k.plan = S.t + .04 + i * .06; k.t0 = S.t; });
     if (skud.length){ const q = 10 * skud.length; S.score += q; S.api.score(S.score); tekst(mx, my - 10, '+' + q, '#FFF6D0', 34); }
     const ramt = [];
     for (const f of S.foes){ if (f.st !== 'ned') continue; for (const b of f.bal){ if (!b.pop && !b.plan && b.sym === sym && f.y + b.dy > S.top - BR * .4) ramt.push([f, b]); } }
-    if (!ramt.length){ if (!bossOk && !skud.length){ gnist(mx, my, c, 6, 160); tone(900, .05, 'triangle', .02, 0, 1.3); } else gnist(mx, my, c, 10, 240); return; }
+    if (!ramt.length){ if (!bossOk && !skud.length && !store.length){ gnist(mx, my, c, 6, 160); tone(900, .05, 'triangle', .02, 0, 1.3); } else gnist(mx, my, c, 10, 240); return; }
     ramt.sort((a, b) => Math.hypot(a[0].x + a[1].dx - mx, a[0].y + a[1].dy - my) - Math.hypot(b[0].x + b[1].dx - mx, b[0].y + b[1].dy - my));
     ramt.forEach(([f, b], i) => { b.plan = S.t + .05 + i * .075; b.t0 = S.t; });
     const n = ramt.length, p = 5 * n * (n + 1); S.score += p; S.api.score(S.score); S.hop = .42;
@@ -763,9 +830,13 @@ const trylGenkend = (() => {
     const zt = S.boss ? 1 + (S.Zn - 1) * .45 : S.Zn; if (Math.abs(S.Z - zt) > .002){ S.Z += (zt - S.Z) * Math.min(1, dt * 2.5); if (Math.abs(S.Z - zt) <= .002) S.Z = zt; kameraFra(); }
     const x0 = S.x0, x1 = S.x1;
     if (S.boss && S.fase !== 'tabt') bossFrem(dt);
-    for (const k of S.skud){ k.t += dt; const [x, y] = skudPos(k); k.x = x; k.y = y;
+    if (S.blitz > 0) S.blitz -= dt;
+    for (const k of S.skud){ k.t += dt; if (k.krymp > 0) k.krymp -= dt;
+      if (k.t < 0){ k.x = k.x0; k.y = k.y0; continue; }
+      if (k.stor && !k.plan && Math.random() < dt * 30) S.parts.push({ type: 'stjerne', x: k.x + rnd(-50, 50), y: k.y + rnd(-50, 50), vx: rnd(-40, 40), vy: rnd(-90, -20), t: 0, life: .5, r: rnd(5, 10), c: vaelg(['#FFF', '#FFE27A', SKUDFARVE[k.k]]), rot: 0, g: 0 });
+      const [x, y] = skudPos(k); k.x = x; k.y = y;
       if (k.plan && S.t >= k.plan){ k.dod = true; skudPuf(k); }
-      else if (k.t >= k.T && !k.dod){ k.dod = true; S.ryst = .3; for (let i = 0; i < 10; i++) S.parts.push({ type: k.k === 'blaek' ? 'sky' : 'flis', x: k.x, y: k.y, vx: rnd(-240, 240), vy: rnd(-300, -60), t: 0, life: .7, r: rnd(6, 12), c: k.k === 'blaek' ? '#6A3A9A' : k.k === 'is' ? '#BFE8FF' : '#F2552A', rot: 0, g: 600 }); bid({ x: k.x, y: k.y - 40 }, k.k === 'bombe' ? 'BOM!' : k.k === 'is' ? 'FRYS!' : k.k === 'ild' ? 'AV, VARMT!' : 'SPLAT!'); } }
+      else if (k.t >= k.T && !k.dod){ k.dod = true; S.ryst = .3; for (let i = 0; i < 10; i++) S.parts.push({ type: k.k === 'blaek' ? 'sky' : 'flis', x: k.x, y: k.y, vx: rnd(-240, 240), vy: rnd(-300, -60), t: 0, life: .7, r: rnd(6, 12), c: k.k === 'blaek' ? '#6A3A9A' : k.k === 'is' ? '#BFE8FF' : '#F2552A', rot: 0, g: 600 }); bid({ x: k.x, y: k.y - 40 }, (k.stor ? 'KÆMPE-' : '') + (k.k === 'bombe' ? 'BOM!' : k.k === 'is' ? 'FRYS!' : k.k === 'ild' ? 'AV, VARMT!' : 'SPLAT!')); if (k.stor) S.ryst = .6; } }
     S.skud = S.skud.filter(k => !k.dod);
     S.faseT -= dt; for (const k of ['hop', 'dyrHop', 'kageHop', 'ryst', 'msgT']) if (S[k] > 0) S[k] -= dt;
     if (S.fase === 'kort'){ S.kort.t += dt; if (S.faseT <= 0){ S.fase = 'spil'; S.kort.ud = .35; } }
@@ -875,7 +946,8 @@ const trylGenkend = (() => {
       ctx.fillStyle = 'rgba(8,30,24,.35)'; ctx.beginPath(); ctx.ellipse(f.x, GULV + 4, 40 * sk / .66, 8, 0, 0, 7); ctx.fill();
       put(ctx, bil, f.x, y, { r, sy, ay: 96 }); }
     /* det, bossen kaster, med tegnet på */
-    for (const k of S.skud){ const p = Math.min(1, k.t / k.T), sp = k.plan ? 1 + .3 * Math.min(1, (t - k.t0) / Math.max(.01, k.plan - k.t0)) : 1;
+    for (const k of S.skud){ if (k.t < 0) continue; if (k.stor){ tegnStor(ctx, k); continue; }
+      const p = Math.min(1, k.t / k.T), sp = k.plan ? 1 + .3 * Math.min(1, (t - k.t0) / Math.max(.01, k.plan - k.t0)) : 1;
       let r = 0; if (k.k === 'bombe') r = k.t * 2.2 + k.rot; else if (k.k === 'is') r = k.t * 7; else if (k.k === 'ild'){ const [nx, ny] = skudPos({ ...k, t: k.t + .02 }); r = Math.atan2(ny - k.y, nx - k.x) + Math.PI; }
       if (p > .7){ ctx.fillStyle = `rgba(255,80,80,${(p - .7) * 1.2 * (.5 + .5 * Math.sin(t * 20))})`; ctx.beginPath(); ctx.arc(k.x, k.y, 72, 0, 7); ctx.fill(); }
       put(ctx, 'skud_' + k.k, k.x, k.y, { r, s: 1.25 * sp * (k.k === 'blaek' ? 1 + Math.sin(k.t * 9) * .06 : 1) });
@@ -890,6 +962,7 @@ const trylGenkend = (() => {
       else if (p.type === 'hjerte'){ ctx.globalAlpha = Math.min(1, a * 1.6); ctx.fillStyle = p.c; hjerteform(ctx, p.x, p.y, p.r); ctx.fill(); }
       else { ctx.globalAlpha = Math.min(1, a * 1.8); ctx.fillStyle = p.c; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot + p.t * 9); ctx.fillRect(-p.r / 2, -p.r / 3, p.r, p.r * .66); ctx.restore(); } }
     ctx.globalAlpha = 1;
+    if (S.blitz > 0){ ctx.globalAlpha = Math.min(.55, S.blitz * 2); ctx.fillStyle = '#FFF6E0'; ctx.fillRect(S.x0 - 50, S.top - 50, S.x1 - S.x0 + 100, 1100 - S.top); ctx.globalAlpha = 1; }
     /* stregen: den man tegner nu, og dem der lige er tryllet med */
     for (const s of S.spor){ const k = s.t / .5; if (s.ok) streg(ctx, s.pts, [[s.c, 30 + k * 34, (1 - k) * .35], [s.c, 14, (1 - k) * .9], ['#FFF', 5, 1 - k]]); else { ctx.save(); ctx.translate(0, k * 34); streg(ctx, s.pts, [['#B8B0D0', 9, (1 - k) * .7]]); ctx.restore(); } }
     if (S.streg) streg(ctx, S.streg.pts, [['#FFE27A', 32, .22], ['#FFE27A', 15, .75], ['#FFF', 6, 1]]);
@@ -899,13 +972,47 @@ const trylGenkend = (() => {
     else if (S.msgT > 0){ const my = S.boss ? Math.max(S.hudB + 80, 600) : Math.max(S.hudB + 90, (S.top + 1000) / 2 - 70); ctx.globalAlpha = Math.min(1, S.msgT * 1.5); skilt(ctx, S.msg, 800, my, 68 / Math.sqrt(Z), '#FFD86B');
       if (S.msg2) skilt(ctx, S.msg2, 800, my + 56, 32 / Math.sqrt(Z), '#FFF6D0'); ctx.globalAlpha = 1; }
   }
+  /* kæmpekuglen: glorie, stjerner der kredser, kuglen selv og rækken af tegn ovenover (det næste lyser, de klarede bliver grønne) */
+  function tegnStor(ctx, k){
+    const t = S.t, p = Math.min(1, k.t / k.T), c = SKUDFARVE[k.k], n = k.syms.length, sk = (1 - .1 * k.idx) * (1 + Math.max(0, k.krymp) * .6), puf = k.plan ? 1 + .5 * Math.min(1, (t - k.t0) / Math.max(.01, k.plan - k.t0)) : 1;
+    const R = 140 * sk * puf;
+    /* roterende lysstråler bag kuglen */
+    ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(t * .9); ctx.globalAlpha = .38 + .12 * Math.sin(t * 7);
+    for (let i = 0; i < 12; i++){ ctx.fillStyle = i % 2 ? c : '#FFF6D0'; ctx.beginPath(); ctx.moveTo(0, 0); const a = i * Math.PI / 6; ctx.lineTo(Math.cos(a - .12) * R * 1.75, Math.sin(a - .12) * R * 1.75); ctx.lineTo(Math.cos(a + .12) * R * 1.75, Math.sin(a + .12) * R * 1.75); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    const g = ctx.createRadialGradient(k.x, k.y, R * .2, k.x, k.y, R * 1.3); g.addColorStop(0, '#FFFFFF'); g.addColorStop(.35, c); g.addColorStop(.7, c + '99'); g.addColorStop(1, c + '00');
+    ctx.globalAlpha = .75 + .2 * Math.sin(t * 10); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(k.x, k.y, R * 1.3, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    if (p > .65){ ctx.fillStyle = `rgba(255,60,60,${(p - .65) * 1.4 * (.5 + .5 * Math.sin(t * 22))})`; ctx.beginPath(); ctx.arc(k.x, k.y, R * 1.05, 0, 7); ctx.fill(); }
+    for (let i = 0; i < 7; i++){ const a = t * 2.4 + i * 6.28 / 7; ctx.fillStyle = i % 2 ? '#FFE27A' : '#FFF'; ctx.strokeStyle = E; ctx.lineWidth = 2.5; akStar(ctx, k.x + Math.cos(a) * R * .95, k.y + Math.sin(a) * R * .95 * .8, 11, t * 5 + i); ctx.fill(); ctx.stroke(); }
+    put(ctx, 'skud_' + k.k, k.x, k.y, { r: k.k === 'is' ? t * 3 : k.k === 'bombe' ? t * 1.2 + k.rot : Math.sin(t * 3) * .2, s: 3.2 * sk * puf });
+    if (k.plan) return;
+    /* det tegn, der skal tegnes nu, stort midt på kuglen */
+    const rr = 58 * sk + Math.sin(t * 8) * 3;
+    ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = E; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(k.x, k.y, rr, 0, 7); ctx.fill(); ctx.stroke();
+    glyf(ctx, k.sym, k.x, k.y + (k.sym === 'hjerte' ? 3 : 0), rr * .58, 9, TG[k.sym].c, E);
+    /* rækken over kuglen */
+    const gap = 62, y = k.y - R - 40, x0 = k.x - (n - 1) / 2 * gap, bw = n * gap + 20;
+    ctx.fillStyle = 'rgba(20,10,50,.62)'; akRound(ctx, k.x - bw / 2, y - 34, bw, 68, 22); ctx.fill();
+    k.syms.forEach((sym, i) => { const x = x0 + i * gap, ok = i < k.idx, nu = i === k.idx, r = nu ? 26 + Math.sin(t * 8) * 2 : 22;
+      if (nu){ ctx.fillStyle = 'rgba(255,226,122,.4)'; ctx.beginPath(); ctx.arc(x, y, r + 9, 0, 7); ctx.fill(); }
+      ctx.fillStyle = ok ? '#3FA86A' : TG[sym].c; ctx.strokeStyle = E; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
+      if (ok){ ctx.strokeStyle = '#FFF'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x - 9, y); ctx.lineTo(x - 2, y + 7); ctx.lineTo(x + 10, y - 8); ctx.stroke(); }
+      else glyf(ctx, sym, x, y + (sym === 'hjerte' ? 1 : 0), r * .5, 5, '#FFF', E); });
+  }
   /* bossen: selve figuren, pynten den har fået, svimmel-stjerner, snakkeboble, navneskilt med hjerter og rækken af tegn, når den er svimmel */
   function tegnBoss(ctx){
     const B = S.boss, t = S.t, k = B.def.k, svim = B.fase === 'saarbar' || B.fase === 'ramt';
     if (B.fase === 'besejret'){ const q = B.besejrT / 1.6; put(ctx, 'boss_' + k + '!', B.x, B.y, { s: .2 + .8 * q, r: (1 - q) * 9, a: q }); return; }
     const ryst = B.fase === 'ramt' ? Math.sin(B.ramtT * 40) * 10 * B.ramtT : 0, vug = svim ? Math.sin(t * 2.4) * .08 : Math.sin(t * 1.1) * .03;
     ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(B.x, GULV + 6, 150, 14, 0, 0, 7); ctx.fill();
-    put(ctx, 'boss_' + k + (svim ? '!' : ''), B.x + ryst, B.y, { r: vug, sy: B.glimt > 0 ? 1 + B.glimt * .15 : 1 });
+    /* opladning til superangrebet: bossen ryster, en glorie vokser, og kuglen bliver større i hånden */
+    const lq = B.lad > 0 ? 1 - B.lad / LAD : 0, lryst = lq ? Math.sin(t * 60) * 5 * lq : 0;
+    if (lq){ const c = SKUDFARVE[B.def.skud], g = ctx.createRadialGradient(B.x, B.y, 40, B.x, B.y, 280); g.addColorStop(0, c + 'AA'); g.addColorStop(1, c + '00');
+      ctx.globalAlpha = .4 + .4 * lq * (.6 + .4 * Math.sin(t * 18)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(B.x, B.y, 280, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+      for (let i = 0; i < 3; i++){ const q = ((t * 1.8 + i / 3) % 1); ctx.globalAlpha = q * .8; ctx.strokeStyle = c; ctx.lineWidth = 8 * q; ctx.beginPath(); ctx.arc(B.x + B.def.hand[0], B.y + B.def.hand[1], 220 * (1 - q) + 20, 0, 7); ctx.stroke(); } ctx.globalAlpha = 1; }
+    put(ctx, 'boss_' + k + (svim ? '!' : ''), B.x + ryst + lryst, B.y, { r: vug, sy: B.glimt > 0 ? 1 + B.glimt * .15 : 1 });
+    if (lq){ const hx = B.x + B.def.hand[0] + lryst, hy = B.y + B.def.hand[1]; put(ctx, 'skud_' + B.def.skud, hx, hy, { r: t * 4, s: .6 + 2 * lq });
+      for (let i = 0; i < 5; i++){ const a = t * 6 + i * 1.256; ctx.fillStyle = '#FFF'; akStar(ctx, hx + Math.cos(a) * (60 + 60 * lq), hy + Math.sin(a) * (60 + 60 * lq), 8 + 6 * lq, t * 8); ctx.fill(); } }
     if (B.fase === 'ramt' && B.ramtT > .8){ ctx.globalAlpha = (B.ramtT - .8) * 2.5; ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.ellipse(B.x, B.y, 200, 210, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
     /* pynt: for hver gang den er ramt, får den en sløjfe, et hjerte eller en blomst på */
     B.pynt.forEach((p, i) => { const [dx, dy] = PYNT_AT[k][i % PYNT_AT[k].length], x = B.x + ryst + dx * Math.cos(vug) - dy * Math.sin(vug), y = B.y + dx * Math.sin(vug) + dy * Math.cos(vug);
@@ -986,7 +1093,7 @@ const trylGenkend = (() => {
     /* tryl et tegn uden at tegne det (går gennem genkendelsen som en rigtig streg) */
     kast(sym){ if (!S || !S.klar || !TG[sym]) return; const P = TG[sym].p, pts = []; for (let i = 1; i < P.length; i++) for (let k = 0; k < 6; k++) pts.push([800 + (P[i - 1][0] + (P[i][0] - P[i - 1][0]) * k / 6) * 90, 620 + (P[i - 1][1] + (P[i][1] - P[i - 1][1]) * k / 6) * 90]); pts.push([800 + P[P.length - 1][0] * 90, 620 + P[P.length - 1][1] * 90]); tegnet(pts); },
     tilRunde(n){ if (!S || !S.klar) return; S.foes = []; S.koe = []; S.gave = null; S.runde = n - 1; S.bossNr = Math.floor((n - 1) / 5); naesteRunde(); },
-    state: () => S && { bossNr: S.bossNr, boss: S.boss ? { k: S.boss.def.k, fase: S.boss.fase, hp: S.boss.hp, next: S.boss.fase === 'saarbar' ? S.boss.kombo[S.boss.komboI] : null } : null,
-      skud: S.skud.filter(k => !k.plan).map(k => ({ sym: k.sym, rest: k.T - k.t })), klar: S.klar, t: S.t, top: S.top, hudB: S.hudB, bane: [S.baneL, S.baneR], Z: S.Z, fase: S.fase, runde: S.runde, score: S.score, liv: S.liv, forvandlet: S.forvandlet, tegn: aktive(), kort: S.kort && S.fase === 'kort' ? S.kort.nyt.filter(k => !S.kort.ok[k]) : [], gave: S.gave ? { x: S.gave.x } : null,
+    state: () => S && { bossNr: S.bossNr, boss: S.boss ? { k: S.boss.def.k, fase: S.boss.fase, hp: S.boss.hp, lad: S.boss.lad, next: S.boss.fase === 'saarbar' ? S.boss.kombo[S.boss.komboI] : null } : null,
+      skud: S.skud.filter(k => !k.plan && k.t >= 0).map(k => ({ sym: k.sym, rest: k.T - k.t, stor: !!k.stor })), klar: S.klar, t: S.t, top: S.top, hudB: S.hudB, bane: [S.baneL, S.baneR], Z: S.Z, fase: S.fase, runde: S.runde, score: S.score, liv: S.liv, forvandlet: S.forvandlet, tegn: aktive(), kort: S.kort && S.fase === 'kort' ? S.kort.nyt.filter(k => !S.kort.ok[k]) : [], gave: S.gave ? { x: S.gave.x } : null,
       foes: S.foes.map(f => ({ k: f.k, st: f.st, x: f.x, y: f.y, land: f.land, bal: f.bal.filter(b => !b.pop && !b.plan).map(b => ({ sym: b.sym, y: f.y + b.dy })) })) } };
 })();
