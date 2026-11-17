@@ -20,6 +20,28 @@ const BIDB = (() => {
   return { get: k => tx('readonly', st => st.get(k)).catch(() => null), put: (k, v) => tx('readwrite', st => st.put(v, k)).catch(() => {}),
     keys: () => tx('readonly', st => st.getAllKeys()).catch(() => []), del: k => tx('readwrite', st => st.delete(k)).catch(() => {}) };
 })();
+/* PNG-pakning i en arbejdstråd. canvas.toBlob pakker kun, når hovedtråden har ledig tid, og venter ellers i flere
+   sekunder (målt: 1,5-7 s for et billede, der tager 0,2 s at pakke), fordi byen tegner hele tiden imens.
+   I en arbejdstråd sker det med det samme og på en anden kerne. Kan tråden ikke startes, bruges toBlob som før */
+const PNGW = (() => {
+  let w = null, n = 0, dead = false; const venter = new Map();
+  const kode = "self.onmessage = async e => { const { id, bm } = e.data; try { const c = new OffscreenCanvas(bm.width, bm.height); c.getContext('2d').drawImage(bm, 0, 0); bm.close(); self.postMessage({ id, b: await c.convertToBlob({ type: 'image/png' }) }); } catch (er){ self.postMessage({ id, fejl: String(er) }); } };";
+  const doed = () => { dead = true; if (w){ try { w.terminate(); } catch (e){} } w = null; venter.forEach(p => p[1](new Error('arbejdstråd'))); venter.clear(); };
+  const hent = () => { if (w || dead) return w;
+    try { w = new Worker(URL.createObjectURL(new Blob([kode], { type: 'text/javascript' })));
+      w.onmessage = e => { const p = venter.get(e.data.id); if (!p) return; venter.delete(e.data.id); if (e.data.b) p[0](e.data.b); else p[1](new Error(e.data.fejl)); };
+      w.onerror = doed; } catch (e){ dead = true; w = null; }
+    return w; };
+  const gammel = cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('png')), 'image/png'));
+  async function encode(cv){
+    const wk = window.createImageBitmap && window.OffscreenCanvas ? hent() : null; if (!wk) return gammel(cv);
+    try { const bm = await createImageBitmap(cv);
+      return await new Promise((res, rej) => { const id = ++n; venter.set(id, [res, rej]); wk.postMessage({ id, bm }, [bm]);
+        setTimeout(() => { if (venter.has(id)){ venter.delete(id); rej(new Error('tid')); } }, 20000); }); }
+    catch (e){ return gammel(cv); }
+  }
+  return { encode, get traad(){ return !!w && !dead; } };
+})();
 const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + '.' + s.length.toString(36); };
 /* usynlig: fylder og streger ingenting (trykflader) */
 function bakeInvisible(e){
@@ -42,6 +64,7 @@ function bakeTown(svg){
       /* løbenumre i id'er skifter fra gang til gang uden at kortet ændrer sig, så de tælles ikke med */
       const gpu = gpuWanted();
       const key = `${VERSION}|${sc}|${gpu ? 'gpu' : 'svg'}|${hashStr(BAKE.src.replace(/\b(id="|url\(#|href="#)[a-z]+\d+/gi, '$1#') + places)}`;
+      BAKE.key = key;
       const rec = await BIDB.get(key);
       if (gen !== BAKE.gen || !svg.isConnected) return;
       if (rec && rec.n === bakeStable(svg).length && (!gpu || rec.gpu)){ bakeApply(svg, gen, rec, true); return; }
@@ -64,10 +87,11 @@ function bakeApply(svg, gen, rec, cached){
     rec.clips.forEach(([i, id]) => bakeWrap(st[i], 'clip-path', id));
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
-    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
+    const tM = performance.now();
+    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, ms: Math.round(performance.now() - tM), lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
       .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message })).finally(() => { BAKE.ok = gen; });
     else BAKE.ok = gen;
-    DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms });
+    DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms, faser: cached ? undefined : rec.faser });
   };
   if (im.decode) im.decode().then(swap, swap); else swap();
 }
@@ -81,6 +105,8 @@ function bakeWrap(el, attr, id, orig = el){
 function bakeNow(svg, gen, key, sc, gpuOn){
   if (!svg.isConnected || gen !== BAKE.gen) return;
   const T0 = performance.now(), NS = 'http://www.w3.org/2000/svg';
+  /* hvor tiden går (til loggen): sortering (heraf rent arbejde), kopien, billedets indlæsning, tegning og pakning, og arket */
+  const F = { bidder: 0, arbejde: 0 }; let fT = T0; const lap = k => { const n = performance.now(); F[k] = Math.round(n - fT); fT = n; };
   let ctm = svg.getScreenCTM(); if (!ctm) return;
   let inv = ctm.inverse(); const pt = new DOMPoint();
   const map = r => { const a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv); return [a.x, a.y, b.x, b.y]; };
@@ -171,7 +197,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   let li = 0;
   const step = () => {
     if (gen !== BAKE.gen || !svg.isConnected) return;
-    refresh(); const until = performance.now() + (window.BAKE_CHUNK || 12);
+    refresh(); const c0 = performance.now(), until = c0 + (window.BAKE_CHUNK || 12); F.bidder++;
     for (; li < leaves.length && performance.now() < until; li++){ const e = leaves[li];
     const b = map(e.getBoundingClientRect());
     const ag = isAnim(e), transparent = !ag && bakeInvisible(e);
@@ -214,11 +240,12 @@ function bakeNow(svg, gen, key, sc, gpuOn){
         regs.forEach(r => { const nb = [...r]; nb.el = e; nb.t = t; if (t === 'l' && !dyn.some(d => d.t === 'l' && !d.mov && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1])) nb.mov = true; if (window.BAKE_LOG) nb.src = 'lap(' + e.tagName + ')<' + (dyn.find(d => d.t === t && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1]) || {}).src; dyn.push(nb); }); }
       clipped.set(e, R); }
     }
-    BAKE.prog = li / leaves.length;
+    BAKE.prog = li / leaves.length; F.arbejde += performance.now() - c0;
     if (li < leaves.length){ setTimeout(step, window.BAKE_GAP ?? 16); return; }
     refresh(); finish();
   };
   const finish = () => {
+  F.arbejde = Math.round(F.arbejde); lap('sorter');
   const statics = leaves.filter(e => !live.has(e) && !gpuLeaves.has(e) && !clipped.has(e));
   if (window.BAKE_LOG) console.log('bage', leaves.length, 'levende', live.size, 'klippet', clipped.size, 'billede', statics.length, Math.round(performance.now() - T0) + 'ms');
   if (statics.length + clipped.size < 100 || !isFinite(x0)) return;
@@ -294,11 +321,15 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   }
   async function gpuFinish(gs){
     /* bladenes markup skal laves, mens SVG'en er urørt; derefter tegnes arkene */
-    gs.pieces.forEach(pc => { pc.markup = gpuPieceMarkup(pc, svg); });
-    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), cvs = [];
-    for (const sh of sheets){ cvs.push(await gpuRasterSheet(sh, true)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
-    const all = gs.pieces.concat(gs.extra), blobs = await gpuDropEmpty(all, cvs);
+    gs.pieces.forEach(pc => { pc.markup = gpuPieceMarkup(pc, svg); }); lap('stykker');
+    /* store stykker uden noget synligt findes først på en lille prøvetegning; så tegnes arket kun én gang og kun med det, der bruges */
+    const all = gs.pieces.concat(gs.extra); F.tomme = await gpuMarkEmpty(svg, all, px); lap('proeve');
     if (gen !== BAKE.gen) throw new Error('afbrudt');
+    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), blobs = []; lap('ark');
+    const cvs = []; for (const sh of sheets){ cvs.push(await gpuRasterSheet(sh)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
+    lap('arkTegn'); for (const c of cvs) blobs.push(await PNGW.encode(c));
+    if (gen !== BAKE.gen) throw new Error('afbrudt');
+    lap('arkPng'); F.arkPx = sheets.map(sh => sh.W + 'x' + sh.H).join(',');
     const sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
     const fixP = it => { if (it.d) return; if (it.p != null){ it.p = it.p < 0 ? gs.pieces.length + (-it.p - 1) : it.p; return; } it.c.forEach(fixP); };
     gs.items.forEach(fixP);
@@ -328,25 +359,28 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   cl.setAttribute('viewBox', `${x0} ${y0} ${W} ${H}`); cl.setAttribute('width', Math.round(W * px)); cl.setAttribute('height', Math.round(H * px));
   cl.setAttribute('preserveAspectRatio', 'none'); cl.removeAttribute('id'); cl.removeAttribute('class'); cl.setAttribute('xmlns', NS); cl.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
   const src = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(cl)], { type: 'image/svg+xml' }));
-  const img = new Image();
-  img.onload = () => {
-    URL.revokeObjectURL(src); if (window.BAKE_LOG) console.log('bage: billede indlæst', Math.round(performance.now() - T0) + 'ms');
+  const img = new Image(); lap('kopi');
+  img.onload = async () => {
+    lap('billede'); URL.revokeObjectURL(src);
     if (gen !== BAKE.gen || !svg.isConnected) return;
     const cv = document.createElement('canvas'); cv.width = Math.round(W * px); cv.height = Math.round(H * px);
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); if (window.BAKE_LOG) console.log('bage: tegnet', Math.round(performance.now() - T0) + 'ms');
-    cv.toBlob(async bl => { if (window.BAKE_LOG) console.log('bage: png', bl && bl.size, Math.round(performance.now() - T0) + 'ms');
-      if (!bl || gen !== BAKE.gen || !svg.isConnected) return;
-      const stable = bakeStable(svg), sidx = new Map(); stable.forEach((e, k) => sidx.set(e, k));
-      if (statics.some(e => !sidx.has(e)) || liveClips.some(c => !sidx.has(c[0]))) return;
-      const rec = { n: stable.length, x0, y0, W, H, png: bl, px: `${cv.width}x${cv.height}`, ms: Math.round(performance.now() - T0), ts: Date.now(),
-        statics: statics.map(e => sidx.get(e)), clips: liveClips.map(([e, id, d]) => [sidx.get(e), id, d]) };
-      if (gpuOn && gpuSpec){ const gs = gpuSpec; gpuSpec = null;
-        try { rec.gpu = await gpuFinish(gs); } catch (er){ DBG.row('fejl', { besked: 'gpu-ark: ' + er.message }); rec.gpu = null; }
-        if (gen !== BAKE.gen || !svg.isConnected) return; }
-      bakeApply(svg, gen, rec, false);
-      /* gem til næste gang; hold højst 16 udgaver */
-      BIDB.put(key, rec).then(() => BIDB.keys()).then(ks => { if (ks.length > 16) ks.filter(k => !String(k).startsWith(VERSION + '|')).concat(ks).slice(0, ks.length - 16).forEach(k => BIDB.del(k)); });
-    }, 'image/png');
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); lap('tegn');
+    /* billedet pakkes som PNG i en arbejdstråd, mens arket til grafikchippen laves her */
+    const tP = performance.now(), pngP = PNGW.encode(cv).then(b => { F.png = Math.round(performance.now() - tP); return b; }, () => null);
+    const stable = bakeStable(svg), sidx = new Map(); stable.forEach((e, k) => sidx.set(e, k));
+    if (statics.some(e => !sidx.has(e)) || liveClips.some(c => !sidx.has(c[0]))) return;
+    let gpu = null;
+    if (gpuOn && gpuSpec){ const gs = gpuSpec; gpuSpec = null;
+      try { gpu = await gpuFinish(gs); } catch (er){ DBG.row('fejl', { besked: 'gpu-ark: ' + er.message }); gpu = null; } }
+    const bl = await pngP;
+    if (!bl || gen !== BAKE.gen || !svg.isConnected) return;
+    const rec = { n: stable.length, x0, y0, W, H, png: bl, px: `${cv.width}x${cv.height}`, ms: Math.round(performance.now() - T0), ts: Date.now(), faser: F,
+      statics: statics.map(e => sidx.get(e)), clips: liveClips.map(([e, id, d]) => [sidx.get(e), id, d]) };
+    if (gpuOn) rec.gpu = gpu;
+    if (window.BAKE_LOG) console.log('bage: færdig', rec.ms + 'ms', JSON.stringify(F));
+    bakeApply(svg, gen, rec, false);
+    /* gem til næste gang; hold højst 16 udgaver */
+    BIDB.put(key, rec).then(() => BIDB.keys()).then(ks => { if (ks.length > 16) ks.filter(k => !String(k).startsWith(VERSION + '|')).concat(ks).slice(0, ks.length - 16).forEach(k => BIDB.del(k)); });
   };
   img.onerror = () => { if (window.BAKE_LOG) console.log('bage: billedfejl'); URL.revokeObjectURL(src); DBG.row('fejl', { besked: 'bage: billedet kunne ikke tegnes' }); };
   img.src = src;

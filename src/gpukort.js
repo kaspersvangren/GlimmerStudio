@@ -177,55 +177,54 @@ function gpuPieceMarkup(pc, svg){
   return open + body + close;
 }
 /* pak alle stykker i ét eller flere ark og tegn dem som én SVG pr. ark */
+/* alle definitioner (forløb, filtre, klip) følger med i hvert ark */
+function gpuDefs(svg){
+  return [...svg.querySelectorAll('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker')].filter(d => d.id && !d.parentElement.closest('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker'))
+    .map(d => new XMLSerializer().serializeToString(d).replace(/\s*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')).join('');
+}
 function gpuAtlas(svg, pieces, extra, sc){
   const MAXW = 4096, MAXH = 4096, sheets = [];
   let sx = 0, sy = 0, rowH = 0, sheet = { items: [], h: 0 };
   const all = pieces.concat(extra);
-  all.forEach((pc, i) => { const pw = Math.ceil(pc.w * sc - 1e-3) + 2, ph = Math.ceil(pc.h * sc - 1e-3) + 2;
+  all.forEach((pc, i) => { if (pc.empty) return; const pw = Math.ceil(pc.w * sc - 1e-3) + 2, ph = Math.ceil(pc.h * sc - 1e-3) + 2;
     if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
     if (sy + ph > MAXH){ sheet.h = sy + rowH; sheets.push(sheet); sheet = { items: [], h: 0 }; sx = 0; sy = 0; rowH = 0; }
     pc.sheet = sheets.length; pc.ax = sx; pc.ay = sy; pc.aw = pw - 2; pc.ah = ph - 2; sheet.items.push(i);
     sx += pw; rowH = Math.max(rowH, ph); sheet.h = Math.max(sheet.h, sy + rowH); });
   sheets.push(sheet);
-  /* alle definitioner (forløb, filtre, klip) følger med i hvert ark */
-  const defs = [...svg.querySelectorAll('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker')].filter(d => d.id && !d.parentElement.closest('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker'))
-    .map(d => new XMLSerializer().serializeToString(d).replace(/\s*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')).join('');
+  const defs = gpuDefs(svg);
   return sheets.map(sh => { const W = MAXW, H = Math.max(1, sh.h);
     const body = sh.items.map(i => { const pc = all[i]; return `<svg x="${pc.ax}" y="${pc.ay}" width="${pc.aw}" height="${pc.ah}" viewBox="${pc.x} ${pc.y} ${pc.w} ${pc.h}" preserveAspectRatio="none" overflow="hidden">${pc.markup || gpuPieceMarkup(pc, svg)}</svg>`; }).join('');
     return { W, H, src: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${defs}</defs>${body}</svg>` }; });
 }
-function gpuRasterSheet(sheet, asCanvas){
+/* arket tegnes på et lærred. laes: lærredet skal læses pixel for pixel (så holdes det i almindelig hukommelse) */
+function gpuRasterSheet(sheet, laes){
   return new Promise((res, rej) => { const url = URL.createObjectURL(new Blob([sheet.src], { type: 'image/svg+xml' })), img = new Image();
-    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d', { willReadFrequently: !!asCanvas }).drawImage(img, 0, 0);
-      if (asCanvas) return res(cv);
-      cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'); };
+    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d', { willReadFrequently: !!laes }).drawImage(img, 0, 0); res(cv); };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('ark kunne ikke tegnes')); }; img.src = url; });
 }
-
-/* stykker uden en eneste synlig pixel smides væk, og resten pakkes tæt i nye ark (pixlerne kopieres, intet tegnes om).
-   Fx er skyggen i kortets kanter helt gennemsigtig inden for kameraets område, men fyldte 3/4 af arket og lå som et
-   fuldskærmslag over alt det andet */
-async function gpuDropEmpty(all, cvs){
-  /* kun store stykker undersøges (små koster næsten intet, og så skal der ikke læses så mange pixels) */
-  let dropped = 0;
-  all.forEach(pc => { if (pc.aw * pc.ah < 65536) return;
-    const d = cvs[pc.sheet].getContext('2d', { willReadFrequently: true }).getImageData(pc.ax, pc.ay, pc.aw, pc.ah).data;
-    for (let i = 3; i < d.length; i += 4) if (d[i]) return;
-    pc.empty = true; dropped++; });
-  if (dropped){
-    const MAXW = 4096, MAXH = 4096, H = [0]; let sx = 0, sy = 0, rowH = 0, sh = 0;
-    const keep = all.filter(pc => !pc.empty).map(pc => { const pw = pc.aw + 2, ph = pc.ah + 2;
-      if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
-      if (sy + ph > MAXH){ sh++; H[sh] = 0; sx = 0; sy = 0; rowH = 0; }
-      const p = [pc, sh, sx, sy]; sx += pw; rowH = Math.max(rowH, ph); H[sh] = Math.max(H[sh], sy + rowH); return p; });
-    const out = H.map(h => { const c = document.createElement('canvas'); c.width = MAXW; c.height = Math.max(1, h); return c; });
-    for (const [pc, s2, x, y] of keep){ if (pc.aw > 0 && pc.ah > 0) out[s2].getContext('2d').drawImage(cvs[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, x, y, pc.aw, pc.ah); pc.sheet = s2; pc.ax = x; pc.ay = y; }
-    cvs = out;
-  }
-  return Promise.all(cvs.map(cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'))));
+/* tomme stykker: et stort stykke uden én eneste synlig pixel (fx et usynligt lag over hele skærmen) fylder i arket,
+   koster hukommelse på grafikchippen og er et lag, der skal lægges sammen i hvert billede — uden at kunne ses.
+   De findes på en lille prøvetegning i kvart størrelse, FØR arket lægges; så tegnes det store ark kun én gang, og kun
+   med det, der bruges (før blev hele arket tegnet i fuld størrelse, læst tilbage og pakket om).
+   Kun store stykker undersøges; små koster næsten intet. Returnerer antallet af tomme (de mærkes med empty) */
+async function gpuMarkEmpty(svg, all, sc){
+  const K = 4, MAXW = 2048, big = all.filter(pc => Math.ceil(pc.w * sc - 1e-3) * Math.ceil(pc.h * sc - 1e-3) >= 65536);
+  if (!big.length) return 0;
+  let sx = 0, sy = 0, rowH = 0;
+  const pos = big.map(pc => { const w = Math.max(1, Math.ceil(pc.w * sc / K)), h = Math.max(1, Math.ceil(pc.h * sc / K));
+    if (sx && sx + w > MAXW){ sx = 0; sy += rowH; rowH = 0; }
+    const p = [sx, sy, w, h]; sx += w; rowH = Math.max(rowH, h); return p; });
+  const W = MAXW, H = sy + rowH;
+  const body = big.map((pc, i) => `<svg x="${pos[i][0]}" y="${pos[i][1]}" width="${pos[i][2]}" height="${pos[i][3]}" viewBox="${pc.x} ${pc.y} ${pc.w} ${pc.h}" preserveAspectRatio="none" overflow="hidden">${pc.markup || gpuPieceMarkup(pc, svg)}</svg>`).join('');
+  const cv = await gpuRasterSheet({ W, H, src: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${gpuDefs(svg)}</defs>${body}</svg>` }, true);
+  const d = cv.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  let n = 0;
+  big.forEach((pc, i) => { const [x, y, w, h] = pos[i];
+    for (let yy = y; yy < y + h; yy++){ let o = (yy * W + x) * 4 + 3; for (let xx = 0; xx < w; xx++, o += 4) if (d[o]) return; }
+    pc.empty = true; n++; });
+  return n;
 }
-
-/* ---------- byg laget på skærmen ---------- */
 async function gpuMount(svg, gen, rec, st){
   const g = rec.gpu, host = svg.parentElement;
   /* arkene bruges direkte som baggrundsbillede for hvert stykke (et udsnit af arket). Før var hvert stykke sit eget lærred,

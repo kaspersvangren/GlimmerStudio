@@ -14,6 +14,8 @@ async function startGame(){
     el('div', { class:'ld-bar' }, [ bar ]), msg ]);
   document.body.append(ld);
   const t0 = performance.now(); let shown = 0;
+  /* bag tæppet behøver byen ikke at se flydende ud: bagningen får lange bidder uden pauser (ellers 12 ms arbejde for hvert billede, byen tegner) */
+  window.BAKE_CHUNK = 120; window.BAKE_GAP = 0;
   try { showTown({ quiet: true }); } catch (e){ DBG.row('fejl', { besked: 'indlæsning: ' + e.message }); }
   const canBake = !window.NO_BAKE && !!window.indexedDB;
   while (canBake && performance.now() - t0 < 30000 && !(BAKE.ok && BAKE.ok === BAKE.gen)){
@@ -23,8 +25,8 @@ async function startGame(){
     if (t > 4) msg.textContent = 'Første gang tager det lidt længere …';
     await wait(100);
   }
-  bar.style.width = '100%';
-  DBG.row('indlaest', { ms: Math.round(performance.now() - t0), klar: !!(BAKE.ok && BAKE.ok === BAKE.gen) });
+  bar.style.width = '100%'; window.BAKE_CHUNK = window.BAKE_GAP = undefined;
+  DBG.row('indlaest', { ms: Math.round(performance.now() - t0), klar: !!(BAKE.ok && BAKE.ok === BAKE.gen), foer: Math.round(t0) });
   await wait(350);              // lad telefonen tegne kortet færdigt én gang, mens tæppet stadig er der
   showTitle();
   ld.classList.add('out'); setTimeout(() => ld.remove(), 600);

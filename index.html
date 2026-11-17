@@ -868,6 +868,12 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .book-bottle svg{width:clamp(22px,6vh,40px);height:auto;display:block}
 
 /* fejlsøgnings-mærket, når loggen er slået til */
+.dbg-badge.tryk{pointer-events:auto;padding:9px 12px;font-size:13px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
+.lr-lab{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9998;font:700 15px/1.2 system-ui,sans-serif;color:#FFF;background:rgba(28,22,52,.86);padding:9px 16px;border-radius:999px;pointer-events:none;white-space:nowrap}
+.lr-res{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9998;background:#FFF;color:#33204F;border-radius:22px;padding:18px 22px;box-shadow:0 10px 40px rgba(0,0,0,.4);font:600 16px/1.35 system-ui,sans-serif;max-width:min(92vw,440px)}
+.lr-res h2{margin:0 0 8px;font-size:19px}
+.lr-res p{margin:4px 0}
+.lr-res .btn{margin-top:12px}
 .dbg-badge{position:fixed;left:calc(6px + env(safe-area-inset-left,0px));bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:9999;pointer-events:none;font:700 11px/1 system-ui,sans-serif;color:#FFF;background:rgba(200,30,60,.85);padding:4px 7px;border-radius:8px;letter-spacing:.04em}
 #townSvg.baked .bk{visibility:hidden}
 #townSvg.baked .bk:not(.place .bk):not([data-tap] .bk){display:none}   /* bagt og ikke til at trykke på: helt ude af tegningen (~2000 elementer færre at gå igennem) */
@@ -2814,7 +2820,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.33.0';
+const VERSION = 'v0.33.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -12300,6 +12306,28 @@ const BIDB = (() => {
   return { get: k => tx('readonly', st => st.get(k)).catch(() => null), put: (k, v) => tx('readwrite', st => st.put(v, k)).catch(() => {}),
     keys: () => tx('readonly', st => st.getAllKeys()).catch(() => []), del: k => tx('readwrite', st => st.delete(k)).catch(() => {}) };
 })();
+/* PNG-pakning i en arbejdstråd. canvas.toBlob pakker kun, når hovedtråden har ledig tid, og venter ellers i flere
+   sekunder (målt: 1,5-7 s for et billede, der tager 0,2 s at pakke), fordi byen tegner hele tiden imens.
+   I en arbejdstråd sker det med det samme og på en anden kerne. Kan tråden ikke startes, bruges toBlob som før */
+const PNGW = (() => {
+  let w = null, n = 0, dead = false; const venter = new Map();
+  const kode = "self.onmessage = async e => { const { id, bm } = e.data; try { const c = new OffscreenCanvas(bm.width, bm.height); c.getContext('2d').drawImage(bm, 0, 0); bm.close(); self.postMessage({ id, b: await c.convertToBlob({ type: 'image/png' }) }); } catch (er){ self.postMessage({ id, fejl: String(er) }); } };";
+  const doed = () => { dead = true; if (w){ try { w.terminate(); } catch (e){} } w = null; venter.forEach(p => p[1](new Error('arbejdstråd'))); venter.clear(); };
+  const hent = () => { if (w || dead) return w;
+    try { w = new Worker(URL.createObjectURL(new Blob([kode], { type: 'text/javascript' })));
+      w.onmessage = e => { const p = venter.get(e.data.id); if (!p) return; venter.delete(e.data.id); if (e.data.b) p[0](e.data.b); else p[1](new Error(e.data.fejl)); };
+      w.onerror = doed; } catch (e){ dead = true; w = null; }
+    return w; };
+  const gammel = cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('png')), 'image/png'));
+  async function encode(cv){
+    const wk = window.createImageBitmap && window.OffscreenCanvas ? hent() : null; if (!wk) return gammel(cv);
+    try { const bm = await createImageBitmap(cv);
+      return await new Promise((res, rej) => { const id = ++n; venter.set(id, [res, rej]); wk.postMessage({ id, bm }, [bm]);
+        setTimeout(() => { if (venter.has(id)){ venter.delete(id); rej(new Error('tid')); } }, 20000); }); }
+    catch (e){ return gammel(cv); }
+  }
+  return { encode, get traad(){ return !!w && !dead; } };
+})();
 const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + '.' + s.length.toString(36); };
 /* usynlig: fylder og streger ingenting (trykflader) */
 function bakeInvisible(e){
@@ -12322,6 +12350,7 @@ function bakeTown(svg){
       /* løbenumre i id'er skifter fra gang til gang uden at kortet ændrer sig, så de tælles ikke med */
       const gpu = gpuWanted();
       const key = `${VERSION}|${sc}|${gpu ? 'gpu' : 'svg'}|${hashStr(BAKE.src.replace(/\b(id="|url\(#|href="#)[a-z]+\d+/gi, '$1#') + places)}`;
+      BAKE.key = key;
       const rec = await BIDB.get(key);
       if (gen !== BAKE.gen || !svg.isConnected) return;
       if (rec && rec.n === bakeStable(svg).length && (!gpu || rec.gpu)){ bakeApply(svg, gen, rec, true); return; }
@@ -12344,10 +12373,11 @@ function bakeApply(svg, gen, rec, cached){
     rec.clips.forEach(([i, id]) => bakeWrap(st[i], 'clip-path', id));
     svg.insertBefore(im, [...svg.children].find(c => c.tagName !== 'defs'));
     rec.statics.forEach(i => st[i].classList.add('bk')); svg.classList.add('baked');
-    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
+    const tM = performance.now();
+    if (rec.gpu) gpuMount(svg, gen, rec, stAll).then(ok => DBG.row('gpu', { ok, ms: Math.round(performance.now() - tM), lag: rec.gpu.items.length, roedder: rec.gpu.roots.length, stykker: rec.gpu.pieces.length, ark: rec.gpu.sheets.length, drevet: DRIVE.jobs, smilTilbage: svg.querySelectorAll(SMIL_SEL).length }))
       .catch(e => DBG.row('fejl', { besked: 'gpu: ' + e.message })).finally(() => { BAKE.ok = gen; });
     else BAKE.ok = gen;
-    DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms });
+    DBG.row('bagt', { fraLager: cached, billede: rec.statics.length, klippet: rec.clips.length, px: rec.px, ms: rec.ms, faser: cached ? undefined : rec.faser });
   };
   if (im.decode) im.decode().then(swap, swap); else swap();
 }
@@ -12361,6 +12391,8 @@ function bakeWrap(el, attr, id, orig = el){
 function bakeNow(svg, gen, key, sc, gpuOn){
   if (!svg.isConnected || gen !== BAKE.gen) return;
   const T0 = performance.now(), NS = 'http://www.w3.org/2000/svg';
+  /* hvor tiden går (til loggen): sortering (heraf rent arbejde), kopien, billedets indlæsning, tegning og pakning, og arket */
+  const F = { bidder: 0, arbejde: 0 }; let fT = T0; const lap = k => { const n = performance.now(); F[k] = Math.round(n - fT); fT = n; };
   let ctm = svg.getScreenCTM(); if (!ctm) return;
   let inv = ctm.inverse(); const pt = new DOMPoint();
   const map = r => { const a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv); return [a.x, a.y, b.x, b.y]; };
@@ -12451,7 +12483,7 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   let li = 0;
   const step = () => {
     if (gen !== BAKE.gen || !svg.isConnected) return;
-    refresh(); const until = performance.now() + (window.BAKE_CHUNK || 12);
+    refresh(); const c0 = performance.now(), until = c0 + (window.BAKE_CHUNK || 12); F.bidder++;
     for (; li < leaves.length && performance.now() < until; li++){ const e = leaves[li];
     const b = map(e.getBoundingClientRect());
     const ag = isAnim(e), transparent = !ag && bakeInvisible(e);
@@ -12494,11 +12526,12 @@ function bakeNow(svg, gen, key, sc, gpuOn){
         regs.forEach(r => { const nb = [...r]; nb.el = e; nb.t = t; if (t === 'l' && !dyn.some(d => d.t === 'l' && !d.mov && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1])) nb.mov = true; if (window.BAKE_LOG) nb.src = 'lap(' + e.tagName + ')<' + (dyn.find(d => d.t === t && r[0] < d[2] && r[2] > d[0] && r[1] < d[3] && r[3] > d[1]) || {}).src; dyn.push(nb); }); }
       clipped.set(e, R); }
     }
-    BAKE.prog = li / leaves.length;
+    BAKE.prog = li / leaves.length; F.arbejde += performance.now() - c0;
     if (li < leaves.length){ setTimeout(step, window.BAKE_GAP ?? 16); return; }
     refresh(); finish();
   };
   const finish = () => {
+  F.arbejde = Math.round(F.arbejde); lap('sorter');
   const statics = leaves.filter(e => !live.has(e) && !gpuLeaves.has(e) && !clipped.has(e));
   if (window.BAKE_LOG) console.log('bage', leaves.length, 'levende', live.size, 'klippet', clipped.size, 'billede', statics.length, Math.round(performance.now() - T0) + 'ms');
   if (statics.length + clipped.size < 100 || !isFinite(x0)) return;
@@ -12574,11 +12607,15 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   }
   async function gpuFinish(gs){
     /* bladenes markup skal laves, mens SVG'en er urørt; derefter tegnes arkene */
-    gs.pieces.forEach(pc => { pc.markup = gpuPieceMarkup(pc, svg); });
-    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), cvs = [];
-    for (const sh of sheets){ cvs.push(await gpuRasterSheet(sh, true)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
-    const all = gs.pieces.concat(gs.extra), blobs = await gpuDropEmpty(all, cvs);
+    gs.pieces.forEach(pc => { pc.markup = gpuPieceMarkup(pc, svg); }); lap('stykker');
+    /* store stykker uden noget synligt findes først på en lille prøvetegning; så tegnes arket kun én gang og kun med det, der bruges */
+    const all = gs.pieces.concat(gs.extra); F.tomme = await gpuMarkEmpty(svg, all, px); lap('proeve');
     if (gen !== BAKE.gen) throw new Error('afbrudt');
+    const sheets = gpuAtlas(svg, gs.pieces, gs.extra, px), blobs = []; lap('ark');
+    const cvs = []; for (const sh of sheets){ cvs.push(await gpuRasterSheet(sh)); if (gen !== BAKE.gen) throw new Error('afbrudt'); }
+    lap('arkTegn'); for (const c of cvs) blobs.push(await PNGW.encode(c));
+    if (gen !== BAKE.gen) throw new Error('afbrudt');
+    lap('arkPng'); F.arkPx = sheets.map(sh => sh.W + 'x' + sh.H).join(',');
     const sAll = bakeStableAll(svg), aidx = new Map(); sAll.forEach((e, k) => aidx.set(e, k));
     const fixP = it => { if (it.d) return; if (it.p != null){ it.p = it.p < 0 ? gs.pieces.length + (-it.p - 1) : it.p; return; } it.c.forEach(fixP); };
     gs.items.forEach(fixP);
@@ -12608,25 +12645,28 @@ function bakeNow(svg, gen, key, sc, gpuOn){
   cl.setAttribute('viewBox', `${x0} ${y0} ${W} ${H}`); cl.setAttribute('width', Math.round(W * px)); cl.setAttribute('height', Math.round(H * px));
   cl.setAttribute('preserveAspectRatio', 'none'); cl.removeAttribute('id'); cl.removeAttribute('class'); cl.setAttribute('xmlns', NS); cl.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
   const src = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(cl)], { type: 'image/svg+xml' }));
-  const img = new Image();
-  img.onload = () => {
-    URL.revokeObjectURL(src); if (window.BAKE_LOG) console.log('bage: billede indlæst', Math.round(performance.now() - T0) + 'ms');
+  const img = new Image(); lap('kopi');
+  img.onload = async () => {
+    lap('billede'); URL.revokeObjectURL(src);
     if (gen !== BAKE.gen || !svg.isConnected) return;
     const cv = document.createElement('canvas'); cv.width = Math.round(W * px); cv.height = Math.round(H * px);
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); if (window.BAKE_LOG) console.log('bage: tegnet', Math.round(performance.now() - T0) + 'ms');
-    cv.toBlob(async bl => { if (window.BAKE_LOG) console.log('bage: png', bl && bl.size, Math.round(performance.now() - T0) + 'ms');
-      if (!bl || gen !== BAKE.gen || !svg.isConnected) return;
-      const stable = bakeStable(svg), sidx = new Map(); stable.forEach((e, k) => sidx.set(e, k));
-      if (statics.some(e => !sidx.has(e)) || liveClips.some(c => !sidx.has(c[0]))) return;
-      const rec = { n: stable.length, x0, y0, W, H, png: bl, px: `${cv.width}x${cv.height}`, ms: Math.round(performance.now() - T0), ts: Date.now(),
-        statics: statics.map(e => sidx.get(e)), clips: liveClips.map(([e, id, d]) => [sidx.get(e), id, d]) };
-      if (gpuOn && gpuSpec){ const gs = gpuSpec; gpuSpec = null;
-        try { rec.gpu = await gpuFinish(gs); } catch (er){ DBG.row('fejl', { besked: 'gpu-ark: ' + er.message }); rec.gpu = null; }
-        if (gen !== BAKE.gen || !svg.isConnected) return; }
-      bakeApply(svg, gen, rec, false);
-      /* gem til næste gang; hold højst 16 udgaver */
-      BIDB.put(key, rec).then(() => BIDB.keys()).then(ks => { if (ks.length > 16) ks.filter(k => !String(k).startsWith(VERSION + '|')).concat(ks).slice(0, ks.length - 16).forEach(k => BIDB.del(k)); });
-    }, 'image/png');
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); lap('tegn');
+    /* billedet pakkes som PNG i en arbejdstråd, mens arket til grafikchippen laves her */
+    const tP = performance.now(), pngP = PNGW.encode(cv).then(b => { F.png = Math.round(performance.now() - tP); return b; }, () => null);
+    const stable = bakeStable(svg), sidx = new Map(); stable.forEach((e, k) => sidx.set(e, k));
+    if (statics.some(e => !sidx.has(e)) || liveClips.some(c => !sidx.has(c[0]))) return;
+    let gpu = null;
+    if (gpuOn && gpuSpec){ const gs = gpuSpec; gpuSpec = null;
+      try { gpu = await gpuFinish(gs); } catch (er){ DBG.row('fejl', { besked: 'gpu-ark: ' + er.message }); gpu = null; } }
+    const bl = await pngP;
+    if (!bl || gen !== BAKE.gen || !svg.isConnected) return;
+    const rec = { n: stable.length, x0, y0, W, H, png: bl, px: `${cv.width}x${cv.height}`, ms: Math.round(performance.now() - T0), ts: Date.now(), faser: F,
+      statics: statics.map(e => sidx.get(e)), clips: liveClips.map(([e, id, d]) => [sidx.get(e), id, d]) };
+    if (gpuOn) rec.gpu = gpu;
+    if (window.BAKE_LOG) console.log('bage: færdig', rec.ms + 'ms', JSON.stringify(F));
+    bakeApply(svg, gen, rec, false);
+    /* gem til næste gang; hold højst 16 udgaver */
+    BIDB.put(key, rec).then(() => BIDB.keys()).then(ks => { if (ks.length > 16) ks.filter(k => !String(k).startsWith(VERSION + '|')).concat(ks).slice(0, ks.length - 16).forEach(k => BIDB.del(k)); });
   };
   img.onerror = () => { if (window.BAKE_LOG) console.log('bage: billedfejl'); URL.revokeObjectURL(src); DBG.row('fejl', { besked: 'bage: billedet kunne ikke tegnes' }); };
   img.src = src;
@@ -12813,55 +12853,54 @@ function gpuPieceMarkup(pc, svg){
   return open + body + close;
 }
 /* pak alle stykker i ét eller flere ark og tegn dem som én SVG pr. ark */
+/* alle definitioner (forløb, filtre, klip) følger med i hvert ark */
+function gpuDefs(svg){
+  return [...svg.querySelectorAll('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker')].filter(d => d.id && !d.parentElement.closest('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker'))
+    .map(d => new XMLSerializer().serializeToString(d).replace(/\s*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')).join('');
+}
 function gpuAtlas(svg, pieces, extra, sc){
   const MAXW = 4096, MAXH = 4096, sheets = [];
   let sx = 0, sy = 0, rowH = 0, sheet = { items: [], h: 0 };
   const all = pieces.concat(extra);
-  all.forEach((pc, i) => { const pw = Math.ceil(pc.w * sc - 1e-3) + 2, ph = Math.ceil(pc.h * sc - 1e-3) + 2;
+  all.forEach((pc, i) => { if (pc.empty) return; const pw = Math.ceil(pc.w * sc - 1e-3) + 2, ph = Math.ceil(pc.h * sc - 1e-3) + 2;
     if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
     if (sy + ph > MAXH){ sheet.h = sy + rowH; sheets.push(sheet); sheet = { items: [], h: 0 }; sx = 0; sy = 0; rowH = 0; }
     pc.sheet = sheets.length; pc.ax = sx; pc.ay = sy; pc.aw = pw - 2; pc.ah = ph - 2; sheet.items.push(i);
     sx += pw; rowH = Math.max(rowH, ph); sheet.h = Math.max(sheet.h, sy + rowH); });
   sheets.push(sheet);
-  /* alle definitioner (forløb, filtre, klip) følger med i hvert ark */
-  const defs = [...svg.querySelectorAll('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker')].filter(d => d.id && !d.parentElement.closest('linearGradient,radialGradient,filter,clipPath,mask,pattern,symbol,marker'))
-    .map(d => new XMLSerializer().serializeToString(d).replace(/\s*xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '')).join('');
+  const defs = gpuDefs(svg);
   return sheets.map(sh => { const W = MAXW, H = Math.max(1, sh.h);
     const body = sh.items.map(i => { const pc = all[i]; return `<svg x="${pc.ax}" y="${pc.ay}" width="${pc.aw}" height="${pc.ah}" viewBox="${pc.x} ${pc.y} ${pc.w} ${pc.h}" preserveAspectRatio="none" overflow="hidden">${pc.markup || gpuPieceMarkup(pc, svg)}</svg>`; }).join('');
     return { W, H, src: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${defs}</defs>${body}</svg>` }; });
 }
-function gpuRasterSheet(sheet, asCanvas){
+/* arket tegnes på et lærred. laes: lærredet skal læses pixel for pixel (så holdes det i almindelig hukommelse) */
+function gpuRasterSheet(sheet, laes){
   return new Promise((res, rej) => { const url = URL.createObjectURL(new Blob([sheet.src], { type: 'image/svg+xml' })), img = new Image();
-    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d', { willReadFrequently: !!asCanvas }).drawImage(img, 0, 0);
-      if (asCanvas) return res(cv);
-      cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'); };
+    img.onload = () => { URL.revokeObjectURL(url); const cv = document.createElement('canvas'); cv.width = sheet.W; cv.height = sheet.H; cv.getContext('2d', { willReadFrequently: !!laes }).drawImage(img, 0, 0); res(cv); };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('ark kunne ikke tegnes')); }; img.src = url; });
 }
-
-/* stykker uden en eneste synlig pixel smides væk, og resten pakkes tæt i nye ark (pixlerne kopieres, intet tegnes om).
-   Fx er skyggen i kortets kanter helt gennemsigtig inden for kameraets område, men fyldte 3/4 af arket og lå som et
-   fuldskærmslag over alt det andet */
-async function gpuDropEmpty(all, cvs){
-  /* kun store stykker undersøges (små koster næsten intet, og så skal der ikke læses så mange pixels) */
-  let dropped = 0;
-  all.forEach(pc => { if (pc.aw * pc.ah < 65536) return;
-    const d = cvs[pc.sheet].getContext('2d', { willReadFrequently: true }).getImageData(pc.ax, pc.ay, pc.aw, pc.ah).data;
-    for (let i = 3; i < d.length; i += 4) if (d[i]) return;
-    pc.empty = true; dropped++; });
-  if (dropped){
-    const MAXW = 4096, MAXH = 4096, H = [0]; let sx = 0, sy = 0, rowH = 0, sh = 0;
-    const keep = all.filter(pc => !pc.empty).map(pc => { const pw = pc.aw + 2, ph = pc.ah + 2;
-      if (sx + pw > MAXW){ sx = 0; sy += rowH; rowH = 0; }
-      if (sy + ph > MAXH){ sh++; H[sh] = 0; sx = 0; sy = 0; rowH = 0; }
-      const p = [pc, sh, sx, sy]; sx += pw; rowH = Math.max(rowH, ph); H[sh] = Math.max(H[sh], sy + rowH); return p; });
-    const out = H.map(h => { const c = document.createElement('canvas'); c.width = MAXW; c.height = Math.max(1, h); return c; });
-    for (const [pc, s2, x, y] of keep){ if (pc.aw > 0 && pc.ah > 0) out[s2].getContext('2d').drawImage(cvs[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, x, y, pc.aw, pc.ah); pc.sheet = s2; pc.ax = x; pc.ay = y; }
-    cvs = out;
-  }
-  return Promise.all(cvs.map(cv => new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('ark')), 'image/png'))));
+/* tomme stykker: et stort stykke uden én eneste synlig pixel (fx et usynligt lag over hele skærmen) fylder i arket,
+   koster hukommelse på grafikchippen og er et lag, der skal lægges sammen i hvert billede — uden at kunne ses.
+   De findes på en lille prøvetegning i kvart størrelse, FØR arket lægges; så tegnes det store ark kun én gang, og kun
+   med det, der bruges (før blev hele arket tegnet i fuld størrelse, læst tilbage og pakket om).
+   Kun store stykker undersøges; små koster næsten intet. Returnerer antallet af tomme (de mærkes med empty) */
+async function gpuMarkEmpty(svg, all, sc){
+  const K = 4, MAXW = 2048, big = all.filter(pc => Math.ceil(pc.w * sc - 1e-3) * Math.ceil(pc.h * sc - 1e-3) >= 65536);
+  if (!big.length) return 0;
+  let sx = 0, sy = 0, rowH = 0;
+  const pos = big.map(pc => { const w = Math.max(1, Math.ceil(pc.w * sc / K)), h = Math.max(1, Math.ceil(pc.h * sc / K));
+    if (sx && sx + w > MAXW){ sx = 0; sy += rowH; rowH = 0; }
+    const p = [sx, sy, w, h]; sx += w; rowH = Math.max(rowH, h); return p; });
+  const W = MAXW, H = sy + rowH;
+  const body = big.map((pc, i) => `<svg x="${pos[i][0]}" y="${pos[i][1]}" width="${pos[i][2]}" height="${pos[i][3]}" viewBox="${pc.x} ${pc.y} ${pc.w} ${pc.h}" preserveAspectRatio="none" overflow="hidden">${pc.markup || gpuPieceMarkup(pc, svg)}</svg>`).join('');
+  const cv = await gpuRasterSheet({ W, H, src: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><defs>${gpuDefs(svg)}</defs>${body}</svg>` }, true);
+  const d = cv.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  let n = 0;
+  big.forEach((pc, i) => { const [x, y, w, h] = pos[i];
+    for (let yy = y; yy < y + h; yy++){ let o = (yy * W + x) * 4 + 3; for (let xx = 0; xx < w; xx++, o += 4) if (d[o]) return; }
+    pc.empty = true; n++; });
+  return n;
 }
-
-/* ---------- byg laget på skærmen ---------- */
 async function gpuMount(svg, gen, rec, st){
   const g = rec.gpu, host = svg.parentElement;
   /* arkene bruges direkte som baggrundsbillede for hvert stykke (et udsnit af arket). Før var hvert stykke sit eget lærred,
@@ -13062,6 +13101,182 @@ function smilDrive(svg){
   };
   requestAnimationFrame(tick);
 }
+
+/* ================= Lærreds-byen (forsøg): hele byen tegnet på ét lærred =================
+   Et forsøg til måling, ikke en del af spillet endnu. Det genbruger det bagte billede og arket med de
+   bevægelige stykker fra lageret og afspiller de samme bevægelser med drawImage på ét <canvas>, i stedet
+   for som ~260 lag, browseren selv skal lægge sammen. Figurer og talebobler er færdige billeder.
+   Startes fra fejlsøgningen: hold fingeren på det røde LOG-mærke i byen i et sekund. Fire målinger køres efter hinanden,
+   og resultatet sendes til loggen. Bagefter er byen tilbage som før. */
+const LAERRED = (() => {
+  let raf = 0, cv = null, ST = null, undo = [], running = false;
+  const parseT = s => { const out = [], re = /(\w+)\(([^)]*)\)/g; let m;
+    while ((m = re.exec(s))) out.push([m[1], m[2].split(/[\s,]+/).map(parseFloat)]); return out; };
+  const mul = (A, B) => [A[0]*B[0]+A[2]*B[1], A[1]*B[0]+A[3]*B[1], A[0]*B[2]+A[2]*B[3], A[1]*B[2]+A[3]*B[3], A[0]*B[4]+A[2]*B[5]+A[4], A[1]*B[4]+A[3]*B[5]+A[5]];
+  const toM = fl => { let M = [1,0,0,1,0,0];
+    for (const [f, a] of fl){
+      if (f === 'translate') M = mul(M, [1,0,0,1,a[0],a[1]||0]);
+      else if (f === 'rotate'){ const r = a[0]*Math.PI/180, c = Math.cos(r), s = Math.sin(r); M = mul(M, [c,s,-s,c,0,0]); }
+      else if (f === 'scale') M = mul(M, [a[0],0,0,a[1]??a[0],0,0]);
+      else if (f === 'skewX') M = mul(M, [1,0,Math.tan(a[0]*Math.PI/180),1,0,0]);
+      else if (f === 'skewY') M = mul(M, [1,Math.tan(a[0]*Math.PI/180),0,1,0,0]);
+      else if (f === 'matrix') M = mul(M, a); }
+    return M; };
+  const compileAnim = a => ({ kf: a.kf.map(k => ({ off: k.offset, t: k.transform != null ? parseT(k.transform) : null, o: k.opacity })), dur: a.dur, delay: a.delay || 0 });
+  /* en bevægelses værdi til tiden t (ms) */
+  function sample(A, t){
+    const u = t - A.delay; if (u < 0) return null;
+    const k = (u % A.dur) / A.dur, kf = A.kf; let i = 0; while (i < kf.length - 1 && k >= kf[i + 1].off) i++;
+    const a = kf[i], b = kf[i + 1] || a, f = b === a ? 0 : (k - a.off) / ((b.off - a.off) || 1);
+    let m = null, o = null;
+    if (a.t) m = toM(a.t.map(([fn, args], j) => [fn, args.map((v, n) => v + (((b.t && b.t[j] && b.t[j][1][n]) ?? v) - v) * f)]));
+    if (a.o != null) o = a.o + ((b.o ?? a.o) - a.o) * f;
+    return { m, o };
+  }
+  /* lagenes træ flades ud til en liste af tegneopgaver; hver har sin kæde af flytninger */
+  function flatten(g){
+    const out = [];
+    const walk = (spec, chain) => {
+      if (spec.p != null){ const pc = g.pieces[spec.p]; if (pc) out.push({ kind: 'p', pc, chain }); return; }
+      if (spec.d){ out.push({ kind: 'd', d: spec.d, chain, path: new Path2D(spec.d.path) }); return; }
+      const c2 = chain.concat(spec.w.map(w => ({ m: w.m ? w.m.slice() : null, o: w.o ?? null, a: w.a ? compileAnim(w.a) : null })));
+      for (const k of spec.c) walk(k, c2);
+    };
+    for (const it of g.items) walk(it, []);
+    return out;
+  }
+  const svgImg = (src, w, h) => new Promise((res, rej) => { const img = new Image();
+    img.onload = () => { try { const c = new OffscreenCanvas(Math.max(1, Math.round(w)), Math.max(1, Math.round(h))); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.transferToImageBitmap()); } catch (e){ rej(e); } };
+    img.onerror = () => rej(new Error('billede')); img.src = src; });
+
+  async function start(o = {}){
+    const T0 = performance.now(), dpr = o.dpr ?? (window.devicePixelRatio || 1);
+    const rec = BAKE.key ? await BIDB.get(BAKE.key) : null; if (!rec || !rec.gpu) throw new Error('intet bagt kort');
+    const svg = $('#townSvg'), street = $('#street'), CTM = svg.getScreenCTM();
+    const [bg, ...sheets] = await Promise.all([createImageBitmap(rec.png), ...rec.gpu.sheets.map(b => createImageBitmap(b))]);
+    /* det, der stadig lever i SVG'en (skilte, tekst, glød): i en rigtig løsning bages det med; her ét ekstra billede */
+    const c0 = svg.cloneNode(true);
+    c0.querySelectorAll('.bk,image.baked-bg,[style*="multiply"]').forEach(e => e.remove());
+    c0.setAttribute('width', CW); c0.setAttribute('height', CH); c0.setAttribute('viewBox', `0 0 ${CW} ${CH}`);
+    const overlay = await svgImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c0)), CW * CTM.a * dpr, CH * CTM.d * dpr);
+    const list = flatten(rec.gpu);
+    /* figurer: færdige billeder (heltinden, dyret, gæster) */
+    const kS = CTM.a * dpr * 1.1, dW = DOLL_H * 720 / 1010 * kS, dH = DOLL_H * kS, pW = PET_H * 400 / 380 * kS, pH = PET_H * kS;
+    const hero = await svgImg(SPR.walk, dW, dH), pet = SPR.pwalk ? await svgImg(SPR.pwalk, pW, pH) : null;
+    const guests = await Promise.all([0, 1, 2, 3].map(() => svgImg(svgUrl(renderDoll(randomState({}), { viewBox: VB_DOLL, pet: false, walk: true })), dW, dH)));
+    const bubble = text => { const w = Math.max(70, text.length * 12 + 34), c = new OffscreenCanvas(Math.ceil((w + 8) * kS), Math.ceil(64 * kS)), x = c.getContext('2d');
+      x.scale(kS, kS); x.translate(w / 2 + 4, 50); x.fillStyle = '#FFF'; x.strokeStyle = 'rgba(51,32,79,.22)'; x.lineWidth = 2.5;
+      x.beginPath(); x.roundRect(-w / 2, -46, w, 42, 21); x.fill(); x.stroke(); x.beginPath(); x.moveTo(-9, -5); x.lineTo(0, 10); x.lineTo(9, -5); x.fill();
+      x.fillStyle = '#33204F'; x.font = `700 21px ${FONT_C}`; x.textAlign = 'center'; x.fillText(text, 0, -19); return { bm: c.transferToImageBitmap(), w }; };
+    const bubbles = [bubble('Hej med dig!'), bubble('Flot tøj!')];
+    /* gående figurer på byens rigtige stier */
+    const walkers = [];
+    for (let i = 0; i < (o.walkers ?? 6); i++){
+      const isPet = i === 1 && !!pet, bm = i === 0 ? hero : isPet ? pet : guests[i % guests.length];
+      const w = { bm, h: isPet ? PET_H : DOLL_H, foot: isPet ? 0.921 : 0.977, ar: isPet ? 400 / 380 : 720 / 1010, x: 0, y: 0, dir: 1, t0: Math.random() * 1000, route: null };
+      w.go = () => { if (!cv) return; const a = SPOTS[Math.floor(Math.random() * SPOTS.length)], b = SPOTS[Math.floor(Math.random() * SPOTS.length)];
+        const pts = routeTo(a, b); if (pts.length < 2){ setTimeout(w.go, 10); return; }
+        const seg = []; let tot = 0; for (let j = 1; j < pts.length; j++){ const l = Math.hypot(pts[j][0] - pts[j - 1][0], pts[j][1] - pts[j - 1][1]); seg.push(l); tot += l; }
+        w.route = { pts, seg, total: tot, d: 0 }; };
+      walkers.push(w);
+    }
+    const sh = SHADE[CM.time], W = innerWidth, H = innerHeight;
+    cv = document.createElement('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const ctx = cv.getContext('2d', { alpha: false });
+    const base = [CTM.a * dpr, 0, 0, CTM.d * dpr, CTM.e * dpr, CTM.f * dpr], setB = () => ctx.setTransform(base[0], base[1], base[2], base[3], base[4], base[5]);
+    /* alt stillestående og nattens farvelag i ÉT billede, og farvelaget ganget ind i arket (som en bagning på forhånd ville gøre) */
+    const g = new OffscreenCanvas(cv.width, cv.height), gx = g.getContext('2d');
+    gx.fillStyle = SKY[CM.time][0]; gx.fillRect(0, 0, g.width, g.height);
+    gx.setTransform(base[0], 0, 0, base[3], base[4], base[5]); gx.drawImage(bg, rec.x0, rec.y0, rec.W, rec.H);
+    gx.setTransform(1, 0, 0, 1, 0, 0); gx.drawImage(overlay, CTM.e * dpr, CTM.f * dpr);
+    if (sh){ gx.globalCompositeOperation = 'multiply'; gx.globalAlpha = sh[1] * .8; gx.fillStyle = sh[0]; gx.fillRect(0, 0, g.width, g.height); }
+    const ground = g.transferToImageBitmap(); let drawSheets = sheets;
+    if (sh){ const al = sh[1] * .8, k = [1, 3, 5].map(i => 1 - al + al * parseInt(sh[0].slice(i, i + 2), 16) / 255);
+      drawSheets = sheets.map(S => { const oc = new OffscreenCanvas(S.width, S.height), ox = oc.getContext('2d', { willReadFrequently: true }); ox.drawImage(S, 0, 0);
+        const id = ox.getImageData(0, 0, S.width, S.height), d = id.data; for (let i = 0; i < d.length; i += 4){ d[i] *= k[0]; d[i + 1] *= k[1]; d[i + 2] *= k[2]; }
+        ox.putImageData(id, 0, 0); return oc.transferToImageBitmap(); }); }
+    /* den gamle by slukkes, så kun lærredet tegnes. Med 'tryk' bliver SVG'en liggende usynlig ovenpå (til tryk) */
+    const set = (e, prop, v) => { if (!e) return; const old = e.style[prop]; e.style[prop] = v; undo.push(() => { e.style[prop] = old; }); };
+    LIFE.on = false;
+    if (o.tryk){ const r = street.getBoundingClientRect();
+      Object.assign(cv.style, { position: 'absolute', left: -r.left + 'px', top: -r.top + 'px', width: W + 'px', height: H + 'px' }); street.prepend(cv);
+      set($('#world'), 'background', 'none'); set(svg, 'opacity', '0'); set($('#townLive'), 'display', 'none'); set(GPU.layer, 'display', 'none');
+      svg.pauseAnimations(); undo.push(() => svg.unpauseAnimations()); }
+    else { Object.assign(cv.style, { position: 'fixed', left: 0, top: 0, width: W + 'px', height: H + 'px', zIndex: 50 }); document.body.append(cv); set(street, 'display', 'none'); }
+    walkers.forEach(w => w.go());
+    const tPrep = performance.now() - T0, tStart = performance.now(), stats = ST = { frames: 0, drawMs: 0 }; let last = tStart;
+    const frame = now => {
+      const f0 = performance.now(), t = now - tStart, dt = Math.min(50, now - last); last = now;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(ground, 0, 0);
+      for (const it of list){
+        let M = base, a = 1;
+        for (const w of it.chain){ let m = w.m, op = w.o;
+          if (w.a){ const s = sample(w.a, t); if (s){ if (s.m) m = s.m; if (s.o != null) op = s.o; } }
+          if (m) M = mul(M, m); if (op != null) a *= op; }
+        if (a <= 0.003) continue;
+        ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); ctx.globalAlpha = a;
+        if (it.kind === 'p'){ const pc = it.pc; if (pc.blend) ctx.globalCompositeOperation = pc.blend;
+          ctx.drawImage(drawSheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, pc.x, pc.y, pc.w, pc.h);
+          if (pc.blend) ctx.globalCompositeOperation = 'source-over'; }
+        else { const d = it.d, u = t / 1000 - (d.begin || 0); let v = d.off0;
+          if (u >= 0 && d.vals){ const k = (u % d.dur) / d.dur; let i = 0; while (i < d.offs.length - 1 && k >= d.offs[i + 1]) i++; v = d.disc || i >= d.vals.length - 1 ? d.vals[i] : d.vals[i] + (d.vals[i + 1] - d.vals[i]) * (k - d.offs[i]) / ((d.offs[i + 1] - d.offs[i]) || 1); }
+          ctx.strokeStyle = d.grad ? '#9fd' : d.stroke; ctx.globalAlpha = a * d.so; ctx.lineWidth = d.sw; ctx.lineCap = d.cap; ctx.lineJoin = d.join;
+          ctx.setLineDash(d.dash.length % 2 ? d.dash.concat(d.dash) : d.dash); ctx.lineDashOffset = v; ctx.stroke(it.path); ctx.setLineDash([]); }
+      }
+      ctx.globalAlpha = 1;
+      for (const w of walkers){ const r = w.route; if (r){ r.d = Math.min(r.total, r.d + 0.3 * Math.max(.3, depthS(w.y || 700)) * dt); const [x, y, dx] = routePos(r, r.d); if (Math.abs(dx) > .5) w.dir = dx < 0 ? -1 : 1; w.x = x; w.y = y; if (r.d >= r.total){ w.route = null; setTimeout(w.go, 400); } } }
+      walkers.sort((p, q) => p.y - q.y);
+      for (const w of walkers){ const s = Math.max(.3, depthS(w.y)), tt = (now + w.t0) / 1000, bob = w.route ? -Math.abs(Math.sin(tt * 7)) * 5 : 0, h = w.h * s, wd = h * w.ar;
+        setB(); ctx.translate(w.x, w.y);
+        ctx.globalAlpha = .16; ctx.fillStyle = '#33204F'; ctx.beginPath(); ctx.ellipse(0, 0, wd * .28, h * .04, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+        ctx.translate(0, bob); if (w.route) ctx.rotate(Math.sin(tt * 7) * 3 * Math.PI / 180); if (w.dir < 0) ctx.scale(-1, 1);
+        ctx.drawImage(w.bm, -wd / 2, -h * w.foot, wd, h); }
+      bubbles.forEach((b, i) => { const w = walkers[i * 2]; if (!w) return; const s = depthS(w.y); setB(); ctx.translate(w.x - b.w / 2 - 4, w.y - w.h * s * 0.98 - 50); ctx.drawImage(b.bm, 0, 0, b.bm.width / kS, b.bm.height / kS); });
+      stats.frames++; stats.drawMs += performance.now() - f0;
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return { klar: Math.round(tPrep), ting: list.length, px: cv.width + 'x' + cv.height };
+  }
+  function stop(){ cancelAnimationFrame(raf); if (cv) cv.remove(); cv = null; undo.splice(0).reverse().forEach(f => f()); }
+
+  /* ---------- målingen: fire udgaver efter hinanden, 8 sekunder hver ---------- */
+  const FASER = [
+    ['byen som nu', null],
+    ['lærred, fuld skarphed', {}],
+    ['lærred, lavere skarphed', { dpr: 1 }],
+    ['lærred med usynlig by ovenpå', { tryk: true }] ];
+  const maal = sek => new Promise(res => { const fr = []; let last = 0, t0 = 0;
+    const q = t => { if (!t0) t0 = t; else fr.push(t - last); last = t; DBG.count('test'); if (t - t0 < sek * 1000) requestAnimationFrame(q); else res(fr); };
+    requestAnimationFrame(q); });
+  const stat = fr => { const f = fr.slice().sort((a, b) => a - b), n = f.length, sum = fr.reduce((a, b) => a + b, 0), q = p => +f[Math.min(n - 1, Math.floor(p * n))].toFixed(1);
+    const fps1 = []; let acc = 0, k = 0; fr.forEach(d => { acc += d; k++; if (acc >= 1000){ fps1.push(Math.round(k * 1000 / acc)); acc = 0; k = 0; } });
+    return { fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), fps1 }; };
+  async function test(sek = 8){
+    if (running) return null;
+    if ($('#town').hidden || !GPU.on || !BAKE.key){ toast('Åbn byen først'); return null; }
+    running = true;
+    const lab = el('div', { class: 'lr-lab' }); document.body.append(lab);
+    const res = [];
+    try {
+      for (let i = 0; i < FASER.length; i++){ const [navn, o] = FASER[i]; lab.textContent = `Måler ${i + 1} af ${FASER.length}: ${navn} …`;
+        const info = o ? await start(o) : null; await wait(1500);
+        const r = { navn, ...stat(await maal(sek)) };
+        if (o){ Object.assign(r, info, { js: +(ST.drawMs / Math.max(1, ST.frames)).toFixed(2) }); stop(); await wait(300); }
+        res.push(r); }
+    } catch (e){ res.push({ fejl: String(e && e.message || e) }); stop(); }
+    lab.remove();
+    DBG.row('laerredtest', { faser: res, skaerm: `${innerWidth}x${innerHeight}`, dpr: window.devicePixelRatio || 1, kamera: CAM.on, tid: CM.time }, 'town'); DBG.flush();
+    showTown({ quiet: true });
+    running = false;
+    const panel = el('div', { class: 'lr-res' }, [ el('h2', {}, 'Målingen er sendt'),
+      ...res.map(r => el('p', {}, r.fejl ? 'Fejl: ' + r.fejl : `${r.navn}: ${Math.round(r.fps)} billeder i sekundet`)),
+      el('button', { class: 'btn', type: 'button', on: { click: () => panel.remove() } }, 'Luk') ]);
+    document.body.append(panel);
+    return res;
+  }
+  return { start, stop, test, get running(){ return running; } };
+})();
 
 // Egne lydfiler. Læg filen i mappen lyd/ og skriv den her, fx  'gnom.slag': 'lyd/gnom-slag.mp3'
 // Flere filer på samme plads (en liste) = varianter: spillet vælger en tilfældig, aldrig den samme to gange i træk.
@@ -13298,12 +13513,16 @@ const SND = (() => {
 
 /* Fejlsøgning: tryk 5 gange på versionsnummeret på forsiden for at slå loggen til eller fra.
    Når den er slået til, måles billeder pr. sekund, lange hak og fejl på hver skærm, og hvert 30. sekund
-   sendes en kort opsummering til tabellen spil_log, hvor Claude kan læse den. Intet sendes, når den er slået fra. */
+   sendes en kort opsummering til tabellen spil_log, hvor Claude kan læse den. Intet sendes, når den er slået fra.
+   Hver måling dækker 5 sekunder og har også tallet for hvert enkelt sekund (fps1), de længste billeder (vaerste)
+   og, for billeder over 50 ms, hvad tiden gik med (laf: kode, tegning, og den funktion der brugte mest).
+   I byen kan man holde fingeren på det røde LOG-mærke i et sekund for at måle lærreds-byen (se laerred.js). */
 const DBG = (() => {
   const URL = 'https://kargzxpaaganyfnpyvmb.supabase.co/rest/v1/spil_log';
   const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthcmd6eHBhYWdhbnlmbnB5dm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTY2NTEsImV4cCI6MjEwMDg5MjY1MX0.V3bb0XVkHvuQEqDqhn1nRprIa2ooA4Se6AYR5J32r54';
   const STORE = 'glimmerstudiet.debug';
-  let ab = false, abN = 0, on = false, session = '', queue = [], frames = [], last = 0, raf = 0, longN = 0, longMs = 0, counts = {}, screen = '', sampleT = 0, flushT = 0, badge = null, obs = null, taps = [];
+  let on = false, session = '', queue = [], frames = [], last = 0, raf = 0, longN = 0, longMs = 0, counts = {}, screen = '', sampleT = 0, flushT = 0, badge = null, obs = null, laf = null, L = null, taps = [];
+  const lafNul = () => { L = { n: 0, ms: 0, blok: 0, kode: 0, tegn: 0, stil: 0, top: {} }; }; lafNul();
   const curScreen = () => { for (const s of SCREENS){ const e = document.querySelector(s); if (e && !e.hidden) return s.slice(1); } return '?'; };
   function row(kind, data, scr){ if (!on) return; queue.push({ session, version: VERSION, kind, screen: scr || curScreen(), data }); if (queue.length > 200) queue.splice(0, queue.length - 200); }
   function count(k, n = 1){ if (on) counts[k] = (counts[k] || 0) + n; }
@@ -13312,22 +13531,21 @@ const DBG = (() => {
     if (n){
       const sum = frames.reduce((a, b) => a + b, 0), q = p => +f[Math.min(n - 1, Math.floor(p * n))].toFixed(1);
       const scr = document.querySelector('#' + screen);
-      row('maaling', { sek: +(sum / 1000).toFixed(1), fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), hak50: frames.filter(x => x > 50).length, hak100: frames.filter(x => x > 100).length,
+      const fps1 = []; let acc = 0, k = 0; frames.forEach(d => { acc += d; k++; if (acc >= 1000){ fps1.push(Math.round(k * 1000 / acc)); acc = 0; k = 0; } });
+      let lf; if (L.n){ const top = Object.entries(L.top).sort((a, b) => b[1] - a[1])[0];
+        lf = { n: L.n, ms: Math.round(L.ms), blok: Math.round(L.blok), kode: Math.round(L.kode), tegn: Math.round(L.tegn), stil: Math.round(L.stil), top: top ? top[0] + ' ' + Math.round(top[1]) : null }; }
+      row('maaling', { sek: +(sum / 1000).toFixed(1), fps: +(n * 1000 / sum).toFixed(1), p50: q(.5), p95: q(.95), max: q(1), hak50: frames.filter(x => x > 50).length, hak100: frames.filter(x => x > 100).length, fps1, vaerste: f.slice(-5).reverse().map(Math.round), laf: lf,
         lange: longN, langeMs: Math.round(longMs), elementer: scr ? scr.getElementsByTagName('*').length : 0, animationer: scr ? scr.querySelectorAll('animate,animateTransform,animateMotion').length : 0,
-        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), gpu: typeof GPU !== 'undefined' && GPU.on, animStop: ab, ...counts }, screen);
+        heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, bagt: !!document.querySelector('#townSvg.baked'), gpu: typeof GPU !== 'undefined' && GPU.on, ...counts }, screen);
     }
-    frames = []; longN = 0; longMs = 0; counts = {};
+    frames = []; longN = 0; longMs = 0; counts = {}; lafNul();
   }
   function loop(t){
     if (!on) return;
     if (last) frames.push(t - last); last = t;
     const s = curScreen();
-    if (s !== screen){ if (screen) sample(); row('skaerm', { fra: screen, til: s }); screen = s; sampleT = t; }
-    if (t - sampleT > 5000){ sample(); sampleT = t;
-      /* forsøg på kortet: hvert andet måleinterval står animationerne stille, så vi kan se, hvad de koster */
-      const tv = document.querySelector('#townSvg');
-      if (tv && screen === 'town'){ abN++; const stop = abN % 2 === 1; if (stop) tv.pauseAnimations(); else tv.unpauseAnimations(); ab = stop; }
-      else ab = false; }
+    if (s !== screen){ if (screen) sample(); row('skaerm', { fra: screen, til: s }); screen = s; sampleT = t; if (badge) badge.classList.toggle('tryk', s === 'town'); }
+    if (t - sampleT > 5000){ sample(); sampleT = t; }
     if (t - flushT > 30000){ flush(); flushT = t; }
     if (badge && frames.length && frames.length % 15 === 0){ const k = frames.slice(-30), avg = k.reduce((a, b) => a + b, 0) / k.length; badge.textContent = `LOG ${Math.round(1000 / avg)} fps`; }
     raf = requestAnimationFrame(loop);
@@ -13342,10 +13560,21 @@ const DBG = (() => {
     row('start', { ua: navigator.userAgent, skaerm: `${innerWidth}x${innerHeight}`, dpr: devicePixelRatio, kerner: navigator.hardwareConcurrency || null, hukommelseGB: navigator.deviceMemory || null,
       app: matchMedia('(display-mode: standalone)').matches, net: navigator.connection ? navigator.connection.effectiveType : null });
     try { obs = new PerformanceObserver(l => l.getEntries().forEach(e => { longN++; longMs += e.duration; })); obs.observe({ type: 'longtask', buffered: false }); } catch (e){ obs = null; }
+    /* billeder over 50 ms: hvor meget var kode, hvor meget var tegning (stil og opsætning), og hvilken funktion fyldte mest */
+    try { laf = new PerformanceObserver(l => l.getEntries().forEach(e => { const end = e.startTime + e.duration; L.n++; L.ms += e.duration; L.blok += e.blockingDuration || 0;
+        if (e.renderStart) L.tegn += end - e.renderStart; if (e.styleAndLayoutStart) L.stil += end - e.styleAndLayoutStart;
+        (e.scripts || []).forEach(sc => { L.kode += sc.duration; const k = String(sc.sourceFunctionName || sc.invoker || '?').slice(0, 40); L.top[k] = (L.top[k] || 0) + sc.duration; }); }));
+      laf.observe({ type: 'long-animation-frame', buffered: false }); } catch (e){ laf = null; }
     badge = document.createElement('div'); badge.className = 'dbg-badge'; badge.textContent = 'LOG'; document.body.append(badge);
+    /* i byen: tryk på mærket for at måle lærreds-byen */
+    /* (et langt tryk, så man ikke rammer det ved et uheld, når man vil ind i Koncertsalen lige ved siden af) */
+    let hold = 0; const slip = () => { clearTimeout(hold); hold = 0; };
+    badge.addEventListener('pointerdown', () => { slip(); hold = setTimeout(() => { hold = 0; if (screen !== 'town' || LAERRED.running) return;
+      showModal('Mål byen?', 'Jeg prøver fire måder at tegne byen på. Det tager under et minut, og bagefter er alt som før.', [ { label: 'Nej' }, { label: 'Ja, mål', hot: true, fn: () => LAERRED.test() } ]); }, 800); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => badge.addEventListener(ev, slip)); badge.addEventListener('contextmenu', e => e.preventDefault());
     last = 0; frames = []; screen = ''; flushT = performance.now(); raf = requestAnimationFrame(loop);
   }
-  function stop(){ if (!on) return; sample(); row('stop', {}); flush(true); on = false; cancelAnimationFrame(raf); if (obs) obs.disconnect(); if (badge) badge.remove(); badge = null; }
+  function stop(){ if (!on) return; sample(); row('stop', {}); flush(true); on = false; cancelAnimationFrame(raf); if (obs) obs.disconnect(); if (laf) laf.disconnect(); if (badge) badge.remove(); badge = null; }
   function tap(){
     const now = Date.now(); taps = taps.filter(t => now - t < 2500); taps.push(now);
     if (taps.length < 5) return; taps = [];
@@ -13375,6 +13604,8 @@ async function startGame(){
     el('div', { class:'ld-bar' }, [ bar ]), msg ]);
   document.body.append(ld);
   const t0 = performance.now(); let shown = 0;
+  /* bag tæppet behøver byen ikke at se flydende ud: bagningen får lange bidder uden pauser (ellers 12 ms arbejde for hvert billede, byen tegner) */
+  window.BAKE_CHUNK = 120; window.BAKE_GAP = 0;
   try { showTown({ quiet: true }); } catch (e){ DBG.row('fejl', { besked: 'indlæsning: ' + e.message }); }
   const canBake = !window.NO_BAKE && !!window.indexedDB;
   while (canBake && performance.now() - t0 < 30000 && !(BAKE.ok && BAKE.ok === BAKE.gen)){
@@ -13384,8 +13615,8 @@ async function startGame(){
     if (t > 4) msg.textContent = 'Første gang tager det lidt længere …';
     await wait(100);
   }
-  bar.style.width = '100%';
-  DBG.row('indlaest', { ms: Math.round(performance.now() - t0), klar: !!(BAKE.ok && BAKE.ok === BAKE.gen) });
+  bar.style.width = '100%'; window.BAKE_CHUNK = window.BAKE_GAP = undefined;
+  DBG.row('indlaest', { ms: Math.round(performance.now() - t0), klar: !!(BAKE.ok && BAKE.ok === BAKE.gen), foer: Math.round(t0) });
   await wait(350);              // lad telefonen tegne kortet færdigt én gang, mens tæppet stadig er der
   showTitle();
   ld.classList.add('out'); setTimeout(() => ld.remove(), 600);
