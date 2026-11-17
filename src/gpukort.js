@@ -204,7 +204,12 @@ function gpuRasterSheet(sheet){
 /* ---------- byg laget på skærmen ---------- */
 async function gpuMount(svg, gen, rec, st){
   const g = rec.gpu, host = svg.parentElement;
+  /* arkene bruges direkte som baggrundsbillede for hvert stykke (et udsnit af arket). Før var hvert stykke sit eget lærred,
+     og så skulle browseren aflevere alle ~240 lærreder til grafikchippen i hvert eneste billede; det kostede halvdelen af
+     tiden på tabletten. Et billedudsnit males én gang og genbruges */
   const sheets = await Promise.all(g.sheets.map(b => createImageBitmap(b)));
+  const sheetUrl = g.sheets.map(b => URL.createObjectURL(b));
+  (GPU.urls || []).forEach(u => URL.revokeObjectURL(u)); GPU.urls = sheetUrl;
   if (gen !== BAKE.gen || !svg.isConnected) return false;
   const layer = document.createElement('div'); layer.className = 'gpu-layer';
   /* én billedpixel pr. skærmpixel: billedet og lapperne vises pixel for pixel, så deres kanter mødes uden striber */
@@ -214,8 +219,10 @@ async function gpuMount(svg, gen, rec, st){
   const box = (el, x, y, w, h) => { Object.assign(el.style, { transform: `translate(${x}px,${y}px)`, width: w + 'px', height: h + 'px' }); return el; };
   /* baggrunden: det bagte billede */
   const bg = new Image(); bg.decoding = 'async'; bg.src = BAKE.url; bg.className = 'gpu-bg'; cam.append(box(bg, rec.x0, rec.y0, rec.W, rec.H));
-  const piece = i => { const pc = g.pieces[i], cv = document.createElement('canvas'); cv.width = pc.aw; cv.height = pc.ah;
-    cv.getContext('2d').drawImage(sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, 0, 0, pc.aw, pc.ah); cv.className = pc.fix ? 'gpu-p gpu-fix' : 'gpu-p'; cv.dataset.i = i; if (pc.blend) cv.style.mixBlendMode = pc.blend; return box(cv, pc.x, pc.y, pc.w, pc.h); };
+  const piece = i => { const pc = g.pieces[i], d = document.createElement('div'), sx = pc.w / pc.aw, sy = pc.h / pc.ah, sh = sheets[pc.sheet];
+    d.className = pc.fix ? 'gpu-p gpu-fix' : 'gpu-p'; d.dataset.i = i; if (pc.blend) d.style.mixBlendMode = pc.blend;
+    d.style.backgroundImage = `url(${sheetUrl[pc.sheet]})`; d.style.backgroundSize = `${sh.width * sx}px ${sh.height * sy}px`; d.style.backgroundPosition = `${-pc.ax * sx}px ${-pc.ay * sy}px`;
+    return box(d, pc.x, pc.y, pc.w, pc.h); };
   /* stiplede streger: et lærred i skærmens opløsning, som uret tegner om */
   const res = Math.max(1, Math.min(3, (CAM.on ? CAM.k : ((svg.getScreenCTM() || {}).a || 1)) * (window.devicePixelRatio || 1)));
   const dashCv = d => { const cv = document.createElement('canvas'); cv.width = Math.ceil(d.w * res); cv.height = Math.ceil(d.h * res); cv.className = 'gpu-p';

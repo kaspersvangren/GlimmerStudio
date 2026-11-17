@@ -1,4 +1,5 @@
 [
+ "Byen kører lettere: de bevægelige ting på kortet var ~240 små lærreder, som browseren skulle aflevere til grafikchippen i hvert billede. Nu er de udsnit af ét fælles billede.",
  "Rettet i Koncertsalen: de sange, man har hørt, huskes nu i det gemte spil, og man kommer altid ind til lounge, også hvis man gik midt i en ønskesang.",
  "Musikken glider nu over: når man går ind i arkaden eller koncertsalen (og tilbage til byen), spiller den gamle musik videre, til den nye er klar, og så toner de over i hinanden. Stedets musik hentes, mens figuren går derhen. Lounge i koncertsalen er skruet op fra 0,45 til 0,62.",
  "Koncertsalen: på ønskesedlen står kun titlen. Sange, man ikke har hørt, har en node som billede, så det er en overraskelse, hvad gnomerne klæder sig ud som; når man har hørt en sang, viser kortet sangeren i det tøj.",
