@@ -190,7 +190,8 @@ function bakeNow(svg, gen, key, sc, gpuOn){
     const v = ok ? r : null; gpuRoots.set(r, v); return v; };
   /* lærreds-byen: roden for et blad er den yderste forfader, der er animeret eller kan trykkes på (eller bladet selv, hvis det er et støvfnug) */
   const lrRootOf = new Map();
-  const lrRoot = e => { let c = null; for (let x = e; x && x !== svg; x = x.parentElement) if (smilKids(x).length || x.matches('[data-tap],.mote')) c = x;
+  const lrMark = new Map(), lrIs = x => { let v = lrMark.get(x); if (v === undefined){ v = !!x.querySelector(':scope > animate,:scope > animateTransform,:scope > animateMotion,:scope > set') || x.matches('[data-tap],.mote'); lrMark.set(x, v); } return v; };
+  const lrRoot = e => { let c = null; for (let x = e; x && x !== svg; x = x.parentElement) if (lrIs(x)) c = x;
     if (!c) return null; if (lrRootOf.has(c)) return lrRootOf.get(c);
     let ok = !c.closest(HARD_LR) && !c.querySelector(HARD_LR) && gpuConvertible(c) && !c.querySelector('foreignObject');
     for (let x = c.parentElement; ok && x && x !== svg; x = x.parentElement) if (x.getAttribute('filter') || x.getAttribute('mask') || x.getAttribute('clip-path') || getComputedStyle(x).mixBlendMode !== 'normal') ok = false;

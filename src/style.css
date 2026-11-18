@@ -865,7 +865,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #townLive #chars > g{will-change:transform}   /* hver figur sit lille lag: at gå er kun en flytning, kun dukkens egen animation tegnes om */
 .gpu-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
 .gpu-host{isolation:isolate}
-#townSvg.lr{opacity:0}   /* den fulde lærreds-by: alt synligt er på lærredet; SVG'en tager kun imod tryk */
+#townSvg.lr{opacity:0}
+#townSvg.lr .mote{animation:none}   /* støvet tegnes på lærredet; den usynlige kopi skal ikke animeres (14 animationer i hvert billede) */   /* den fulde lærreds-by: alt synligt er på lærredet; SVG'en tager kun imod tryk */
 .gpu-cv{position:absolute;left:0;top:0;pointer-events:none;z-index:-1;transform-origin:0 0;display:block}   /* lærreds-byen: ét lærred under SVG'en (laerred.js) */
 .gpu-cam{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
 .gpu-cam .gpu-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}

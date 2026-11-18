@@ -256,12 +256,14 @@ async function gpuMount(svg, gen, rec, st){
     /* tekst og billeder i roden bliver vist i SVG'en (i den fulde lærreds-by tegnes de også på lærredet) */
     if (!full) r.querySelectorAll('text,image,foreignObject').forEach(t => { t.style.visibility = 'visible'; }); });
   const old = svg.querySelector('image.baked-bg'); if (old) old.remove();
-  /* fuld lærreds-by: SVG'en er usynlig og tager kun imod tryk */
+  /* fuld lærreds-by: SVG'en er usynlig og tager kun imod tryk. Uendelige animationer i den (fx fra uret nedenfor) stoppes,
+     for de tegnes på lærredet; ellers skal browseren stadig regne dem igennem i hvert billede */
   svg.classList.toggle('lr', full);
   /* laget ligger under SVG'en i samme stablingskontekst, så nattens farvelag i SVG'en kan blande med det */
   host.prepend(layer); host.classList.add('gpu-host');
   GPU.layer = layer; GPU.cam = cvs ? null : layer.firstChild; GPU.cv = !!cvs; GPU.full = full; GPU.svg = svg; GPU.on = true; gpuSync();
   smilDrive(svg);
+  if (full) svg.getAnimations({ subtree: true }).forEach(an => { const t = an.effect && an.effect.target; if (t && !t.closest('[data-tap],#hiddenStars') && an.effect.getTiming().iterations === Infinity) an.cancel(); });
   return true;
 }
 /* HTML-lagene (den gamle måde): hvert stykke er sit eget lag, som grafikchippen flytter */

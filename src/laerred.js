@@ -125,6 +125,19 @@ const LAERRED = (() => {
       x += T.wd[i]; }
     if (T.ls && 'letterSpacing' in ctx) ctx.letterSpacing = '0px';
   }
+  /* teksten tegnes én gang som et lille billede i skærmens opløsning og genbruges i hvert billede
+     (at sætte bogstaver koster langt mere end at lægge et færdigt billede). Laves om, hvis skalaen ændrer sig, eller en skrifttype er hentet */
+  function tekstBillede(T, S){
+    const m = document.createElement('canvas').getContext('2d');
+    if (T.fv !== FONTV){ if ('letterSpacing' in m) m.letterSpacing = T.ls ? T.ls + 'px' : '0px'; T.fv = FONTV; T.wd = T.parts.map(p => { m.font = p.f; return m.measureText(p.s).width; }); T.tot = T.wd.reduce((x, y) => x + y, 0) + T.parts.reduce((x, p) => x + p.dx, 0); }
+    const fs = Math.max(...T.parts.map(p => parseFloat((p.f.match(/([\d.]+)px/) || [])[1]) || 16)), pad = (T.stroke ? T.sw : 0) + 3;
+    let dy0 = 0, dy1 = 0, d = 0; T.parts.forEach(p => { d += p.dy; dy0 = Math.min(dy0, d); dy1 = Math.max(dy1, d); });
+    const x0 = T.x - (T.anchor === 'middle' ? T.tot / 2 : T.anchor === 'end' ? T.tot : 0) - pad - Math.abs(T.ls) - 2, x1 = x0 + T.tot + 2 * pad + 2 * Math.abs(T.ls) + 4;
+    const y0 = T.y + dy0 - fs * 1.15 - pad, y1 = T.y + dy1 + fs * .45 + pad;
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil((x1 - x0) * S)); c.height = Math.max(1, Math.ceil((y1 - y0) * S));
+    const x = c.getContext('2d'); x.setTransform(S, 0, 0, S, -x0 * S, -y0 * S); tekst(x, T, 1);
+    T.bm = { c, x: x0, y: y0, w: c.width / S, h: c.height / S, S, fv: FONTV };
+  }
 
   async function mount(svg, gen, rec, st){
     const g = rec.gpu, host = svg.parentElement;
@@ -192,7 +205,8 @@ const LAERRED = (() => {
         if (it.still && pc.fix) blit(ctx, s.sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, pc.x, pc.y, pc.w, pc.h, M);
         else { ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); ctx.drawImage(s.sheets[pc.sheet], pc.ax, pc.ay, pc.aw, pc.ah, pc.x, pc.y, pc.w, pc.h); }
         if (pc.blend) ctx.globalCompositeOperation = 'source-over'; }
-      else if (it.t){ ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); tekst(ctx, it.t, a > 1 ? 1 : a); }
+      else if (it.t){ const T = it.t, S = Math.min(4, Math.hypot(M[0], M[1])); if (!T.bm || T.bm.fv !== FONTV || Math.abs(T.bm.S - S) > .01) tekstBillede(T, S);
+        ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); ctx.drawImage(T.bm.c, T.bm.x, T.bm.y, T.bm.w, T.bm.h); }
       else if (it.im){ const o = it.im; if (!o.img) continue; const S = Math.min(4, Math.hypot(M[0], M[1])); if (!o.cvs || Math.abs(o.S - S) > .01) billedLaerred(o, S);
         ctx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); ctx.drawImage(o.cvs, o.x, o.y, o.w, o.h); }
       else { /* en stiplet streg, hvor stiplerne løber (åen, vandfaldet) */
