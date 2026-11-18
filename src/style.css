@@ -223,7 +223,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* ---------- v0.5: titelskærm, by, tæppe ---------- */
 .title-top{position:absolute;top:12px;right:max(16px, env(safe-area-inset-right, 0px))}
 .title-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(46px,10vw,104px);line-height:1;letter-spacing:-0.01em;text-align:center;user-select:none;-webkit-user-select:none;cursor:default}
-.title-logo span{display:inline-block;background:linear-gradient(180deg,#FFFFFF 10%,#FFE27A 55%,#FF8FC7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8A2E7A) drop-shadow(0 0 16px rgba(255,200,255,.6));animation:letterIn .7s cubic-bezier(.2,1.6,.4,1) both, bob 3s ease-in-out .8s infinite}
+.title-logo > span{display:inline-block;animation:letterIn .7s cubic-bezier(.2,1.6,.4,1) both, bob 3s ease-in-out .8s infinite}
+.title-logo > span > span{display:inline-block;background:linear-gradient(180deg,#FFFFFF 10%,#FFE27A 55%,#FF8FC7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8A2E7A) drop-shadow(0 0 16px rgba(255,200,255,.6))}
 @keyframes letterIn{from{transform:translateY(-60px) scale(.4);opacity:0}to{transform:none;opacity:1}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .playbtn svg{width:58%;height:58%}
@@ -282,7 +283,10 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #title{overflow:hidden;background:#2A1C78;color:#FFFFFF;position:relative}
 .title-inner{position:relative;height:100%;overflow:hidden}
 .title-scene{position:absolute;inset:0}
-.title-scene svg{width:100%;height:100%;display:block}
+.title-scene > svg.ts-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.title-scene .ts-fx{position:absolute;left:0;top:0;width:1600px;height:1000px;transform-origin:0 0;pointer-events:none}
+.title-scene .ts-l{position:absolute}
+.title-scene .ts-l > svg{display:block}
 .title-top{z-index:5}
 .title-inner .title-logo{position:absolute;left:0;right:0;top:max(4vh,14px);z-index:4}
 .title-stage{position:absolute;left:50%;bottom:4vh;height:min(60vh,600px);aspect-ratio:720/1010;transform:translateX(-50%);z-index:3}
