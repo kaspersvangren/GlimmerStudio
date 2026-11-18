@@ -1151,3 +1151,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .kf-tael.pop{animation:kftael .45s cubic-bezier(.2,1.6,.4,1);transform-box:fill-box;transform-origin:center}
 @keyframes kftael{0%{transform:scale(1.8);opacity:.3}100%{transform:scale(1);opacity:1}}
 .gpu-cam div.gpu-p{background-repeat:no-repeat}
+/* løftede animationer (loeft.js): små lag lige oven på scenens SVG */
+.lf-ov{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;pointer-events:none}
+.lf-ov .lf-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}

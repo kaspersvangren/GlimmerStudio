@@ -2,7 +2,7 @@
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.36.0';
+const VERSION = 'v0.37.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -73,6 +73,9 @@ function showScreen(id){
   for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
     e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
   window.scrollTo(0,0);
+  /* scenens små animationer løftes ud af SVG'en (loeft.js), når skærmen er tegnet; og igen, hvis den tegnes om */
+  if (typeof LOEFT === 'object'){ const e = $(id); LOEFT.later(e);
+    if (e && !e.dataset.lfw){ e.dataset.lfw = '1'; new MutationObserver(rs => { if (e.hidden) return; for (const r of rs) for (const n of r.addedNodes) if (n.nodeType === 1 && !n.closest('.lf-ov') && (n.tagName === 'svg' || n.querySelector('svg'))) return LOEFT.later(e); }).observe(e, { childList: true, subtree: true }); } }
 }
 
 /* ---------- lyd ---------- */
