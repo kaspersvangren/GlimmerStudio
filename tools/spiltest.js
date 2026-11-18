@@ -156,6 +156,22 @@ async function introFlow(){
   const r = await p.evaluate(() => ({ scr: SCREENS.find(s => !$(s).hidden), slot: SLOT, name: prog.name, stars: prog.stars, one: slotInfo(1) }));
   ok(r.scr === '#town' && r.slot === 3 && r.name === 'Test' && r.stars === 0, 'det nye spil endte forkert: ' + JSON.stringify(r).slice(0, 160));
   ok(r.one.used && r.one.stars === 7, 'det første gemte spil blev ændret');
+  /* dragen: hver replik står, til man trykker (tre tryk: vågner, spørgsmål, pointe) */
+  await p.waitForTimeout(800);
+  await p.evaluate(() => { const t = document.querySelector('[data-tap="drage"]') || document.querySelector('.k-wake').closest('[data-tap]'); dragonTalk(t); });
+  for (let i = 0; i < 3; i++){ await p.waitForTimeout(2500);
+    ok(await p.evaluate(() => !!document.querySelector('.tap-catch') && !!document.querySelector('#bubbles .tapmore')), `dragens replik ${i + 1} ventede ikke på et tryk`);
+    await p.locator('.tap-catch').dispatchEvent('pointerup'); }
+  await p.waitForTimeout(500); ok(await p.evaluate(() => !document.querySelector('.tap-catch')), 'dragen blev ved med at vente efter pointen');
+  /* fast regel: ALLE skrivefelter bruger spillets tastatur (også kæledyrets navn og felter, der kommer til senere) */
+  await p.evaluate(() => { openEditor(figures[0]); cur.st.pet.kind = 'kat'; setMode('dyr'); document.querySelectorAll('#tabs .tab')[0].click(); }); await p.waitForTimeout(600);
+  await p.evaluate(() => { const c = [...document.querySelectorAll('.sec-chip')].find(b => /navn/i.test(b.textContent)); if (c) c.click(); }); await p.waitForTimeout(300);
+  await p.locator('#petName').dispatchEvent('pointerdown'); await p.waitForTimeout(500);
+  ok(await p.evaluate(() => $('#petName').getAttribute('inputmode') === 'none' && !$('#kb').hidden), 'kæledyrets navn åbnede ikke spillets tastatur');
+  const vild = await p.evaluate(() => { kbClose(); const out = [];
+    for (const i of document.querySelectorAll('input:not([type]),input[type=text],input[type=search],textarea')){ i.dispatchEvent(new FocusEvent('focusin', { bubbles: true })); if (i.getAttribute('inputmode') !== 'none') out.push(i.id || i.className); kbClose(); }
+    return out; });
+  ok(!vild.length, 'skrivefelter uden spillets tastatur: ' + vild.join(', '));
   ok(!errs.length, 'fejl i introen: ' + errs.join(' | '));
   await b.close();
 }

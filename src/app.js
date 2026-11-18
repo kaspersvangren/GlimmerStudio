@@ -139,6 +139,7 @@ const TAB_CONTENT = {
   dyr: () => {
     const inp = el('input', { id:'petName', class:'text', maxlength:'16', placeholder:'Skriv et navn', value: cur.st.pet.name || '', autocomplete:'off',
       on:{ input: e => { cur.st.pet.name = e.target.value.trim(); saveSoon(); } } });
+    kbAttach(inp);
     return [ optionsSec('Hvilket dyr?', entries(PET_KINDS), () => cur.st.pet.kind, (st,v) => st.pet.kind = v, VB.pet, 'pet'),
       cur.st.pet.kind !== 'ingen' ? section('Kæledyrets navn', [inp]) : null ];
   },

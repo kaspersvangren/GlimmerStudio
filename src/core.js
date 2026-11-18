@@ -2,7 +2,7 @@
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.38.0';
+const VERSION = 'v0.38.1';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -118,7 +118,10 @@ const sfx = {
 
 /* ---------- små beskeder og dialog ---------- */
 let toastTimer = null;
-function toast(text){ const t = $('#toast'); t.textContent = text; t.hidden = false; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ t.hidden = true; }, 2200); }
+/* læsetid for en begynderlæser (let-tal ca. 13): et øjeblik til at se teksten + ca. et sekund pr. ord.
+   Al tekst, der forsvinder af sig selv, skal stå mindst så længe. Længere replikker skal man i stedet selv trykke videre */
+const LAES_MS = (txt, min = 0) => Math.max(min, 1500 + 1000 * String(txt || '').trim().split(/\s+/).filter(Boolean).length);
+function toast(text){ const t = $('#toast'); t.textContent = text; t.hidden = false; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ t.hidden = true; }, LAES_MS(text, 2200)); }
 function showModal(title, text, buttons){
   $('#modalTitle').textContent = title; $('#modalText').textContent = text || '';
   const row = $('#modalRow'); row.innerHTML = '';

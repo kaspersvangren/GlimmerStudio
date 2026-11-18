@@ -294,6 +294,14 @@ function kbClose(){
 function kbAttach(inp){
   inp.setAttribute('inputmode', 'none'); inp.setAttribute('autocomplete', 'off');
   if (inp._kb) return; inp._kb = true;
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); kbClose(); } });
   inp.addEventListener('pointerdown', () => { if (!inp.readOnly) setTimeout(() => kbOpen(inp), 0); });
   inp.addEventListener('focus', () => { if (!inp.readOnly && (!KB.el || KB.el.hidden)) kbOpen(inp); });
 }
+
+/* fast regel: ALLE skrivefelter i spillet, også dem der kommer til senere, bruger spillets eget tastatur.
+   Feltet kobles på i det øjeblik, man rører det (før telefonen når at åbne sit eget tastatur), eller når det får fokus */
+const KB_FELT = 'input:not([type]),input[type=text],input[type=search],textarea';
+function kbAuto(e){ const t = e.target; if (!t || !t.matches || !t.matches(KB_FELT) || t._kb) return; kbAttach(t); if (e.type === 'focusin' && !t.readOnly) kbOpen(t); }
+document.addEventListener('pointerdown', kbAuto, true);
+document.addEventListener('focusin', kbAuto, true);

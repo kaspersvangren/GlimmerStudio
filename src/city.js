@@ -510,9 +510,13 @@ function tickChar(c, dt, now){
   placeChar(c);
 }
 /* taleboble der følger en figur */
-function bubble(text, pos, ms = 2300, special = false){
-  const w = Math.max(70, text.length * 12 + 34);
-  const g = sv('g', { class:'bubble' }, `<g class="pop"><g class="bb"><rect x="${-w/2}" y="-46" width="${w}" height="42" rx="21" fill="#FFF" stroke="${special?'#FFC02E':'#33204F'}" stroke-opacity="${special?1:.22}" stroke-width="${special?4:2.5}"/><text y="-19" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="21" fill="#33204F">${escT(text)}</text></g><path d="M -9 -5.5 L 0 10 L 9 -5.5 Z" fill="#FFF"/><path d="M -9 -4 L 0 10 L 9 -4" fill="none" stroke="${special?'#FFC02E':'#33204F'}" stroke-opacity="${special?1:.22}" stroke-width="${special?3:2}" stroke-linejoin="round"/></g>`);
+/* boblen står mindst så længe, en begynderlæser skal bruge (LAES_MS). tap: boblen står, til man trykker (se bubbleTap),
+   og en lille pil i boblen viser det */
+function bubble(text, pos, ms = 2300, special = false, tap = false){
+  if (!tap) ms = Math.max(ms, LAES_MS(text));
+  const w = Math.max(70, text.length * 12 + 34) + (tap ? 30 : 0);
+  const more = tap ? `<g class="tapmore" transform="translate(${w/2 - 22},-25)"><circle r="11" fill="#7A4FD8"/><path d="M -3.5 -6 L 5.5 0 L -3.5 6 Z" fill="#FFFFFF"/></g>` : '';
+  const g = sv('g', { class:'bubble' }, `<g class="pop"><g class="bb"><rect x="${-w/2}" y="-46" width="${w}" height="42" rx="21" fill="#FFF" stroke="${special?'#FFC02E':'#33204F'}" stroke-opacity="${special?1:.22}" stroke-width="${special?4:2.5}"/><text x="${tap ? -14 : 0}" y="-19" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="21" fill="#33204F">${escT(text)}</text>${more}</g><path d="M -9 -5.5 L 0 10 L 9 -5.5 Z" fill="#FFF"/><path d="M -9 -4 L 0 10 L 9 -4" fill="none" stroke="${special?'#FFC02E':'#33204F'}" stroke-opacity="${special?1:.22}" stroke-width="${special?3:2}" stroke-linejoin="round"/></g>`);
   $('#bubbles').append(g);
   const b = { g, pos, until: performance.now() + ms };
   const bb = g.querySelector('.bb');
@@ -521,6 +525,23 @@ function bubble(text, pos, ms = 2300, special = false){
   b.place(); LIFE.bubbles.push(b); return b;
 }
 const above = c => () => [c.x, c.y - c.h * depthS(c.y) * 0.98];
+/* en boble, man selv trykker videre (dragens vittigheder, Øksebrønden): så bestemmer læseren tempoet. Imens er hele kortet
+   en "videre"-knap, så man ikke kommer til at gå væk midt i en vittighed. Svarer false, hvis man forlader byen imens */
+function bubbleTap(text, pos, special = false){
+  return new Promise(res => {
+    const map = $('#street'), gen = LIFE.gen; if (!map || !LIFE.on){ res(false); return; }
+    const b = bubble(text, pos, Infinity, special, true), t0 = performance.now();
+    const c = el('div', { class:'tap-catch', role:'button', 'aria-label':'Videre' }); map.append(c);
+    let watch = 0;
+    const done = ok => { c.remove(); document.removeEventListener('keydown', key); clearInterval(watch); b.until = 0; res(ok); };
+    const go = e => { e.preventDefault(); e.stopPropagation(); if (performance.now() - t0 < 400) return; sfx.pick(); done(true); };   /* (et dobbelttryk springer ikke en replik over) */
+    const key = e => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') go(e); };
+    c.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); });
+    c.addEventListener('pointerup', go);
+    document.addEventListener('keydown', key);
+    watch = setInterval(() => { if (gen !== LIFE.gen || !LIFE.on || !c.isConnected) done(false); }, 400);
+  });
+}
 
 /* ---------- folk i byen ---------- */
 const GREET = ['Hej!', 'Hej med dig!', 'Hejsa!', 'Flot tøj!', 'Godt hår!', 'Hej hej!'];
@@ -644,7 +665,7 @@ function tapThing0(t){
   if (kind === 'kitekid'){ sfx.hello(); return say('Se min drage!', 446, 740, 2000); }
   if (kind === 'bird') return flyBird(t);
   /* det nye kort: dragen, Øksebrønden og dyrene */
-  const top = tapTop(t), sayT = (txt, ms = 1600) => bubble(txt, () => top, Math.max(ms, 1300 + [...txt].length * 75));
+  const top = tapTop(t), sayT = (txt, ms = 1600) => txt.trim().split(/\s+/).length > 6 ? bubbleTap(txt, () => top) : bubble(txt, () => top, ms);   /* lange replikker trykker man selv videre */
   if (kind === 'drage'){
     if (dragonBusy || (walking && LIFE.hero.dest === 'drage')) return;
     if ((!walking && heroAt === 'drage') || calm) return dragonTalk(t);
@@ -675,19 +696,18 @@ function tapTop(t){
 
 /* ---------- dragen: vågner, fortæller en plat vittighed og falder i søvn igen ---------- */
 let dragonBusy = false, dragonDeck = [];
-function dragonTalk(t){
+async function dragonTalk(t){
   if (dragonBusy) return; dragonBusy = true;
   if (!dragonDeck.length) dragonDeck = TXT['drage-vitser'].map((_, i) => i).sort(() => Math.random() - .5);
-  const [q, a] = TXT['drage-vitser'][dragonDeck.pop()], pos = () => [232, 128], gen = LIFE.gen;
+  const [q, a] = TXT['drage-vitser'][dragonDeck.pop()], pos = () => [232, 128];
   const wake = on => { t.querySelectorAll('.k-wake').forEach(e => { e.style.display = on ? '' : 'none'; }); t.querySelectorAll('.k-sleep').forEach(e => { e.style.display = on ? 'none' : ''; }); };
   wake(true); sfx.roar();
-  /* hver boble står længe nok til at kunne læses: længere replikker står længere */
-  const dur = (t, min) => Math.max(min, 1300 + [...t].length * 75);
+  /* hver replik står, til man trykker: så kan man nå at læse spørgsmålet og gætte, før pointen kommer */
   const w = pick(TXT['drage-vaagner']), l = pick(TXT['drage-griner']);
-  const steps = [[w, dur(w, 1900), false], [q, dur(q, 3200), false], [a, dur(a, 3000), true], [l, dur(l, 1900), false]];
-  let at = 0;
-  steps.forEach(([txt, ms, sp], i) => { setTimeout(() => { if (gen !== LIFE.gen) return; if (i === 2) sfx.twinkle(); bubble(txt, pos, ms - 100, sp); }, at); at += ms; });
-  setTimeout(() => { wake(false); dragonBusy = false; }, at);
+  let ok = await bubbleTap(w, pos) && await bubbleTap(q, pos);
+  if (ok){ sfx.twinkle(); ok = await bubbleTap(a, pos, true); }
+  if (ok){ const b = bubble(l, pos); await wait(Math.max(0, b.until - performance.now())); }   /* grinet forsvinder af sig selv */
+  wake(false); dragonBusy = false;
 }
 
 /* ---------- Øksebrønden: en stjerne i brønden giver en økse, der dukker op på værelset ---------- */
@@ -698,10 +718,10 @@ function wellWish(t){
   if (wellBusy) return;
   const n = axeCount(), now = performance.now(), pos = () => [800, 500];
   if (now < wellMsg) return;   /* en besked fra brønden står der stadig */
-  const msg = (txt, ms) => { wellMsg = now + ms; return bubble(txt, pos, ms); };
+  const msg = (txt, ms) => { const b = bubble(txt, pos, ms); wellMsg = b.until; return b; };
   if (n >= AXE_MAX){ sfx.nope(); return msg(TXT.broend.tom, 2200); }
   if (prog.stars < 1){ sfx.nope(); return msg(TXT.broend.ingen, 2400); }
-  if (now > wellAsk){ wellAsk = now + 4000; sfx.pick(); wellAskB = bubble(TXT.broend.spoerg, pos, 3200); return wellAskB; }
+  if (now > wellAsk){ sfx.pick(); wellAskB = bubble(TXT.broend.spoerg, pos, 3200); wellAsk = wellAskB.until + 800; return wellAskB; }
   wellAsk = 0; wellBusy = true;
   if (wellAskB){ wellAskB.until = 0; wellAskB = null; }   /* spørgsmålet forsvinder, når hun kaster stjernen */
   addStars(-1); sfx.coin();
@@ -718,13 +738,15 @@ function wellWish(t){
       if (k < 1) requestAnimationFrame(rise); else ax.remove(); };
     requestAnimationFrame(rise);
     const m = n + 1; store.set(KEY_AXE, m);
-    bubble(TXT.broend.opfyldt.replace('{navn}', AXE_KINDS[n % AXE_KINDS.length].name), pos, 3000, true);
-    setTimeout(() => {
-      if (m === 1) bubble(TXT.broend.foerste, pos, 2600);
-      else if (m >= AXE_MAX){ bubble(TXT.broend.udsolgt, pos, 2800, true); t.insertAdjacentHTML('beforeend', wellSoldSign()); }
-      else bubble(TXT.broend.flere.replace('{n}', m), pos, 2400);
-      setTimeout(() => { wellBusy = false; }, 2800);   /* først når den sidste boble er væk */
-    }, 3100);
+    if (m >= AXE_MAX) t.insertAdjacentHTML('beforeend', wellSoldSign());
+    /* brøndens beskeder står, til man trykker videre */
+    (async () => {
+      if (await bubbleTap(TXT.broend.opfyldt.replace('{navn}', AXE_KINDS[n % AXE_KINDS.length].name), pos, true)){
+        if (m === 1) await bubbleTap(TXT.broend.foerste, pos);
+        else if (m >= AXE_MAX) await bubbleTap(TXT.broend.udsolgt, pos, true);
+        else await bubbleTap(TXT.broend.flere.replace('{n}', m), pos); }
+      wellBusy = false;
+    })();
   };
 }
 const wellSoldSign = () => `<g transform="translate(0 -18) rotate(-6)"><rect x="-44" y="-12" width="88" height="24" rx="4" fill="#E0457A" stroke="#7A1A3A" stroke-width="2"/><text x="0" y="6" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="15" fill="#FFFFFF" letter-spacing="1">UDSOLGT</text></g>`;

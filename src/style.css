@@ -260,6 +260,9 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 .map svg{width:100%;height:100%;display:block}
 #townSvg [data-tap]{cursor:pointer}
 .bubble .pop{animation:bpop .32s cubic-bezier(.2,1.6,.4,1) both;transform-box:fill-box;transform-origin:50% 100%}
+.bubble .tapmore{animation:tapmore 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes tapmore{0%,100%{opacity:1}50%{opacity:.45}}
+.tap-catch{position:absolute;inset:0;z-index:5;cursor:pointer;touch-action:none}
 @keyframes bpop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
 :is(#townSvg,#townLive) .jump{animation:tjump .5s ease-out;transform-box:fill-box;transform-origin:50% 100%}
 @keyframes tjump{0%,100%{transform:none}40%{transform:translateY(-14px) scale(1.08)}}
