@@ -9,7 +9,10 @@
    Kan en bagning ikke få alt med (rec.lr mangler), vises SVG'en stadig oven på lærredet som i v0.34.0.
    Kan slås fra med glimmerstudiet.laerred = '0' (så bruges HTML-lagene igen). */
 const LAERRED_KEY = 'glimmerstudiet.laerred';
-function laerredWanted(){ try { return localStorage.getItem(LAERRED_KEY) !== '0' && !!window.createImageBitmap; } catch (e){ return !!window.createImageBitmap; } }
+/* kun når hele byen står på skærmen (tablet, computer). På telefoner flytter kameraet rundt i en større by, og dér er
+   HTML-lagene hurtigere: grafikchippen flytter de færdigmalede lag, mens lærredet skal tegnes forfra i telefonens høje
+   opløsning i hvert billede (målt 18. november 2026 på Kaspers telefon: 66 billeder i sekundet med lagene, 25 med lærredet) */
+function laerredWanted(){ if (typeof CAM !== 'undefined' && CAM.on) return false; try { return localStorage.getItem(LAERRED_KEY) !== '0' && !!window.createImageBitmap; } catch (e){ return !!window.createImageBitmap; } }
 const LAERRED = (() => {
   let S = null;
   const mul = (A, B) => [A[0]*B[0]+A[2]*B[1], A[1]*B[0]+A[3]*B[1], A[0]*B[2]+A[2]*B[3], A[1]*B[2]+A[3]*B[3], A[0]*B[4]+A[2]*B[5]+A[4], A[1]*B[4]+A[3]*B[5]+A[5]];

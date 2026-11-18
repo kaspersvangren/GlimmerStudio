@@ -245,7 +245,7 @@ async function gpuMount(svg, gen, rec, st){
   const g = rec.gpu, host = svg.parentElement;
   /* helst ét lærred (se laerred.js); lykkes det ikke, bruges HTML-lagene herunder */
   let cvs = null;
-  if (laerredWanted()){ try { cvs = await LAERRED.mount(svg, gen, rec, st); } catch (e){ DBG.row('fejl', { besked: 'lærred: ' + (e && e.message || e) }); cvs = null; LAERRED.reset(); }
+  if (laerredWanted() && rec.lr){ try { cvs = await LAERRED.mount(svg, gen, rec, st); } catch (e){ DBG.row('fejl', { besked: 'lærred: ' + (e && e.message || e) }); cvs = null; LAERRED.reset(); }
     if (gen !== BAKE.gen || !svg.isConnected){ LAERRED.reset(); return false; } }
   if (cvs) DRIVE.dash = [];
   const full = !!(cvs && rec.lr);
