@@ -1154,3 +1154,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* løftede animationer (loeft.js): små lag lige oven på scenens SVG */
 .lf-ov{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;pointer-events:none}
 .lf-ov .lf-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+/* figuren som lag (dukkelag.js): lagene ligger præcis over billedet; kilden er usynlig (den holder farveforløbene) */
+.dl-host{position:absolute;pointer-events:none;overflow:hidden;z-index:3}
+.dl-box{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+.dl-box .lf-n{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+.dl-src{position:absolute;left:0;top:0;opacity:0;overflow:visible}   /* (gennemsigtig, ikke skjult: ellers arver lagenes kopier "skjult") */

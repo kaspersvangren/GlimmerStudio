@@ -67,11 +67,22 @@ function smilOpacityToCss(root){
   });
 }
 /* skjulte skærme får deres SVG-animationer sat på pause; ellers kører de videre usynligt og koster i hvert billede */
+const PAUSED = new WeakSet();
+function pauseHidden(e, hide){
+  if (!e || !e.getAnimations) return;
+  for (const a of e.getAnimations({ subtree: true })){
+    if (hide){ if (a.playState === 'running' && !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)){ a.pause(); PAUSED.add(a); } }
+    else if (PAUSED.has(a)){ PAUSED.delete(a); a.play(); }
+  }
+}
 function showScreen(id){
   if (id !== '#arkade' && id !== '#koncert' && typeof SND === 'object') SND.ambience(null);
   if (typeof kbClose === 'function') kbClose();
-  for (const s of SCREENS){ const e = $(s), on = s === id; e.hidden = !on;
-    e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); }); }
+  for (const s of SCREENS){ const e = $(s), on = s === id, was = !e.hidden; e.hidden = !on;
+    e.querySelectorAll('svg').forEach(v => { if (v.ownerSVGElement) return; if (on){ if (v.unpauseAnimations) v.unpauseAnimations(); } else if (v.pauseAnimations) v.pauseAnimations(); });
+    /* lagenes animationer (forsiden, de løftede ting) står stille, mens skærmen er skjult; ellers kører de usynligt videre
+       og koster processortid på den skærm, man er på (efter en runde i spillet var det over 250) */
+    if (on !== was || on) pauseHidden(e, !on); }
   window.scrollTo(0,0);
   /* scenens små animationer løftes ud af SVG'en (loeft.js), når skærmen er tegnet; og igen, hvis den tegnes om */
   if (typeof LOEFT === 'object'){ const e = $(id); LOEFT.later(e);

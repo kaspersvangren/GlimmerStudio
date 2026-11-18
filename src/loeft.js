@@ -108,7 +108,8 @@ const LOEFT = (() => {
       tr.forEach(a => info.run.push([cur, a])); wrap(); }
     else if (!isId(L)) { cur.style.transform = mtx(L); wrap(); }
     const op = an.filter(a => a.op && !a.tr && a.kind !== 'motion');   /* (en animation med både flytning og gennemsigtighed ligger allerede på laget ovenfor) */
-    if (op.length){ if (op.some(a => a.fill)) cur.style.opacity = 0; op.forEach(a => info.run.push([cur, a])); wrap(); }
+    if (op.length){ if (op.some(a => a.fill)) cur.style.opacity = 0; else if (op.some(a => a.smil && a.timing.delay > 0)) cur.style.opacity = +getComputedStyle(el).opacity;   /* før en sen start står grundværdien (fx et lukket øjenlåg: usynligt) */
+      op.forEach(a => info.run.push([cur, a])); wrap(); }
     else { const o = +getComputedStyle(el).opacity; if (o < 1){ cur.style.opacity = o; wrap(); } }   /* elementets faste gennemsigtighed */
     /* indholdet */
     const leaf = !el.children.length || !/^(g|a|svg|switch)$/.test(el.tagName);
@@ -297,7 +298,69 @@ const LOEFT = (() => {
   let pend = 0;
   /* når skærmen er færdig med at glide ind og telefonen har tid (ellers giver opmålingen et hak midt i skiftet) */
   const later = root => { clearTimeout(pend); pend = setTimeout(() => { const go = () => scan(root); if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 1500 }); else go(); }, 700); };
-  return { scan, later, lifts, count: () => [...lifts.values()].reduce((n, r) => n + r.roots.length, 0) };
+  /* ---------- figuren ----------
+     Figuren er en SVG med sine egne SMIL-animationer (blink, vejrtrækning, kig, vink, hop, glimt). Her laves en hel figur
+     om til lag: alt i rækkefølge, faste dele som billeder og de bevægelige som lag med samme bevægelse. Det kræver, at
+     hver animation kan genskabes; ellers bruges billedet som før (null) */
+  const secs = v => { v = String(v || '0').trim(); return /ms$/.test(v) ? parseFloat(v) / 1000 : parseFloat(v) || 0; };
+  function smilAnim(a){
+    const t = a.tagName, at = a.getAttribute('attributeName'), type = a.getAttribute('type') || 'translate';
+    if (t === 'set' || t === 'animateMotion') return null;
+    /* 'læg til' på et element uden egen flytning er det samme som en almindelig animation */
+    const sum = a.getAttribute('additive') === 'sum' && !(t === 'animateTransform' && !a.parentElement.getAttribute('transform'));
+    if ((a.getAttribute('repeatCount') || '') !== 'indefinite' || sum || a.getAttribute('accumulate') === 'sum' || a.getAttribute('keyPoints')) return null;
+    if (/[a-z]/i.test((a.getAttribute('begin') || '0s').replace(/m?s/g, ''))) return null;
+    if (t === 'animateTransform' && !/^(translate|rotate|scale)$/.test(type)) return null;
+    if (t === 'animate' && at !== 'opacity') return null;
+    if (a.parentElement.querySelectorAll(':scope > animateTransform').length > 1 && t === 'animateTransform') return null;
+    const dur = secs(a.getAttribute('dur')) * 1000, delay = secs(a.getAttribute('begin')) * 1000; if (!(dur > 0)) return null;
+    const vals = (a.getAttribute('values') || [a.getAttribute('from'), a.getAttribute('to')].join(';')).split(';').map(x => x.trim()).filter(x => x !== '');
+    const kt = a.getAttribute('keyTimes'), offs = kt ? kt.split(';').map(Number) : vals.map((_, i) => vals.length > 1 ? i / (vals.length - 1) : 0);
+    if (offs.length !== vals.length) return null;
+    const mode = a.getAttribute('calcMode') || (t === 'animateMotion' ? 'paced' : 'linear');
+    const ks = (a.getAttribute('keySplines') || '').split(';').map(x => x.trim()).filter(Boolean);
+    const num = x => x.split(/[\s,]+/).map(Number);
+    let f;
+    if (t === 'animateTransform'){
+      if (type === 'translate') f = x => { const [p, q = 0] = num(x); return { transform: `translate(${p}px,${q}px)` }; };
+      else if (type === 'rotate') f = x => { const [r, cx = 0, cy = 0] = num(x); return { transform: `translate(${cx}px,${cy}px) rotate(${r}deg) translate(${-cx}px,${-cy}px)` }; };
+      else f = x => { const [p, q = p] = num(x); return { transform: `scale(${p},${q})` }; };
+    } else f = x => ({ opacity: +x });
+    const kf = vals.map((v, i) => { const k = Object.assign({ offset: offs[i] }, f(v));
+      if (mode === 'discrete') k.easing = 'steps(1, jump-end)';
+      else if (mode === 'spline' && ks[i]) k.easing = `cubic-bezier(${ks[i].split(/[\s,]+/).join(',')})`;
+      else if (mode === 'paced') return null;
+      return k; });
+    if (kf.some(k => !k)) return null;
+    /* SMIL holder den sidste værdi til tidens udløb; det skal stå som et sidste nøglebillede */
+    if (kf[kf.length - 1].offset < 1) kf.push(Object.assign({}, kf[kf.length - 1], { offset: 1, easing: 'linear' }));
+    if (kf[0].offset > 0) kf.unshift(Object.assign({}, kf[0], { offset: 0 }));
+    const kind = t === 'animateTransform' ? 'tr' : 'op';
+    return { smil: a, kind, kf, timing: { duration: dur, delay, iterations: Infinity, easing: 'linear' }, cur: 0, tr: kind === 'tr', op: kind === 'op' };
+  }
+  /* en hel SVG som et træ af lag (i tegnerækkefølge). Returnerer null, hvis noget ikke kan genskabes */
+  function tree(svg){
+    const anims = new Map();
+    for (const a of svg.querySelectorAll(SMIL)){
+      if (a.closest('defs,clipPath,mask,pattern,symbol,marker,filter,linearGradient,radialGradient')) return null;
+      const x = smilAnim(a); if (!x) return null;
+      const e = a.parentElement; if (!anims.has(e)) anims.set(e, []); anims.get(e).push(x); }
+    for (const e of anims.keys()) for (let p = e; p && p !== svg; p = p.parentElement){ if (p.getAttribute('filter') || p.getAttribute('mask') || p.getAttribute('clip-path')) return null; }
+    const info = { anims, run: [], inner: new Set() };
+    for (const e of anims.keys()) for (let p = e.parentElement; p && p !== svg; p = p.parentElement) info.inner.add(p);
+    /* animationerne stoppes i kilden, så den kan måles i hvilestilling */
+    for (const a of [...svg.querySelectorAll(SMIL)]) a.remove();
+    const top = document.createElement('div'); top.className = 'lf-n';
+    let run = [];
+    const flush = () => { if (run.length){ const p = piece(run, svg, false); if (p) top.append(p); run = []; } };
+    for (const c of svg.children){
+      if (SKIP.test(c.tagName)) continue;
+      if (anims.has(c) || info.inner.has(c)){ flush(); top.append(node(c, svg, info)); } else run.push(c);
+    }
+    flush();
+    return { el: top, run: info.run };
+  }
+  return { scan, later, lifts, tree, place, count: () => [...lifts.values()].reduce((n, r) => n + r.roots.length, 0) };
 })();
 /* kun de rolige skærme. I spillene (kosten, faldskærmen) flytter koden selv rundt på scenen hele tiden */
 const LOEFT_SKAERME = ['#home', '#room', '#balls', '#school', '#potion', '#arkade'];
