@@ -31,7 +31,7 @@ const Koncert = (() => {
     rock:     { navn: 'Rock', sang: 'Stop Volden', lys: '#FF3D6E', lys2: '#8A5CFF' },
     country:  { navn: 'Country', sang: 'Hun kom aldrig', lys: '#FFB25A', lys2: '#FFE08A' },
     disko:    { navn: 'Disko', sang: "Gi' mig, gi' mig!", lys: '#FF5FD2', lys2: '#5FE0FF' },
-    klassisk: { navn: 'Klassisk', sang: "Pomp's Popo", lys: '#FFF2C8', lys2: '#FFE0A0' },
+    klassisk: { navn: 'Klassisk', sang: "Pompøs Popo", lys: '#FFF2C8', lys2: '#FFE0A0' },
     hawaii:   { navn: 'Hawaii', sang: 'Frøgt mig ikke!', lys: '#FF9A5A', lys2: '#FF6FA8' },
   };
   const STILE = Object.keys(STIL);
