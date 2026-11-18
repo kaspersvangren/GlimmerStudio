@@ -14,7 +14,8 @@ const DUKKELAG = (() => {
   const uniq = (s, p) => s.replace(/\bid="([^"]+)"/g, `id="${p}$1"`).replace(/url\(#([^)]+)\)/g, `url(#${p}$1)`).replace(/(xlink:)?href="#([^"]+)"/g, (m, x, id) => `${x || ''}href="#${p}${id}"`);
   function clear(img){ const L = live.get(img); if (!L) return; L.ro.disconnect(); L.host.remove(); img.style.visibility = ''; live.delete(img); }
   /* svg: figurens SVG-tekst med animationer; still: samme figur uden (vises i billedet under lagene) */
-  function show(img, svg, still){
+  const STILL = s => s.replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*\/>/g, '').replace(/<(animate|animateTransform|animateMotion|set)\b[^>]*>[\s\S]*?<\/\1>/g, '');
+  function show(img, svg, still = STILL(svg)){
     clear(img);
     if (!on() || !img.isConnected || !svg.includes('<animate')){ img.src = svgUrl(svg); return false; }
     const T0 = performance.now();
@@ -29,7 +30,9 @@ const DUKKELAG = (() => {
     const fit = () => { const W = img.clientWidth, H = img.clientHeight; if (!W || !H) return false;
       host.style.left = img.offsetLeft + 'px'; host.style.top = img.offsetTop + 'px'; host.style.width = W + 'px'; host.style.height = H + 'px';
       sv.setAttribute('width', W); sv.setAttribute('height', H);
-      const vb = sv.viewBox.baseVal, s = Math.min(W / vb.width, H / vb.height);   /* som billedet: hele figuren, midt i */
+      const cs = getComputedStyle(img); host.style.borderRadius = cs.borderRadius; host.style.zIndex = cs.zIndex;   /* samme plads i rækkefølgen som billedet (pærerne om spejlet ligger ovenpå) */   /* spejlets ovale kant klipper som billedet */
+      /* som billedet: 'contain' viser hele figuren, 'cover' fylder rammen ud; begge midt i */
+      const vb = sv.viewBox.baseVal, s = (cs.objectFit === 'cover' ? Math.max : Math.min)(W / vb.width, H / vb.height);
       box.style.transform = `translate(${((W - vb.width * s) / 2 - vb.x * s).toFixed(2)}px,${((H - vb.height * s) / 2 - vb.y * s).toFixed(2)}px) scale(${s.toFixed(5)})`;
       return true; };
     img.src = svgUrl(still);
@@ -38,12 +41,52 @@ const DUKKELAG = (() => {
     try { t = LOEFT.tree(sv); } catch (e){ t = null; }
     if (!t){ host.remove(); img.src = svgUrl(svg); return false; }
     box.append(t.el);
-    for (const [d, a] of t.run){ try { d.animate(a.kf, Object.assign({ fill: 'none' }, a.timing)); } catch (e){} }
+    /* ting helt uden for rammen (fx stjerner i baggrundens yderkant) fjernes: de ses ikke, og browseren vil ikke lade
+       grafikchippen køre en animation, der ikke ses, så den ville i stedet regne på den i hvert billede */
+    const R = host.getBoundingClientRect(), moving = new Set(t.run.filter(([, a]) => a.tr).map(([d]) => d)), hc = getComputedStyle(host);
+    /* rammens runde hjørner (spejlet er ovalt foroven): [vandret, lodret] radius for hvert hjørne */
+    const rad = c => { const v = hc.getPropertyValue(`border-${c}-radius`).split(' '), f = (x, L) => /%$/.test(x) ? parseFloat(x) / 100 * L : parseFloat(x) || 0;
+      return [f(v[0], R.width), f(v[1] ?? v[0], R.height)]; };
+    const C = { tl: rad('top-left'), tr: rad('top-right'), bl: rad('bottom-left'), br: rad('bottom-right') };
+    const inside = (x, y, m) => { x -= R.left; y -= R.top; const W = R.width, H = R.height;
+      if (x < -m || y < -m || x > W + m || y > H + m) return false; if (m) return true;
+      const k = (cx, cy, [rx, ry]) => !rx || !ry || ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
+      if (x < C.tl[0] && y < C.tl[1]) return k(C.tl[0], C.tl[1], C.tl); if (x > W - C.tr[0] && y < C.tr[1]) return k(W - C.tr[0], C.tr[1], C.tr);
+      if (x < C.bl[0] && y > H - C.bl[1]) return k(C.bl[0], H - C.bl[1], C.bl); if (x > W - C.br[0] && y > H - C.br[1]) return k(W - C.br[0], H - C.br[1], C.br);
+      return true; };
+    /* hvor meget af tingen ligger inden for rammen? 0 = intet, 1 = det hele (prøvepunkter over formen) */
+    const seen = d => { let m = 0; for (let q = d; q && q !== box; q = q.parentElement) if (moving.has(q)) m = Math.max(R.width, R.height) * 0.15;   /* noget, der bevæger sig, kan komme ind i rammen */
+      let n = 0, k = 0;
+      for (const s of d.querySelectorAll('svg')) for (const e of s.children){ const r = e.getBoundingClientRect(); if (!r.width && !r.height) continue;
+        for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++){ n++; if (inside(r.left + r.width * i / 4, r.top + r.height * j / 4, m)) k++; } }
+      return n ? k / n : 1; };
+    for (const [d, a] of t.run){ if (!d.isConnected) continue;
+      const v = seen(d);
+      if (v === 0){ d.remove(); continue; }
+      /* et blink, der kun delvis ses (i et rundt hjørne): browseren kan finde på at regne det på hovedtråden. Det står stille */
+      if (v < 1 && !a.tr && !moving.has(d)) continue;
+      try { d.animate(a.kf, Object.assign({ fill: 'none' }, a.timing)); } catch (e){} }
     img.style.visibility = 'hidden';
-    const ro = new ResizeObserver(() => fit()); ro.observe(img);
+    const ro = new ResizeObserver(() => { if (!img.isConnected) clear(img); else fit(); });   /* (billedet er fjernet: slip lagene) */ ro.observe(img);
     live.set(img, { host, ro });
     DBG.count('dukkelagMs', Math.round(performance.now() - T0));
     return true;
   }
-  return { show, clear, on };
+  /* vis billedet med det samme (som før), og byg lagene lidt efter, når der er ro: i figurskaberen kommer ændringerne
+     tæt (en farveskyder sender mange i sekundet), og så skal hver ændring ikke bygge en hel figur */
+  const pend = new WeakMap();
+  function stop(img){ const P = pend.get(img); if (!P) return; clearTimeout(P.id); if (P.r && window.cancelIdleCallback) cancelIdleCallback(P.r); pend.delete(img); }
+  function later(img, svg, wait = 400, setSrc = true){
+    stop(img); clear(img);
+    if (setSrc) img.src = svgUrl(svg);
+    if (!on() || !svg.includes('<animate')) return;
+    let tries = 0;
+    const go = () => { pend.delete(img); if (!img.isConnected) return;
+      if (!img.clientWidth || !img.clientHeight || !img.complete){ if (++tries < 30) arm(400); return; }   /* skærmen er ikke vist endnu */
+      show(img, svg); };
+    const arm = ms => { const P = { id: 0, r: 0 }; pend.set(img, P);
+      P.id = setTimeout(() => { if (window.requestIdleCallback) P.r = requestIdleCallback(go, { timeout: 800 }); else go(); }, ms); };
+    arm(wait);
+  }
+  return { show, later, clear, on };
 })();

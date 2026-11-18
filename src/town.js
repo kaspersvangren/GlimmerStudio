@@ -226,13 +226,14 @@ function showTitle(){
   /* hvert bogstav: det ydre lag hopper, det indre har farverne og skyggen (så tegnes skyggen kun én gang og flyttes bare) */
   const letters = GAME_NAME.split('').map((ch, i) => `<span style="animation-delay:${0.05*i}s"><span>${ch === ' ' ? '&nbsp;' : ch}</span></span>`).join('');
   const bubbles = el('div', { class:'title-bubbles', 'aria-hidden':'true' }, Array.from({ length: 9 }, (_, i) => el('span', { style:`left:${8 + i*10.5}%;--s:${[46,28,64,36,22,54,30,40,26][i]}px;animation-delay:${-i*1.7}s;animation-duration:${11 + (i%4)*2.5}s` })));
+  const heroSvg = renderDoll(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true }), heroImg = el('img', { src: svgUrl(heroSvg), alt:'Din figur' });
   box.append(
     el('div', { class:'title-scene', html: titleScene() }),
     bubbles,
     el('div', { class:'shoot', 'aria-hidden':'true' }),
     el('div', { class:'title-top' }, [ audioBtns() ]),
     el('h1', { class:'title-logo', id:'titleLogo', html: letters }),
-    el('div', { class:'title-stage' }, [ el('div', { class:'ring', html: RING_SVG }), dollImg(heroState(), { viewBox:'40 40 720 1010', anim: !calm, idle: true, alt:'Din figur' }) ]),
+    el('div', { class:'title-stage' }, [ el('div', { class:'ring', html: RING_SVG }), heroImg ]),
     el('button', { class:'playbtn', type:'button', 'aria-label':'Spil', html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 37 26 L 75 50 L 37 74 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/></svg>', on:{
       /* knappen griber fingeren, så trykket tæller, selvom skærmen hopper (fx når telefonens bjælker dukker op) */
       pointerdown: e => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (er) {} },
@@ -241,6 +242,7 @@ function showTitle(){
   );
   $('#titleLogo').addEventListener('click', logoTap);
   titleFx(box.querySelector('.title-scene'));
+  DUKKELAG.later(heroImg, heroSvg, 250, false);
   updateAudioBtns();
 }
 

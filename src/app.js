@@ -166,7 +166,7 @@ function stageViewBox(){
   return `${x.toFixed(1)} ${y.toFixed(1)} ${w} ${h.toFixed(1)}`;
 }
 function zoomAnim(){ const m = $('#mirror'); m.classList.remove('zoom'); void m.offsetWidth; m.classList.add('zoom'); }
-function renderStage(){ $('#stageImg').src = svgUrl(renderDoll(cur.st, { bg:true, bg1:'#3E3270', bg2:'#1E1838', anim: !calm, viewBox: stageViewBox() })); }
+function renderStage(){ DUKKELAG.later($('#stageImg'), renderDoll(cur.st, { bg:true, bg1:'#3E3270', bg2:'#1E1838', anim: !calm, viewBox: stageViewBox() }), 450); }
 function renderModes(){
   document.querySelectorAll('.mode').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
     b.classList.toggle('has-fresh', catsHaveFresh(b.dataset.mode === 'dyr' ? ['pet','petpat','petacc'] : ['front','back','robe','cape','hat','boots','acc','pupil','lip','mark'])); });
