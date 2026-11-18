@@ -443,7 +443,7 @@ function smilDrive(svg){
       if (d.fill !== 'none'){ c.globalAlpha = d.fo; c.fillStyle = d.fill; c.fill(o.path); }
       c.globalAlpha = d.so; c.strokeStyle = d.grad ? (o.grad = o.grad || (gr => { const G = c.createLinearGradient(...gr.c); gr.stops.forEach(([f, col]) => G.addColorStop(f, col)); return G; })(d.grad)) : d.stroke; c.lineWidth = d.sw; c.lineCap = d.cap; c.lineJoin = d.join; c.miterLimit = d.miter;
       c.setLineDash(d.dash.length % 2 ? d.dash.concat(d.dash) : d.dash); c.lineDashOffset = v == null ? d.off0 : v; c.stroke(o.path); }
-    if (!svg.animationsPaused()){ const [vx0, vx1, vy0] = camView(), vy1 = vy0 + (CAM.on ? CAM.vh : CH);
+    if (!svg.animationsPaused()){ const [vx0, vx1, vy0] = camView(), vy1 = vy0 + CAM.vh;
       for (const g of list){
         const b = g.box; if (b && (b[2] < vx0 || b[0] > vx1 || b[3] < vy0 || b[1] > vy1)) continue;
         let tr = null, mo = '';

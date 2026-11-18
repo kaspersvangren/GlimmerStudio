@@ -807,13 +807,17 @@ const CAM_PX = 0.62, CAM_X = [-160, 1760], CAM_Y = [-120, CH];   /* lidt himmel 
 /* Kortet tegnes én gang i fuld størrelse, og kameraet flytter det som ét lag (grafikchippen klarer det).
    Før blev SVG'ens viewBox ændret, og så skulle hele kortet tegnes om for hvert skridt. */
 const CAM_W = CAM_X[1] - CAM_X[0], CAM_H = CAM_Y[1] - CAM_Y[0];
+/* store skærme (tablet, computer) ser hele byen på én gang. Kortet er 1600 bredt, men Koncertsalen og Arkaden står helt
+   ude ved kanterne og når fra ca. -30 til 1760; derfor vises lidt mere end kortet, så de er hele med (og lidt himmel ovenover).
+   Forholdet er 1,6 som tabletten, så der ikke kommer kanter */
+const FIT = [-26, -120, 1792, 1120];
 function camFit(){
   const st = $('#street'), svg = $('#townSvg'), w = $('#world'); if (!st || !svg || !w) return;
   const W = st.clientWidth, H = st.clientHeight; if (!W || !H) return;
   const vh = Math.min(CH, H / CAM_PX);
   CAM.on = !window.NO_CAM && vh < CH * .95;
   const lv = $('#townLive'), vb = v => { svg.setAttribute('viewBox', v); if (lv) lv.setAttribute('viewBox', v); };
-  if (!CAM.on){ CAM.vw = CW; CAM.vh = CH; vb(`0 0 ${CW} ${CH}`); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
+  if (!CAM.on){ CAM.vw = FIT[2]; CAM.vh = FIT[3]; vb(FIT.join(' ')); w.classList.remove('cam'); w.style.width = w.style.height = w.style.transform = ''; gpuSync(); return; }
   CAM.vh = vh; CAM.vw = Math.min(CAM_W, vh * W / H);
   CAM.k = Math.min(W / CAM.vw, H / CAM.vh); CAM.ox = (W - CAM.vw * CAM.k) / 2; CAM.oy = (H - CAM.vh * CAM.k) / 2;
   vb(`${CAM_X[0]} ${CAM_Y[0]} ${CAM_W} ${CAM_H}`);
@@ -830,7 +834,7 @@ function camApply(){
   if (t !== CAM.t){ CAM.t = t; CAM.tx = tx; CAM.ty = ty; w.style.transform = t; DBG.count('kamera'); }
   gpuSync();
 }
-const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [0, CW, 0];
+const camView = () => CAM.on ? [CAM.cx - CAM.vw / 2, CAM.cx + CAM.vw / 2, CAM.cy - CAM.vh / 2] : [FIT[0], FIT[0] + FIT[2], FIT[1]];
 function camFollow(now, dt){
   if (!CAM.on || CAM.drag || !walking || now - CAM.userAt < 1800 || !LIFE.hero) return;
   const k = Math.min(1, dt * 0.004), tx = LIFE.hero.x, ty = LIFE.hero.y - (LIFE.hero.y < 600 ? 150 : 80);
