@@ -38,11 +38,11 @@ const LOEFT = (() => {
         const X = cols[0], ease = getComputedStyle(el).animationTimingFunction || 'linear';
         const ok = kf.map(k => ({ offset: k.computedOffset ?? k.offset, easing: k.easing && k.easing !== 'linear' ? k.easing : ease, opacity: k.fill === X ? 1 : 0 }));
         if (ok[0].offset > 0) ok.unshift({ offset: 0, easing: ease, opacity: 0 }); if (ok[ok.length - 1].offset < 1) ok.push({ offset: 1, opacity: 0 });
-        out.push({ css: true, fill: X, kf: ok, timing: { duration: t.duration, delay: t.delay, iterations: Infinity, direction: t.direction, easing: t.easing }, cur: a.currentTime || 0, rate: a.playbackRate, tr: false, op: true });
+        out.push({ css: true, fill: X, kf: ok, timing: { duration: t.duration, delay: t.delay, iterations: Infinity, direction: t.direction, easing: t.easing }, cur: a.currentTime || 0, rate: a.playbackRate, anim: a, tr: false, op: true });
         continue; }
       if (kf.some(k => Object.keys(k).some(p => !OK_PROP.has(p)))) return null;
       out.push({ css: true, kf: kf.map(k => { const o = { offset: k.offset, easing: k.easing }; if (k.transform !== undefined) o.transform = k.transform; if (k.opacity !== undefined) o.opacity = k.opacity; return o; }),
-        timing: { duration: t.duration, delay: t.delay, iterations: Infinity, direction: t.direction, easing: t.easing, fill: t.fill }, cur: a.currentTime || 0, rate: a.playbackRate,
+        timing: { duration: t.duration, delay: t.delay, iterations: Infinity, direction: t.direction, easing: t.easing, fill: t.fill }, cur: a.currentTime || 0, rate: a.playbackRate, anim: a,
         tr: kf.some(k => k.transform !== undefined), op: kf.some(k => k.opacity !== undefined) });
     }
     const sm = [...el.children].filter(c => /^(animate|animateTransform|animateMotion|set)$/.test(c.tagName));
@@ -143,9 +143,11 @@ const LOEFT = (() => {
   }
 
   /* gennemsigtig nok til at noget under den må lægges ovenpå? (fx de mørke kanter, der er helt klare midt på) */
+  const opCache = new WeakMap();
+  const opOf = e => { if (!e || e.tagName === 'svg') return 1; let v = opCache.get(e); if (v === undefined){ v = +getComputedStyle(e).opacity * opOf(e.parentElement); opCache.set(e, v); } return v; };
   function alphaAt(e, x, y){
     const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return 0;
-    let op = +cs.opacity; for (let p = e.parentElement; p && p.tagName !== 'svg'; p = p.parentElement) op *= +getComputedStyle(p).opacity;
+    const op = opOf(e);
     const st = cs.stroke !== 'none' && parseFloat(cs.strokeWidth) > 0 && +cs.strokeOpacity > 0;
     const m = /^url\("?#([^")]+)"?\)$/.exec(cs.fill);
     if (!m || st) return cs.fill === 'none' && !st ? 0 : op;
@@ -169,21 +171,29 @@ const LOEFT = (() => {
     for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) if (i === 0 || i === 4 || j === 0 || j === 4) pts.push(new DOMPoint(B[0] + (B[2] - B[0]) * i / 4, B[1] + (B[3] - B[1]) * j / 4).matrixTransform(toP));
     return pts.every(q => kids.some(c => { try { return c.isPointInFill(q); } catch (e){ return false; } }));
   }
-  function liftSvg(svg){
+  /* arbejdet deles i små bidder (højst ~6 ms ad gangen, når telefonen har tid), så skærmen aldrig hakker, mens det sker.
+     Før blev det hele gjort på én gang og gav et hak på op til ½ sekund på telefonen, når arkaden åbnede */
+  async function liftSvg(svg){
     if (lifts.has(svg) || !svg.isConnected || svg.closest('[hidden]') || svg.ownerSVGElement) return;
+    const rec = { ov: null, roots: [], building: true }; lifts.set(svg, rec);
+    let sl = performance.now();
+    const alive = () => svg.isConnected && !svg.closest('[hidden]') && lifts.get(svg) === rec;
+    let fase = 'start';
+    const pause = async (f) => { const d = performance.now() - sl; if (d >= (LOEFT.slice || 0)) LOEFT.sliceFase = fase; if (f) fase = f; if (d < 6) return alive(); LOEFT.slice = Math.max(LOEFT.slice || 0, d);
+      await new Promise(r => window.requestIdleCallback ? requestIdleCallback(r, { timeout: 400 }) : setTimeout(r, 30)); sl = performance.now(); return alive(); };
+    const stop = () => { if (lifts.get(svg) === rec){ rec.building = false; if (!rec.roots.length){ if (rec.ov) rec.ov.remove(); if (rec.obs) rec.obs.disconnect(); lifts.delete(svg); } } };
     const all = [...svg.querySelectorAll('*')];
-    /* kandidater: animerede elementer uden en animeret forfader */
+    /* kandidater: animerede elementer (fundet på én gang) */
     const anims = new Map();
-    for (const e of all){ if (e.closest('defs,clipPath,mask,pattern,symbol,marker')) continue;
-      const hasCss = e.getAnimations().some(a => a.effect && a.effect.target === e), hasSmil = [...e.children].some(c => /^(animate|animateTransform|animateMotion|set)$/.test(c.tagName));
-      if (!hasCss && !hasSmil) continue;
-      const a = ownAnims(e); anims.set(e, a); }
-    if (!anims.size) return;
+    const cand = new Set(); svg.getAnimations({ subtree: true }).forEach(a => { if (a.effect && a.effect.target) cand.add(a.effect.target); });
+    svg.querySelectorAll(SMIL).forEach(a => { if (a.parentElement) cand.add(a.parentElement); });
+    let ci = 0; for (const e of cand){ if (e === svg || e.closest('defs,clipPath,mask,pattern,symbol,marker')) continue; anims.set(e, ownAnims(e)); if (++ci % 25 === 0 && !await pause('kand')) return stop(); }
+    if (!anims.size) return stop();
+    if (!await pause('rødder')) return stop();
     let roots = [...anims.keys()].filter(e => { for (let p = e.parentElement; p && p !== svg; p = p.parentElement) if (anims.has(p)) return false; return true; });
-    /* en rod kan løftes, når alle animationer i den kan genskabes, og ingen forfader har filter, maske eller klip */
     /* mål i SVG'ens koordinater, og hvor langt hver rod kan nå, mens den bevæger sig */
     const pos = new Map(); all.forEach((e, i) => pos.set(e, i));
-    const sInv = svg.getScreenCTM(); if (!sInv) return; const inv = sInv.inverse();
+    const sInv = svg.getScreenCTM(); if (!sInv) return stop(); const inv = sInv.inverse();
     const boxU = e => { const r = e.getBoundingClientRect(), a = new DOMPoint(r.left, r.top).matrixTransform(inv), b = new DOMPoint(r.right, r.bottom).matrixTransform(inv); return [Math.min(a.x, b.x), Math.min(a.y, b.y), Math.max(a.x, b.x), Math.max(a.y, b.y)]; };
     const leaves = all.filter(e => (!e.children.length || e.tagName === 'text') && !SKIP.test(e.tagName) && !/^(animate|animateTransform|animateMotion|set|stop|tspan)$/.test(e.tagName) && !e.closest('defs,clipPath,mask,pattern,symbol,marker'));
     const reach = r => { const b = boxU(r); let dx = 0, dy = 0;
@@ -192,65 +202,75 @@ const LOEFT = (() => {
         if (a.some(x => x.kind === 'motion')){ dx += 200; dy += 200; } }
       return [b[0] - dx - 2, b[1] - dy - 2, b[2] + dx + 2, b[3] + dy + 2]; };
     const why = window.LF_LOG ? (r, t) => console.log('LF ' + r.tagName + '.' + (r.getAttribute('class') || '') + ' ' + t) : () => {};
+    /* en rod kan løftes, når alle animationer i den kan genskabes, og ingen forfader har filter, maske eller (et klip, den rører) */
     roots = roots.filter(r => {
       if ([r, ...r.querySelectorAll('*')].some(e => anims.has(e) && !anims.get(e))){ why(r, 'kan ikke genskabes'); return false; }
       if (r.tagName === 'svg' || r.querySelector('foreignObject')){ why(r, 'svg/foreignObject'); return false; }
       for (let p = r.parentElement; p && p !== svg; p = p.parentElement){ const cs = getComputedStyle(p);
-        /* et klip, som roden aldrig rører kanten af (fx en boble inde i en vitrine), betyder ingenting */
         if ((p.getAttribute('clip-path') || cs.clipPath !== 'none') && !cs.filter.match(/url|blur/) && cs.mask === 'none' && !p.getAttribute('mask') && !p.getAttribute('filter') && cs.mixBlendMode === 'normal' && clipFree(p, reach(r))) continue;
         if (cs.filter !== 'none' || cs.mask !== 'none' || cs.clipPath !== 'none' || cs.mixBlendMode !== 'normal' || p.getAttribute('clip-path') || p.getAttribute('mask') || p.getAttribute('filter')){ why(r, 'forfader med filter/klip: ' + p.tagName + '.' + (p.getAttribute('class') || '')); return false; } }
       return true; });
-    if (!roots.length) return;
+    if (!roots.length) return stop();
+    if (!await pause('kasser')) return stop();
+    /* bladenes kasser måles én gang */
+    const LB = [];
+    for (let i = 0; i < leaves.length; i++){ const e = leaves[i]; LB.push([e, pos.get(e), boxU(e)]); if (i % 150 === 149 && !await pause()) return stop(); }
     /* hvem ligger senere i tegningen og dækker? Bagfra, så en rod, der bliver liggende, tæller som noget der dækker */
-    const lifted = new Set(), sorted = roots.slice().sort((a, b) => pos.get(b) - pos.get(a));
+    const lifted = new Set(), inLifted = new Set(), sorted = roots.slice().sort((a, b) => pos.get(b) - pos.get(a));
     for (const r of sorted){
+      if (!await pause('dække')) return stop();
       const B = reach(r), last = (() => { const d = r.querySelectorAll('*'); return pos.get(d.length ? d[d.length - 1] : r); })();
       let hit = false;
-      for (const e of leaves){ if (pos.get(e) <= last || [...lifted].some(l => l.contains(e))) continue;
-        const b = boxU(e); if (b[0] >= B[2] || b[2] <= B[0] || b[1] >= B[3] || b[3] <= B[1]) continue;
-        /* overlap: prøv ni punkter i fællesområdet; er den usynlig dér (fx kanternes skygge midt på), dækker den ikke */
+      for (const [e, pe, b] of LB){ if (pe <= last || b[0] >= B[2] || b[2] <= B[0] || b[1] >= B[3] || b[3] <= B[1] || inLifted.has(e)) continue;
+        /* overlap: prøv ni punkter i fællesområdet; er den (næsten) usynlig dér, dækker den ikke */
         const ix0 = Math.max(b[0], B[0]), iy0 = Math.max(b[1], B[1]), ix1 = Math.min(b[2], B[2]), iy1 = Math.min(b[3], B[3]);
         const pts = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) pts.push([ix0 + (ix1 - ix0) * (i + .5) / 3, iy0 + (iy1 - iy0) * (j + .5) / 3]);
         const m = e.getScreenCTM(), sv = svg.getScreenCTM(), loc = m && sv ? m.inverse().multiply(sv) : null;
-        if (pts.some(([x, y]) => { const q = loc ? new DOMPoint(x, y).matrixTransform(loc) : { x, y }; return alphaAt(e, q.x, q.y) > LF_SOFT; })){ hit = true; why(r, 'dækket af ' + e.tagName + '.' + (e.getAttribute('class') || '') + ' fill=' + getComputedStyle(e).fill.slice(0, 30) + ' i ' + ((e.closest('[class]') || {}).getAttribute ? e.parentElement.getAttribute('class') : '')); break; } }
-      if (!hit) lifted.add(r);
+        if (pts.some(([x, y]) => { const q = loc ? new DOMPoint(x, y).matrixTransform(loc) : { x, y }; return alphaAt(e, q.x, q.y) > LF_SOFT; })){ hit = true; why(r, 'dækket af ' + e.tagName + '.' + (e.getAttribute('class') || '')); break; } }
+      if (!hit){ lifted.add(r); inLifted.add(r); r.querySelectorAll('*').forEach(e => inLifted.add(e)); }
     }
-    if (!lifted.size) return;
-    /* nu stoppes originalerne, så de kan måles i hvilestilling, og lagene bygges */
+    if (!lifted.size) return stop();
+    if (!await pause()) return stop();
+    /* laget oven på SVG'en */
     const info = { anims, run: [], inner: new Set() };
     for (const r of lifted) for (const e of [r, ...r.querySelectorAll('*')]) if (anims.has(e)) for (let p = e.parentElement; p && p !== r.parentElement; p = p.parentElement) info.inner.add(p);
     const ov = document.createElement('div'); ov.className = 'lf-ov'; ov.setAttribute('aria-hidden', 'true');
     const zi = getComputedStyle(svg).zIndex; if (zi !== 'auto') ov.style.zIndex = zi;
-    svg.after(ov);
-    if (!place(svg, ov)){ ov.remove(); return; }
-    const rec = { ov, roots: [] };
-    busy = true;
-    for (const r of [...lifted].sort((a, b) => pos.get(a) - pos.get(b))){
-      const undo = [], saved = [];
-      for (const e of [r, ...r.querySelectorAll('*')]){ const a = anims.get(e); if (!a) continue;
-        const old = e.style.animation; e.style.animation = 'none'; undo.push(() => { e.style.animation = old; });
-        a.filter(x => x.smil).forEach(x => { const n = x.smil, p = n.parentElement, nx = n.nextSibling; n.remove(); saved.push(() => p.insertBefore(n, nx)); }); }
-      let op = 1; for (let p = r.parentElement; p && p !== svg; p = p.parentElement) op *= +getComputedStyle(p).opacity;
-      const layer = node(r, r.parentElement, info); layer.classList.add('lf-l'); if (op < 1) layer.style.opacity = op;
-      /* lagets grundflytning: forfædrenes koordinater i forhold til SVG'ens */
-      const P = svg.getScreenCTM().inverse().multiply(r.parentElement.getScreenCTM()); const base = document.createElement('div'); base.className = 'lf-n'; if (!isId(P)) base.style.transform = mtx(P); base.append(layer);
-      ov.append(base);
-      const oldOp = r.style.getPropertyValue('opacity'), oldPri = r.style.getPropertyPriority('opacity'), keep = (anims.get(r) || []).some(a => a.fill);
-      if (!keep) r.style.setProperty('opacity', '0', 'important');   /* (en farveskifter bliver synlig i sin grundfarve under kopien) */
-      undo.push(() => { r.style.removeProperty('opacity'); if (oldOp) r.style.setProperty('opacity', oldOp, oldPri); saved.forEach(f => f()); });
-      rec.roots.push({ el: r, layer: base, undo });
-    }
-    /* animationerne startes i samme fase som originalerne */
-    for (const [d, a] of info.run){ try { const x = d.animate(a.kf, Object.assign({ fill: 'none' }, a.timing)); x.currentTime = a.cur; if (a.rate) x.playbackRate = a.rate; } catch (e){} }
+    svg.after(ov); rec.ov = ov;
+    if (!place(svg, ov)) return stop();
     /* ændrer koden noget ved en løftet ting, lægges den tilbage i SVG'en */
     const obs = new MutationObserver(recs => { if (busy) return; const hitR = new Set();
       for (const m of recs){ for (const x of rec.roots) if (x.el.contains(m.target) || m.target.contains(x.el)) hitR.add(x); }
       hitR.forEach(x => drop(svg, x)); });
-    const watch = new Set(); rec.roots.forEach(x => { obs.observe(x.el, { attributes: true, childList: true, subtree: true, characterData: true }); for (let p = x.el.parentElement; p && p !== svg.parentElement; p = p.parentElement) if (!watch.has(p)){ watch.add(p); obs.observe(p, { attributes: true, attributeFilter: ['class', 'style', 'transform', 'opacity', 'visibility', 'display'] }); } });
-    rec.obs = obs; obs.takeRecords(); busy = false;
+    rec.obs = obs; const watch = new Set();
     rec.ro = new ResizeObserver(() => { if (!svg.isConnected) return forget(svg); place(svg, ov); }); rec.ro.observe(svg);
-    lifts.set(svg, rec);
-    DBG.count('loeftet', rec.roots.length);
+    /* én ting ad gangen: stop originalen, byg laget, start bevægelsen i samme fase, og skjul originalen */
+    for (const r of [...lifted].sort((a, b) => pos.get(a) - pos.get(b))){
+      if (!await pause('byg')) return stop();
+      if (!r.isConnected) continue;
+      busy = true;
+      const undo = [], saved = [], phase = new Map();
+      for (const e of [r, ...r.querySelectorAll('*')]){ const a = anims.get(e); if (!a) continue;
+        /* fasen læses lige nu (der kan være gået et øjeblik, siden animationerne blev fundet) */
+        for (const x of a){ if (x.anim) x.cur = x.anim.currentTime || 0; else if (x.smil) x.cur = (svg.getCurrentTime ? svg.getCurrentTime() : 0) * 1000; }
+        const old = e.style.animation; e.style.animation = 'none'; undo.push(() => { e.style.animation = old; });
+        a.filter(x => x.smil).forEach(x => { const n = x.smil, p = n.parentElement, nx = n.nextSibling; n.remove(); saved.push(() => p.insertBefore(n, nx)); }); }
+      info.run = [];
+      let op = 1; for (let p = r.parentElement; p && p !== svg; p = p.parentElement) op *= +getComputedStyle(p).opacity;
+      const layer = node(r, r.parentElement, info); layer.classList.add('lf-l'); if (op < 1) layer.style.opacity = op;
+      const P = svg.getScreenCTM().inverse().multiply(r.parentElement.getScreenCTM()); const base = document.createElement('div'); base.className = 'lf-n'; if (!isId(P)) base.style.transform = mtx(P); base.append(layer);
+      ov.append(base);
+      for (const [d, a] of info.run){ try { const x = d.animate(a.kf, Object.assign({ fill: 'none' }, a.timing)); x.currentTime = a.cur; if (a.rate) x.playbackRate = a.rate; } catch (e){} }
+      const oldOp = r.style.getPropertyValue('opacity'), oldPri = r.style.getPropertyPriority('opacity'), keep = (anims.get(r) || []).some(a => a.fill);
+      if (!keep) r.style.setProperty('opacity', '0', 'important');   /* (en farveskifter bliver synlig i sin grundfarve under kopien) */
+      undo.push(() => { r.style.removeProperty('opacity'); if (oldOp) r.style.setProperty('opacity', oldOp, oldPri); saved.forEach(f => f()); });
+      rec.roots.push({ el: r, layer: base, undo });
+      obs.observe(r, { attributes: true, childList: true, subtree: true, characterData: true });
+      for (let p = r.parentElement; p && p !== svg.parentElement; p = p.parentElement) if (!watch.has(p)){ watch.add(p); obs.observe(p, { attributes: true, attributeFilter: ['class', 'style', 'transform', 'opacity', 'visibility', 'display'] }); }
+      obs.takeRecords(); busy = false;
+    }
+    rec.building = false; LOEFT.slice = Math.max(LOEFT.slice || 0, performance.now() - sl);
+    DBG.count('loeftet', rec.roots.length); if (LOEFT.slice > 30) DBG.count('loeftBid', Math.round(LOEFT.slice));
   }
   /* en løftet ting lægges tilbage. Bagefter prøves hele SVG'en igen (med de nye farver og størrelser), men ikke hvis den
      bliver ved med at ændre sig (så er den en del af et spil, og så får den lov at være) */
@@ -260,20 +280,23 @@ const LOEFT = (() => {
     x.layer.remove(); x.undo.forEach(f => f()); rec.roots = rec.roots.filter(y => y !== x);
     if (rec.obs) rec.obs.takeRecords(); busy = false;
     const n = (drops.get(svg) || 0) + 1; drops.set(svg, n);
-    if (n <= 6){ clearTimeout(rec.again); rec.again = setTimeout(() => { if (!svg.isConnected || svg.closest('[hidden]')) return; forget(svg); try { liftSvg(svg); } catch (e){} }, 1200); }
+    if (n <= 6){ clearTimeout(rec.again); rec.again = setTimeout(() => { if (!svg.isConnected || svg.closest('[hidden]')) return; forget(svg); liftSvg(svg).catch(() => {}); }, 1200); }
   }
   function forget(svg){ const rec = lifts.get(svg); if (!rec) return; clearTimeout(rec.again);
     busy = true; rec.roots.forEach(x => { x.layer.remove(); x.undo.forEach(f => f()); }); rec.roots = [];
-    if (rec.obs){ rec.obs.takeRecords(); rec.obs.disconnect(); } if (rec.ro) rec.ro.disconnect(); rec.ov.remove(); lifts.delete(svg); busy = false; }
+    if (rec.obs){ rec.obs.takeRecords(); rec.obs.disconnect(); } if (rec.ro) rec.ro.disconnect(); if (rec.ov) rec.ov.remove(); lifts.delete(svg); busy = false; }
   /* en skærm: ryd op efter SVG'er, der er væk, og løft de nye */
   function scan(root){
+    const T0 = performance.now();
     for (const svg of [...lifts.keys()]) if (!svg.isConnected) forget(svg);
     if (!root || !LOEFT_ON()) return;
-    if (!LOEFT_SKAERME.includes('#' + root.id)) return;
-    root.querySelectorAll('svg').forEach(s => { if (!s.ownerSVGElement && !s.closest('.lf-ov') && !s.closest('#town')) try { liftSvg(s); } catch (e){ DBG.row('fejl', { besked: 'løft: ' + e.message }); } });
+    if (!LOEFT_SKAERME.includes('#' + root.id) || root.hidden) return;
+    root.querySelectorAll('svg').forEach(s => { if (!s.ownerSVGElement && !s.closest('.lf-ov') && !s.closest('#town')) liftSvg(s).catch(e => { DBG.row('fejl', { besked: 'løft: ' + e.message }); forget(s); }); });
+    const ms = Math.round(performance.now() - T0); LOEFT.ms = ms; if (ms > 20) DBG.count('loeftMs', ms);
   }
   let pend = 0;
-  const later = root => { cancelAnimationFrame(pend); pend = requestAnimationFrame(() => requestAnimationFrame(() => scan(root))); };
+  /* når skærmen er færdig med at glide ind og telefonen har tid (ellers giver opmålingen et hak midt i skiftet) */
+  const later = root => { clearTimeout(pend); pend = setTimeout(() => { const go = () => scan(root); if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 1500 }); else go(); }, 700); };
   return { scan, later, lifts, count: () => [...lifts.values()].reduce((n, r) => n + r.roots.length, 0) };
 })();
 /* kun de rolige skærme. I spillene (kosten, faldskærmen) flytter koden selv rundt på scenen hele tiden */
