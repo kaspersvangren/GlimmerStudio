@@ -238,7 +238,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 /* ---------- v0.5: titelskærm, by, tæppe ---------- */
 .title-top{position:absolute;top:12px;right:max(16px, env(safe-area-inset-right, 0px))}
 .title-logo{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(46px,10vw,104px);line-height:1;letter-spacing:-0.01em;text-align:center;user-select:none;-webkit-user-select:none;cursor:default}
-.title-logo span{display:inline-block;background:linear-gradient(180deg,#FFFFFF 10%,#FFE27A 55%,#FF8FC7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8A2E7A) drop-shadow(0 0 16px rgba(255,200,255,.6));animation:letterIn .7s cubic-bezier(.2,1.6,.4,1) both, bob 3s ease-in-out .8s infinite}
+.title-logo > span{display:inline-block;animation:letterIn .7s cubic-bezier(.2,1.6,.4,1) both, bob 3s ease-in-out .8s infinite}
+.title-logo > span > span{display:inline-block;background:linear-gradient(180deg,#FFFFFF 10%,#FFE27A 55%,#FF8FC7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #8A2E7A) drop-shadow(0 0 16px rgba(255,200,255,.6))}
 @keyframes letterIn{from{transform:translateY(-60px) scale(.4);opacity:0}to{transform:none;opacity:1}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .playbtn svg{width:58%;height:58%}
@@ -297,7 +298,10 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid va
 #title{overflow:hidden;background:#2A1C78;color:#FFFFFF;position:relative}
 .title-inner{position:relative;height:100%;overflow:hidden}
 .title-scene{position:absolute;inset:0}
-.title-scene svg{width:100%;height:100%;display:block}
+.title-scene > svg.ts-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.title-scene .ts-fx{position:absolute;left:0;top:0;width:1600px;height:1000px;transform-origin:0 0;pointer-events:none}
+.title-scene .ts-l{position:absolute}
+.title-scene .ts-l > svg{display:block}
 .title-top{z-index:5}
 .title-inner .title-logo{position:absolute;left:0;right:0;top:max(4vh,14px);z-index:4}
 .title-stage{position:absolute;left:50%;bottom:4vh;height:min(60vh,600px);aspect-ratio:720/1010;transform:translateX(-50%);z-index:3}
@@ -2817,7 +2821,7 @@ if (typeof module !== 'undefined') module.exports = { resolveLayers, accConflict
 /* ================= Fælles værktøjer ================= */
 /* spillets navn — skift det her, så skifter det alle steder */
 const GAME_NAME = 'Magiske Mig';
-const VERSION = 'v0.35.2';
+const VERSION = 'v0.36.0';
 const $ = s => document.querySelector(s);
 const clone = o => JSON.parse(JSON.stringify(o));
 const svgUrl = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
@@ -10483,18 +10487,34 @@ function heroState(){
 }
 
 /* ---------- titelskærm: nattehimmel, måne og skolen på bakken ---------- */
+/* ---------- forsidens scene ----------
+   Før var hele scenen én SVG med 36 SVG-animationer og 116 blinkende stjerner. Så skulle browseren male hele scenen
+   forfra i hvert eneste billede (forsiden kørte med ca. 20 billeder i sekundet på tabletten og 34 på telefonen).
+   Nu er den delt i lag: himlen og resten af scenen er stillestående billeder, der males én gang, og alt det, der
+   bevæger sig (stjernerne i små klynger, ildfluerne, vinduernes flimren, flagene og stjernen på tårnet), er små
+   HTML-lag oven på, som grafikchippen selv flytter og toner. Udseendet er det samme. */
+const TS_SVG = (vb, w, h, body, extra = '') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${w}" height="${h}" ${extra} aria-hidden="true">${body}</svg>`;
 function titleScene(){
-  let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs>
+  const SL = 'viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice"';
+  const defs = `<defs>
 <linearGradient id="tsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E0A35"/><stop offset=".45" stop-color="#2A1C78"/><stop offset=".8" stop-color="#6A3AA6"/><stop offset="1" stop-color="#B456B2"/></linearGradient>
 <radialGradient id="tglow"><stop offset="0" stop-color="#FFF4C8" stop-opacity=".55"/><stop offset=".4" stop-color="#FFE9A8" stop-opacity=".18"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>
-<radialGradient id="tfly"><stop offset="0" stop-color="#FFF6B0" stop-opacity=".9"/><stop offset=".35" stop-color="#E8FF8A" stop-opacity=".35"/><stop offset="1" stop-color="#E8FF8A" stop-opacity="0"/></radialGradient>
-<radialGradient id="twin"><stop offset="0" stop-color="#FFD86B" stop-opacity=".7"/><stop offset="1" stop-color="#FFD86B" stop-opacity="0"/></radialGradient></defs>
-<rect width="1600" height="1000" fill="url(#tsky)"/>`;
-  /* stjerner (faste pladser, så skærmen ser ens ud hver gang) */
+<radialGradient id="twin"><stop offset="0" stop-color="#FFD86B" stop-opacity=".7"/><stop offset="1" stop-color="#FFD86B" stop-opacity="0"/></radialGradient></defs>`;
+  const fx = [];      /* små lag: [x, y, w, h, svg-indhold, animationer] i scenens koordinater */
+  /* stjerner (faste pladser, så skærmen ser ens ud hver gang). De samles i klynger efter, hvor de står på himlen,
+     og hver klynge blinker for sig (ét lag pr. klynge i stedet for 90 animationer i SVG'en) */
   let seed = 7; const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-  for (let i = 0; i < 90; i++){ const x = r()*1600, y = r()*620, s = 0.8 + r()*2.2, d = (2 + r()*3).toFixed(1);
-    o += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${s.toFixed(1)}" fill="#FFF6D8"><animate attributeName="opacity" values="1;.25;1" dur="${d}s" begin="${(r()*3).toFixed(1)}s" repeatCount="indefinite"/></circle>`; }
-  [[620,120,14],[1030,80,11],[1420,300,12],[880,260,9],[1240,160,10]].forEach(([x,y,s],i) => { o += `<g opacity=".95"><path d="M ${x} ${y-s} Q ${x} ${y} ${x+s} ${y} Q ${x} ${y} ${x} ${y+s} Q ${x} ${y} ${x-s} ${y} Q ${x} ${y} ${x} ${y-s} Z" fill="#FFF6D8"><animate attributeName="opacity" values="1;.3;1" dur="${2.4+i*0.5}s" repeatCount="indefinite"/></path></g>`; });
+  const cells = new Map();
+  for (let i = 0; i < 90; i++){ const x = r()*1600, y = r()*620, s = 0.8 + r()*2.2, d = 2 + r()*3, beg = r()*3;
+    const k = Math.floor(x / 200) + ':' + Math.floor(y / 155); let c = cells.get(k); if (!c){ c = { st: [], d, beg }; cells.set(k, c); } c.st.push([x, y, s]); }
+  for (const c of cells.values()){ const pad = 4, x0 = Math.floor(Math.min(...c.st.map(q => q[0] - q[2])) - pad), y0 = Math.floor(Math.min(...c.st.map(q => q[1] - q[2])) - pad),
+      x1 = Math.ceil(Math.max(...c.st.map(q => q[0] + q[2])) + pad), y1 = Math.ceil(Math.max(...c.st.map(q => q[1] + q[2])) + pad);
+    fx.push({ lag: 'bag', x: x0, y: y0, w: x1 - x0, h: y1 - y0, body: c.st.map(([x, y, s]) => `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${s.toFixed(1)}" fill="#FFF6D8"/>`).join(''),
+      anim: [[[{ opacity: 1 }, { opacity: .25 }, { opacity: 1 }], { duration: c.d * 1000, delay: c.beg * 1000, iterations: Infinity }]] }); }
+  [[620,120,14],[1030,80,11],[1420,300,12],[880,260,9],[1240,160,10]].forEach(([x,y,s],i) => {
+    fx.push({ lag: 'bag', x: x - s - 2, y: y - s - 2, w: 2 * s + 4, h: 2 * s + 4, op: .95, body: `<path d="M ${x} ${y-s} Q ${x} ${y} ${x+s} ${y} Q ${x} ${y} ${x} ${y+s} Q ${x} ${y} ${x-s} ${y} Q ${x} ${y} ${x} ${y-s} Z" fill="#FFF6D8"/>`,
+      anim: [[[{ opacity: 1 }, { opacity: .3 }, { opacity: 1 }], { duration: (2.4 + i * 0.5) * 1000, iterations: Infinity }]] }); });
+  let o = '';
   /* månen øverst til venstre */
   o += `<circle cx="300" cy="230" r="300" fill="url(#tglow)"/><circle cx="300" cy="230" r="96" fill="#FFF3C4"/><circle cx="270" cy="200" r="16" fill="#F2DE9A" opacity=".7"/><circle cx="330" cy="260" r="22" fill="#F2DE9A" opacity=".6"/><circle cx="318" cy="186" r="9" fill="#F2DE9A" opacity=".7"/><circle cx="262" cy="270" r="8" fill="#F2DE9A" opacity=".6"/>`;
   /* fjerne bakker */
@@ -10504,29 +10524,66 @@ function titleScene(){
   const tower = (x, w, top, base, apex, flag) => {
     let t = `<rect x="${x}" y="${top}" width="${w}" height="${base-top}" fill="${W}" stroke="${E}" stroke-width="4"/><rect x="${x+w*0.62}" y="${top}" width="${w*0.38}" height="${base-top}" fill="${WS}"/>`;
     t += `<path d="M ${x-14} ${top+2} L ${x+w/2} ${apex} L ${x+w+14} ${top+2} Z" fill="${ROOF}" stroke="${E}" stroke-width="4" stroke-linejoin="round"/><path d="M ${x+w/2} ${apex} L ${x+w+14} ${top+2} L ${x+w/2+8} ${top+2} Z" fill="${RS}"/>`;
-    if (flag) t += `<path d="M ${x+w/2} ${apex} V ${apex-40}" stroke="${E}" stroke-width="4"/><path d="M ${x+w/2} ${apex-40} q 22 4 36 -2 q -12 10 0 20 q -16 6 -36 0 Z" fill="#FF5FA8" stroke="${E}" stroke-width="3"><animateTransform attributeName="transform" type="skewY" values="0;-6;0" dur="2.4s" additive="sum" repeatCount="indefinite"/></path>`;
+    if (flag){ t += `<path d="M ${x+w/2} ${apex} V ${apex-40}" stroke="${E}" stroke-width="4"/>`;
+      /* flaget vifter: SVG'ens skævning sker om scenens hjørne (0,0); det gør lagets også */
+      const fx0 = x + w/2 - 4, fy0 = apex - 52, fw = 46, fh = 42;
+      fx.push({ lag: 'for', x: fx0, y: fy0, w: fw, h: fh, origin: [-fx0, -fy0], body: `<path d="M ${x+w/2} ${apex-40} q 22 4 36 -2 q -12 10 0 20 q -16 6 -36 0 Z" fill="#FF5FA8" stroke="${E}" stroke-width="3"/>`,
+        anim: [[[{ transform: 'skewY(0deg)' }, { transform: 'skewY(-6deg)' }, { transform: 'skewY(0deg)' }], { duration: 2400, iterations: Infinity }]] }); }
     return t;
   };
-  const win = (x, y, w, h, d) => `<circle cx="${x+w/2}" cy="${y+h/2}" r="${h*1.3}" fill="url(#twin)"/><path d="M ${x} ${y+h} V ${y+w/2} A ${w/2} ${w/2} 0 0 1 ${x+w} ${y+w/2} V ${y+h} Z" fill="#FFD86B" stroke="${E}" stroke-width="3"><animate attributeName="fill" values="#FFD86B;#FFE9A0;#FFC94A;#FFD86B" dur="${d}s" repeatCount="indefinite"/></path>`;
+  /* vinduer: lyset flimrer (lysere, så mørkere). To små lag pr. vindue tones ind og ud over det faste vindue */
+  const win = (x, y, w, h, d) => { const P = `M ${x} ${y+h} V ${y+w/2} A ${w/2} ${w/2} 0 0 1 ${x+w} ${y+w/2} V ${y+h} Z`, bx = x - 3, by = y - 3, bw = w + 6, bh = h + 6;
+    [['#FFE9A0', [0, 1, 0, 0]], ['#FFC94A', [0, 0, 1, 0]]].forEach(([c, v]) => fx.push({ lag: 'for', x: bx, y: by, w: bw, h: bh, body: `<path d="${P}" fill="${c}" stroke="${E}" stroke-width="3"/>`,
+      anim: [[v.map((op, i) => ({ offset: i / 3, opacity: op })), { duration: d * 1000, iterations: Infinity }]] }));
+    return `<circle cx="${x+w/2}" cy="${y+h/2}" r="${h*1.3}" fill="url(#twin)"/><path d="${P}" fill="#FFD86B" stroke="${E}" stroke-width="3"/>`; };
   o += `<path d="M 60 800 C 160 700 300 650 420 650 C 560 650 680 720 760 800 Z" fill="#2C1F6E"/>`;
   o += tower(190, 64, 470, 790, 360, true) + tower(560, 60, 500, 790, 400, true) + tower(640, 40, 580, 790, 510, false);
   o += `<rect x="254" y="560" width="306" height="230" fill="${W}" stroke="${E}" stroke-width="4"/><rect x="460" y="560" width="100" height="230" fill="${WS}"/>`;
   o += Array.from({length: 8}, (_, i) => `<rect x="${256 + i*38}" y="540" width="22" height="22" fill="${i > 5 ? WS : W}" stroke="${E}" stroke-width="3"/>`).join('');
-  o += tower(370, 72, 360, 560, 220, false) + `<path d="M 406 220 V 180" stroke="${E}" stroke-width="4"/>` + `<g transform="translate(406 168)"><polygon points="${star5pts(0,0,20,9)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2.5"><animateTransform attributeName="transform" type="rotate" values="0;360" dur="12s" repeatCount="indefinite"/></polygon></g>`;
+  o += tower(370, 72, 360, 560, 220, false) + `<path d="M 406 220 V 180" stroke="${E}" stroke-width="4"/>`;
+  /* stjernen på tårnet drejer rundt */
+  fx.push({ lag: 'for', x: 384, y: 146, w: 44, h: 44, origin: [22, 22], body: `<polygon points="${star5pts(406,168,20,9)}" fill="#FFE27A" stroke="#C99A12" stroke-width="2.5"/>`,
+    anim: [[[{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], { duration: 12000, iterations: Infinity }]] });
   o += `<circle cx="406" cy="420" r="26" fill="#FFD86B" stroke="${E}" stroke-width="3"/><path d="M 406 394 V 446 M 380 420 H 432" stroke="${E}" stroke-width="3"/><circle cx="406" cy="420" r="60" fill="url(#twin)"/>`;
   o += win(206, 520, 30, 50, 3.1) + win(206, 640, 30, 50, 4.2) + win(575, 560, 28, 46, 3.6) + win(649, 620, 22, 38, 2.8) + win(290, 610, 32, 56, 3.3) + win(350, 610, 32, 56, 4.4) + win(470, 610, 32, 56, 3.9);
   o += `<path d="M 380 790 V 712 A 26 26 0 0 1 432 712 V 790 Z" fill="#5A2E1E" stroke="${E}" stroke-width="4"/><circle cx="422" cy="752" r="4" fill="#FFD86B"/><path d="M 360 790 L 452 790 L 470 820 L 342 820 Z" fill="#4A3A8F"/>`;
-  /* en sværm af ildfluer der flyver rundt om slottet */
+  /* en sværm af ildfluer der flyver rundt om slottet: hver sit lille lag, der følger sin bane og blinker */
+  const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   for (let i = 0; i < 26; i++){
-    const cx = 150 + r() * 620, cy = 360 + r() * 380, d = (5 + r() * 6).toFixed(1), rad = 18 + r() * 46, k = r() < .5 ? 1 : -1;
+    const cx = 150 + r() * 620, cy = 360 + r() * 380, d = 5 + r() * 6, rad = 18 + r() * 46, k = r() < .5 ? 1 : -1;
     const pts = Array.from({ length: 5 }, (_, j) => { const a = j / 5 * Math.PI * 2 * k; return `${(Math.cos(a) * rad * (0.6 + r() * 0.8)).toFixed(0)} ${(Math.sin(a) * rad * (0.4 + r() * 0.6)).toFixed(0)}`; });
-    o += `<g transform="translate(${cx.toFixed(0)} ${cy.toFixed(0)})"><g><animateMotion dur="${d}s" repeatCount="indefinite" path="M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]} S ${pts[4]} ${pts[0]} Z" begin="-${(r() * 6).toFixed(1)}s"/>`
-      + `<circle r="20" fill="url(#tfly)"/><circle r="3.6" fill="#FFFBD0"><animate attributeName="opacity" values="1;.25;1;.6;1" dur="${(1.4 + r() * 1.6).toFixed(1)}s" repeatCount="indefinite"/></circle></g></g>`;
+    const beg = r() * 6, blink = 1.4 + r() * 1.6;
+    tmp.setAttribute('d', `M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]} S ${pts[4]} ${pts[0]} Z`);
+    const L = tmp.getTotalLength(), N = 40, kf = [];
+    for (let j = 0; j <= N; j++){ const q = tmp.getPointAtLength(L * j / N); kf.push({ offset: j / N, transform: `translate(${q.x.toFixed(1)}px,${q.y.toFixed(1)}px)` }); }
+    fx.push({ lag: 'for', x: Math.round(cx) - 20, y: Math.round(cy) - 20, w: 40, h: 40,
+      body: `<defs><radialGradient id="tfly${i}"><stop offset="0" stop-color="#FFF6B0" stop-opacity=".9"/><stop offset=".35" stop-color="#E8FF8A" stop-opacity=".35"/><stop offset="1" stop-color="#E8FF8A" stop-opacity="0"/></radialGradient></defs><circle cx="${Math.round(cx)}" cy="${Math.round(cy)}" r="20" fill="url(#tfly${i})"/><circle cx="${Math.round(cx)}" cy="${Math.round(cy)}" r="3.6" fill="#FFFBD0"/>`,
+      /* bevægelsen og blinket kører samtidig på samme lag (glødens kerne blinkede før alene; nu blinker hele ildfluen lidt svagere) */
+      anim: [[kf, { duration: d * 1000, delay: -beg * 1000, iterations: Infinity }], [[{ opacity: 1 }, { opacity: .45 }, { opacity: 1 }, { opacity: .7 }, { opacity: 1 }], { duration: blink * 1000, iterations: Infinity }]] });
   }
   /* forgrunden: bakken figuren står på */
   o += `<path d="M 0 830 C 260 790 520 840 800 836 C 1080 832 1340 780 1600 820 L 1600 1000 L 0 1000 Z" fill="#241A5C"/><path d="M 0 830 C 260 790 520 840 800 836 C 1080 832 1340 780 1600 820" stroke="#4E3C9C" stroke-width="5" fill="none"/>`;
   o += [[110,880],[1480,870],[1180,900],[300,930]].map(([x,y]) => `<g fill="#3A2C80">${[[-14,-26],[0,-34],[14,-24]].map(([dx,dy]) => `<ellipse cx="${x+dx}" cy="${y+dy}" rx="7" ry="16" transform="rotate(${dx*1.6} ${x+dx} ${y+dy})"/>`).join('')}</g>`).join('');
-  return o + '</svg>';
+  /* lagene: himmel, stjerner, scenen (fast billede), og det der bevæger sig foran */
+  const lag = which => `<div class="ts-fx" data-lag="${which}">` + fx.filter(f => f.lag === which).map((f, i) =>
+    `<div class="ts-l" data-i="${fx.indexOf(f)}" style="left:${f.x}px;top:${f.y}px;width:${f.w}px;height:${f.h}px${f.op ? ';opacity:' + f.op : ''}${f.origin ? `;transform-origin:${f.origin[0]}px ${f.origin[1]}px` : ''}">${TS_SVG(`${f.x} ${f.y} ${f.w} ${f.h}`, f.w, f.h, f.body)}</div>`).join('') + '</div>';
+  titleScene.fx = fx;
+  return `<svg class="ts-bg" xmlns="http://www.w3.org/2000/svg" ${SL} aria-hidden="true">${defs}<rect width="1600" height="1000" fill="url(#tsky)"/></svg>`
+    + lag('bag')
+    + `<svg class="ts-bg" xmlns="http://www.w3.org/2000/svg" ${SL} aria-hidden="true">${defs}${o}</svg>`
+    + lag('for');
+}
+/* lagene placeres som SVG'ens 'slice' (fylder skærmen, bunden flugter), og animationerne startes */
+function titleFxFit(sc){
+  const W = sc.clientWidth, H = sc.clientHeight; if (!W || !H) return;
+  const s = Math.max(W / 1600, H / 1000), x = (W - 1600 * s) / 2, y = H - 1000 * s;
+  sc.querySelectorAll('.ts-fx').forEach(d => { d.style.transform = `translate(${x.toFixed(2)}px,${y.toFixed(2)}px) scale(${s.toFixed(5)})`; });
+}
+function titleFx(scene){
+  titleFxFit(scene);
+  if (!titleFx.wired){ titleFx.wired = true; window.addEventListener('resize', () => { const sc = document.querySelector('#title .title-scene'); if (sc && !$('#title').hidden) titleFxFit(sc); }); }
+  const fx = titleScene.fx || [];
+  scene.querySelectorAll('.ts-l').forEach(el => { const f = fx[+el.dataset.i]; if (!f) return; f.anim.forEach(([kf, t]) => { try { el.animate(kf, Object.assign({ easing: 'linear' }, t)); } catch (e){} }); });
 }
 const RING_SVG = `<svg viewBox="0 0 400 80" aria-hidden="true"><ellipse cx="200" cy="40" rx="190" ry="32" fill="#FFE9A8" opacity=".18"/><ellipse cx="200" cy="40" rx="170" ry="26" fill="none" stroke="#FFE27A" stroke-width="4" opacity=".9"/><ellipse cx="200" cy="40" rx="140" ry="19" fill="none" stroke="#FFE27A" stroke-width="2" stroke-dasharray="3 9" opacity=".8"/>${[[40,40],[360,40],[200,14],[200,66],[90,22],[310,58],[90,58],[310,22]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="4" fill="#FFF6D0"/>`).join('')}</svg>`;
 let playing = 0;
@@ -10538,7 +10595,8 @@ function showTitle(){
   const kick = () => { audioCtx(); if (!SND.musicPlaying()) playMusic('byen'); };
   $('#title').addEventListener('pointerdown', kick, { once: true });
   const box = $('#titleBody'); box.innerHTML = '';
-  const letters = GAME_NAME.split('').map((ch, i) => `<span style="animation-delay:${0.05*i}s">${ch === ' ' ? '&nbsp;' : ch}</span>`).join('');
+  /* hvert bogstav: det ydre lag hopper, det indre har farverne og skyggen (så tegnes skyggen kun én gang og flyttes bare) */
+  const letters = GAME_NAME.split('').map((ch, i) => `<span style="animation-delay:${0.05*i}s"><span>${ch === ' ' ? '&nbsp;' : ch}</span></span>`).join('');
   const bubbles = el('div', { class:'title-bubbles', 'aria-hidden':'true' }, Array.from({ length: 9 }, (_, i) => el('span', { style:`left:${8 + i*10.5}%;--s:${[46,28,64,36,22,54,30,40,26][i]}px;animation-delay:${-i*1.7}s;animation-duration:${11 + (i%4)*2.5}s` })));
   box.append(
     el('div', { class:'title-scene', html: titleScene() }),
@@ -10554,7 +10612,7 @@ function showTitle(){
     el('p', { class:'ver', on:{ click: () => DBG.tap(), pointerdown: forpTryk, pointerup: forpSlip, pointerleave: forpSlip, pointercancel: forpSlip } }, GAME_NAME + ' ' + VERSION),
   );
   $('#titleLogo').addEventListener('click', logoTap);
-  smilOpacityToCss($('#titleBody'));
+  titleFx(box.querySelector('.title-scene'));
   updateAudioBtns();
 }
 
