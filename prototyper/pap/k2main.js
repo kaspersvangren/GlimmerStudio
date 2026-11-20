@@ -174,7 +174,7 @@ const _fv=new THREE.Vector3();
 /* steder hvor byens folk gerne vil hen, og hvad de gør der */
 const POIS=[{n:'bænk-v',at:[-9.4,-5.1],act:'sit',y:2.3,face:1,dur:[7,12]},{n:'bænk-h',at:[9.4,-5.1],act:'sit',y:2.3,face:-1,dur:[7,12]},
   {n:'brønd-v',at:[-2.8,7],act:'look',face:1},{n:'brønd-h',at:[3,7],act:'look',face:-1},{n:'ænder',at:[58.8,-2.4],act:'look',face:1,dur:[6,10]},
-  {n:'træ-ø',at:[10,19.6],act:'rest',face:1,dur:[8,14]},{n:'træ-v',at:[-15.6,24.6],act:'rest',face:-1,dur:[8,14]},{n:'vejviser',at:[-20.6,-4.4],act:'look',face:-1},
+  {n:'træ-ø',at:[10,19.6],act:'rest',face:1,dur:[8,14]},{n:'træ-v',at:[-15.6,24.6],act:'rest',face:-1,dur:[8,14]},{n:'vejviser',at:[-30.5,-1.1],act:'look',face:1},
   {n:'vindue',at:[26.6,6.2],act:'look',face:1},{n:'enhjørning',at:[58.6,-9.8],act:'look',face:1},{n:'plakat',at:[-64.4,32.4],act:'look',face:-1},
   {n:'bro',at:[25.4,35],act:'look',face:1},{n:'arkade',at:[63.4,31.6],act:'look',face:1},{n:'kollegie',at:[-43.4,-4.6],act:'look',face:-1}];
 function freePoi(n){const taken=new Set(walkers.filter(w=>w!==n&&w.poi).map(w=>w.poi.n));const ok=POIS.filter(p=>!taken.has(p.n)&&p!==n.poi);return ok[Math.floor(R(ok.length))]}
@@ -207,13 +207,11 @@ function frame(now){
   /* heksen og katten */
   HEKS.tick(time,{ph:W0.ph,amp:W0.amp||0});KAT.tick(time,{ph:C0.ph*2,amp:C0.amp||0});
   /* dragen: trækker vejret, sover, vågner hvis man trykker */
-  {const awake=time-wakeT<3;dragon.body.scale.y=1+.025*Math.sin(time*1.3);dragon.head.position.y=11.4+.25*Math.sin(time*1.3);dragon.head.rotation.z=awake?.12*Math.sin(time*6):.04*Math.sin(time*.6);
-    dragon.closed.visible=!awake;dragon.open.visible=awake;dragon.cap.rotation.z=.06*Math.sin(time*.9);dragon.tail.rotation.z=.08*Math.sin(time*.7);for(const[w,s]of dragon.wings)w.rotation.z=s*(awake?.25*Math.sin(time*10):.03*Math.sin(time*1.3));
+  {const awake=time-wakeT<3;dragon.tick(time,{awake});
     const hp=new THREE.Vector3();dragon.head.getWorldPosition(hp);
     for(const z of zzz){z.t=(z.t+dt*.28)%1;z.s.position.set(hp.x+3+z.t*5,hp.y+5+z.t*7,hp.z+1);const sz=1.2+z.t*2.2;z.s.scale.set(sz,sz,1);z.s.material.opacity=awake?0:Math.sin(z.t*Math.PI)*.95}}
   /* enhjørningen græsser og slår med halen */
-  {const g=time-uniT<1.2;unicorn.head.rotation.z=g?.3*Math.sin((time-uniT)/1.2*Math.PI*2):(Math.sin(time*.3)>.6?-.45:.03*Math.sin(time*1.2));unicorn.tail.rotation.z=.2*Math.sin(time*2.4);unicorn.root.position.y=.4+(g?Math.abs(Math.sin((time-uniT)/1.2*Math.PI))*2:0)}
-  {const t=time-trollT<1;troll.eyes.visible=!(time%3.7<.15)||t;troll.head.rotation.z=t?.15*Math.sin(time*12):.03*Math.sin(time*.8)}
+  unicorn.tick(time,{jump:uniT});unicorn.root.position.y=.4+unicorn.hop;troll.tick(time,{poke:trollT});
   for(const d of ducks){const a=time*.25+d.ph;d.m.position.set(70+Math.cos(a)*5,TOP+.25+.15*Math.sin(time*3+d.ph),-6+Math.sin(a)*2.6);d.m.scale.x=Math.sin(a)>0?-1:1;d.m.scale.y=d.m.scale.z=1}
   /* lys, røg, ildfluer, flag, vand, blade og fuglen */
   for(const gl of glows){const f=gl.slow?.85+.15*Math.sin(time*gl.f):.9+.1*Math.sin(time*gl.f+gl.ph)*Math.sin(time*gl.f*.7);gl.s.scale.set(gl.base*f,gl.base*f,1)}
