@@ -386,7 +386,7 @@ class Painter2 extends Painter{
    shape: punkter eller {outer,holes}. paint: maler forsiden på akvarelpapir (ellers bruges det fælles papir). */
 function piece(shape,{color='#ffffff',kind='card',t=.2,edge,paint,s=24,cap=1024,base,front,both=false,mat}={}){
   const outer=shape.outer||shape,holes=shape.holes||[];let fm,uv;
-  if(paint){const P=new Painter2(outer,s,{cap,base:base||kind});paint(P);fm=new THREE.MeshStandardMaterial({map:tx(P.c,true),bumpMap:tx(P.b,false),bumpScale:PAPER[base||kind].bs,roughness:.9});uv=(x,y)=>[(x-P.minx)/P.W,(y-P.miny)/P.H]}
+  if(paint){const P=new Painter2(outer,s,{cap,base:base||kind});paint(P);fm=new THREE.MeshStandardMaterial({map:tx(P.c,true),bumpMap:tx(P.b,false),bumpScale:PAPER[base||kind].bs,roughness:.9});fm.userData.own=true;uv=(x,y)=>[(x-P.minx)/P.W,(y-P.miny)/P.H]}
   else{makePapers();fm=mat||paperMat(color,kind);const k=PAPER[kind].k;uv=(x,y)=>[x*k,y*k]}
   const bm=both?fm:paperMat(paint?'#f2ece0':color,paint?'water':kind),em=paperMat(edge||coreOf(paint?'#f2ece0':color,paint?'water':kind),'card');
   const m=new THREE.Mesh(slabGeo(outer,holes,t,uv),[fm,bm,em]);m.castShadow=m.receiveShadow=true;return m}

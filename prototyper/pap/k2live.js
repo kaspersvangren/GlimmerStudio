@@ -84,6 +84,4 @@ function buildLive(){
   /* trolden ved broen */
   troll=buildTroll();troll.root.position.set(20,.4,31.4);
   /* byens beboere */
-  walkers.push({o:person({hair:'#7be0a0',dress:'#3b6fd1',hat:'#2a2a6a',buns:true}),x:6,z:8,route:[[6,8],[20,9],[14,16],[-4,15]],sp:5,kind:'npc'});
-  walkers.push({o:person({hair:'#f1ece2',dress:'#3f7a4a',hat:'#c2453a',beard:true,lamp:true,trim:'#6b4428',sc:.3}),x:30,z:14,route:[[30,14],[42,12],[50,6],[36,20]],sp:4,kind:'npc'});
-  walkers.push({o:person({hair:'#5a3a24',dress:'#c2453a',trim:'#f6e7c0',sc:.32}),x:-30,z:12,route:[[-36,2],[-48,4],[-56,1],[-44,-2]],sp:4.5,kind:'npc'})}
+  for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}

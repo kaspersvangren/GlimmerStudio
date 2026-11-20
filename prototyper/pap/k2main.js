@@ -1,12 +1,11 @@
 /* ============ heksen, katten og gåturene ============ */
-const TOP=.3,SC=.36;
-buildDress(0);buildHair(0);buildHat(0);
-live.add(W.root);W.root.scale.setScalar(SC);W.orbLight.intensity=0;
-live.add(C.root);C.root.scale.setScalar(SC);C.root.rotation.y=0;
+const TOP=.3,SC=.3;
+const HEKS=makeFigure({res:.6}),KAT=makeCat({res:.6});
+live.add(HEKS.G);HEKS.G.scale.setScalar(SC);live.add(KAT.G);KAT.G.scale.setScalar(SC);
 const shadowTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
 const blob=(w,d)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;live.add(m);return m};
 const walkers=[];
-const W0={root:W.root,x:-10,z:12,tx:-10,tz:12,sp:9,face:1,ph:0,sc:SC,kind:'heks'},C0={root:C.root,x:-5,z:14,tx:-5,tz:14,sp:12,face:1,ph:0,sc:SC,kind:'kat'};
+const W0={root:HEKS.G,x:-10,z:12,tx:-10,tz:12,sp:9,face:1,ph:0,sc:SC,kind:'heks'},C0={root:KAT.G,x:-5,z:14,tx:-5,tz:14,sp:12,face:1,ph:0,sc:SC,kind:'kat'};
 /* bygningernes grundflader: man kan ikke gå ind i dem; trykker man på en, går heksen hen til døren */
 let HOUSES=[];
 function houseAt(x,z){for(const h of HOUSES)if(x>h[1]&&x<h[2]&&z>h[3]&&z<h[4])return h;return null}
@@ -14,7 +13,7 @@ function clampWalk(x,z){x=clamp(x,-78,78);z=clamp(z,-22,36);
   const dx=x,dz=z,d=Math.hypot(dx/1.3,dz);if(d<7){const k=7/(d||1);x=dx*k;z=dz*k}
   const h=houseAt(x,z);if(h&&SPOTS[h[0]]){const s=SPOTS[h[0]];return[s[0],s[1]]}return[x,z]}
 /* svævende skridt (ca. 2,2 i sekundet): ét hop pr. skridtlængde, toppen af hoppet holdes lidt, og hoppene ebber ud, når figuren stopper */
-const GAIT={heks:{len:4.1,h:.75},kat:{len:4.1,h:1.05},npc:{len:3.8,h:.5}};
+const GAIT={heks:{len:4.1,h:.4},kat:{len:4.1,h:.45},npc:{len:3.8,h:.3}};
 function stepWalker(w,dt){
   const dx=w.tx-w.x,dz=w.tz-w.z,d=Math.hypot(dx,dz),moving=d>.25,g=GAIT[w.kind];
   w.amp=(w.amp||0)+((moving?1:0)-(w.amp||0))*Math.min(1,dt*(moving?5:3));
@@ -204,12 +203,9 @@ function frame(now){
     if(!n.acting&&!n.q.length&&Math.hypot(n.tx-n.x,n.tz-n.z)<.3){n.acting=true;n.until=time+R(...(n.poi.dur||[5,9]));actPose(n,n.poi)}
     if(n.acting&&time>n.until){n.acting=false;n.yOff=0;n.sq=1;const p=freePoi(n);n.poi=p;const r=NET.route(n.x,n.z,p.at[0],p.at[1]).map(q=>[q[0],q[1]]);[n.tx,n.tz]=r.shift();n.q=r}
     if(n.acting&&n.poi.face)n.face=n.poi.face;
-    stepWalker(n,dt);n.o.arm.rotation.z=n.moving?.25*Math.sin(n.ph):.05*Math.sin(time*1.4);n.o.head.rotation.z=.04*Math.sin(time*1.1+n.x)}
+    stepWalker(n,dt);n.o.tick(time+n.x,{ph:n.ph,amp:n.amp||0})}
   /* heksen og katten */
-  W.armL.rotation.z=W0.moving?-.13+.35*Math.sin(W0.ph):-.13+.025*Math.sin(time*1.3);W.elL.rotation.z=.12;W.armR.rotation.z=.56;W.elR.rotation.z=.1;
-  W.head.rotation.z=.03*Math.sin(time*.8);for(const l of W.locks.children)l.rotation.z=(l.userData.s||1)*.05*Math.sin(time*1.5);
-  W.lids.forEach(l=>l.visible=time%2.4<.13);C.lids.forEach(l=>l.visible=time%3.1<.13);
-  C.tail.rotation.z=.25*Math.sin(time*(C0.moving?6:1.6));C.head.rotation.z=.06*Math.sin(time*.85);W.orbM.emissiveIntensity=1.15+.35*Math.sin(time*2.2);
+  HEKS.tick(time,{ph:W0.ph,amp:W0.amp||0});KAT.tick(time,{ph:C0.ph*2,amp:C0.amp||0});
   /* dragen: trækker vejret, sover, vågner hvis man trykker */
   {const awake=time-wakeT<3;dragon.body.scale.y=1+.025*Math.sin(time*1.3);dragon.head.position.y=11.4+.25*Math.sin(time*1.3);dragon.head.rotation.z=awake?.12*Math.sin(time*6):.04*Math.sin(time*.6);
     dragon.closed.visible=!awake;dragon.open.visible=awake;dragon.cap.rotation.z=.06*Math.sin(time*.9);dragon.tail.rotation.z=.08*Math.sin(time*.7);for(const[w,s]of dragon.wings)w.rotation.z=s*(awake?.25*Math.sin(time*10):.03*Math.sin(time*1.3));
@@ -248,7 +244,7 @@ function frame(now){
   const fams=['Cinzel Decorative','Fraunces','Fredoka','Rye','Limelight','MedievalSharp','Alfa Slab One','Berkshire Swash','Pirata One','Alegreya SC','Special Elite'];
   try{await Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,4000))])}catch(_){}
   const wait=()=>new Promise(r=>setTimeout(r,0)),N=BUILD.length+2,t0=performance.now();
-  const stepMs=[];for(let i=0;i<BUILD.length;i++){msgN.textContent=`${i+1} af ${N}`;await wait();const t1=performance.now();BUILD[i]();stepMs.push(Math.round(performance.now()-t1))}window.__steps=stepMs;
+  const stepMs=[];for(let i=0;i<BUILD.length;i++){msgN.textContent=`${i+1} af ${N}`;await wait();const t1=performance.now();if(i===0){/* byens tilfældigheder starter samme sted som før figurerne blev skiftet, så intet flytter sig */rnd=rng(20261118);for(let q=0;q<499333;q++)rnd()}BUILD[i]();stepMs.push(Math.round(performance.now()-t1))}window.__steps=stepMs;
   msgN.textContent=`${N-1} af ${N}`;await wait();buildLive();W0.sh=blob(4.6,2.3);C0.sh=blob(3,1.6);
   msgN.textContent=`${N} af ${N}`;await wait();
   if(BOOT){const c=cv(128,64),g2=c.getContext('2d'),gr=g2.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.62)');gr.addColorStop(.55,'rgba(10,6,20,.35)');gr.addColorStop(1,'rgba(10,6,20,0)');g2.setTransform(1,0,0,.5,0,16);g2.fillStyle=gr;g2.fillRect(0,0,128,128);
