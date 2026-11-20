@@ -1,0 +1,67 @@
+<title>Kortet i pap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700&family=Alegreya+Sans:wght@500;700&family=Alfa+Slab+One&family=Berkshire+Swash&family=Cinzel+Decorative:wght@700&family=Fraunces:opsz,wght@9..144,700&family=Fredoka:wght@600&family=Limelight&family=MedievalSharp&family=Pirata+One&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+/* Layout: byen fylder hele skærmen; små papbrikker oven på til visning, måler og fuld skærm */
+:root{
+  --desk:#0d0a12;
+  --kraft:#b88d5b;
+  --kraft-dark:#76552f;
+  --ink:#2a1d12;
+  --paper:#efe3c8;
+  --font:"Alegreya Sans","Gill Sans",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+body{background:var(--desk);color:var(--paper);font-family:var(--font);overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0;background:var(--desk)}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:pointer}
+#vig{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 80% 75% at 50% 48%,rgba(0,0,0,0) 58%,rgba(6,3,12,.6) 100%)}
+#now{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#1f1838;z-index:2}
+#now img{width:100%;height:100%;object-fit:contain;display:block}
+body[data-view="nu"] #now{display:flex}
+body[data-view="nu"] #hint,body[data-view="nu"] #meter{display:none}
+.kraft{background:repeating-linear-gradient(0deg,rgba(60,40,20,.07) 0 2px,transparent 2px 9px),var(--kraft);color:var(--ink);box-shadow:inset 0 0 0 2px rgba(255,235,200,.25),0 5px 0 var(--kraft-dark),0 9px 14px rgba(0,0,0,.55)}
+#views{position:fixed;z-index:5;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;border-radius:14px;overflow:hidden}
+#views button{font:inherit;font-weight:700;font-size:19px;border:0;padding:9px 16px;cursor:pointer;background:transparent;color:var(--ink)}
+#views button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+#fs{position:fixed;z-index:5;top:calc(12px + env(safe-area-inset-top,0px));left:max(14px,env(safe-area-inset-left,0px));width:46px;height:46px;border:0;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+#fs svg{width:24px;height:24px;fill:var(--ink)}
+#fsnote{position:fixed;z-index:6;top:calc(66px + env(safe-area-inset-top,0px));left:max(14px,env(safe-area-inset-left,0px));max-width:min(340px,calc(100vw - 28px));padding:8px 12px;border-radius:12px;font-size:17px}
+button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
+#meter{position:fixed;z-index:5;left:max(14px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:5px 10px;border-radius:10px;font-size:15px;font-variant-numeric:tabular-nums;pointer-events:none;max-width:calc(100vw - 28px)}
+#meter:empty{display:none}
+#hint{position:fixed;z-index:3;left:0;right:0;bottom:calc(52px + env(safe-area-inset-bottom,0px));text-align:center;font-size:19px;color:rgba(239,227,200,.88);text-shadow:0 1px 6px #000;pointer-events:none;transition:opacity .6s;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+#hint.gone{opacity:0}
+#msg{position:fixed;z-index:9;inset:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:24px;background:var(--desk);transition:opacity .5s}
+#msg small{font-size:17px;opacity:.7}
+#msg.gone{opacity:0;pointer-events:none}
+@media (max-height:520px){#views button{font-size:17px;padding:6px 12px}#meter{font-size:13px}#hint{font-size:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px))}}
+@media (prefers-reduced-motion:reduce){#msg,#hint{transition:none}}
+</style>
+<div id="stage"></div>
+<div id="vig" aria-hidden="true"></div>
+<div id="now"><img alt="Kortet i spillet, som det ser ud i dag" src="__NU__"></div>
+<button id="fs" class="kraft" type="button" aria-label="Fuld skærm"><svg viewBox="0 0 24 24"><path d="M3 9V3h6v2H5v4zm12-6h6v6h-2V5h-4zM3 15h2v4h4v2H3zm16 0h2v6h-6v-2h4z"/></svg></button>
+<div id="views" class="kraft" role="group" aria-label="Vis">
+  <button type="button" data-view="nu" aria-pressed="false">Som nu</button>
+  <button type="button" data-view="pap" aria-pressed="true">I pap</button>
+</div>
+<div id="fsnote" class="kraft" hidden>Fuld skærm virker ikke inde i Claude-appen. Åbn siden i Chrome, så kan den køre i fuld skærm på langs.</div>
+<div id="meter" class="kraft" aria-live="off"></div>
+<div id="hint">Træk for at se dig omkring · tryk på jorden eller et hus, så går heksen derhen</div>
+<div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>
+<script>document.body.dataset.view='pap'</script>
+<script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
+const msgN=document.getElementById('msgN');
+__JS__
+const viewBtns=document.querySelectorAll('#views [data-view]');
+viewBtns.forEach(b=>b.addEventListener('click',()=>{document.body.dataset.view=b.dataset.view;viewBtns.forEach(x=>x.setAttribute('aria-pressed',x===b))}));
+const fsBtn=document.getElementById('fs'),fsNote=document.getElementById('fsnote');
+fsBtn.addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();return}
+  await document.documentElement.requestFullscreen({navigationUI:'hide'});try{await screen.orientation.lock('landscape')}catch(_){}}
+  catch(_){fsNote.hidden=false;setTimeout(()=>{fsNote.hidden=true},7000)}});
+</script>
