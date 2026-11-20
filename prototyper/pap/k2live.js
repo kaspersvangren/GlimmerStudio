@@ -77,8 +77,8 @@ function buildLive(){
   unicorn=buildUnicorn();unicorn.root.position.set(66,.4,-16);
   for(let i=0;i<2;i++){const d=makeCard(outline([[-1.4,0],[1,0],[1.6,.8],[1.2,1.8],[1.8,2.4],[1.6,3],[.8,2.8],[.4,1.6],[-1.4,1.2]],5,.02),{t:.15,s:44,both:true,paint:P=>{P.coat(i?'#f6e7c0':'#e9e4d8',null,{bw:.2});P.fill(ell(1.2,2.6,.14,.14,6,0),'#14122a',1);P.fill([[1.7,2.6],[2.4,2.4],[1.7,2.2]],'#f2a030',.97)}});live.add(d);ducks.push({m:d,ph:i*Math.PI})}
   /* trolden ved broen */
-  troll=buildTroll();troll.root.position.set(24,.4,30);
+  troll=buildTroll();troll.root.position.set(20,.4,31.4);
   /* byens beboere */
-  walkers.push({o:person({hair:'#7be0a0',dress:'#3b6fd1',hat:'#2a2a6a',buns:true}),x:6,z:8,route:[[6,8],[22,6],[14,16],[-6,14]],sp:5,kind:'npc'});
-  walkers.push({o:person({hair:'#f1ece2',dress:'#3f7a4a',hat:'#c2453a',beard:true,lamp:true,trim:'#6b4428',sc:.3}),x:30,z:14,route:[[30,14],[44,20],[54,18],[34,24]],sp:4,kind:'npc'});
-  walkers.push({o:person({hair:'#5a3a24',dress:'#c2453a',trim:'#f6e7c0',sc:.32}),x:-30,z:12,route:[[-30,12],[-46,14],[-40,22],[-24,16]],sp:4.5,kind:'npc'})}
+  walkers.push({o:person({hair:'#7be0a0',dress:'#3b6fd1',hat:'#2a2a6a',buns:true}),x:6,z:8,route:[[6,8],[20,9],[14,16],[-4,15]],sp:5,kind:'npc'});
+  walkers.push({o:person({hair:'#f1ece2',dress:'#3f7a4a',hat:'#c2453a',beard:true,lamp:true,trim:'#6b4428',sc:.3}),x:30,z:14,route:[[30,14],[42,12],[50,6],[36,20]],sp:4,kind:'npc'});
+  walkers.push({o:person({hair:'#5a3a24',dress:'#c2453a',trim:'#f6e7c0',sc:.32}),x:-30,z:12,route:[[-36,2],[-48,4],[-56,1],[-44,-2]],sp:4.5,kind:'npc'})}

@@ -8,11 +8,11 @@ const blob=(w,d)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE
 const walkers=[];
 const W0={root:W.root,x:-10,z:12,tx:-10,tz:12,sp:9,face:1,ph:0,sc:SC,kind:'heks'},C0={root:C.root,x:-5,z:14,tx:-5,tz:14,sp:12,face:1,ph:0,sc:SC,kind:'kat'};
 /* bygningernes grundflader: man kan ikke gå ind i dem; trykker man på en, går heksen hen til døren */
-const HOUSES=[['skole',-24,24,-44,-20],['kollegie',-60,-33,-44,-2],['bobler',18,46,-20,5.5],['dyr',50,80,-30,-12],['koncert',-76,-48,24.5,44],['stoevle',-40,-12,25.5,44],['arkade',50,82,25.5,44],['drage',-96,-50,-44,-24]];
+let HOUSES=[];
 function houseAt(x,z){for(const h of HOUSES)if(x>h[1]&&x<h[2]&&z>h[3]&&z<h[4])return h;return null}
 function clampWalk(x,z){x=clamp(x,-78,78);z=clamp(z,-22,36);
   const dx=x,dz=z,d=Math.hypot(dx/1.3,dz);if(d<7){const k=7/(d||1);x=dx*k;z=dz*k}
-  const h=houseAt(x,z);if(h){const s=SPOTS[h[0]];return[s[0],s[1]]}return[x,z]}
+  const h=houseAt(x,z);if(h&&SPOTS[h[0]]){const s=SPOTS[h[0]];return[s[0],s[1]]}return[x,z]}
 /* svævende skridt (ca. 2,2 i sekundet): ét hop pr. skridtlængde, toppen af hoppet holdes lidt, og hoppene ebber ud, når figuren stopper */
 const GAIT={heks:{len:4.1,h:.75},kat:{len:4.1,h:1.05},npc:{len:3.8,h:.5}};
 function stepWalker(w,dt){
@@ -166,6 +166,7 @@ cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;con
   const r=cvEl.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,cam);
   const hits=ray.intersectObjects([dragon.root,unicorn.root,troll.root],true);
   if(hits.length){const o=hits[0].object;if(within(o,dragon.root))wakeT=time;else if(within(o,unicorn.root))uniT=time;else trollT=time}
+  {const hh=ray.intersectObjects(HOUSEG,true);if(hh.length){let o=hh[0].object;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);hintEl.classList.add('gone');autoT=time+14;return}}}
   if(ray.ray.intersectPlane(ground,hitP)){goTo(hitP.x,hitP.z);hintEl.classList.add('gone');autoT=time+14}});
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
@@ -228,9 +229,11 @@ function frame(now){
   const fams=['Cinzel Decorative','Fraunces','Fredoka','Rye','Limelight','MedievalSharp','Alfa Slab One','Berkshire Swash','Pirata One','Alegreya SC','Special Elite'];
   try{await Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,4000))])}catch(_){}
   const wait=()=>new Promise(r=>setTimeout(r,0)),N=BUILD.length+2,t0=performance.now();
-  for(let i=0;i<BUILD.length;i++){msgN.textContent=`${i+1} af ${N}`;await wait();BUILD[i]()}
+  const stepMs=[];for(let i=0;i<BUILD.length;i++){msgN.textContent=`${i+1} af ${N}`;await wait();const t1=performance.now();BUILD[i]();stepMs.push(Math.round(performance.now()-t1))}window.__steps=stepMs;
   msgN.textContent=`${N-1} af ${N}`;await wait();buildLive();W0.sh=blob(4.6,2.3);C0.sh=blob(3,1.6);
   msgN.textContent=`${N} af ${N}`;await wait();
+  HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
   renderer.compile(scene,cam);bake();renderer.compile(live,cam);
-  window.__kort={W0,C0,NET,goTo,view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
+  window.__kort={W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
+    center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
   requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();msg.classList.add('gone')})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();

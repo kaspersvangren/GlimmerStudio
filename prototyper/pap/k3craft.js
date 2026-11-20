@@ -82,13 +82,13 @@ class Painter2 extends Painter{
     fill(this.g,B.c);fill(this.hc,B.b)}
   clipTo(ctx,region){if(region){this.path(ctx,region);ctx.clip()}}
   /* et lag akvarel: gennemsigtig farve, mørkere kant hvor pigmentet samler sig, korn og skyer */
-  wash(color,region,{alpha=.92,edge=.55,grain=.3,top=null,clouds=6,blur=.35}={}){const{w,h,s,g}=this,L=scratch(0,w,h),l=L.getContext('2d');
+  wash(color,region,{alpha=.92,edge=.55,grain=.3,top=null,clouds=6,blur=.35,mode='multiply'}={}){const{w,h,s,g}=this,L=scratch(0,w,h),l=L.getContext('2d');
     l.clearRect(0,0,w,h);l.save();this.clipTo(l,region);
     if(top){const gr=l.createLinearGradient(0,this.Y(this.maxy),0,this.Y(this.miny));gr.addColorStop(0,top);gr.addColorStop(1,color);l.fillStyle=gr}else l.fillStyle=color;l.fillRect(0,0,w,h);
     for(let i=0;i<clouds;i++){const x=R(w),y=R(h),r=R(.15,.45)*Math.max(w,h),c2=shade(hexOf(color),R(-.14,.1)),gr=l.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,rgba(c2,.5));gr.addColorStop(1,rgba(c2,0));l.fillStyle=gr;l.fillRect(x-r,y-r,2*r,2*r)}
     if(grain){l.globalAlpha=grain;l.globalCompositeOperation='multiply';const p=l.createPattern(PAPER.gran.c,'repeat');l.fillStyle=p;l.fillRect(0,0,w,h);l.globalCompositeOperation='source-over';l.globalAlpha=1}
     if(region&&edge){l.globalCompositeOperation='source-atop';l.filter=`blur(${Math.max(1,blur*s*.5)}px)`;l.strokeStyle=shade(hexOf(color),-.3);l.globalAlpha=edge;l.lineWidth=blur*s;this.path(l,region);l.stroke();l.filter='none';l.globalAlpha=1;l.globalCompositeOperation='source-over'}
-    l.restore();g.save();g.globalCompositeOperation='multiply';g.globalAlpha=alpha;g.drawImage(L,0,0);g.restore()}
+    l.restore();g.save();g.globalCompositeOperation=mode;g.globalAlpha=alpha;g.drawImage(L,0,0);g.restore()}
   /* en jævn, dækkende farve (farvet karton eller tryk) */
   flat(color,region,alpha=1){const g=this.g;g.save();g.globalAlpha=alpha;g.globalCompositeOperation='multiply';g.fillStyle=color;if(region){this.path(g,region);g.fill()}else g.fillRect(0,0,this.w,this.h);g.restore()}
   /* en ridset fuge: rille i relieffet og en svag mørk streg */
@@ -136,3 +136,30 @@ function windowParts(parent,shape,z,{t=.3,glow='#ffcf7a',lit=true,frame='#3a2c38
   pieces(clip(strips,[shape],'inter'),{color:mull,t:.08},parent,0,0,back+.06);
   pieces(ring(shape,fw,false),{color:frame,t:.14},parent,0,0,z+t/2+.07);
   if(sill)put(parent,piece(box(minx-fw-.25,miny-fw-.32,maxx+fw+.25,miny-fw+.02),{color:sill,kind:'water',t:.34}),0,0,z+t/2+.17)}
+
+/* ---- flere værktøjer: huse med dør og sted, skilte, malede mønstre, tråde og kroner ---- */
+const HOUSE={},HOUSEG=[];
+/* et hus er en gruppe; door = midt for døren (x,z), spot = hvor heksen stiller sig */
+function house(name,door,spot){const g=new THREE.Group();g.userData.house=name;scene.add(g);HOUSE[name]={g,door,spot};HOUSEG.push(g);SPOTS[name]=spot;return g}
+/* et skilt: plade, kant og bygningens egen skrift — mærket, så kvalitetstjekket kan finde det */
+function plate(parent,name,text,font,w,h,{bg='#241632',fg='#f6e7c0',frame=null,goldText=false,size=h*.55,ls=0,x=0,y=0,z=0,shadow=null,stroke=null,sw=.12,extra=null,t=.2}={}){
+  const g=new THREE.Group();put(parent,g,x,y,z);
+  if(frame)put(g,piece(box(-w/2-.28,-.28,w/2+.28,h+.28),frame==='gold'?{mat:gold(),t:.14}:{color:frame,kind:'balsa',t:.16}),0,0,-.12);
+  const m=piece(box(-w/2,0,w/2,h),{t,s:Math.min(60,1100/w),base:'card',paint:P=>{P.flat(bg);P.text(text,0,h/2+size*.04,size,fg,{font,ls,gold:goldText,shadow,stroke,sw});extra&&extra(P)}});
+  m.userData.sign=name;g.add(m);return g}
+/* malede mønstre på akvarelpapir */
+function boards(P,region,color,{h=.9,dir='h',ink=.25}={}){P.wash(color,region,{grain:.25,clouds:8,edge:.35});const g=P.g;g.save();P.clipTo(g,region);P.hc.save();P.clipTo(P.hc,region);
+  if(dir==='h')for(let y=P.miny;y<P.maxy;y+=h){P.flat(shade(hexOf(color),-.18),box(P.minx,y,P.maxx,y+h*.22),.45);P.flat(shade(hexOf(color),R(-.05,.05)),box(P.minx,y,P.maxx,y+h),.25);P.score([[P.minx,y],[P.maxx,y]],{w:.07,ink})}
+  else for(let x=P.minx;x<P.maxx;x+=h){P.flat(shade(hexOf(color),R(-.07,.05)),box(x,P.miny,x+h,P.maxy),.35);P.score([[x,P.miny],[x,P.maxy]],{w:.07,ink});for(let k=0;k<2;k++){const y=R(P.miny,P.maxy);P.pen([[x+h*.3,y],[x+h*.5,y+.2]],shade(hexOf(color),-.3),.04,.35)}}
+  g.restore();P.hc.restore()}
+function brickwork(P,region,color,{bw=1.5,bh=.62,tint=.12,ink=.3}={}){P.wash(color,region,{grain:.3,clouds:8,edge:.35});const g=P.g;g.save();P.clipTo(g,region);P.hc.save();P.clipTo(P.hc,region);
+  for(let y=P.miny,r=0;y<P.maxy;y+=bh,r++)for(let x=P.minx-(r%2?bw/2:0);x<P.maxx;x+=bw){const b=box(x+.05,y+.05,x+bw-.05,y+bh-.05);P.flat(shade(hexOf(color),R(-tint,tint*.5)),b,.4);P.score([...b,b[0]],{w:.07,ink})}
+  g.restore();P.hc.restore()}
+/* en tråd/snor i rummet */
+function cord(parent,pts,r=.05,color='#e9e4d8'){const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));const m=new THREE.Mesh(new THREE.TubeGeometry(c,Math.max(8,pts.length*8),r,5,false),paperMat(color,'card'));m.castShadow=true;parent.add(m);return m}
+/* en bulet krone/sky: cirkel med buer langs kanten */
+function puff(cx,cy,rx,ry,n=9,bump=.22,seed=0){const o=[];const ph=R(TAU);for(let i=0;i<n;i++){const a0=i/n*TAU+ph,a1=(i+1)/n*TAU+ph,am=(a0+a1)/2,k=1+R(-.08,.08);
+  const p0=[cx+Math.cos(a0)*rx,cy+Math.sin(a0)*ry],p1=[cx+Math.cos(a1)*rx,cy+Math.sin(a1)*ry],bx=cx+Math.cos(am)*rx*(1+bump)*k,by=cy+Math.sin(am)*ry*(1+bump)*k;
+  for(let j=0;j<6;j++){const t=j/6,u=1-t;o.push([u*u*p0[0]+2*u*t*bx+t*t*p1[0],u*u*p0[1]+2*u*t*by+t*t*p1[1]])}}return o}
+/* et udklippet blad */
+const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2+t*l,xx=Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}for(let i=7;i>0;i--){const t=i/8,yy=-l/2+t*l,xx=-Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}return o.map(([px,py])=>[x+px*Math.cos(a)-py*Math.sin(a),y+px*Math.sin(a)+py*Math.cos(a)])};
