@@ -470,12 +470,16 @@ const PATHS=[
   [[-38,-2],[-52,-3],[-60.5,-6.5],[-63.5,-13],[-65.5,-21.6]],/* til dragehulen, uden om kollegiet */
   [[0,0],[11,2.5],[22,7.2],[33,7.6],[37,5]],                       /* til boblebutikkens dør */
   [[22,7.2],[36,9.4],[46,7.5],[52,1],[56,-6],[58,-10.6]],        /* til dyreparkens låge */
-  [[0,0],[-6,10],[-11,20],[-11.5,28],[-15,31.6],[-21.4,31]], /* til støvlens dør */
+  [[0,0],[-6,10],[-11,20],[-11.5,28],[-15,31.6],[-23.4,31.4]], /* til støvlens stige */
   [[-15,31.6],[-30,33],[-46,32.6],[-62,30.8]],               /* til koncertsalen */
   [[0,0],[5,12],[6,22],[5.6,30],[8,34.2],[12,35]],                    /* forbi klokketårnet */
   [[12,35],[22,35],[32,34.8],[46,34],[58,33],[66,31]]];    /* over broen til arkaden */
 const RIVER=[];for(let i=0;i<=30;i++){const t=i/30;RIVER.push([mix(70,26,t)+7*Math.sin(t*5.5+.4),mix(-4,40,t)])}
 /* steder og ting, som kvalitetstjekket kigger på */
+/* den buede bro: midt over åen, hvor stien til Arkaden krydser; dækkets højde bruges også af dem der går over */
+const BRIDGE={x:25.4,z:34.9,L:8,w:2.35,rise:2.7};
+const bridgeDeck=dx=>.42+BRIDGE.rise*Math.max(0,1-(dx/BRIDGE.L)**2);
+const bridgeY=(x,z)=>Math.abs(z-BRIDGE.z)<BRIDGE.w&&Math.abs(x-BRIDGE.x)<BRIDGE.L?bridgeDeck(x-BRIDGE.x)-.3:0;
 const PROPS=[];const prop=(k,x,z,r=1)=>PROPS.push({k,x,z,r});
 SPOTS.skole=[0,-21.6];
 const flagSpots=[],lampSpots=[];
@@ -490,7 +494,8 @@ const flipZ=pts=>pts.map(p=>[p[0],-p[1]]);
 
 /* ---- stierne: ét sammenhængende stykke sandfarvet karton med runde kryds og sving ---- */
 BUILD.push(()=>{const lines=PATHS.map(cp=>flipZ(curve(cp,8)));
-  for(const s of thick(lines,2.15))flatPiece(s,{color:PAL.sand,kind:'sand',t:.26,edge:PAL.sandEdge},0,.36,0)});
+  const deck=box(BRIDGE.x-BRIDGE.L+.5,-(BRIDGE.z+2.6),BRIDGE.x+BRIDGE.L-.5,-(BRIDGE.z-2.6));
+  for(const s of clip(thick(lines,2.15).map(s=>s.outer),[deck],'diff'))flatPiece(s,{color:PAL.sand,kind:'sand',t:.26,edge:PAL.sandEdge},0,.36,0)});
 
 /* ---- pladsen: brosten i ringe, ridset i kartonet, med en hævet kantsten ---- */
 BUILD.push(()=>{const E=circ(0,0,15,10,72);
@@ -512,7 +517,10 @@ BUILD.push(()=>{const X=0,Z=0;wellAt=new THREE.Vector3(X,3.6,Z);const H=house('b
   for(const[r,w]of[[2.6,.25],[1.3,.2]])flatPiece(ring(circ(0,0,r,r,40),w)[0],{t:.03,mat:paperMat('#f4ebff','tissue',{glow:'#c9a6ff',gi:1.3})},X,3.53,Z,H);
   /* stolper, tag af tagsten, vindespil med reb og spand */
   for(const s of[-1,1])stick(H,X+s*4.15,4.2,10.6,Z,.6,PAL.wood);
-  const tri=[[-6.8,10.1],[6.8,10.1],[0,14.9]];shingleRoof(H,tri,{color:PAL.berry,rowH:.95,tile:1.15,z:Z+.4});
+  const tri=[[-6.8,10.1],[6.8,10.1],[0,14.9]],zrW=shingleRoof(H,tri,{color:PAL.berry,rowH:.95,tile:1.15,z:Z+.4});
+  /* skiltet sidder oppe på gavlen, holdt af to messingsøm */
+  plate(H,'Øksebrønden','Øksebrønden',FONT.broend,6.4,1.45,{bg:'#5b3b26',fg:'#f3dfb0',frame:'#3a2414',size:.95,ls:.03,shadow:'#2a1a10',x:X,y:10.55,z:zrW+.32});
+  for(const s of[-1,1])put(H,new THREE.Mesh(DOME,M.brass),X+s*2.85,11.28,zrW+.48).scale.setScalar(.16);
   for(const s of[-1,1])pieces(thick([[[s*7,10],[0,15.1]]],.32),{color:PAL.woodDk,kind:'balsa',t:.3},H,X,0,Z+1.2);
   put(H,piece(circ(0,0,.42),{mat:gold(),t:.3}),X,15.3,Z+1.2);
   {const ax=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,8.9,12),paperMat(PAL.wood,'balsa'));ax.rotation.z=Math.PI/2;ax.castShadow=true;put(H,ax,X,8.4,Z)}
@@ -520,7 +528,7 @@ BUILD.push(()=>{const X=0,Z=0;wellAt=new THREE.Vector3(X,3.6,Z);const H=house('b
   thread(H,X,6.5,8.3,Z);
   {const b=new THREE.Mesh(new THREE.CylinderGeometry(.85,.7,1.2,20),paperMat('#8a6040','balsa'));b.castShadow=true;put(H,b,X,5.9,Z);for(const y of[5.55,6.25]){const band=new THREE.Mesh(new THREE.CylinderGeometry(y>6?.84:.76,y>6?.84:.76,.13,20),paperMat(PAL.iron,'card'));put(H,band,X,y,Z)}}
   /* skiltet på brøndens forside */
-  {const sg=piece(box(-4.6,0,4.6,1.9),{t:.18,s:46,base:'card',paint:P=>{P.flat('#5b3b26');P.flat('#7a5236',box(-4.35,.25,4.35,1.65));P.score([...box(-4.35,.25,4.35,1.65),[-4.35,.25]],{w:.06,ink:.3});P.text('Øksebrønden',0,.95,1.15,'#f3dfb0',{font:FONT.broend,ls:.04,shadow:'#2a1a10'})}});sg.userData.sign='Øksebrønden';put(H,sg,X,1.05,Z+4.55)}
+  /* (skiltet sad før forneden på brønden; nu sidder det på taget) */
   lamp(X,Z+2,'#b47aff',60,18,5);glowSpots.push([X,4.4,Z,12,'broend']);
   /* bænke af lister med jernben */
   for(const[x,z,r]of[[-9.5,-5,.3],[9.5,-5,-.3]]){prop('bænk',x,z,3);const g=new THREE.Group();put(scene,g,x,0,z);g.rotation.y=r;
@@ -753,10 +761,10 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
   plate(g,'Koncertsal','KONCERTSAL',FONT.koncert,13.6,2.3,{bg:'#1d1214',fg:'#ffd27a',frame:'gold',size:1.6,ls:.16,y:11.75,z:Z+T/2+.6});
   for(let x=-6.6;x<=6.61;x+=1.32)for(const y of[11.45,14.35])put(g,piece(circ(x,y,.17,.17,10),{t:.05,mat:paperMat('#fff6d8','tissue',{glow:'#ffd27a',gi:2})}),0,0,Z+T/2+.85);
   /* plakat på staffeli */
-  {const eg=new THREE.Group();put(scene,eg,-78,0,30.5);prop('staffeli',-78,30.5,1.6);for(const s of[-1,1]){const l=new THREE.Mesh(new THREE.BoxGeometry(.25,6.4,.25),paperMat(PAL.woodDk,'balsa'));l.rotation.z=s*.12;put(eg,l,s*1.4,3,0)}
+  {const eg=new THREE.Group();put(scene,eg,-66,0,33.4);prop('staffeli',-66,33.4,1.6);for(const s of[-1,1]){const l=new THREE.Mesh(new THREE.BoxGeometry(.25,6.4,.25),paperMat(PAL.woodDk,'balsa'));l.rotation.z=s*.12;put(eg,l,s*1.4,3,0)}
    plate(eg,'Plakat','',FONT.snart,3.6,4.4,{bg:'#f2e6c8',y:2.2,z:.2,extra:P=>{P.text('I AFTEN',0,3.7,.62,'#3b2a1f',{font:FONT.koncert,ls:.05});P.pen([[-1.4,3.2],[1.4,3.2]],'#3b2a1f',.04,.6);P.text('De Falske',0,2.5,.6,'#7a1a2a',{font:FONT.snart});P.text('Toner',0,1.7,.6,'#7a1a2a',{font:FONT.snart});P.fill(circ(-.5,.8,.2,.15,10),'#2a2a6a',.9);P.pen([[-.32,.8],[-.32,1.3],[.4,1.45],[.4,.95]],'#2a2a6a',.06,.9);P.fill(circ(.22,.95,.2,.15,10),'#2a2a6a',.9)}})}
   /* caféborde med duge, kopper og stole */
-  for(const[x,z]of[[-67.6,34.6],[-73.4,35]]){prop('cafébord',x,z,2.2);const tg=new THREE.Group();put(scene,tg,x,0,z);
+  for(const[x,z]of[[-71,34.8],[-77,34.6]]){prop('cafébord',x,z,2.2);const tg=new THREE.Group();put(scene,tg,x,0,z);
     stick(tg,0,.3,3.2,0,.3,PAL.iron);put(tg,piece(box(-1,.3,1,.5),{color:PAL.iron,t:1.4}),0,0,0);
     const top=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.9,.2,28),paperMat('#f2e6c8','card'));top.castShadow=top.receiveShadow=true;put(tg,top,0,3.3,0);
     const cloth=new THREE.Mesh(new THREE.CylinderGeometry(1.95,2.15,.7,28,1,true),paperMat('#c8344a','card'));cloth.material=cloth.material.clone();cloth.material.side=THREE.DoubleSide;put(tg,cloth,0,3.05,0);
@@ -764,20 +772,42 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
     for(const s of[-1,1]){const ch=new THREE.Group();put(tg,ch,s*2.7,0,0);stick(ch,0,.3,4.4,-.2,.2,PAL.woodDk);put(ch,piece(box(-.8,2.2,.8,2.45),{color:'#8a5a3a',kind:'balsa',t:1.4}),0,0,0);put(ch,piece(box(-.8,3.2,.8,4.4),{color:'#8a5a3a',kind:'balsa',t:.12}),0,0,-.55);stick(ch,-.6,.3,2.2,.5,.16,PAL.woodDk);stick(ch,.6,.3,2.2,.5,.16,PAL.woodDk)}}
   lamp(X,Z+5,'#ffb35c',70,20,6)});
 
-/* ---- Den Flyvende Støvle ---- */
-BUILD.push(()=>{const X=-26,Z=28,T=.4,H=house('stoevle',[-21.4,28.3],[-21.4,31.2]);const g=new THREE.Group();put(H,g,X,0,0);
-  const boot=outline([[-11,0,1],[9,0,1],[10.2,1.4],[9.2,3.4],[3,4.2],[1.6,6],[1.4,15],[2.2,16.4,1],[-6.6,16.4,1],[-6,14.6],[-6.4,6],[-9,4.2],[-11.4,2]],8,0);
-  const win1=arch(-2.4,8.6,3.2,3.8,14),door=arch(4.6,1.4,2.8,4.6,14);
-  wall(g,boot,[win1,door],Z,(P,o)=>{P.wash('#86522e',o,{top:'#9a6438',clouds:12,edge:.6});P.wash('#4a2a14',box(-12,-1,12,1.6),{alpha:.35,edge:0});
-    const st=[];for(const p of grow(o,-.55)[0]?.outer||[])st.push(p);for(let i=0;i<st.length;i+=2)if(st[i+1])P.score([st[i],st[i+1]],{w:.06,ink:.45,dark:'#f2dcb0'})},{t:.5});
-  put(g,piece(clip([boot],[box(-13,-1,13,1.3)],'inter')[0].outer,{color:'#3b2a1f',kind:'water',t:.7}),0,0,Z+.1);
-  windowParts(g,win1,Z,{t:.5,frame:'#3b2a1f',mull:'#3b2a1f',sill:'#3b2a1f'});doorIn(g,door,Z,'#5a2a1a',{planks:.7,iron:false});
-  for(let y=7,i=0;y<15;y+=1.6,i++){for(const x of[-5.4,.6])put(g,piece(circ(x,y,.3,.3,14),{mat:gold(),t:.08}),0,0,Z+.32);pieces(thick([[[-5.4,y],[.6,y+1.4]]],.13),{color:'#f2e6c8',t:.06},g,0,0,Z+.4)}
-  for(const s of[-1,1]){const wg=new THREE.Group();wg.rotation.y=s*.5;put(g,wg,-6,8,Z+(s>0?.6:-.6));
-    for(let k=0;k<4;k++){const l=7.4-k*1.4;put(wg,piece([[0,0],[-l*.4,l*.18+1.4-k*.2],[-l,l*.45+1.6-k*.35],[-l*.72,l*.3-k*.2],[-l*.45,l*.12-k*.1],[0,-.4]].map(([a,b])=>[a,b+k*.55]),{color:['#f6f2ff','#e6def8','#d6cbef','#c7b9e6'][k],t:.06,both:true}),0,0,k*.05*s)}}
-  stick(g,-3,16.2,18.2,Z-.4,.9,'#3b2a1f');put(g,piece(box(-3.8,17.9,-2.2,18.5),{color:'#2a1d14',t:1.2}),0,0,Z-.4);
-  plate(g,'Støvlen','Den Flyvende Støvle',FONT.stoevle,9.6,1.8,{bg:'#2a1d14',fg:'#f6e7c0',frame:'gold',size:1.05,x:-4.2,y:1.75,z:Z+.75});
-  plate(g,'Støvlen:snart','Kommer snart',FONT.snart,2.7,.85,{bg:'#f2e6c8',fg:'#3b2a1f',size:.5,x:4.6,y:3.9,z:Z+.12,t:.06});put(g,new THREE.Mesh(DOME,M.brass),4.6,4.55,Z+.2).scale.setScalar(.14)});
+/* ---- Den Flyvende Støvle: en snørestøvle med krave, tåkappe og riflet sål, der svæver og slår med vingerne ----
+   Den ligger i det levende lag, så den kan bevæge sig. */
+let BOOT=null;
+BUILD.push(()=>{const X=-27,Z=28.2,Y0=3.4;
+  const B=new THREE.Group();B.position.set(X,Y0,Z);live.add(B);B.userData.house='stoevle';HOUSE.stoevle={g:B,door:[X+3.6,Z+.3],spot:[X+3.6,31.2],foot:[X-10.5,X+11.5,Z-1,Z+1]};HOUSEG.push(B);SPOTS.stoevle=[X+3.6,31.2];
+  const O=outline([[-9.4,0,1],[9.2,0,1],[10.6,1.0],[11,2.4],[10.4,3.8],[8.6,4.9],[6,5.6],[3.6,6.4],[2.2,7.6],[1.6,10],[1.4,13.2],[2.6,14.6],[3.4,16.2,1],[1.4,16.8],[-1.2,16.4],[-3.6,17.2],[-5.6,16.8,1],[-6.2,15.2],[-6,12],[-6.4,8.4],[-7.6,5.6],[-9,3.6],[-9.6,1.6]],8,0);
+  const door=arch(3.6,.9,2.5,3.9,14),win1=arch(-2.4,8.4,2.8,3.2,14),LEA='#9a5a2e';
+  for(const sh of clip([O],[door,win1],'diff'))put(B,piece(sh,{t:.5,s:26,paint:P=>{P.wash(LEA,O,{top:'#b4703a',clouds:14,edge:.7});
+      for(const c of[[[-5.5,6.2],[-3,6.8],[-.6,6.4]],[[-5.6,11],[-3.4,11.6],[-1,11.2]],[[4.5,5.1],[6.8,4.6],[8.6,3.9]],[[-4.6,14.4],[-2.6,14.9],[-.4,14.6]],[[-6,3],[-7.5,2.4]]])P.score(curve(c,6),{w:.09,ink:.4,dark:'#4a2410'});
+      const seam=curve([[-6.8,5],[-2,5.6],[1.8,7.2]],8);for(let k=0;k<seam.length-1;k+=2)P.score([seam[k],seam[k+1]],{w:.05,ink:.5,dark:'#f2d2a0'});
+      P.wash('#5a2c12',box(-12,-1,12,1.2),{alpha:.35,edge:0})}}),0,0,0);
+  /* tåkappe og hælkappe i lidt lysere læder, med syninger */
+  const toe=toCCW([[4.6,0],[9.2,0],[10.6,1],[11,2.4],[10.4,3.8],[8.6,4.9],[6.4,5.5],[5.4,3.4]]);put(B,piece(toe,{t:.12,s:40,paint:P=>{P.wash('#ad6a36',toe,{edge:.6,clouds:6});const st=curve([[5.9,.4],[6.2,3.2],[7.6,4.7]],8);for(let k=0;k<st.length-1;k+=2)P.score([st[k],st[k+1]],{w:.05,ink:.55,dark:'#f2d2a0'})}}),0,0,.32);
+  const heel=toCCW([[-9.4,0],[-5.6,0],[-6,2.6],[-7.6,5.4],[-9,3.6],[-9.6,1.6]]);put(B,piece(heel,{t:.12,s:40,paint:P=>P.wash('#8a4e26',heel,{edge:.6})}),0,0,.32);
+  /* krave med lyst for, foldet ned */
+  put(B,piece(toCCW([[-5.6,16.8],[-3.6,17.2],[-1.2,16.4],[1.4,16.8],[3.4,16.2],[2.5,14.6],[1.2,15.3],[-1.2,15],[-3.6,15.7],[-5.9,15.3]]),{color:'#d8a265',kind:'water',t:.12}),0,0,.34);
+  /* tunge og snørebånd med messingringe */
+  put(B,piece(toCCW([[.4,7.8],[2,7.6],[2.1,14.6],[.6,14.9]]),{color:'#c58a52',kind:'water',t:.1}),0,0,.3);
+  const eye=[];for(let k=0;k<6;k++){const y=8.4+k*1.18,x=.55-k*.05;eye.push([x,y]);put(B,piece(circ(x,y,.26,.26,14),{mat:gold(),t:.08}),0,0,.42);put(B,piece(circ(x,y,.1,.1,8),{color:'#2a1408',t:.06}),0,0,.48)}
+  for(let k=0;k<5;k++){const a=eye[k],b=eye[k+1];pieces(thick([[[a[0],a[1]],[1.95,b[1]-.15]]],.1),{color:'#f2e2c0',t:.05},B,0,0,.5);pieces(thick([[[1.95,a[1]+.2],[b[0],b[1]]]],.1),{color:'#e8d6b0',t:.05},B,0,0,.46)}
+  pieces(thick([curve([[eye[5][0],eye[5][1]],[2.4,13.6],[3,11.4],[2.8,9.6]],8),curve([[eye[5][0],eye[5][1]],[1.6,13],[1.4,11.6],[2,10.4]],8)],.1),{color:'#f2e2c0',t:.05},B,0,0,.54);
+  /* tyk sål med hæl og riller */
+  put(B,piece(toCCW([[-9.8,-.75],[-3.4,-.75],[-3.4,-.3],[9.6,-.3],[11.1,.35],[11.5,1.15],[10.7,1.3],[-9.9,1.25]]),{color:'#3a2418',kind:'water',t:.8}),0,0,.05);
+  put(B,piece(box(-9.7,.95,11,1.25),{color:'#c8a070',kind:'water',t:.82}),0,0,.05);
+  for(let x=-9.4;x<10.4;x+=1.15){if(x>-3.6&&x<-1.4)continue;put(B,piece(box(x,x<-3.4?-1.15:-.7,x+.6,x<-3.4?-.75:-.3),{color:'#2a1810',t:.7}),0,0,.05)}
+  windowParts(B,win1,0,{t:.5,frame:'#4a2a14',mull:'#4a2a14',sill:'#4a2a14'});doorIn(B,door,0,'#5a2a1a',{planks:.62,iron:false});
+  plate(B,'Støvlen','Den Flyvende Støvle',FONT.stoevle,7.4,1.4,{bg:'#2a1d14',fg:'#f6e7c0',frame:'gold',size:.86,x:-3.6,y:3.3,z:.55});
+  plate(B,'Støvlen:snart','Kommer snart',FONT.snart,2.4,.8,{bg:'#f2e6c8',fg:'#3b2a1f',size:.46,x:3.6,y:2.9,z:.12,t:.06});put(B,new THREE.Mesh(DOME,M.brass),3.6,3.55,.2).scale.setScalar(.13);
+  /* vinger ved hælen */
+  const wings=[];for(const s of[-1,1]){const wg=new THREE.Group();put(B,wg,-7.2+(s<0?.9:0),9.2+(s<0?.5:0),s*.8);
+    for(let k=0;k<5;k++){const l=8.4-k*1.35,fz=k*.06;put(wg,piece(toCCW([[0,-.6],[-l*.35,l*.25+1.2-k*.3],[-l,l*.62+1.6-k*.5],[-l*.86,l*.42+.8-k*.3],[-l*.62,l*.2-k*.25],[-l*.3,.1-k*.15],[0,.5]].map(([a,b])=>[a,b+k*.5])),{color:['#fbf8ff','#efe9fb','#e2d9f4','#d4c8ec','#c6b8e4'][k],t:.05,both:true}),0,0,s*fz)}
+    wings.push({g:wg,s})}
+  /* en lille stige ned til stien */
+  const lad=new THREE.Group();put(B,lad,3.6,.9,.9);for(const e of[-.75,.75])cord(lad,[[e,0,0],[e,-1.9,.55],[e,-3.8,.95]],.06,'#c8a070');for(let k=1;k<=4;k++){const r=new THREE.Mesh(new THREE.BoxGeometry(1.7,.16,.3),paperMat('#8a5a3a','balsa'));put(lad,r,0,-k*.95,k*.26)}
+  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);
+  B.traverse(o=>{if(o.isMesh){o.castShadow=false}});BOOT={B,Y0,wings,X,Z}});
 
 /* ---- Klokketårnet ---- */
 BUILD.push(()=>{const X=12,Z=31,T=.4;const g=new THREE.Group();put(scene,g,X,0,0);g.userData.house='klokketårn';HOUSEG.push(g);HOUSE['klokketårn']={g,door:[12,31.3],spot:null};
@@ -790,11 +820,22 @@ BUILD.push(()=>{const X=12,Z=31,T=.4;const g=new THREE.Group();put(scene,g,X,0,0
   const zr=shingleRoof(g,[[-3.4,13.6],[3.4,13.6],[.4,20.2]],{color:'#5d3a78',rowH:.75,tile:.95,z:Z+.3,dz:.08});put(g,piece(box(-3.5,13.4,3.5,13.9),{mat:gold(),t:.14}),0,0,zr+.1);
   flagSpots.push([X+.4,20.2,Z+.4]);lamp(X,Z+3,'#ffb35c',50,16,8)});
 
-/* ---- broen over åen og trolden ---- */
-BUILD.push(()=>{const X=25.4,Z=34.9;const g=new THREE.Group();put(scene,g,X,0,Z);prop('bro',X,Z,0);
-  for(const s of[-1,1]){const zz=s*2.55,outer=[[-6.8,0],[6.8,0],[6.8,1.7],[3,2.2],[-3,2.2],[-6.8,1.7]],holes=[arch(-3.6,0,2,1.3,10),arch(0,0,2.4,1.5,10),arch(3.6,0,2,1.3,10)];
-    for(const sh of clip([toCCW(outer)],holes.map(h=>h.map(([x,y])=>[x,y-.01])),'diff'))put(g,piece(sh,{t:.45,s:34,paint:P=>{P.wash('#958bb3',outer,{top:'#b2aac9',edge:.4});P.ashlar(outer,'#958bb3',{rowH:[.55,.75],bw:[.9,1.6],tint:.14,ink:.3})}}),0,0,zz);
-    put(g,piece(box(-7,2.1,7,2.55),{color:'#b2aac9',kind:'water',t:.6}),0,0,zz);for(let x=-6.4;x<=6.41;x+=1.6)stick(g,x,2.5,4,zz,.22,PAL.woodDk);put(g,piece(box(-6.7,3.75,6.7,4.1),{color:'#8a5a3a',kind:'balsa',t:.2}),0,0,zz)}});
+/* ---- den buede bro: stenvægge med en bue over vandet, planker der følger buen, gelænder ---- */
+BUILD.push(()=>{const{x:X,z:Z,L}=BRIDGE;const g=new THREE.Group();put(scene,g,X,0,Z);prop('bro',X,Z,0);
+  const top=dx=>bridgeDeck(dx)+1.05,stone='#958bb3';
+  for(const s of[-1,1]){const zz=s*2.62,cp=[[-L-.8,-.3],[L+.8,-.3]];for(let k=24;k>=0;k--){const dx=-L-.8+k*(2*L+1.6)/24;cp.push([dx,Math.abs(dx)>L?1.4:top(dx)])}
+    const ell=[];for(let k=0;k<=24;k++){const a=k/24*Math.PI;ell.push([Math.cos(a)*4.9,-.4+Math.sin(a)*2.5])}
+    for(const sh of clip([toCCW(cp)],[toCCW(ell)],'diff'))put(g,piece(sh,{t:.5,s:30,paint:P=>{P.wash(stone,cp,{top:'#b2aac9',edge:.4});P.ashlar(cp,stone,{rowH:[.55,.75],bw:[.9,1.6],tint:.14,ink:.3});P.wash('#3a3050',box(-12,-1,12,.6),{alpha:.3,edge:0})}}),0,0,zz);
+    for(let k=0;k<11;k++){const a0=k/11*Math.PI+.012,a1=(k+1)/11*Math.PI-.012,w=[];for(let i=0;i<=4;i++){const a=mix(a0,a1,i/4);w.push([Math.cos(a)*5.75,-.4+Math.sin(a)*3.25])}for(let i=4;i>=0;i--){const a=mix(a0,a1,i/4);w.push([Math.cos(a)*4.9,-.4+Math.sin(a)*2.5])}
+      put(g,piece(toCCW(w),{color:shade(k===5?'#c4bcd6':'#b2aac9',R(-.04,.04)),kind:'water',t:.3}),0,0,zz+s*.36)}
+    /* murkrone der følger buen */
+    const cap=[];for(let k=0;k<=24;k++){const dx=-L-.9+k*(2*L+1.8)/24;cap.push([dx,(Math.abs(dx)>L?1.4:top(dx))+.02])}
+    pieces(thick([cap],.2),{color:'#c4bcd6',kind:'water',t:.62},g,0,0,zz);
+    for(const e of[-1,1]){put(g,piece(box(-.65,-.3,.65,2.4),{color:'#b2aac9',kind:'water',t:.8}),e*(L+.6),0,zz);put(g,piece(circ(0,2.65,.5,.38,16),{color:'#c4bcd6',kind:'water',t:.8}),e*(L+.6),0,zz)}}
+  /* planker på tværs, der følger buen */
+  for(let dx=-L+.25;dx<L;dx+=.56){const y=bridgeDeck(dx),sl=Math.atan(-2*BRIDGE.rise*dx/L/L);const pl=new THREE.Mesh(new THREE.BoxGeometry(.5,.16,4.9),paperMat(shade('#9a6a44',R(-.06,.06)),'balsa'));pl.rotation.z=sl;pl.castShadow=pl.receiveShadow=true;put(g,pl,dx,y-.08,0)}
+  /* gelænder af træ oven på murene */
+  for(const s of[-1,1]){const zz=s*2.62;for(let dx=-L+.4;dx<=L-.39;dx+=2.3)stick(g,dx,top(dx),top(dx)+1,zz,.2,PAL.woodDk);const rl=[];for(let k=0;k<=20;k++){const dx=-L+.4+k*(2*L-.8)/20;rl.push([dx,top(dx)+.95,zz])}cord(g,rl,.1,'#8a5a3a')}});
 
 /* ---- Arkaden ---- */
 BUILD.push(()=>{const X=66,Z=28,T=.4,H=house('arkade',[66,28.3],[66,31.2]);const g=new THREE.Group();put(H,g,X,0,0);
@@ -817,7 +858,7 @@ const PATHLINES=PATHS.map(cp=>curve(cp,8));
 const nearPath=(x,z)=>Math.min(...PATHLINES.map(L=>distLine([x,z],L)));
 const nearRiver=(x,z)=>Math.min(distLine([x,z],RIVER),Math.hypot((x-70)/9,(z+6)/5.5)*5.5-5.5);
 /* et hus' grundflade: kun de dele der står nede ved jorden (ikke markiser, vinger og tage) */
-let FOOT=null;const footprints=()=>{if(FOOT)return FOOT;scene.updateMatrixWorld(true);FOOT=[];for(const n in HOUSE){const b=new THREE.Box3(),mb=new THREE.Box3();HOUSE[n].g.traverse(o=>{if(!o.isMesh)return;o.geometry.computeBoundingBox();mb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);if(mb.min.y<2.5)b.union(mb)});FOOT.push([n,b.min.x,b.max.x,b.min.z,b.max.z])}return FOOT};
+let FOOT=null;const footprints=()=>{if(FOOT)return FOOT;scene.updateMatrixWorld(true);live.updateMatrixWorld(true);FOOT=[];for(const n in HOUSE){if(HOUSE[n].foot){FOOT.push([n,...HOUSE[n].foot]);continue}const b=new THREE.Box3(),mb=new THREE.Box3();HOUSE[n].g.traverse(o=>{if(!o.isMesh)return;o.geometry.computeBoundingBox();mb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);if(mb.min.y<2.5)b.union(mb)});FOOT.push([n,b.min.x,b.max.x,b.min.z,b.max.z])}return FOOT};
 const inHouse=(x,z,m=0)=>footprints().some(f=>x>f[1]-m&&x<f[2]+m&&z>f[3]-m&&z<f[4]+m);
 /* foran skilte og døre holdes græsset lavt, så de kan ses */
 let CLEAR=null;const clearZones=()=>{if(CLEAR)return CLEAR;CLEAR=[];scene.traverse(o=>{if(o.isMesh&&o.userData.sign){const b=new THREE.Box3().setFromObject(o);CLEAR.push([b.min.x-1,b.max.x+1,b.max.z,b.max.z+8])}});for(const n in HOUSE){const d=HOUSE[n].door;CLEAR.push([d[0]-4,d[0]+4,d[1],d[1]+7])}return CLEAR};
@@ -876,7 +917,7 @@ const orangeTree=(x,z,h,k=1)=>{protos();const g=TREES[Math.floor(R(TREES.length)
 const pineTree=(x,z,h)=>{protos();const g=PINES[Math.floor(R(PINES.length))].clone();const k=h/10;g.scale.set(k*(rnd()<.5?-1:1),k,k);put(scene,g,x,0,z);if(Math.abs(x)<90&&z<38)prop('gran',x,z,.8*k)};
 BUILD.push(()=>{for(let x=-170;x<=170;x+=7){if(x>-40&&x<-24)continue;if(Math.abs(x)<24)continue;orangeTree(x+R(-1.5,1.5),GZ0+3+R(0,3),R(6,9),R(.8,1.05))}
   for(let i=0;i<50;i++){const x=i%2?R(-170,-90):R(90,170),z=R(-30,80);if(rnd()<.3)pineTree(x,z,R(8,12));else orangeTree(x,z,R(7,10),R(.9,1.2))}
-  for(const[x,z,h,k]of[[-80,-14,9,1.1],[-78,10,8,1],[-84,36,7,.9],[80,-16,9,1.1],[80,8,8,1],[-30,-18,8,.9],[27,-27,8,.9],[-40,20,6,.8],[56,-30,8,.9],[-82,-28,9,1],[82,30,7,.9],[-6,-30,7,.8],[19,17,6,.8]])orangeTree(x,z,h,k);
+  for(const[x,z,h,k]of[[-80,-14,9,1.1],[-78,10,8,1],[-84,36,7,.9],[80,-16,9,1.1],[80,8,8,1],[-30,-18,8,.9],[27,-27,8,.9],[-40,20,6,.8],[11,18,6.5,.85],[-17,23,6.5,.85],[56,-30,8,.9],[-82,-28,9,1],[82,30,7,.9],[-6,-30,7,.8],[19,17,6,.8]])orangeTree(x,z,h,k);
   for(const[x,z,h]of[[-84,0,10],[84,-4,10],[-62,8,8],[76,18,8],[-50,-30,9]])pineTree(x,z,h)});
 
 /* ---- den svævende ø med hus og vandfald, hængt op i tråde ---- */
@@ -888,7 +929,9 @@ BUILD.push(()=>{const X=26,Y=46,Z=GZ0-4.6;const g=new THREE.Group();put(scene,g,
    shingleRoof(g,[[1,3.2],[5.8,3.2],[3.4,5.6]],{color:'#a8382e',rowH:.55,tile:.7,z:.7,dz:.07,t:.1})}
   {const tr=TREES.length?TREES[0].clone():null;if(tr){tr.scale.set(.42,.42,.42);put(g,tr,-3.4,.2,.4)}}
   for(const s of[-1,1])cord(scene,[[X+s*6,Y,Z-.2],[X+s*6,Y+42,Z-.2]],.04);
-  fallAt=new THREE.Vector3(X+5.5,Y-1,Z+.4)});
+  fallAt=new THREE.Vector3(X+5.5,Y-1,Z+.4);
+  /* vandet lander i en sky af papir */
+  {const cg=new THREE.Group();put(scene,cg,X+5.5,Y-26.4,Z+.95);pieces(clip([puff(-2.6,0,3,1.7,7,.25),puff(1.2,.5,3.4,2,7,.25),puff(4,-.2,2.2,1.4,6,.25)],[],'union'),{color:'#b7a8dc',kind:'water',t:.12},cg,0,0,0);pieces(clip([puff(-1,-.5,2.6,1.2,7,.25),puff(2.4,-.6,2,1,6,.25)],[],'union'),{color:'#ddd3f2',kind:'water',t:.12},cg,0,0,.25)}});
 
 /* ---- lygtepæle, svampe og græskar ---- */
 function mushroom(x,z,k,col){prop('svamp',x,z,1.2*k);const g=new THREE.Group();put(scene,g,x,0,z);g.scale.setScalar(k);
@@ -1129,10 +1172,15 @@ function buildLive(){
     const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx(c,true),transparent:true,depthWrite:false}));live.add(s);puffs.push({s,t:i/8*4})}
   for(const[x,y,z]of flagSpots){const g=new THREE.Group();put(live,g,x,y,z);dowel(g,0,0,4,0,.12);
     const f=makeCard(outline([[0,0,1],[3.4,.6,1],[3.2,1.6],[3.6,2.4,1],[0,2.4,1]],3,.02),{t:.15,s:30,both:true,paint:P=>P.coat(['#e05a8a','#f2c230','#7fd6ff'][flagsLive.length%3],null,{dir:0,bw:.3})});put(g,f,0,1.5,0);flagsLive.push({f,ph:R(TAU)})}
-  /* vandfaldet: en strimmel der ruller */
-  {const c=cv(64,256),g=c.getContext('2d');g.fillStyle='rgba(120,190,255,.0)';g.fillRect(0,0,64,256);for(let i=0;i<40;i++){g.fillStyle=`rgba(${200+R(55)|0},${230+R(25)|0},255,${R(.35,.85)})`;g.fillRect(R(64),R(256),R(3,8),R(20,60))}
-    const t=tx(c,true);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,2);fall=new THREE.Mesh(new THREE.PlaneGeometry(2.4,26),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,color:'#cfe6ff'}));fall.position.set(fallAt.x,fallAt.y-13,fallAt.z);live.add(fall);
-}
+  /* vandfaldet: et bredt, blødt lag bagerst og et smallere med lyse striber foran, skum ved kanten, dråber og tåge forneden */
+  {const strip=(n,a0,a1,wmin,wmax,bright)=>{const c=cv(64,256),g=c.getContext('2d');if(!bright){const gr=g.createLinearGradient(0,0,64,0);gr.addColorStop(0,'rgba(140,190,255,0)');gr.addColorStop(.25,'rgba(150,200,255,.45)');gr.addColorStop(.75,'rgba(150,200,255,.45)');gr.addColorStop(1,'rgba(140,190,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,256)}
+      for(let i=0;i<n;i++){const x=R(6,58),w=R(wmin,wmax),h=R(30,90),y=R(256);g.fillStyle=`rgba(${bright?'235,248,255':'190,225,255'},${R(a0,a1)})`;for(const oy of[-256,0])g.fillRect(x,y+oy,w,h)}
+      const t=tx(c,true);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,2);return t};
+    fall={layers:[],foam:[],drops:[],mist:[]};
+    for(const[w,t,sp,dz,op]of[[3.4,strip(30,.15,.4,3,9,false),.45,0,.85],[2.4,strip(46,.35,.9,1.5,4,true),1.15,.15,1]]){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,26),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:op,color:'#e2f0ff'}));m.position.set(fallAt.x,fallAt.y-13,fallAt.z+dz);live.add(m);fall.layers.push({m,sp})}
+    for(let i=0;i<5;i++){const s=sprite([[0,'rgba(255,255,255,.95)'],[.5,'rgba(235,245,255,.5)'],[1,'rgba(220,240,255,0)']],1.6,false);s.position.set(fallAt.x,fallAt.y+.1,fallAt.z+.3);live.add(s);fall.foam.push({s,dx:(i-2)*.55,b:R(1.2,1.8),ph:R(TAU)})}
+    for(let i=0;i<22;i++){const s=sprite([[0,'rgba(240,250,255,1)'],[1,'rgba(220,240,255,0)']],R(.35,.6),false);live.add(s);fall.drops.push({s,t:R(1),sp:R(.25,.45),dx:R(-1.8,1.8),vx:R(-1.5,1.5)})}
+    for(let i=0;i<4;i++){const s=sprite([[0,'rgba(240,248,255,.7)'],[1,'rgba(220,240,255,0)']],4,false);live.add(s);fall.mist.push({s,t:i/4,dx:R(-1.5,1.5)})}}
   /* glimt på åen */
   for(let i=0;i<10;i++){const s=sprite([[0,'rgba(220,240,255,.9)'],[1,'rgba(200,230,255,0)']],1.2);live.add(s);glints.push({s,t:R(1),sp:R(.03,.06)})}
   /* blade der falder */
@@ -1178,8 +1226,8 @@ function stepWalker(w,dt){
   if(moving){const s=Math.min(d,Math.max(w.v,1.5)*dt);w.x+=dx/d*s;w.z+=dz/d*s;if(Math.abs(dx)>.3)w.face=dx>0?1:-1;w.ph+=s/g.len*Math.PI}
   else if(w.amp>.02){const r=w.ph%Math.PI;if(r>.05)w.ph+=Math.min(Math.PI-r,dt*2.5)}
   w.moving=moving;const bob=Math.pow(Math.abs(Math.sin(w.ph)),.6)*g.h*w.amp;
-  w.root.position.set(w.x,TOP+.08+bob,w.z);w.root.scale.set(w.face*w.sc,w.sc,w.sc);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
-  w.sh.position.set(w.x,TOP+.12,w.z);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
+  const by=bridgeY(w.x,w.z);w.root.position.set(w.x,TOP+.08+bob+by+(w.yOff||0),w.z);w.root.scale.set(w.face*w.sc,w.sc*(w.sq||1),w.sc);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
+  w.sh.position.set(w.x,TOP+.12+by+(w.yOff||0)*.6,w.z);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
 
 /* ============ stierne er et vejnet: heksen går ad stierne, katten følger hendes spor ============ */
 const NET=(()=>{const N=[],E=[];
@@ -1327,7 +1375,15 @@ cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;con
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
 /* ============ løkken ============ */
-const _fv=new THREE.Vector3();const meter=document.getElementById('meter');let mN=0,mT=0,mW=0,readyAt=0,time=0,autoT=7,wakeT=-9,uniT=-9,trollT=-9;
+const _fv=new THREE.Vector3();
+/* steder hvor byens folk gerne vil hen, og hvad de gør der */
+const POIS=[{n:'bænk-v',at:[-9.4,-5.1],act:'sit',y:2.3,face:1,dur:[7,12]},{n:'bænk-h',at:[9.4,-5.1],act:'sit',y:2.3,face:-1,dur:[7,12]},
+  {n:'brønd-v',at:[-2.8,7],act:'look',face:1},{n:'brønd-h',at:[3,7],act:'look',face:-1},{n:'ænder',at:[58.8,-2.4],act:'look',face:1,dur:[6,10]},
+  {n:'træ-ø',at:[10,19.6],act:'rest',face:1,dur:[8,14]},{n:'træ-v',at:[-15.6,24.6],act:'rest',face:-1,dur:[8,14]},{n:'vejviser',at:[-20.6,-4.4],act:'look',face:-1},
+  {n:'vindue',at:[26.6,6.2],act:'look',face:1},{n:'enhjørning',at:[58.6,-9.8],act:'look',face:1},{n:'plakat',at:[-64.4,32.4],act:'look',face:-1},
+  {n:'bro',at:[25.4,35],act:'look',face:1},{n:'arkade',at:[63.4,31.6],act:'look',face:1},{n:'kollegie',at:[-43.4,-4.6],act:'look',face:-1}];
+function freePoi(n){const taken=new Set(walkers.filter(w=>w!==n&&w.poi).map(w=>w.poi.n));const ok=POIS.filter(p=>!taken.has(p.n)&&p!==n.poi);return ok[Math.floor(R(ok.length))]}
+function actPose(n,p){n.yOff=p.act==='sit'?p.y:0;n.sq=p.act==='rest'?.74:1;if(p.face)n.face=p.face}const meter=document.getElementById('meter');let mN=0,mT=0,mW=0,readyAt=0,time=0,autoT=7,wakeT=-9,uniT=-9,trollT=-9;
 const PRMAX=Math.min(window.devicePixelRatio||1,2);let last=performance.now(),fN=0,fT=0,drops=0,good=0,pr=renderer.getPixelRatio();
 function frame(now){
   requestAnimationFrame(frame);
@@ -1346,8 +1402,12 @@ function frame(now){
     let acc=0,px=W0.x,pz=W0.z;for(let i=trail.length-1;i>=0&&acc<5.5;i--){acc+=Math.hypot(trail[i][0]-px,trail[i][1]-pz);px=trail[i][0];pz=trail[i][1]}
     C0.tx=px;C0.tz=pz+1.2}
   stepWalker(C0,dt);
-  for(const n of walkers){if(!n.root){n.root=n.o.root;n.sc=n.o.root.scale.x;n.sh=blob(2.8,1.4);n.ri=0;[n.tx,n.tz]=n.route[0];n.face=1;n.ph=0;n.wait=0}
-    if(Math.hypot(n.tx-n.x,n.tz-n.z)<.3){n.wait+=dt;if(n.wait>R(1.5,3)){n.wait=0;n.ri=(n.ri+1)%n.route.length;[n.tx,n.tz]=n.route[n.ri]}}
+  /* byens folk går ad stierne fra mål til mål og gør noget, når de når frem */
+  for(const n of walkers){if(!n.root){n.root=n.o.root;n.sc=n.o.root.scale.x;n.sh=blob(2.8,1.4);n.face=1;n.ph=0;const p0=freePoi(n);n.poi=p0;[n.x,n.z]=p0.at;[n.tx,n.tz]=p0.at;n.q=[];n.until=time+R(2,6);n.acting=true;actPose(n,p0)}
+    if(n.q.length&&Math.hypot(n.tx-n.x,n.tz-n.z)<1.2)[n.tx,n.tz]=n.q.shift();
+    if(!n.acting&&!n.q.length&&Math.hypot(n.tx-n.x,n.tz-n.z)<.3){n.acting=true;n.until=time+R(...(n.poi.dur||[5,9]));actPose(n,n.poi)}
+    if(n.acting&&time>n.until){n.acting=false;n.yOff=0;n.sq=1;const p=freePoi(n);n.poi=p;const r=NET.route(n.x,n.z,p.at[0],p.at[1]).map(q=>[q[0],q[1]]);[n.tx,n.tz]=r.shift();n.q=r}
+    if(n.acting&&n.poi.face)n.face=n.poi.face;
     stepWalker(n,dt);n.o.arm.rotation.z=n.moving?.25*Math.sin(n.ph):.05*Math.sin(time*1.4);n.o.head.rotation.z=.04*Math.sin(time*1.1+n.x)}
   /* heksen og katten */
   W.armL.rotation.z=W0.moving?-.13+.35*Math.sin(W0.ph):-.13+.025*Math.sin(time*1.3);W.elL.rotation.z=.12;W.armR.rotation.z=.56;W.elR.rotation.z=.1;
@@ -1368,7 +1428,14 @@ function frame(now){
   for(const p of puffs){p.t+=dt;const k=(p.t%4)/4;p.s.position.set(chimneyAt.x+k*3+Math.sin(p.t*1.3)*.6,chimneyAt.y+k*12,chimneyAt.z);const sz=2+k*5;p.s.scale.set(sz,sz,1);p.s.material.opacity=Math.sin(k*Math.PI)*.8}
   for(const f of flies){f.s.position.set(f.x+Math.sin(time*f.sp+f.ph)*3,f.y+Math.sin(time*f.sp*1.7+f.ph)*1.2,f.z+Math.cos(time*f.sp*.8+f.ph)*2);f.s.material.opacity=.5+.5*Math.sin(time*3+f.ph)}
   for(const fl of flagsLive)fl.f.rotation.y=.35*Math.sin(time*2.6+fl.ph);
-  fall.material.map.offset.y=(time*.9)%1;
+  /* vandfaldet: to lag vand i hver sit tempo, skum, dråber og tåge */
+  for(const f of fall.layers)f.m.material.map.offset.y=(time*f.sp)%1;
+  for(const f of fall.foam){const k=.8+.25*Math.sin(time*5+f.ph);f.s.scale.set(f.b*k,f.b*k,1);f.s.position.x=fallAt.x+f.dx+.15*Math.sin(time*3+f.ph)}
+  for(const d of fall.drops){d.t=(d.t+dt*d.sp)%1;d.s.position.set(fallAt.x+d.dx+d.t*d.vx,fallAt.y-d.t*26,fallAt.z+.2);d.s.material.opacity=Math.sin(d.t*Math.PI)*.8}
+  for(const m of fall.mist){m.t=(m.t+dt*.25)%1;const sz=3+m.t*5;m.s.scale.set(sz,sz,1);m.s.position.set(fallAt.x+m.dx,fallAt.y-25.5+m.t*2.5,fallAt.z+.5);m.s.material.opacity=Math.sin(m.t*Math.PI)*.55}
+  /* den flyvende støvle svæver og slår med vingerne */
+  if(BOOT){const b=BOOT.B;b.position.y=BOOT.Y0+.45*Math.sin(time*1.3);b.rotation.z=.03*Math.sin(time*.9);for(const w of BOOT.wings){const f=Math.sin(time*3.2+(w.s<0?.5:0));w.g.rotation.z=-.15+.38*f;w.g.rotation.y=w.s*.12*f}
+    if(BOOT.sh){const k=1-.08*Math.sin(time*1.3);BOOT.sh.scale.set(k,k,1)}}
   for(const g of glints){g.t=(g.t+dt*g.sp)%1;const i=g.t*(RIVER.length-1),a=RIVER[Math.floor(i)],b=RIVER[Math.min(RIVER.length-1,Math.floor(i)+1)],k=i%1;g.s.position.set(mix(a[0],b[0],k)+Math.sin(g.t*40)*.6,TOP+.3,mix(a[1],b[1],k));g.s.material.opacity=.4+.6*Math.abs(Math.sin(time*2+g.t*20))}
   for(const l of leaves){l.y-=l.vy*dt;l.x+=Math.sin(time*1.3+l.ph)*dt*2;if(l.y<TOP){l.y=R(24,34);l.x=R(-80,80);l.z=R(-20,34)}l.m.position.set(l.x,l.y,l.z);l.m.rotation.set(Math.sin(time*2+l.ph),time*1.5+l.ph,Math.sin(time*1.7+l.ph))}
   {const k=((time*.04)%1.4)-.2;bird.position.set(mix(-100,100,k),62+3*Math.sin(time*.7),GZ0+2);for(const w of bird.wings)w.g.rotation.x=w.s*(.2+.9*Math.abs(Math.sin(time*8)))}
@@ -1388,9 +1455,11 @@ function frame(now){
   const stepMs=[];for(let i=0;i<BUILD.length;i++){msgN.textContent=`${i+1} af ${N}`;await wait();const t1=performance.now();BUILD[i]();stepMs.push(Math.round(performance.now()-t1))}window.__steps=stepMs;
   msgN.textContent=`${N-1} af ${N}`;await wait();buildLive();W0.sh=blob(4.6,2.3);C0.sh=blob(3,1.6);
   msgN.textContent=`${N} af ${N}`;await wait();
+  if(BOOT){const c=cv(128,64),g2=c.getContext('2d'),gr=g2.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.62)');gr.addColorStop(.55,'rgba(10,6,20,.35)');gr.addColorStop(1,'rgba(10,6,20,0)');g2.setTransform(1,0,0,.5,0,16);g2.fillStyle=gr;g2.fillRect(0,0,128,128);
+    BOOT.sh=new THREE.Mesh(new THREE.PlaneGeometry(21,5.5),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));BOOT.sh.rotation.x=-Math.PI/2;live.add(BOOT.sh);BOOT.sh.position.set(BOOT.X+1,TOP+.12,BOOT.Z+1.6)}
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
   renderer.compile(scene,cam);bake();renderer.compile(live,cam);
-  window.__kort={W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
+  window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
   requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();msg.classList.add('gone')})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
 

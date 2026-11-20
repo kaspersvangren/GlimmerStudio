@@ -22,12 +22,16 @@ const PATHS=[
   [[-38,-2],[-52,-3],[-60.5,-6.5],[-63.5,-13],[-65.5,-21.6]],/* til dragehulen, uden om kollegiet */
   [[0,0],[11,2.5],[22,7.2],[33,7.6],[37,5]],                       /* til boblebutikkens dør */
   [[22,7.2],[36,9.4],[46,7.5],[52,1],[56,-6],[58,-10.6]],        /* til dyreparkens låge */
-  [[0,0],[-6,10],[-11,20],[-11.5,28],[-15,31.6],[-21.4,31]], /* til støvlens dør */
+  [[0,0],[-6,10],[-11,20],[-11.5,28],[-15,31.6],[-23.4,31.4]], /* til støvlens stige */
   [[-15,31.6],[-30,33],[-46,32.6],[-62,30.8]],               /* til koncertsalen */
   [[0,0],[5,12],[6,22],[5.6,30],[8,34.2],[12,35]],                    /* forbi klokketårnet */
   [[12,35],[22,35],[32,34.8],[46,34],[58,33],[66,31]]];    /* over broen til arkaden */
 const RIVER=[];for(let i=0;i<=30;i++){const t=i/30;RIVER.push([mix(70,26,t)+7*Math.sin(t*5.5+.4),mix(-4,40,t)])}
 /* steder og ting, som kvalitetstjekket kigger på */
+/* den buede bro: midt over åen, hvor stien til Arkaden krydser; dækkets højde bruges også af dem der går over */
+const BRIDGE={x:25.4,z:34.9,L:8,w:2.35,rise:2.7};
+const bridgeDeck=dx=>.42+BRIDGE.rise*Math.max(0,1-(dx/BRIDGE.L)**2);
+const bridgeY=(x,z)=>Math.abs(z-BRIDGE.z)<BRIDGE.w&&Math.abs(x-BRIDGE.x)<BRIDGE.L?bridgeDeck(x-BRIDGE.x)-.3:0;
 const PROPS=[];const prop=(k,x,z,r=1)=>PROPS.push({k,x,z,r});
 SPOTS.skole=[0,-21.6];
 const flagSpots=[],lampSpots=[];

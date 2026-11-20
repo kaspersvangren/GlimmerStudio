@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
     const bad = (k, m) => out.push(k + ': ' + m), good = (k, m) => ok.push(k + ': ' + m);
     K.scene.updateMatrixWorld(true); const cam = K.cam; cam.clearViewOffset(); cam.updateMatrixWorld();
     const camPos = new T.Vector3(); cam.getWorldPosition(camPos);
-    const rc = new T.Raycaster(); const all = K.scene.children;
+    const rc = new T.Raycaster(); K.live.updateMatrixWorld(true); const all = [...K.scene.children, ...K.HOUSEG.filter(g => g.parent === K.live)];
     const owner = o => { for (let q = o; q; q = q.parent) { if (q.userData.house) return 'hus:' + q.userData.house; if (q.userData.sign) return 'skilt:' + q.userData.sign } return o.userData.flat ? 'jord' : 'ting' };
     const firstHit = (pt) => { const d = pt.clone().sub(camPos), L = d.length(); rc.set(camPos, d.normalize()); rc.far = L + .3; const h = rc.intersectObjects(all, true).filter(x => x.object.visible && !(x.object.material && x.object.material.transparent && x.object.material.opacity < .5)); return h.length ? { obj: h[0].object, dist: h[0].distance, L } : null };
     const onScreen = (pt) => { const v = pt.clone().project(cam); return Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 };
@@ -35,7 +35,8 @@ const { chromium } = require('playwright');
       for (let j = 0; j < L.length - 1; j++) { const a = L[j], c = L[j + 1], len = Math.hypot(c[0] - a[0], c[1] - a[1]); for (let t = 0; t < len; t += 1) { const x = a[0] + (c[0] - a[0]) * t / len, z = a[1] + (c[1] - a[1]) * t / len; if (Math.hypot(x / 15, z / 10) < 1.12) continue; const pt = new T.Vector3(x, .55, z); n++; const h = firstHit(pt); if (h && h.dist < h.L - 1) { const w = owner(h.obj); if (w.startsWith('hus:') || w.startsWith('skilt:')) { hid++; who[w] = (who[w] || 0) + 1 } } } }
       if (hid / n > .04) bad('sti skjult', `sti ${i} (${K.PATHS[i][0]}→${K.PATHS[i][K.PATHS[i].length - 1]}): ${Math.round(hid / n * 100)}% skjult af ${JSON.stringify(who)}`); else good('sti synlig', `sti ${i} ${Math.round(hid / n * 100)}%`) });
     /* 3. skilte: hele fladen skal kunne ses */
-    K.scene.traverse(o => { if (!o.isMesh || !o.userData.sign) return; o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox; let n = 0, vis = 0; const who = {};
+    const signs = []; K.scene.traverse(o => { if (o.isMesh && o.userData.sign) signs.push(o) }); K.live.traverse(o => { if (o.isMesh && o.userData.sign) signs.push(o) });
+    signs.forEach(o => { o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox; let n = 0, vis = 0; const who = {};
       for (const fx of [.1, .5, .9]) for (const fy of [.15, .5, .85]) { const pt = new T.Vector3(bb.min.x + (bb.max.x - bb.min.x) * fx, bb.min.y + (bb.max.y - bb.min.y) * fy, bb.max.z + .01).applyMatrix4(o.matrixWorld); n++; const h = firstHit(pt); if (!h || h.obj === o || h.dist > h.L - 1) vis++; else { const w = owner(h.obj); who[w] = (who[w] || 0) + 1 } }
       if (vis < n) bad('skilt dækket', `${o.userData.sign}: ${n - vis}/${n} punkter dækket af ${JSON.stringify(who)}`); else good('skilt', o.userData.sign) });
     /* 4. vejviseren peger samme vej som stien */
@@ -55,7 +56,11 @@ const { chromium } = require('playwright');
       const last = r[r.length - 2], leg = Math.hypot(last[0] - sp[0], last[1] - sp[1]);
       if (thru) bad('rute gennem hus', `til ${n}: ${thru}`); else if (leg > 4.5) bad('rute', `til ${n}: sidste stykke uden sti er ${leg.toFixed(1)}`); else good('rute', n) }
     /* 8. byens folk */
-    K.walkers.forEach((w, i) => { const R = w.route; for (let j = 0; j < R.length; j++) { const a = R[j], c = R[(j + 1) % R.length]; for (let t = 0; t <= 1; t += .1) { const x = a[0] + (c[0] - a[0]) * t, z = a[1] + (c[1] - a[1]) * t; if (distLine([x, z], K.RIVER) < 2.2) { bad('beboer i åen', `beboer ${i} ved (${x.toFixed(1)},${z.toFixed(1)})`); return } const f = inFoot(x, z, .3); if (f && f[0] !== 'broend') { bad('beboer gennem hus', `beboer ${i} gennem ${f[0]}`); return } } } });
+    /* byens folk: deres mål ligger tæt ved en sti, ikke i åen eller i huse, og vejen derhen går ad stierne */
+    for (const p of K.POIS) { const [x, z] = p.at, d = nearPath(x, z), inPlaza = Math.hypot(x / 15.9, z / 10.9) < 1; if (d > 4.6 && !inPlaza) bad('beboer-mål langt fra sti', `${p.n} er ${d.toFixed(1)} fra nærmeste sti`);
+      if (distLine([x, z], K.RIVER) < 2.2 && p.n !== 'bro') bad('beboer-mål i åen', p.n); const f = inFoot(x, z, .2); if (f && f[0] !== 'broend') bad('beboer-mål i hus', `${p.n} i ${f[0]}`);
+      const r = [[0, 9], ...K.NET.route(0, 9, x, z)]; let off = 0; for (let i = 0; i < r.length - 1; i++) { const a = r[i], c = r[i + 1], len = Math.hypot(c[0] - a[0], c[1] - a[1]); for (let t = 0; t <= len; t += .5) { const px = a[0] + (c[0] - a[0]) * t / (len || 1), pz = a[1] + (c[1] - a[1]) * t / (len || 1); if (nearPath(px, pz) > 2.4 && Math.hypot(px / 15.9, pz / 10.9) > 1) off += .5 } }
+      if (off > 5) bad('beboer uden for sti', `vejen til ${p.n} går ${off.toFixed(1)} uden for stierne`); else good('beboer-mål', p.n) }
     /* 9. dragen, enhjørningen og trolden kan ses */
     const LO = K.liveObj(); for (const n in LO) { const o = LO[n]; const bb = new T.Box3().setFromObject(o); const c = bb.getCenter(new T.Vector3()); let vis = 0, m = 0; for (const fx of [.25, .5, .75]) for (const fy of [.3, .6, .9]) { const pt = new T.Vector3(bb.min.x + (bb.max.x - bb.min.x) * fx, bb.min.y + (bb.max.y - bb.min.y) * fy, bb.max.z); m++; const h = firstHit(pt); if (!h || h.dist > h.L - 1) vis++ }
       if (vis < m * .7) bad('figur skjult', `${n}: kun ${vis}/${m} punkter synlige`); else good('figur', `${n} ${vis}/${m}`) }

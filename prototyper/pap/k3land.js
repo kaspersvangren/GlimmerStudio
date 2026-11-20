@@ -5,7 +5,7 @@ const PATHLINES=PATHS.map(cp=>curve(cp,8));
 const nearPath=(x,z)=>Math.min(...PATHLINES.map(L=>distLine([x,z],L)));
 const nearRiver=(x,z)=>Math.min(distLine([x,z],RIVER),Math.hypot((x-70)/9,(z+6)/5.5)*5.5-5.5);
 /* et hus' grundflade: kun de dele der står nede ved jorden (ikke markiser, vinger og tage) */
-let FOOT=null;const footprints=()=>{if(FOOT)return FOOT;scene.updateMatrixWorld(true);FOOT=[];for(const n in HOUSE){const b=new THREE.Box3(),mb=new THREE.Box3();HOUSE[n].g.traverse(o=>{if(!o.isMesh)return;o.geometry.computeBoundingBox();mb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);if(mb.min.y<2.5)b.union(mb)});FOOT.push([n,b.min.x,b.max.x,b.min.z,b.max.z])}return FOOT};
+let FOOT=null;const footprints=()=>{if(FOOT)return FOOT;scene.updateMatrixWorld(true);live.updateMatrixWorld(true);FOOT=[];for(const n in HOUSE){if(HOUSE[n].foot){FOOT.push([n,...HOUSE[n].foot]);continue}const b=new THREE.Box3(),mb=new THREE.Box3();HOUSE[n].g.traverse(o=>{if(!o.isMesh)return;o.geometry.computeBoundingBox();mb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);if(mb.min.y<2.5)b.union(mb)});FOOT.push([n,b.min.x,b.max.x,b.min.z,b.max.z])}return FOOT};
 const inHouse=(x,z,m=0)=>footprints().some(f=>x>f[1]-m&&x<f[2]+m&&z>f[3]-m&&z<f[4]+m);
 /* foran skilte og døre holdes græsset lavt, så de kan ses */
 let CLEAR=null;const clearZones=()=>{if(CLEAR)return CLEAR;CLEAR=[];scene.traverse(o=>{if(o.isMesh&&o.userData.sign){const b=new THREE.Box3().setFromObject(o);CLEAR.push([b.min.x-1,b.max.x+1,b.max.z,b.max.z+8])}});for(const n in HOUSE){const d=HOUSE[n].door;CLEAR.push([d[0]-4,d[0]+4,d[1],d[1]+7])}return CLEAR};
@@ -64,7 +64,7 @@ const orangeTree=(x,z,h,k=1)=>{protos();const g=TREES[Math.floor(R(TREES.length)
 const pineTree=(x,z,h)=>{protos();const g=PINES[Math.floor(R(PINES.length))].clone();const k=h/10;g.scale.set(k*(rnd()<.5?-1:1),k,k);put(scene,g,x,0,z);if(Math.abs(x)<90&&z<38)prop('gran',x,z,.8*k)};
 BUILD.push(()=>{for(let x=-170;x<=170;x+=7){if(x>-40&&x<-24)continue;if(Math.abs(x)<24)continue;orangeTree(x+R(-1.5,1.5),GZ0+3+R(0,3),R(6,9),R(.8,1.05))}
   for(let i=0;i<50;i++){const x=i%2?R(-170,-90):R(90,170),z=R(-30,80);if(rnd()<.3)pineTree(x,z,R(8,12));else orangeTree(x,z,R(7,10),R(.9,1.2))}
-  for(const[x,z,h,k]of[[-80,-14,9,1.1],[-78,10,8,1],[-84,36,7,.9],[80,-16,9,1.1],[80,8,8,1],[-30,-18,8,.9],[27,-27,8,.9],[-40,20,6,.8],[56,-30,8,.9],[-82,-28,9,1],[82,30,7,.9],[-6,-30,7,.8],[19,17,6,.8]])orangeTree(x,z,h,k);
+  for(const[x,z,h,k]of[[-80,-14,9,1.1],[-78,10,8,1],[-84,36,7,.9],[80,-16,9,1.1],[80,8,8,1],[-30,-18,8,.9],[27,-27,8,.9],[-40,20,6,.8],[11,18,6.5,.85],[-17,23,6.5,.85],[56,-30,8,.9],[-82,-28,9,1],[82,30,7,.9],[-6,-30,7,.8],[19,17,6,.8]])orangeTree(x,z,h,k);
   for(const[x,z,h]of[[-84,0,10],[84,-4,10],[-62,8,8],[76,18,8],[-50,-30,9]])pineTree(x,z,h)});
 
 /* ---- den svævende ø med hus og vandfald, hængt op i tråde ---- */
@@ -76,7 +76,9 @@ BUILD.push(()=>{const X=26,Y=46,Z=GZ0-4.6;const g=new THREE.Group();put(scene,g,
    shingleRoof(g,[[1,3.2],[5.8,3.2],[3.4,5.6]],{color:'#a8382e',rowH:.55,tile:.7,z:.7,dz:.07,t:.1})}
   {const tr=TREES.length?TREES[0].clone():null;if(tr){tr.scale.set(.42,.42,.42);put(g,tr,-3.4,.2,.4)}}
   for(const s of[-1,1])cord(scene,[[X+s*6,Y,Z-.2],[X+s*6,Y+42,Z-.2]],.04);
-  fallAt=new THREE.Vector3(X+5.5,Y-1,Z+.4)});
+  fallAt=new THREE.Vector3(X+5.5,Y-1,Z+.4);
+  /* vandet lander i en sky af papir */
+  {const cg=new THREE.Group();put(scene,cg,X+5.5,Y-26.4,Z+.95);pieces(clip([puff(-2.6,0,3,1.7,7,.25),puff(1.2,.5,3.4,2,7,.25),puff(4,-.2,2.2,1.4,6,.25)],[],'union'),{color:'#b7a8dc',kind:'water',t:.12},cg,0,0,0);pieces(clip([puff(-1,-.5,2.6,1.2,7,.25),puff(2.4,-.6,2,1,6,.25)],[],'union'),{color:'#ddd3f2',kind:'water',t:.12},cg,0,0,.25)}});
 
 /* ---- lygtepæle, svampe og græskar ---- */
 function mushroom(x,z,k,col){prop('svamp',x,z,1.2*k);const g=new THREE.Group();put(scene,g,x,0,z);g.scale.setScalar(k);

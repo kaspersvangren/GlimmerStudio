@@ -7,7 +7,8 @@ const flipZ=pts=>pts.map(p=>[p[0],-p[1]]);
 
 /* ---- stierne: ét sammenhængende stykke sandfarvet karton med runde kryds og sving ---- */
 BUILD.push(()=>{const lines=PATHS.map(cp=>flipZ(curve(cp,8)));
-  for(const s of thick(lines,2.15))flatPiece(s,{color:PAL.sand,kind:'sand',t:.26,edge:PAL.sandEdge},0,.36,0)});
+  const deck=box(BRIDGE.x-BRIDGE.L+.5,-(BRIDGE.z+2.6),BRIDGE.x+BRIDGE.L-.5,-(BRIDGE.z-2.6));
+  for(const s of clip(thick(lines,2.15).map(s=>s.outer),[deck],'diff'))flatPiece(s,{color:PAL.sand,kind:'sand',t:.26,edge:PAL.sandEdge},0,.36,0)});
 
 /* ---- pladsen: brosten i ringe, ridset i kartonet, med en hævet kantsten ---- */
 BUILD.push(()=>{const E=circ(0,0,15,10,72);
@@ -29,7 +30,10 @@ BUILD.push(()=>{const X=0,Z=0;wellAt=new THREE.Vector3(X,3.6,Z);const H=house('b
   for(const[r,w]of[[2.6,.25],[1.3,.2]])flatPiece(ring(circ(0,0,r,r,40),w)[0],{t:.03,mat:paperMat('#f4ebff','tissue',{glow:'#c9a6ff',gi:1.3})},X,3.53,Z,H);
   /* stolper, tag af tagsten, vindespil med reb og spand */
   for(const s of[-1,1])stick(H,X+s*4.15,4.2,10.6,Z,.6,PAL.wood);
-  const tri=[[-6.8,10.1],[6.8,10.1],[0,14.9]];shingleRoof(H,tri,{color:PAL.berry,rowH:.95,tile:1.15,z:Z+.4});
+  const tri=[[-6.8,10.1],[6.8,10.1],[0,14.9]],zrW=shingleRoof(H,tri,{color:PAL.berry,rowH:.95,tile:1.15,z:Z+.4});
+  /* skiltet sidder oppe på gavlen, holdt af to messingsøm */
+  plate(H,'Øksebrønden','Øksebrønden',FONT.broend,6.4,1.45,{bg:'#5b3b26',fg:'#f3dfb0',frame:'#3a2414',size:.95,ls:.03,shadow:'#2a1a10',x:X,y:10.55,z:zrW+.32});
+  for(const s of[-1,1])put(H,new THREE.Mesh(DOME,M.brass),X+s*2.85,11.28,zrW+.48).scale.setScalar(.16);
   for(const s of[-1,1])pieces(thick([[[s*7,10],[0,15.1]]],.32),{color:PAL.woodDk,kind:'balsa',t:.3},H,X,0,Z+1.2);
   put(H,piece(circ(0,0,.42),{mat:gold(),t:.3}),X,15.3,Z+1.2);
   {const ax=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,8.9,12),paperMat(PAL.wood,'balsa'));ax.rotation.z=Math.PI/2;ax.castShadow=true;put(H,ax,X,8.4,Z)}
@@ -37,7 +41,7 @@ BUILD.push(()=>{const X=0,Z=0;wellAt=new THREE.Vector3(X,3.6,Z);const H=house('b
   thread(H,X,6.5,8.3,Z);
   {const b=new THREE.Mesh(new THREE.CylinderGeometry(.85,.7,1.2,20),paperMat('#8a6040','balsa'));b.castShadow=true;put(H,b,X,5.9,Z);for(const y of[5.55,6.25]){const band=new THREE.Mesh(new THREE.CylinderGeometry(y>6?.84:.76,y>6?.84:.76,.13,20),paperMat(PAL.iron,'card'));put(H,band,X,y,Z)}}
   /* skiltet på brøndens forside */
-  {const sg=piece(box(-4.6,0,4.6,1.9),{t:.18,s:46,base:'card',paint:P=>{P.flat('#5b3b26');P.flat('#7a5236',box(-4.35,.25,4.35,1.65));P.score([...box(-4.35,.25,4.35,1.65),[-4.35,.25]],{w:.06,ink:.3});P.text('Øksebrønden',0,.95,1.15,'#f3dfb0',{font:FONT.broend,ls:.04,shadow:'#2a1a10'})}});sg.userData.sign='Øksebrønden';put(H,sg,X,1.05,Z+4.55)}
+  /* (skiltet sad før forneden på brønden; nu sidder det på taget) */
   lamp(X,Z+2,'#b47aff',60,18,5);glowSpots.push([X,4.4,Z,12,'broend']);
   /* bænke af lister med jernben */
   for(const[x,z,r]of[[-9.5,-5,.3],[9.5,-5,-.3]]){prop('bænk',x,z,3);const g=new THREE.Group();put(scene,g,x,0,z);g.rotation.y=r;

@@ -22,8 +22,8 @@ function stepWalker(w,dt){
   if(moving){const s=Math.min(d,Math.max(w.v,1.5)*dt);w.x+=dx/d*s;w.z+=dz/d*s;if(Math.abs(dx)>.3)w.face=dx>0?1:-1;w.ph+=s/g.len*Math.PI}
   else if(w.amp>.02){const r=w.ph%Math.PI;if(r>.05)w.ph+=Math.min(Math.PI-r,dt*2.5)}
   w.moving=moving;const bob=Math.pow(Math.abs(Math.sin(w.ph)),.6)*g.h*w.amp;
-  w.root.position.set(w.x,TOP+.08+bob,w.z);w.root.scale.set(w.face*w.sc,w.sc,w.sc);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
-  w.sh.position.set(w.x,TOP+.12,w.z);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
+  const by=bridgeY(w.x,w.z);w.root.position.set(w.x,TOP+.08+bob+by+(w.yOff||0),w.z);w.root.scale.set(w.face*w.sc,w.sc*(w.sq||1),w.sc);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
+  w.sh.position.set(w.x,TOP+.12+by+(w.yOff||0)*.6,w.z);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
 
 /* ============ stierne er et vejnet: heksen går ad stierne, katten følger hendes spor ============ */
 const NET=(()=>{const N=[],E=[];
@@ -171,7 +171,15 @@ cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;con
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
 /* ============ løkken ============ */
-const _fv=new THREE.Vector3();const meter=document.getElementById('meter');let mN=0,mT=0,mW=0,readyAt=0,time=0,autoT=7,wakeT=-9,uniT=-9,trollT=-9;
+const _fv=new THREE.Vector3();
+/* steder hvor byens folk gerne vil hen, og hvad de gør der */
+const POIS=[{n:'bænk-v',at:[-9.4,-5.1],act:'sit',y:2.3,face:1,dur:[7,12]},{n:'bænk-h',at:[9.4,-5.1],act:'sit',y:2.3,face:-1,dur:[7,12]},
+  {n:'brønd-v',at:[-2.8,7],act:'look',face:1},{n:'brønd-h',at:[3,7],act:'look',face:-1},{n:'ænder',at:[58.8,-2.4],act:'look',face:1,dur:[6,10]},
+  {n:'træ-ø',at:[10,19.6],act:'rest',face:1,dur:[8,14]},{n:'træ-v',at:[-15.6,24.6],act:'rest',face:-1,dur:[8,14]},{n:'vejviser',at:[-20.6,-4.4],act:'look',face:-1},
+  {n:'vindue',at:[26.6,6.2],act:'look',face:1},{n:'enhjørning',at:[58.6,-9.8],act:'look',face:1},{n:'plakat',at:[-64.4,32.4],act:'look',face:-1},
+  {n:'bro',at:[25.4,35],act:'look',face:1},{n:'arkade',at:[63.4,31.6],act:'look',face:1},{n:'kollegie',at:[-43.4,-4.6],act:'look',face:-1}];
+function freePoi(n){const taken=new Set(walkers.filter(w=>w!==n&&w.poi).map(w=>w.poi.n));const ok=POIS.filter(p=>!taken.has(p.n)&&p!==n.poi);return ok[Math.floor(R(ok.length))]}
+function actPose(n,p){n.yOff=p.act==='sit'?p.y:0;n.sq=p.act==='rest'?.74:1;if(p.face)n.face=p.face}const meter=document.getElementById('meter');let mN=0,mT=0,mW=0,readyAt=0,time=0,autoT=7,wakeT=-9,uniT=-9,trollT=-9;
 const PRMAX=Math.min(window.devicePixelRatio||1,2);let last=performance.now(),fN=0,fT=0,drops=0,good=0,pr=renderer.getPixelRatio();
 function frame(now){
   requestAnimationFrame(frame);
@@ -190,8 +198,12 @@ function frame(now){
     let acc=0,px=W0.x,pz=W0.z;for(let i=trail.length-1;i>=0&&acc<5.5;i--){acc+=Math.hypot(trail[i][0]-px,trail[i][1]-pz);px=trail[i][0];pz=trail[i][1]}
     C0.tx=px;C0.tz=pz+1.2}
   stepWalker(C0,dt);
-  for(const n of walkers){if(!n.root){n.root=n.o.root;n.sc=n.o.root.scale.x;n.sh=blob(2.8,1.4);n.ri=0;[n.tx,n.tz]=n.route[0];n.face=1;n.ph=0;n.wait=0}
-    if(Math.hypot(n.tx-n.x,n.tz-n.z)<.3){n.wait+=dt;if(n.wait>R(1.5,3)){n.wait=0;n.ri=(n.ri+1)%n.route.length;[n.tx,n.tz]=n.route[n.ri]}}
+  /* byens folk går ad stierne fra mål til mål og gør noget, når de når frem */
+  for(const n of walkers){if(!n.root){n.root=n.o.root;n.sc=n.o.root.scale.x;n.sh=blob(2.8,1.4);n.face=1;n.ph=0;const p0=freePoi(n);n.poi=p0;[n.x,n.z]=p0.at;[n.tx,n.tz]=p0.at;n.q=[];n.until=time+R(2,6);n.acting=true;actPose(n,p0)}
+    if(n.q.length&&Math.hypot(n.tx-n.x,n.tz-n.z)<1.2)[n.tx,n.tz]=n.q.shift();
+    if(!n.acting&&!n.q.length&&Math.hypot(n.tx-n.x,n.tz-n.z)<.3){n.acting=true;n.until=time+R(...(n.poi.dur||[5,9]));actPose(n,n.poi)}
+    if(n.acting&&time>n.until){n.acting=false;n.yOff=0;n.sq=1;const p=freePoi(n);n.poi=p;const r=NET.route(n.x,n.z,p.at[0],p.at[1]).map(q=>[q[0],q[1]]);[n.tx,n.tz]=r.shift();n.q=r}
+    if(n.acting&&n.poi.face)n.face=n.poi.face;
     stepWalker(n,dt);n.o.arm.rotation.z=n.moving?.25*Math.sin(n.ph):.05*Math.sin(time*1.4);n.o.head.rotation.z=.04*Math.sin(time*1.1+n.x)}
   /* heksen og katten */
   W.armL.rotation.z=W0.moving?-.13+.35*Math.sin(W0.ph):-.13+.025*Math.sin(time*1.3);W.elL.rotation.z=.12;W.armR.rotation.z=.56;W.elR.rotation.z=.1;
@@ -212,7 +224,14 @@ function frame(now){
   for(const p of puffs){p.t+=dt;const k=(p.t%4)/4;p.s.position.set(chimneyAt.x+k*3+Math.sin(p.t*1.3)*.6,chimneyAt.y+k*12,chimneyAt.z);const sz=2+k*5;p.s.scale.set(sz,sz,1);p.s.material.opacity=Math.sin(k*Math.PI)*.8}
   for(const f of flies){f.s.position.set(f.x+Math.sin(time*f.sp+f.ph)*3,f.y+Math.sin(time*f.sp*1.7+f.ph)*1.2,f.z+Math.cos(time*f.sp*.8+f.ph)*2);f.s.material.opacity=.5+.5*Math.sin(time*3+f.ph)}
   for(const fl of flagsLive)fl.f.rotation.y=.35*Math.sin(time*2.6+fl.ph);
-  fall.material.map.offset.y=(time*.9)%1;
+  /* vandfaldet: to lag vand i hver sit tempo, skum, dråber og tåge */
+  for(const f of fall.layers)f.m.material.map.offset.y=(time*f.sp)%1;
+  for(const f of fall.foam){const k=.8+.25*Math.sin(time*5+f.ph);f.s.scale.set(f.b*k,f.b*k,1);f.s.position.x=fallAt.x+f.dx+.15*Math.sin(time*3+f.ph)}
+  for(const d of fall.drops){d.t=(d.t+dt*d.sp)%1;d.s.position.set(fallAt.x+d.dx+d.t*d.vx,fallAt.y-d.t*26,fallAt.z+.2);d.s.material.opacity=Math.sin(d.t*Math.PI)*.8}
+  for(const m of fall.mist){m.t=(m.t+dt*.25)%1;const sz=3+m.t*5;m.s.scale.set(sz,sz,1);m.s.position.set(fallAt.x+m.dx,fallAt.y-25.5+m.t*2.5,fallAt.z+.5);m.s.material.opacity=Math.sin(m.t*Math.PI)*.55}
+  /* den flyvende støvle svæver og slår med vingerne */
+  if(BOOT){const b=BOOT.B;b.position.y=BOOT.Y0+.45*Math.sin(time*1.3);b.rotation.z=.03*Math.sin(time*.9);for(const w of BOOT.wings){const f=Math.sin(time*3.2+(w.s<0?.5:0));w.g.rotation.z=-.15+.38*f;w.g.rotation.y=w.s*.12*f}
+    if(BOOT.sh){const k=1-.08*Math.sin(time*1.3);BOOT.sh.scale.set(k,k,1)}}
   for(const g of glints){g.t=(g.t+dt*g.sp)%1;const i=g.t*(RIVER.length-1),a=RIVER[Math.floor(i)],b=RIVER[Math.min(RIVER.length-1,Math.floor(i)+1)],k=i%1;g.s.position.set(mix(a[0],b[0],k)+Math.sin(g.t*40)*.6,TOP+.3,mix(a[1],b[1],k));g.s.material.opacity=.4+.6*Math.abs(Math.sin(time*2+g.t*20))}
   for(const l of leaves){l.y-=l.vy*dt;l.x+=Math.sin(time*1.3+l.ph)*dt*2;if(l.y<TOP){l.y=R(24,34);l.x=R(-80,80);l.z=R(-20,34)}l.m.position.set(l.x,l.y,l.z);l.m.rotation.set(Math.sin(time*2+l.ph),time*1.5+l.ph,Math.sin(time*1.7+l.ph))}
   {const k=((time*.04)%1.4)-.2;bird.position.set(mix(-100,100,k),62+3*Math.sin(time*.7),GZ0+2);for(const w of bird.wings)w.g.rotation.x=w.s*(.2+.9*Math.abs(Math.sin(time*8)))}
@@ -232,8 +251,10 @@ function frame(now){
   const stepMs=[];for(let i=0;i<BUILD.length;i++){msgN.textContent=`${i+1} af ${N}`;await wait();const t1=performance.now();BUILD[i]();stepMs.push(Math.round(performance.now()-t1))}window.__steps=stepMs;
   msgN.textContent=`${N-1} af ${N}`;await wait();buildLive();W0.sh=blob(4.6,2.3);C0.sh=blob(3,1.6);
   msgN.textContent=`${N} af ${N}`;await wait();
+  if(BOOT){const c=cv(128,64),g2=c.getContext('2d'),gr=g2.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.62)');gr.addColorStop(.55,'rgba(10,6,20,.35)');gr.addColorStop(1,'rgba(10,6,20,0)');g2.setTransform(1,0,0,.5,0,16);g2.fillStyle=gr;g2.fillRect(0,0,128,128);
+    BOOT.sh=new THREE.Mesh(new THREE.PlaneGeometry(21,5.5),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));BOOT.sh.rotation.x=-Math.PI/2;live.add(BOOT.sh);BOOT.sh.position.set(BOOT.X+1,TOP+.12,BOOT.Z+1.6)}
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
   renderer.compile(scene,cam);bake();renderer.compile(live,cam);
-  window.__kort={W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
+  window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
   requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();msg.classList.add('gone')})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();

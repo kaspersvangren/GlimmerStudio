@@ -58,10 +58,15 @@ function buildLive(){
     const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tx(c,true),transparent:true,depthWrite:false}));live.add(s);puffs.push({s,t:i/8*4})}
   for(const[x,y,z]of flagSpots){const g=new THREE.Group();put(live,g,x,y,z);dowel(g,0,0,4,0,.12);
     const f=makeCard(outline([[0,0,1],[3.4,.6,1],[3.2,1.6],[3.6,2.4,1],[0,2.4,1]],3,.02),{t:.15,s:30,both:true,paint:P=>P.coat(['#e05a8a','#f2c230','#7fd6ff'][flagsLive.length%3],null,{dir:0,bw:.3})});put(g,f,0,1.5,0);flagsLive.push({f,ph:R(TAU)})}
-  /* vandfaldet: en strimmel der ruller */
-  {const c=cv(64,256),g=c.getContext('2d');g.fillStyle='rgba(120,190,255,.0)';g.fillRect(0,0,64,256);for(let i=0;i<40;i++){g.fillStyle=`rgba(${200+R(55)|0},${230+R(25)|0},255,${R(.35,.85)})`;g.fillRect(R(64),R(256),R(3,8),R(20,60))}
-    const t=tx(c,true);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,2);fall=new THREE.Mesh(new THREE.PlaneGeometry(2.4,26),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,color:'#cfe6ff'}));fall.position.set(fallAt.x,fallAt.y-13,fallAt.z);live.add(fall);
-}
+  /* vandfaldet: et bredt, blødt lag bagerst og et smallere med lyse striber foran, skum ved kanten, dråber og tåge forneden */
+  {const strip=(n,a0,a1,wmin,wmax,bright)=>{const c=cv(64,256),g=c.getContext('2d');if(!bright){const gr=g.createLinearGradient(0,0,64,0);gr.addColorStop(0,'rgba(140,190,255,0)');gr.addColorStop(.25,'rgba(150,200,255,.45)');gr.addColorStop(.75,'rgba(150,200,255,.45)');gr.addColorStop(1,'rgba(140,190,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,256)}
+      for(let i=0;i<n;i++){const x=R(6,58),w=R(wmin,wmax),h=R(30,90),y=R(256);g.fillStyle=`rgba(${bright?'235,248,255':'190,225,255'},${R(a0,a1)})`;for(const oy of[-256,0])g.fillRect(x,y+oy,w,h)}
+      const t=tx(c,true);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,2);return t};
+    fall={layers:[],foam:[],drops:[],mist:[]};
+    for(const[w,t,sp,dz,op]of[[3.4,strip(30,.15,.4,3,9,false),.45,0,.85],[2.4,strip(46,.35,.9,1.5,4,true),1.15,.15,1]]){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,26),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,opacity:op,color:'#e2f0ff'}));m.position.set(fallAt.x,fallAt.y-13,fallAt.z+dz);live.add(m);fall.layers.push({m,sp})}
+    for(let i=0;i<5;i++){const s=sprite([[0,'rgba(255,255,255,.95)'],[.5,'rgba(235,245,255,.5)'],[1,'rgba(220,240,255,0)']],1.6,false);s.position.set(fallAt.x,fallAt.y+.1,fallAt.z+.3);live.add(s);fall.foam.push({s,dx:(i-2)*.55,b:R(1.2,1.8),ph:R(TAU)})}
+    for(let i=0;i<22;i++){const s=sprite([[0,'rgba(240,250,255,1)'],[1,'rgba(220,240,255,0)']],R(.35,.6),false);live.add(s);fall.drops.push({s,t:R(1),sp:R(.25,.45),dx:R(-1.8,1.8),vx:R(-1.5,1.5)})}
+    for(let i=0;i<4;i++){const s=sprite([[0,'rgba(240,248,255,.7)'],[1,'rgba(220,240,255,0)']],4,false);live.add(s);fall.mist.push({s,t:i/4,dx:R(-1.5,1.5)})}}
   /* glimt på åen */
   for(let i=0;i<10;i++){const s=sprite([[0,'rgba(220,240,255,.9)'],[1,'rgba(200,230,255,0)']],1.2);live.add(s);glints.push({s,t:R(1),sp:R(.03,.06)})}
   /* blade der falder */
