@@ -628,9 +628,9 @@ function makeFigure(look={}){
 
   /* ---- tøj: ben og støvler, krop, skørt/skøder og ærmer ---- */
   const HEM=.9,HW=5.6,hx=sw+2.2;
-  const boots=(bh,col,{cuff=null,lace=true,z=0}={})=>{LG.forEach((lg,i)=>{const sx=i?1:-1,x=sx*1.15,bt=sm([[x-.85,.12],[x-.6,-.04],[x+.6,-.04],[x+.85,.12],[x+.82,.9],[x+.72,bh,1],[x-.72,bh,1],[x-.82,.9]],6);
+  const boots=(bh,col,{cuff=null,lace=true,z=0}={})=>{LG.forEach((lg,i)=>{const sx=i?1:-1,x=sx*1.15,bt=sm([[x-.95,.12],[x-.7,-.04],[x+.7,-.04],[x+.95,.12],[x+.92,.9],[x+.84,bh,1],[x-.84,bh,1],[x-.92,.9]],6);
     fp(lg.i,toCCW(bt),{t:.3,s:40,ed:col,paint:P=>{P.wash(col,toCCW(bt),{edge:.5,top:hexOf(shade(hexOf(col),.18))});if(lace)for(let y=1.1;y<bh-.2;y+=.55){P.pen([[x-.45,y],[x+.45,y+.4]],C.cream,.07,.9);P.pen([[x+.45,y],[x-.45,y+.4]],C.cream,.07,.9)}}},z);
-    fp(lg.i,sm([[x-.92,-.08],[x+.92,-.08],[x+.95,.3],[x-.95,.3]],3),{color:C.brownDk,t:.34},z+.02);if(cuff)fp(lg.i,box(x-.95,bh-.75,x+.95,bh+.25),{color:cuff,kind:'water',t:.36},z+.04)})};
+    fp(lg.i,sm([[x-1.02,-.08],[x+1.02,-.08],[x+1.05,.3],[x-1.05,.3]],3),{color:C.brownDk,t:.34},z+.02);if(cuff)fp(lg.i,box(x-1.05,bh-.75,x+1.05,bh+.25),{color:cuff,kind:'water',t:.36},z+.04)})};
   const legs=(col,y0,{stripes=null,wd=.68}={})=>{LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15,sh=box(x-wd,y0,x+wd,HIP+.5);if(stripes)fp(lg.i,sh,{t:.15,s:40,ed:stripes,paint:P=>{P.flat(col);for(let y=y0;y<HIP+.5;y+=.7)P.flat(stripes,box(-9,y,9,y+.35),.85)}},-.1);else fp(lg.i,sh,{color:col,kind:'water',t:.18},-.1)})};
   const hand=(grp,pts,z)=>{const hs=sm(pts,6);fp(grp,hs,{t:.12,s:60,ed:L.skinSh,paint:P=>P.wash(L.skin,hs,{edge:.35})},z)};
   /* ærmer: venstre hænger, højre holder staven (eller hænger, hvis der ingen stav er) */
@@ -657,10 +657,10 @@ function makeFigure(look={}){
       const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:KJ,paint:P=>P.wash(KJ,bd,{top:KJL,edge:.5})},.3);belt();pouch(ww*.45);
       const c=sm([[-sw-.4,S+.25],[sw+.4,S+.25],[sw*.95,S-1.5],[sw*.4,S-2.2],[0,S-2.4],[-sw*.4,S-2.2],[-sw*.95,S-1.5]],6);fp(T_,c,{t:.16,s:30,ed:C.navy,paint:P=>{P.wash(C.navy,c,{top:C.navyLt,edge:.5});const e=grow(c,-.25)[0].outer;for(let i=0;i<e.length;i+=3)P.fill(circ(e[i][0],e[i][1],.08,.08,6),C.gold,1)}},.5);fp(T_,starPts(0,S-1.25,.7,.3),{mat:gold(),t:.1},.6);
       arms(KJ,{sl:.7})}
-    if(k==='eventyrer'){const TR='#6e4c30',TU=L.col.tunika||C.teal,TUD=hexOf(shade(hexOf(TU),-.3));boots(5.2,C.leather,{cuff:'#a06c3e'});legs(TR,4.6,{wd:.82});
+    if(k==='eventyrer'){const TR='#6e4c30',TU=L.col.tunika||C.teal,TUD=hexOf(shade(hexOf(TU),-.3));boots(5.2,C.leather,{cuff:'#a06c3e'});legs(TR,4.6,{wd:1.04});
       /* bukser: skridt og lår, med knælapper */
       crotch(TR);
-      LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15;fp(lg.i,sm([[x-.5,7.9],[x+.5,7.9],[x+.55,6.7],[x-.55,6.7]],3),{color:'#8a6240',kind:'water',t:.06},-.02)});
+      LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15;fp(lg.i,sm([[x-.62,8],[x+.62,8],[x+.68,6.6],[x-.68,6.6]],3),{color:'#8a6240',kind:'water',t:.06},-.02)});
       /* hørskjorte med snøre i halsen */
       const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:'#c8b890',paint:P=>{P.wash(C.cream,bd,{edge:.5});for(let y=S-2.6;y<S-.6;y+=.5)P.pen([[-.3,y],[.3,y+.45]],'#8a6a40',.05,.9)}},.3);
       /* tunika-vest i to forstykker og korte skøder, med syet guldkant */
@@ -672,7 +672,7 @@ function makeFigure(look={}){
       belt(1,C.leatherDk,.6);pouch(-ww-.2,1.5,'#8a5432');pouch(ww*.3,1.3,'#7a4a2a');
       {const bx=-.55;fp(T_,sm([[bx-.38,Wy-.5],[bx+.38,Wy-.5],[bx+.42,Wy-1.5],[bx,Wy-1.85],[bx-.42,Wy-1.5]],4),{t:.2,mat:paperMat('#d8fff0','tissue',{glow:'#5fe0b0',gi:1.1})},.56);fp(T_,box(bx-.2,Wy-.5,bx+.2,Wy-.2),{color:'#c8a070',kind:'balsa',t:.22},.58)}
       arms(C.cream,{sl:.1,bracer:true})}
-    if(k==='skovløber'){const TU=L.col.tunika||'#5d7d3c',TUD=hexOf(shade(TU,-.3)),TUL=hexOf(shade(TU,.2)),TR='#5a4632';boots(4.8,'#6a4426',{cuff:'#8a6240'});legs(TR,4.2,{wd:.8});crotch(TR);
+    if(k==='skovløber'){const TU=L.col.tunika||'#5d7d3c',TUD=hexOf(shade(TU,-.3)),TUL=hexOf(shade(TU,.2)),TR='#5a4632';boots(4.8,'#6a4426',{cuff:'#8a6240'});legs(TR,4.2,{wd:1.02});crotch(TR);
       /* lang tunika med takket søm, snøre i halsen og syet kant */
       const hemY=HIP-3.4,o=[[-ww,Wy+.2],[ww,Wy+.2],[ww+1.7,hemY+.7]];for(let i=0;i<=8;i++){const x=(ww+1.7)*(1-i/4);o.push([x,hemY+(i%2?.75:0)])}
       const tk=toCCW(o);fp(SK,tk,{t:.16,s:36,ed:TUD,paint:P=>{P.wash(TU,tk,{top:TUL,edge:.5,clouds:6});for(let i=0;i<8;i++){const a=[(ww+1.7)*(1-i/4),hemY+(i%2?.75:0)+.35],b=[(ww+1.7)*(1-(i+1)/4),hemY+((i+1)%2?.75:0)+.35];P.score([a,[(a[0]+b[0])/2,(a[1]+b[1])/2]],{w:.05,ink:.7,dark:C.gold})}P.score([[0,Wy],[0,hemY+.9]],{w:.06,ink:.3,dark:TUD})}},.22);
@@ -695,7 +695,7 @@ function makeFigure(look={}){
       /* kompas i en kæde ved bæltet */
       {const kx=ww*.55,ky=Wy-1.35;fps(thick([[[kx-.5,Wy-.4],[kx-.1,ky+.3]]],.05),{mat:gold(),t:.04},T_,.5);fp(T_,circ(kx,ky,.52,.52,20),{mat:gold(),t:.12},.52);fp(T_,circ(kx,ky,.38,.38,20),{color:'#f6efe0',kind:'card',t:.04},.6);fp(T_,[[kx,ky+.32],[kx+.09,ky],[kx,ky-.32],[kx-.09,ky]],{color:'#c2452d',kind:'card',t:.03},.63)}
       arms('#f3ead6',{sl:.15,cuff:'#e0d4b8'})}
-    if(k==='rejsekappe'){const CO=L.col.frakke||'#4a3460',COL=hexOf(shade(CO,.18)),COD=hexOf(shade(CO,-.35)),TR='#46506e';boots(3.6,C.brownDk,{cuff:null});legs(TR,3.2,{wd:.8});
+    if(k==='rejsekappe'){const CO=L.col.frakke||'#4a3460',COL=hexOf(shade(CO,.18)),COD=hexOf(shade(CO,-.35)),TR='#46506e';boots(3.6,C.brownDk,{cuff:null});legs(TR,3.2,{wd:1});
       crotch(TR);
       const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:'#c8b890',paint:P=>{P.flat(C.cream,bd);for(let x=-3;x<3;x+=.6)P.flat(C.teal,box(x,Wy-1,x+.22,S+1),.8)}},.3);belt(.7,C.brown,.45);
       for(const sx of[-1,1]){const up=toCCW([[sx*(sw+.1),S+.1],[sx*sw*.32,S-.1],[sx*.95,S-2.3],[sx*1.15,Wy-.2],[sx*(ww+.55),Wy-.2],[sx*sw*1.0,S-1.2]]);fp(T_,up,{t:.16,s:40,ed:COD,paint:P=>{P.wash(CO,up,{top:COL,edge:.5})}},.46);
@@ -724,7 +724,7 @@ function makeFigure(look={}){
   function buildAcc(){wipe(F.gAcc);const k=L.tilbehør;
     if(k==='taske'){fps(thick([[[-sw+.5,S-.2],[ww+.8,Wy-.8]]],.28),{color:'#8a5432',kind:'water',t:.08},F.gAcc,.62);fp(F.gAcc,sm([[ww+.2,Wy-.2,1],[ww+3.2,Wy-.2,1],[ww+3.2,Wy-2.8],[ww+2.8,Wy-3.2],[ww+.6,Wy-3.2],[ww+.2,Wy-2.8]],5),{color:'#8a5432',kind:'water',t:.5},.78);fp(F.gAcc,sm([[ww+.1,Wy-.1,1],[ww+3.3,Wy-.1,1],[ww+3.1,Wy-1.6],[ww+1.7,Wy-2],[ww+.3,Wy-1.6]],5),{color:'#a0643c',kind:'water',t:.1},1.06);fp(F.gAcc,box(ww+1.45,Wy-2.1,ww+1.95,Wy-1.55),{mat:gold(),t:.1},1.14)}
     if(k==='rygsæk'){/* sovepose på tværs bag ryggen, og bæreremme over skuldrene */
-      const by=Wy-.9,bw=sw+3.5,rl=sm([[-bw,by+1.05],[bw,by+1.05],[bw+.25,by],[bw,by-1.05],[-bw,by-1.05],[-bw-.25,by]],5);fp(F.gAcc,rl,{t:.5,s:40,ed:'#3f6f68',paint:P=>{P.wash(C.teal,rl,{top:hexOf(shade(hexOf(C.teal),.2)),edge:.5});for(const x of[-bw+1.1,bw-1.1])P.flat(C.leatherDk,box(x-.2,by-1.2,x+.2,by+1.2),.9)}},-.62);
+      const by=Wy-1.3,bw=sw+2.5,rl=sm([[-bw,by+1.05],[bw,by+1.05],[bw+.25,by],[bw,by-1.05],[-bw,by-1.05],[-bw-.25,by]],5);fp(F.gAcc,rl,{t:.5,s:40,ed:'#3f6f68',paint:P=>{P.wash(C.teal,rl,{top:hexOf(shade(hexOf(C.teal),.2)),edge:.5});for(const x of[-bw+1.1,bw-1.1])P.flat(C.leatherDk,box(x-.2,by-1.2,x+.2,by+1.2),.9)}},-.62);
       for(const sx of[-1,1]){fp(F.gAcc,circ(sx*(bw+.05),by,.5,1,16),{color:'#e6dcc0',kind:'card',t:.06,edge:'#3f6f68'},-.34);fps(thick([[[sx*sw*.78,S+.1],[sx*(ww+.25),Wy+.3]]],.34),{color:C.leather,kind:'water',t:.08,edge:C.leatherDk},F.gAcc,.6);fp(F.gAcc,box(sx*(ww+.5)-.3,Wy+1.1,sx*(ww+.5)+.3,Wy+1.6),{mat:gold(),t:.08},.66)}
       fps(thick([[[-ww*1.1,S-2.1],[ww*1.1,S-2.1]]],.22),{color:C.leather,kind:'water',t:.08,edge:C.leatherDk},F.gAcc,.62);fp(F.gAcc,box(-.3,S-2.4,.3,S-1.8),{mat:gold(),t:.08},.68)}
     if(k==='tørklæde'){fp(F.gAcc,sm([[-sw*.7,S+.35],[sw*.7,S+.35],[sw*.78,S-.6],[0,S-1.15],[-sw*.78,S-.6]],6),{color:C.red,kind:'water',t:.14},1.36);fp(F.gAcc,sm([[sw*.3,S-.6],[sw*.75,S-.7],[sw*.95,S-3.4],[sw*.55,S-3.6],[sw*.35,S-1.5]],5),{color:'#b24a34',kind:'water',t:.08},1.4);for(const y of[S-3.1,S-2.7])fps(thick([[[sw*.5,y],[sw*.92,y+.05]]],.06),{color:C.cream,t:.04},F.gAcc,1.46)}}
