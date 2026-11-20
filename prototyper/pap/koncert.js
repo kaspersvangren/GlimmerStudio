@@ -75,6 +75,18 @@ BUILD.push(()=>{const SIL='#170c18',EDGE='#5a3a6a';
   const kinds=['heks','top','bowler','horn','knold','ører'];
   for(const[z,xs,k]of[[20,[-72,-50,-30,30,50,72],.72],[36,[-62,-38,-14,14,38,62],.86]]){for(const x of xs){table(x,z,k*.9);person(x-4.8*k,z-2,k,kinds[Math.floor(R(kinds.length))]);person(x+4.6*k,z-1.6,k*.96,kinds[Math.floor(R(kinds.length))])}}});
 
+/* ---- scenen har dybde: trommerne står på en forhøjning bagerst, bassen på en lavere til højre, sang og guitar forrest ---- */
+const MARK=[{x:-14,z:2.6,ex:-1},{x:3,z:3.6,ex:1},{x:-3,z:-7.8,ex:-1},{x:15.5,z:-4.2,ex:1}];
+const RIS=[{x0:-9.4,x1:3.4,z0:-11,z1:-4.2,h:2.6},{x0:9.6,x1:21.4,z0:-8,z1:-1.4,h:1.4}];
+const floorY=(x,z)=>{for(const r of RIS)if(x>r.x0&&x<r.x1&&z>r.z0&&z<r.z1+.4)return r.h;return 0};
+BUILD.push(()=>{for(const r of RIS){pc(scene,box(r.x0,OPEN.y0,r.x1,OPEN.y0+r.h),{t:.3,s:20,paint:P=>{P.wash('#5a1a2c',null,{edge:0,top:'#7a2238'});P.pen([[r.x0,OPEN.y0+r.h-.25],[r.x1,OPEN.y0+r.h-.25]],'#c9a04a',.12,.9);for(let x=r.x0+.8;x<r.x1;x+=1.6)P.fill(starPts(x,OPEN.y0+r.h*.45,.32,.13),'#c9a04a',.7)}},r.z1);
+    flatP(scene,box(r.x0,-r.z1,r.x1,-r.z0),{color:'#6a4426',kind:'balsa',t:.2},0,OPEN.y0+r.h,0)}
+  /* trommesættet står fast på forhøjningen */
+  {const dk=new THREE.Group();put(scene,dk,-3,OPEN.y0+RIS[0].h,-5.6);dk.scale.setScalar(1.25);pc(dk,circ(0,3,2.8,2.8,40),{color:'#efe6d8',kind:'water',t:.6},0);pc(dk,ring(circ(0,3,2.8,2.8,40),.35)[0],{color:'#b0283a',t:.65},.05);pc(dk,circ(0,3,1.1,.8,24),{color:'#d84a4a',t:.08},.35);pc(dk,box(-.25,2,.25,3),{color:'#efe3c8',t:.06},.36);
+    for(const sx of[-1,1]){pc(dk,circ(sx*3.6,5.6,1.2,.6,20),{color:'#efe6d8',kind:'water',t:.5},-.2);pc(dk,circ(sx*4.6,8.6,1.7,.28,20),{mat:gold(),t:.15},-.3);stick(dk,sx*4.6,0,8.4,-.3,.12,'#8a8a96')}}
+  /* mikrofonen står forrest */
+  stick(scene,MARK[1].x+4.2,OPEN.y0,OPEN.y0+9.4,MARK[1].z+1.6,.2,'#2a2a32');{const m=new THREE.Mesh(new THREE.SphereGeometry(.55,16,12),paperMat('#c0c4d0','card'));m.castShadow=true;put(scene,m,MARK[1].x+4.2,OPEN.y0+9.8,MARK[1].z+1.6);pc(scene,circ(MARK[1].x+4.2,OPEN.y0+.2,1.2,.35,20),{color:'#2a2a32',t:.5},MARK[1].z+1.6)}});
+
 /* ============ det levende lag: kulisser, tæppe, band og lys ============ */
 /* sangene: hver har sit bagtæppe, sine farver på hatte og trøjer, sit lys og en lille ting på gnomerne */
 const STY={
@@ -124,9 +136,8 @@ function gnome(i,inst){const G=new THREE.Group(),SKIN='#f4c8a0';const o={G,i,ins
   o.sleeveL=pc(o.armL,sm([[-.45,.3],[.45,.3],[.5,-3],[-.5,-3]],3),{color:'#3f7a4a',kind:'water',t:.2},0);pc(o.armL,circ(0,-3.3,.6,.6,16),{color:SKIN,kind:'water',t:.2},.1);
   /* instrumenter */
   if(inst==='guitar'){const gt=new THREE.Group();put(G,gt,0,4.6,.7);gt.rotation.z=.5;pieces(clip([circ(0,0,1.9,1.7,28),circ(0,2.2,1.4,1.3,24)],[],'union'),{color:'#c0782e',t:.25},gt,0,0,0);pc(gt,circ(0,1,.5,.5,16),{color:'#2a1408',t:.05},.15);pc(gt,box(-.3,3,.3,7.8),{color:'#5a3420',kind:'balsa',t:.2},.05);pc(gt,box(-.5,7.6,.5,8.6),{color:'#3a2010',t:.25},.05);o.armL.rotation.z=-1.9;o.armR.rotation.z=.9}
-  if(inst==='mic'){stick(G,3.4,0,7.4,1.4,.18,'#2a2a32');const m=new THREE.Mesh(new THREE.SphereGeometry(.45,16,12),paperMat('#c0c4d0','card'));put(G,m,3.4,7.7,1.4);o.armL.rotation.z=-2.6;o.armR.rotation.z=1.2}
-  if(inst==='trommer'){const dk=new THREE.Group();put(G,dk,0,0,2.4);pc(dk,circ(0,3,2.8,2.8,40),{color:'#efe6d8',kind:'water',t:.6},0);pc(dk,ring(circ(0,3,2.8,2.8,40),.35)[0],{color:'#b0283a',t:.65},.05);pc(dk,circ(0,3,1.1,.8,24),{color:'#d84a4a',t:.08},.35);pc(dk,box(-.25,2,.25,3),{color:'#efe3c8',t:.06},.36);
-    for(const sx of[-1,1]){pc(dk,circ(sx*3.6,5.6,1.2,.6,20),{color:'#efe6d8',kind:'water',t:.5},-.2);pc(dk,circ(sx*4.6,8.6,1.7,.28,20),{mat:gold(),t:.15},-.3);stick(dk,sx*4.6,0,8.4,-.3,.12,'#8a8a96')}o.armL.rotation.z=-.7;o.armR.rotation.z=.7;
+  if(inst==='mic'){o.armL.rotation.z=-2.6;o.armR.rotation.z=1.2}
+  if(inst==='trommer'){o.armL.rotation.z=-.7;o.armR.rotation.z=.7;
     for(const a of[o.armL,o.armR]){const s=new THREE.Mesh(new THREE.BoxGeometry(.16,2.6,.16),paperMat('#e8d0a0','balsa'));s.rotation.z=1.2*(a===o.armL?-1:1);put(a,s,0,-3.6,.4)}}
   if(inst==='bas'){const bg=new THREE.Group();put(G,bg,-2.4,0,.9);const B=sm([[0,0],[2.2,.6],[2.6,2.6],[1.6,4.2],[2.2,5.6],[1.4,7.2],[0,7.4],[-1.4,7.2],[-2.2,5.6],[-1.6,4.2],[-2.6,2.6],[-2.2,.6]],8);pc(bg,B,{t:.3,s:30,paint:P=>{P.wash('#9a4a1e',B,{top:'#c06a2a',edge:.6});for(const sx of[-1,1])P.pen(curve([[sx*.9,4],[sx*1.1,3],[sx*.8,2]],5),'#2a1408',.12,.9)}},0);pc(bg,box(-.28,7,.28,13.6),{color:'#3a2010',kind:'balsa',t:.2},.1);pc(bg,circ(0,14,.6,.6,16),{color:'#3a2010',t:.25},.1);for(const x of[-.35,-.12,.12,.35])pieces(thick([[[x,1.2],[x*.4,13.4]]],.03),{color:'#e8e0c8',t:.03},bg,0,0,.3);o.armL.rotation.z=-1.2;o.armR.rotation.z=.4}
   /* små ting til hver sang */
@@ -141,7 +152,7 @@ function gnome(i,inst){const G=new THREE.Group(),SKIN='#f4c8a0';const o={G,i,ins
 function dress(o,sty){const S=STY[sty];o.hat.material[0]=paperMat(S.hats[o.i],'water');o.hat.material[1]=o.hat.material[0];const t=paperMat(S.tun[o.i],'water');o.tun.material[0]=t;o.sleeveR.material[0]=t;o.sleeveL.material[0]=t;for(const k in o.acc)o.acc[k].visible=k===S.acc}
 
 /* ---- tæppet: to halvdele af fløjl i folder, der glider sammen ---- */
-function makeCurtain(){const C={halves:[],t:0,target:0};for(const s of[-1,1]){const g=new THREE.Group();put(live,g,0,0,4.6);
+function makeCurtain(){const C={halves:[],t:0,target:0};for(const s of[-1,1]){const g=new THREE.Group();put(live,g,0,0,5.5);
     for(let k=0;k<9;k++){const x0=k*3.6,f=[[x0,OPEN.y0-.2],[x0+3.8,OPEN.y0-.2]];for(let i=0;i<=6;i++){const t=i/6;f.push([x0+3.8-t*3.8,OPEN.y0-.2+(i%2?-.25:.15)])}const strip=toCCW([[x0,OPEN.y0-.2],[x0+3.8,OPEN.y0-.2],[x0+3.8,OPEN.y1+3],[x0,OPEN.y1+3]]);
       const m=pc(g,strip.map(([x,y])=>[s*(x+.1),y]),{t:.2,s:10,paint:P=>{const r=toCCW(strip.map(([x,y])=>[s*(x+.1),y]));P.wash(k%2?'#9a1226':'#b81a30',r,{edge:.6,clouds:4});P.wash('#5a0614',box(s>0?x0+2.8:-x0-3.9,OPEN.y0-1,s>0?x0+3.9:-x0-2.8,OPEN.y1+4),{alpha:.5,edge:.8})}},k*.05)}
     pieces(thick([[[s*.1,OPEN.y0+.2],[s*33,OPEN.y0+.2]]],.3),{mat:gold(),t:.1},g,0,0,.5);
@@ -153,12 +164,14 @@ function cone(col){const c=cv(64,256),g=c.getContext('2d');const gr=g.createLine
 
 /* ---- kamera og bagning ---- */
 const cam=new THREE.PerspectiveCamera(30,1,20,800),CD=190;
-const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;c.position.set(0,24+CD*Math.sin(.16),CD*Math.cos(.16)+10);c.lookAt(0,23,10)},P_:{aoR:.6,dof:[.12,.3],haze:[1.5,2,.0],hazeC:[.06,.03,.05],bloom:1.1,bg:'#120a14'}});
+const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;c.position.set(0,23+CD*Math.sin(.21),CD*Math.cos(.21)+10);c.lookAt(0,22,10)},P_:{aoR:.6,dof:[.12,.3],haze:[1.5,2,.0],hazeC:[.06,.03,.05],bloom:1.1,bg:'#120a14'}});
 
 (async()=>{try{const fams=['Alegreya SC'];try{await Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,3000))])}catch(_){}
   for(const b of BUILD){await new Promise(r=>setTimeout(r,0));b()}
   for(const k of['nat','rock','disko','solnedgang','klassisk','lade'])backdrop(k);
-  const insts=['guitar','mic','trommer','bas'];insts.forEach((ins,i)=>{const o=gnome(i,ins);put(live,o.G,[-16,-5.5,6,17][i],OPEN.y0+.15,-3+(i===2?-1.5:0));o.G.scale.setScalar(1.25);BAND.push(o);const sp=cone('#ffe2b0');put(live,sp,o.G.position.x,OPEN.y0+15,-4.5);SPOT.push(sp)});
+  const shTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(10,4,10,.6)');gr.addColorStop(1,'rgba(10,4,10,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
+  const insts=['guitar','mic','trommer','bas'];insts.forEach((ins,i)=>{const o=gnome(i,ins),m=MARK[i];o.x=m.x;o.z=m.z;o.q=[];o.sc=1.25;o.dir=1;put(live,o.G,m.x,OPEN.y0+.15+floorY(m.x,m.z),m.z);o.G.scale.setScalar(o.sc);BAND.push(o);const sp=cone('#ffe2b0');put(live,sp,m.x,OPEN.y0+15+floorY(m.x,m.z),m.z-1.5);SPOT.push(sp);
+    o.sh=new THREE.Mesh(new THREE.PlaneGeometry(7,3),new THREE.MeshBasicMaterial({map:shTex,transparent:true,depthWrite:false}));o.sh.rotation.x=-Math.PI/2;live.add(o.sh)});
   for(const b of[0,1])for(const s of[-1,1]){/* lyskæder over scenen */}
   {const pts=[];for(let i=0;i<=24;i++){const t=i/24;pts.push([mix(OPEN.x0+3,OPEN.x1-3,t),OPEN.y1-5-2.6*Math.sin(t*Math.PI),-8])}cord(live,pts,.05,'#3a2a20');for(let i=1;i<24;i+=2){const[x,y,z]=pts[i];const s=glowSprite(['rgba(255,120,160,.95)','rgba(120,220,255,.95)','rgba(255,220,120,.95)','rgba(160,255,140,.95)'][(i>>1)%4],2.2);s.position.set(x,y-.6,z+.2);live.add(s);GL.push({spr:s,blink:R(TAU)})}}
   curtain=makeCurtain();
@@ -167,8 +180,15 @@ const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const 
   ST.bake();msg.classList.add('gone');
   let t=0,last=performance.now();
   const loop=now=>{requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
-    for(const o of BAND){const b=Math.abs(Math.sin(beat+o.i*.4));o.G.position.y=OPEN.y0+.15+b*.35;o.head.rotation.z=.08*Math.sin(beat*.5+o.i);o.hatG.rotation.z=.06*Math.sin(beat*.5+o.i+1);
-      if(o.inst==='guitar')o.armR.rotation.z=.9+.35*Math.sin(beat*2);if(o.inst==='mic')o.armL.rotation.z=-2.6+.25*Math.sin(beat*.5);if(o.inst==='trommer'){o.armL.rotation.z=-.7+.5*Math.max(0,Math.sin(beat*2));o.armR.rotation.z=.7-.5*Math.max(0,Math.sin(beat*2+Math.PI))}if(o.inst==='bas')o.armR.rotation.z=.4+.3*Math.sin(beat)}
+    for(const o of BAND){const walking=o.q.length>0;
+      if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
+      else o.dir+=(1-o.dir)*Math.min(1,dt*8);
+      const hop=walking?Math.abs(Math.sin((o.wp||0)*.55))*1.1:Math.abs(Math.sin(beat+o.i*.4))*.35;o.fy=(o.fy===undefined?floorY(o.x,o.z):o.fy+(floorY(o.x,o.z)-o.fy)*Math.min(1,dt*10));
+      o.G.position.set(o.x,OPEN.y0+.15+o.fy+hop,o.z);o.G.scale.set(o.sc*(o.dir<0?-1:1),o.sc,o.sc);o.G.rotation.z=walking?.06*Math.sin((o.wp||0)*.55)*o.dir:0;
+      o.sh.position.set(o.x,OPEN.y0+.22+o.fy,o.z+.3);o.sh.material.opacity=1-hop*.25;
+      o.head.rotation.z=.08*Math.sin(beat*.5+o.i);o.hatG.rotation.z=.06*Math.sin(beat*.5+o.i+1);
+      if(!walking){if(o.inst==='guitar')o.armR.rotation.z=.9+.35*Math.sin(beat*2);if(o.inst==='mic')o.armL.rotation.z=-2.6+.25*Math.sin(beat*.5);if(o.inst==='trommer'){o.armL.rotation.z=-.7+.5*Math.max(0,Math.sin(beat*2));o.armR.rotation.z=.7-.5*Math.max(0,Math.sin(beat*2+Math.PI))}if(o.inst==='bas')o.armR.rotation.z=.4+.3*Math.sin(beat)}
+      const m=MARK[o.i],on=Math.hypot(o.x-m.x,o.z-m.z)<1.5?1:0,sp=SPOT[o.i];sp.userData.a=(sp.userData.a??1)+(on-(sp.userData.a??1))*Math.min(1,dt*4);sp.material.opacity=.35*sp.userData.a}
     for(const gl of GL){if(gl.blink!==undefined){const k=.6+.4*Math.sin(t*2+gl.blink);gl.spr.scale.set(2.2*k,2.2*k,1)}else{const k=gl.f?(.92+.08*Math.sin(t*9+gl.ph)*Math.sin(t*5.3)):(.95+.05*Math.sin(t*3+gl.ph));gl.spr.scale.set(gl.base*k,gl.base*k,1)}}
     SPOT.forEach((sp,i)=>{sp.rotation.z=.08*Math.sin(t*.7+i*1.3)});
     if(BD.disko&&BD.disko.visible)BD.disko.userData.ball.rotation.y+=dt*.8;
@@ -183,5 +203,10 @@ function setStyle(k,now){const S=STY[k];cur=k;for(const n in BD)BD[n].visible=n=
   if(curtain&&now){curtain.t=0;curtain.target=0}}
 /* tøjet skiftes først, når tæppet er helt for, så ingen ser det ske */
 const until=f=>new Promise(r=>{const c=()=>f()?r():setTimeout(c,50);c()});
-async function wish(k){if(busy||k===cur)return;busy=true;curtain.target=1;await until(()=>curtain.t>.97);setStyle(k);await new Promise(r=>setTimeout(r,450));curtain.target=0;await until(()=>curtain.t<.05);busy=false}
+/* bandet går ud i kulissen, tæppet går for, og de kommer gående ind igen i det nye tøj */
+const OFF=42;
+function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.ex*OFF,m.z])}}
+function walkIn(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.x,m.z])}}
+const idle=()=>BAND.every(o=>!o.q.length);
+async function wish(k){if(busy||k===cur)return;busy=true;walkOut();await until(idle);curtain.target=1;await until(()=>curtain.t>.97);setStyle(k);await new Promise(r=>setTimeout(r,450));curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false}
 {const box_=document.getElementById('songs');for(const k in STY){const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.addEventListener('click',()=>{wish(k);box_.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});if(k==='hygge')b.setAttribute('aria-pressed','true');box_.appendChild(b)}}

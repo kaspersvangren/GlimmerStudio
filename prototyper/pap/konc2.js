@@ -8,6 +8,6 @@ const { chromium } = require('playwright');
   await p.goto('file://' + __dirname + '/testkoncert.html');
   await p.waitForFunction(() => document.getElementById('msg').classList.contains('gone') || /Fejl/.test(document.getElementById('msgN').textContent), null, { timeout: 300000 });
   await p.waitForTimeout(1500); await p.screenshot({ path: __dirname + '/konc.png', timeout: 240000 });
-  for (const k of (process.argv[4] || '').split(',').filter(Boolean)) { await p.click(`#songs button:has-text("${k}")`); await p.waitForFunction(() => document.querySelector('#songs') && true); await p.waitForTimeout(9000); await p.screenshot({ path: __dirname + `/konc-${k}.png`, timeout: 240000 }) }
+  for (const k of (process.argv[4] || '').split(',').filter(Boolean)) { await p.click(`#songs button:has-text("${k}")`); await p.waitForTimeout(2500); await p.screenshot({ path: __dirname + `/konc-ud-${k}.png`, timeout: 240000 }); await p.waitForTimeout(22000); await p.screenshot({ path: __dirname + `/konc-${k}.png`, timeout: 240000 }) }
   await b.close();
 })();

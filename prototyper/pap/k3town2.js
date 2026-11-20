@@ -145,42 +145,11 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
     for(const s of[-1,1]){const ch=new THREE.Group();put(tg,ch,s*2.7,0,0);stick(ch,0,.3,4.4,-.2,.2,PAL.woodDk);put(ch,piece(box(-.8,2.2,.8,2.45),{color:'#8a5a3a',kind:'balsa',t:1.4}),0,0,0);put(ch,piece(box(-.8,3.2,.8,4.4),{color:'#8a5a3a',kind:'balsa',t:.12}),0,0,-.55);stick(ch,-.6,.3,2.2,.5,.16,PAL.woodDk);stick(ch,.6,.3,2.2,.5,.16,PAL.woodDk)}}
   lamp(X,Z+5,'#ffb35c',70,20,6)});
 
-/* ---- Den Flyvende Støvle: en snørestøvle med krave, tåkappe og riflet sål, der svæver og slår med vingerne ----
-   Den ligger i det levende lag, så den kan bevæge sig. */
+/* ---- Den Flyvende Støvle (formen ligger i stoevle.js): svæver i det levende lag ---- */
 let BOOT=null;
-BUILD.push(()=>{const X=-27,Z=28.2,Y0=3.4;
-  const B=new THREE.Group();B.position.set(X,Y0,Z);live.add(B);B.userData.house='stoevle';HOUSE.stoevle={g:B,door:[X+3.6,Z+.3],spot:[X+3.6,31.2],foot:[X-10.5,X+11.5,Z-1,Z+1]};HOUSEG.push(B);SPOTS.stoevle=[X+3.6,31.2];
-  const O=outline([[-9.4,0,1],[9.2,0,1],[10.6,1.0],[11,2.4],[10.4,3.8],[8.6,4.9],[6,5.6],[3.6,6.4],[2.2,7.6],[1.6,10],[1.4,13.2],[2.6,14.6],[3.4,16.2,1],[1.4,16.8],[-1.2,16.4],[-3.6,17.2],[-5.6,16.8,1],[-6.2,15.2],[-6,12],[-6.4,8.4],[-7.6,5.6],[-9,3.6],[-9.6,1.6]],8,0);
-  const door=arch(3.6,.9,2.5,3.9,14),win1=arch(-2.4,8.4,2.8,3.2,14),LEA='#9a5a2e';
-  for(const sh of clip([O],[door,win1],'diff'))put(B,piece(sh,{t:.5,s:26,paint:P=>{P.wash(LEA,O,{top:'#b4703a',clouds:14,edge:.7});
-      for(const c of[[[-5.5,6.2],[-3,6.8],[-.6,6.4]],[[-5.6,11],[-3.4,11.6],[-1,11.2]],[[4.5,5.1],[6.8,4.6],[8.6,3.9]],[[-4.6,14.4],[-2.6,14.9],[-.4,14.6]],[[-6,3],[-7.5,2.4]]])P.score(curve(c,6),{w:.09,ink:.4,dark:'#4a2410'});
-      const seam=curve([[-6.8,5],[-2,5.6],[1.8,7.2]],8);for(let k=0;k<seam.length-1;k+=2)P.score([seam[k],seam[k+1]],{w:.05,ink:.5,dark:'#f2d2a0'});
-      P.wash('#5a2c12',box(-12,-1,12,1.2),{alpha:.35,edge:0})}}),0,0,0);
-  /* tåkappe og hælkappe i lidt lysere læder, med syninger */
-  const toe=toCCW([[4.6,0],[9.2,0],[10.6,1],[11,2.4],[10.4,3.8],[8.6,4.9],[6.4,5.5],[5.4,3.4]]);put(B,piece(toe,{t:.12,s:40,paint:P=>{P.wash('#ad6a36',toe,{edge:.6,clouds:6});const st=curve([[5.9,.4],[6.2,3.2],[7.6,4.7]],8);for(let k=0;k<st.length-1;k+=2)P.score([st[k],st[k+1]],{w:.05,ink:.55,dark:'#f2d2a0'})}}),0,0,.32);
-  const heel=toCCW([[-9.4,0],[-5.6,0],[-6,2.6],[-7.6,5.4],[-9,3.6],[-9.6,1.6]]);put(B,piece(heel,{t:.12,s:40,paint:P=>P.wash('#8a4e26',heel,{edge:.6})}),0,0,.32);
-  /* krave med lyst for, foldet ned */
-  put(B,piece(toCCW([[-5.6,16.8],[-3.6,17.2],[-1.2,16.4],[1.4,16.8],[3.4,16.2],[2.5,14.6],[1.2,15.3],[-1.2,15],[-3.6,15.7],[-5.9,15.3]]),{color:'#d8a265',kind:'water',t:.12}),0,0,.34);
-  /* tunge og snørebånd med messingringe */
-  put(B,piece(toCCW([[.4,7.8],[2,7.6],[2.1,14.6],[.6,14.9]]),{color:'#c58a52',kind:'water',t:.1}),0,0,.3);
-  const eye=[];for(let k=0;k<6;k++){const y=8.4+k*1.18,x=.55-k*.05;eye.push([x,y]);put(B,piece(circ(x,y,.26,.26,14),{mat:gold(),t:.08}),0,0,.42);put(B,piece(circ(x,y,.1,.1,8),{color:'#2a1408',t:.06}),0,0,.48)}
-  for(let k=0;k<5;k++){const a=eye[k],b=eye[k+1];pieces(thick([[[a[0],a[1]],[1.95,b[1]-.15]]],.1),{color:'#f2e2c0',t:.05},B,0,0,.5);pieces(thick([[[1.95,a[1]+.2],[b[0],b[1]]]],.1),{color:'#e8d6b0',t:.05},B,0,0,.46)}
-  pieces(thick([curve([[eye[5][0],eye[5][1]],[2.4,13.6],[3,11.4],[2.8,9.6]],8),curve([[eye[5][0],eye[5][1]],[1.6,13],[1.4,11.6],[2,10.4]],8)],.1),{color:'#f2e2c0',t:.05},B,0,0,.54);
-  /* tyk sål med hæl og riller */
-  put(B,piece(toCCW([[-9.8,-.75],[-3.4,-.75],[-3.4,-.3],[9.6,-.3],[11.1,.35],[11.5,1.15],[10.7,1.3],[-9.9,1.25]]),{color:'#3a2418',kind:'water',t:.8}),0,0,.05);
-  put(B,piece(box(-9.7,.95,11,1.25),{color:'#c8a070',kind:'water',t:.82}),0,0,.05);
-  for(let x=-9.4;x<10.4;x+=1.15){if(x>-3.6&&x<-1.4)continue;put(B,piece(box(x,x<-3.4?-1.15:-.7,x+.6,x<-3.4?-.75:-.3),{color:'#2a1810',t:.7}),0,0,.05)}
-  windowParts(B,win1,0,{t:.5,frame:'#4a2a14',mull:'#4a2a14',sill:'#4a2a14'});doorIn(B,door,0,'#5a2a1a',{planks:.62,iron:false});
-  plate(B,'Støvlen','Den Flyvende Støvle',FONT.stoevle,7.4,1.4,{bg:'#2a1d14',fg:'#f6e7c0',frame:'gold',size:.86,x:-3.6,y:3.3,z:.55});
-  plate(B,'Støvlen:snart','Kommer snart',FONT.snart,2.4,.8,{bg:'#f2e6c8',fg:'#3b2a1f',size:.46,x:3.6,y:2.9,z:.12,t:.06});put(B,new THREE.Mesh(DOME,M.brass),3.6,3.55,.2).scale.setScalar(.13);
-  /* vinger ved hælen */
-  const wings=[];for(const s of[-1,1]){const wg=new THREE.Group();put(B,wg,-7.2+(s<0?.9:0),9.2+(s<0?.5:0),s*.8);
-    for(let k=0;k<5;k++){const l=8.4-k*1.35,fz=k*.06;put(wg,piece(toCCW([[0,-.6],[-l*.35,l*.25+1.2-k*.3],[-l,l*.62+1.6-k*.5],[-l*.86,l*.42+.8-k*.3],[-l*.62,l*.2-k*.25],[-l*.3,.1-k*.15],[0,.5]].map(([a,b])=>[a,b+k*.5])),{color:['#fbf8ff','#efe9fb','#e2d9f4','#d4c8ec','#c6b8e4'][k],t:.05,both:true}),0,0,s*fz)}
-    wings.push({g:wg,s})}
-  /* en lille stige ned til stien */
-  const lad=new THREE.Group();put(B,lad,3.6,.9,.9);for(const e of[-.75,.75])cord(lad,[[e,0,0],[e,-1.9,.55],[e,-3.8,.95]],.06,'#c8a070');for(let k=1;k<=4;k++){const r=new THREE.Mesh(new THREE.BoxGeometry(1.7,.16,.3),paperMat('#8a5a3a','balsa'));put(lad,r,0,-k*.95,k*.26)}
-  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);
-  B.traverse(o=>{if(o.isMesh){o.castShadow=false}});BOOT={B,Y0,wings,X,Z}});
+BUILD.push(()=>{const X=-28.4,Z=28.2,Y0=4.2,b=makeBoot(),B=b.B;B.position.set(X,Y0,Z);live.add(B);B.userData.house='stoevle';
+  HOUSE.stoevle={g:B,door:[X+b.doorX,Z+.3],spot:[X+b.doorX,31.2],foot:[X-12,X+10,Z-1,Z+1]};HOUSEG.push(B);SPOTS.stoevle=[X+b.doorX,31.2];
+  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z}});
 
 /* ---- Klokketårnet ---- */
 BUILD.push(()=>{const X=12,Z=31,T=.4;const g=new THREE.Group();put(scene,g,X,0,0);g.userData.house='klokketårn';HOUSEG.push(g);HOUSE['klokketårn']={g,door:[12,31.3],spot:null};
