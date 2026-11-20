@@ -1,4 +1,5 @@
 import base64
+import os
 F=os.path.join(os.path.dirname(os.path.abspath(__file__)),'pap-testscene.html')
 L=open(F).read().split('\n')
 helpers='\n'.join(L[76:236]).replace('antialias:false','antialias:true')
