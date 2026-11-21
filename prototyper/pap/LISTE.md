@@ -13,7 +13,6 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | Nr. | Sted | Type | Hvad | Fra |
 |---|---|---|---|---|
 | 1 | Kæledyret | ønske | Et næbdyr som kæledyr | Agnes |
-| 2 | Alle rum undtagen Værelset og Garderoben | ser forkert ud | På en telefon på højkant fylder rummet kun et bånd midt på skærmen, med sort over og under (Koncertsalen, Skolen, Eliksirtimen, Boblebutikken, Arkaden, Bank en gnom). Afklar først, om spillet overhovedet skal kunne bruges på højkant | gennemgang |
 | 3 | Boblebutikken | ser forkert ud | Heksen står helt ude ved venstre kant, så hatten rører kanten af skærmen | gennemgang |
 | 4 | Eliksirtimen, Boblebutikken, Koncertsalen | skal virke bedre | Kæledyret er ikke med derinde; i Koncertsalen er heksen heller ikke med | gennemgang |
 | 5 | Heksen | ser forkert ud | Kappen med hætte: frisuren Knolde ligger foran hætten i stedet for under den | ark |
@@ -67,6 +66,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 
 | Nr. | Sted | Type | Hvad | Fra |
 |---|---|---|---|---|
+| 2 | Alle rum undtagen Værelset og Garderoben | ser forkert ud | På en telefon på højkant fylder rummet kun et bånd midt på skærmen. Lukket uden rettelse: Kasper har afgjort (21. nov. 2026), at spillet skal spilles på tablet, og at det bare skal virke på telefonen | gennemgang |
 
 ## Fast tjek før noget lægges op
 
