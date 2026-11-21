@@ -67,9 +67,10 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,
 function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);if((typeof ctx!=='undefined')&&ctx.onLook)ctx.onLook(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj';const secs={};
-  UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0])))}};
+  const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(key,v);
+  UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('button').forEach((b,i)=>{b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};
   const show=()=>{for(const n in secs)secs[n].classList.toggle('on',n===curTab);tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x.textContent===curTab)))};
   for(const n in VALG){const[key,list]=VALG[n],b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('role','tab');b.addEventListener('click',()=>{curTab=n;show()});tabs.appendChild(b);
     const sec=document.createElement('section'),h=document.createElement('h3'),gr=document.createElement('div');h.textContent=n;gr.className='grid';sec.append(h,gr);opts.appendChild(sec);secs[n]=sec;
-    for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.textContent=navn;ob.addEventListener('click',()=>{choose(key,v);UI.draw()});gr.appendChild(ob)}}
+    for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.textContent=navn;ob.addEventListener('click',()=>{if(laast(key,v)){ctx.say('Den kan du få i en boble i Boblebutikken');return}choose(key,v);UI.draw()});gr.appendChild(ob)}}
   show();UI.draw()}

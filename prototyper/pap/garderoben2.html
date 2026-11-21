@@ -226,6 +226,8 @@ function dowel(parent,x,y0,y1,z,r=.22){const m=new THREE.Mesh(new THREE.Cylinder
 function thread(parent,x,y0,y1,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,y1-y0,5),M.thread);return put(parent,m,x,(y0+y1)/2,z)}
 function tape(parent,x,y,z,w,h,rot=0){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),M.tape);m.rotation.z=rot;m.receiveShadow=true;return put(parent,m,x,y,z)}
 
+/* skrifterne hentes med det samme, mens resten af siden gør sig klar, så de ikke koster ventetid bagefter */
+const SKRIFTER=(()=>{const fams=['Cinzel Decorative','Fraunces','Fredoka','Rye','Limelight','MedievalSharp','Alfa Slab One','Berkshire Swash','Pirata One','Alegreya SC','Special Elite'];try{return Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,4000))]).catch(()=>{})}catch(_){return Promise.resolve()}})();
 /* ============ værktøjskassen til kortet: skrift, vinduer, tegl, sten og skilte ============ */
 /* tætheden på pappets maling: kortet ses på afstand, så stykkerne behøver ikke males lige så fint som i garderoben */
 let DENS=.6;
@@ -814,11 +816,12 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,
 function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);if((typeof ctx!=='undefined')&&ctx.onLook)ctx.onLook(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj';const secs={};
-  UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0])))}};
+  const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(key,v);
+  UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('button').forEach((b,i)=>{b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};
   const show=()=>{for(const n in secs)secs[n].classList.toggle('on',n===curTab);tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x.textContent===curTab)))};
   for(const n in VALG){const[key,list]=VALG[n],b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('role','tab');b.addEventListener('click',()=>{curTab=n;show()});tabs.appendChild(b);
     const sec=document.createElement('section'),h=document.createElement('h3'),gr=document.createElement('div');h.textContent=n;gr.className='grid';sec.append(h,gr);opts.appendChild(sec);secs[n]=sec;
-    for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.textContent=navn;ob.addEventListener('click',()=>{choose(key,v);UI.draw()});gr.appendChild(ob)}}
+    for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.textContent=navn;ob.addEventListener('click',()=>{if(laast(key,v)){ctx.say('Den kan du få i en boble i Boblebutikken');return}choose(key,v);UI.draw()});gr.appendChild(ob)}}
   show();UI.draw()}
 
 </script>

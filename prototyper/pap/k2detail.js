@@ -1,3 +1,5 @@
+/* skrifterne hentes med det samme, mens resten af siden gør sig klar, så de ikke koster ventetid bagefter */
+const SKRIFTER=(()=>{const fams=['Cinzel Decorative','Fraunces','Fredoka','Rye','Limelight','MedievalSharp','Alfa Slab One','Berkshire Swash','Pirata One','Alegreya SC','Special Elite'];try{return Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,4000))]).catch(()=>{})}catch(_){return Promise.resolve()}})();
 /* ============ værktøjskassen til kortet: skrift, vinduer, tegl, sten og skilte ============ */
 /* tætheden på pappets maling: kortet ses på afstand, så stykkerne behøver ikke males lige så fint som i garderoben */
 let DENS=.6;

@@ -49,6 +49,7 @@ button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 #opts .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #opts button{font:700 17px var(--font);text-align:left;padding:11px 12px;min-height:44px;border:0;border-radius:12px;background:#efe3c8;color:#2a1d12;box-shadow:0 3px 0 #a8875a;cursor:pointer}
 #opts button[aria-pressed=true]{background:#5a2f8a;color:#fff6dc;box-shadow:0 3px 0 #2e1650}
+#opts button.laas{color:rgba(42,29,18,.5);background:#d9c9a4 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%236a5236' d='M7 10V8a5 5 0 0 1 10 0v2h1.5v10h-13V10zm2 0h6V8a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") right 8px center/20px no-repeat;padding-right:32px;box-shadow:0 3px 0 #a8875a}
 @media (min-height:740px) and (min-aspect-ratio:5/4){#tabs{display:none}#opts section{display:block}#opts h3{display:block}}
 @media (max-aspect-ratio:5/4){#panel{top:auto;left:max(12px,env(safe-area-inset-left,0px));width:auto;max-height:38vh}}
 @media (max-height:520px){#tabs button{font-size:14px;padding:6px 8px}#opts button{font-size:15px;padding:8px 10px;min-height:40px}#panel{gap:6px;padding:8px}}
@@ -60,13 +61,19 @@ button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 /* spillet: knappen tilbage til byen, døren man går igennem, og en lille besked når et hus ikke er åbent endnu */
 [hidden]{display:none!important}
 body[data-rum] #hint,body[data-rum] #meter{display:none}
-#hjem{position:fixed;z-index:9;top:calc(12px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 58px);height:46px;padding:0 16px 0 8px;border:0;border-radius:12px;display:flex;align-items:center;gap:4px;font:700 20px var(--font);cursor:pointer}
+#bar{position:fixed;z-index:9;top:calc(12px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 58px);display:flex;gap:10px;align-items:center;pointer-events:none}
+#bar>*{pointer-events:auto}
+#hjem{height:46px;padding:0 16px 0 8px;border:0;border-radius:12px;display:flex;align-items:center;gap:4px;font:700 20px var(--font);cursor:pointer}
+#stj{height:46px;padding:0 14px 0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;font:700 20px var(--font)}
+#stj svg{width:24px;height:24px;fill:#e0a020;stroke:#7a5410;stroke-width:1.2}
+#stj.hop{animation:hop .5s}
+@keyframes hop{30%{transform:scale(1.25) rotate(-4deg)}60%{transform:scale(.96)}}
 #hjem svg{width:26px;height:26px;fill:var(--ink)}
 #door{position:fixed;inset:0;z-index:8;display:grid;place-items:center;text-align:center;padding:24px;background:repeating-linear-gradient(0deg,rgba(255,235,200,.025) 0 2px,transparent 2px 9px),var(--desk);font:700 30px "Alegreya SC",var(--font);letter-spacing:.03em;color:var(--paper);transition:opacity .28s}
 #door.gone{opacity:0;pointer-events:none}
 #toast{position:fixed;z-index:7;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));padding:10px 18px;border-radius:14px;font:700 20px var(--font);max-width:calc(100vw - 32px);text-align:center;pointer-events:none}
 @media (max-height:520px){#hjem{font-size:17px}#door{font-size:24px}#toast{font-size:17px;bottom:calc(48px + env(safe-area-inset-bottom,0px))}}
-@media (prefers-reduced-motion:reduce){#door{transition:none}}
+@media (prefers-reduced-motion:reduce){#door{transition:none}#stj.hop{animation:none}}
 </style>
 <div id="stage"></div>
 <div id="vig" aria-hidden="true"></div>
@@ -74,9 +81,9 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 
 <div id="fsnote" class="kraft" hidden>Fuld skærm virker ikke inde i Claude-appen. Åbn siden i Chrome, så kan den køre i fuld skærm på langs.</div>
 <div id="meter" class="kraft" aria-live="off"></div>
-<div id="hint">Tryk på et hus, så går heksen derhen · Koncertsalen er åben, og Garderoben ligger i Kollegiet</div>
+<div id="hint">Tryk på et hus, så går heksen derhen og ind · Kollegiet, Skolen, Boblebutikken og Koncertsalen er åbne</div>
 <div id="rum"></div>
-<button id="hjem" class="kraft" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg>Byen</button>
+<div id="bar"><button id="hjem" class="kraft" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg><span id="hjemT">Byen</span></button><div id="stj" class="kraft" aria-label="Stjerner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.6 2.8 6 6.6.8-4.9 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.6 9.4l6.6-.8z"/></svg><b id="stjN">0</b></div></div>
 <div id="toast" class="kraft" role="status" hidden></div>
 <div id="door" class="gone" aria-live="polite"><span id="doorT"></span></div>
 <div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>

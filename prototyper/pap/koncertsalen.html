@@ -218,6 +218,8 @@ function dowel(parent,x,y0,y1,z,r=.22){const m=new THREE.Mesh(new THREE.Cylinder
 function thread(parent,x,y0,y1,z){const m=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,y1-y0,5),M.thread);return put(parent,m,x,(y0+y1)/2,z)}
 function tape(parent,x,y,z,w,h,rot=0){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),M.tape);m.rotation.z=rot;m.receiveShadow=true;return put(parent,m,x,y,z)}
 
+/* skrifterne hentes med det samme, mens resten af siden gør sig klar, så de ikke koster ventetid bagefter */
+const SKRIFTER=(()=>{const fams=['Cinzel Decorative','Fraunces','Fredoka','Rye','Limelight','MedievalSharp','Alfa Slab One','Berkshire Swash','Pirata One','Alegreya SC','Special Elite'];try{return Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,4000))]).catch(()=>{})}catch(_){return Promise.resolve()}})();
 /* ============ værktøjskassen til kortet: skrift, vinduer, tegl, sten og skilte ============ */
 /* tætheden på pappets maling: kortet ses på afstand, så stykkerne behøver ikke males lige så fint som i garderoben */
 let DENS=.6;
