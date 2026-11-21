@@ -34,6 +34,11 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | 21 | Bank en gnom | ser forkert ud | "SUPER!" ser ud til at blive skåret af | Kasper |
 | 22 | Bank en gnom | ser forkert ud | Gnomerne kommer ikke op af hullerne | Kasper |
 | 23 | Bank en gnom | ønske | Der skal være noget, der giver minus, hvis man slår det | Kasper |
+| 24 | Kortet | ser forkert ud | Bænkene ser ud til at stå med ryggen til, og man går igennem dem | note 21. nov. |
+| 25 | Kortet | ser forkert ud | Stigen til Støvlen forsvinder ned i jorden | note 21. nov. |
+| 26 | Kortet | ser forkert ud | "Hvad er det, der står for enden af vejen ved Koncertsalen?" Det kan ikke ses, hvad det forestiller | note 21. nov. |
+| 27 | Kortet | ser forkert ud | Skiltet til Koncertsalen peger stort set samme vej som skiltet til Dragen | note 21. nov. |
+| 28 | Kortet | skal virke bedre | Loggen fra telefonen (udgave 0.16) viser 60 hak på over en tiendedel sekund på seks minutter på kortet, det længste 3,4 sekunder. I rummene er der næsten ingen | gennemgang |
 
 ### Mangler stadig fra originalen
 
@@ -43,7 +48,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | M2 | De ni præmiestave og præmiebutikken i Arkaden |
 | M3 | Navn til kæledyret |
 | M4 | De fire andre arkademaskiner (Stjerneskjoldet, Hekse-invaders, Trylletegning, Gribemaskinen) |
-| M5 | Kosteflyvning og Faldskærm |
+| M5 | Kosteflyvning og Faldskærm. Kasper (21. nov.): Kosteflyvning skal give en større fornemmelse af fart end den oprindelige |
 | M6 | Dyrepasning og Dyreparken |
 | M7 | Startsiden med gemte spil, og bogen i starten |
 | M8 | Sværere eliksirer og valg af sværhedsgrad |
