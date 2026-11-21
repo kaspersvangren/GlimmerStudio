@@ -38,5 +38,5 @@ ROOMS.bobler=function(ctx){
       if(st){st.t+=dt;if(st.f==='op'){const k=Math.min(1,st.t/1.7),e=k*k*(3-2*k);bob.position.set(st.x0+(BX-st.x0)*e+Math.sin(t*3)*.6*(1-e),20+(BY-20)*e+Math.sin(k*Math.PI)*4,12);const s=1.6+e*9;bob.scale.set(s,s,1);dim.material.opacity=.55*e;if(k>=1){st.f='vent';st.t=0;ctx.say('Tryk på boblen!')}}
         else if(st.f==='vent'){const w=1+.03*Math.sin(t*3.1);bob.scale.set(10.6*w,10.6/w,1);bob.position.y=BY+Math.sin(t*1.4)*.8}
         else if(st.f==='knald'){dim.material.opacity=Math.max(0,.55-st.t*.5);if(st.t>1.2){st=null;dim.material.opacity=0}}}}});
-  function pop(){LYD.pop();setTimeout(()=>LYD.fanfare(),180);const w=st.vare;bob.visible=false;st.f='knald';st.t=0;Rm.burst(BX,BY,13,14,'rgba(255,255,255,.95)',11);Rm.burst(BX,BY,13,10,'rgba(255,170,220,.95)',8);SPIL.har.push(w[0]+':'+w[1]);SPIL.save();nhop=1;ctx.say(`Du fik ${w[2]}! Kig i Garderoben.`)}
+  function pop(){LYD.pop();setTimeout(()=>LYD.fanfare(),180);const w=st.vare;bob.visible=false;st.f='knald';st.t=0;Rm.burst(BX,BY,13,14,'rgba(255,255,255,.95)',11);Rm.burst(BX,BY,13,10,'rgba(255,170,220,.95)',8);SPIL.har.push(w[0]+':'+w[1]);SPIL.save();nhop=1;ctx.say(`Du fik ${w[2]}! Kig i ${w[0].startsWith('rum.')?'Værelset':'Garderoben'}.`)}
   ctx.test={koeb:i=>koeb(i)(),pop:()=>{if(st&&st.f==='vent')pop()},st:()=>st&&st.f}};
