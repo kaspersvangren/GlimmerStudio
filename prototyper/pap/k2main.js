@@ -1,6 +1,6 @@
 /* ============ heksen, katten og gåturene ============ */
 const TOP=.3,SC=.3;
-const HEKS=makeFigure({res:.6}),KAT=makeCat({res:.6});
+const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.look:null)),KAT=makeCat({res:.6});
 live.add(HEKS.G);HEKS.G.scale.setScalar(SC);live.add(KAT.G);KAT.G.scale.setScalar(SC);
 const shadowTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
 const blob=(w,d)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;live.add(m);return m};
@@ -148,7 +148,7 @@ function bake(){const t0=performance.now();const w=stage.clientWidth,h=stage.cli
   vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0}
 function applyView(){vx=clamp(vx,0,Math.max(0,FW-VW));vy=clamp(vy,0,Math.max(0,FH-VH));const ox=Math.round(vx),oy=Math.round(vy);
   cam.setViewOffset(FW,FH,ox,oy,VW,VH);blitMat.uniforms.uOff.value.set(ox/FW,1-(oy+VH)/FH);blitMat.uniforms.uScl.value.set(VW/FW,VH/FH)}
-let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
+let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
 
 /* ============ tryk ============ */
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),-TOP),hitP=new THREE.Vector3();
@@ -165,8 +165,8 @@ cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;con
   const r=cvEl.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,cam);
   const hits=ray.intersectObjects([dragon.root,unicorn.root,troll.root],true);
   if(hits.length){const o=hits[0].object;if(within(o,dragon.root))wakeT=time;else if(within(o,unicorn.root))uniT=time;else trollT=time}
-  {const hh=ray.intersectObjects(HOUSEG,true);if(hh.length){let o=hh[0].object;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);hintEl.classList.add('gone');autoT=time+14;return}}}
-  if(ray.ray.intersectPlane(ground,hitP)){goTo(hitP.x,hitP.z);hintEl.classList.add('gone');autoT=time+14}});
+  {const hh=ray.intersectObjects(HOUSEG,true);if(hh.length){let o=hh[0].object;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);doorWant=o.userData.house;hintEl.classList.add('gone');autoT=time+14;return}}}
+  if(ray.ray.intersectPlane(ground,hitP)){goTo(hitP.x,hitP.z);doorWant=null;hintEl.classList.add('gone');autoT=time+14}});
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
 /* ============ løkken ============ */
@@ -180,8 +180,10 @@ const POIS=[{n:'bænk-v',at:[-9.4,-5.1],act:'sit',y:2.3,face:1,dur:[7,12]},{n:'b
 function freePoi(n){const taken=new Set(walkers.filter(w=>w!==n&&w.poi).map(w=>w.poi.n));const ok=POIS.filter(p=>!taken.has(p.n)&&p!==n.poi);return ok[Math.floor(R(ok.length))]}
 function actPose(n,p){n.yOff=p.act==='sit'?p.y:0;n.sq=p.act==='rest'?.74:1;if(p.face)n.face=p.face}const meter=document.getElementById('meter');let mN=0,mT=0,mW=0,readyAt=0,time=0,autoT=7,wakeT=-9,uniT=-9,trollT=-9;
 const PRMAX=Math.min(window.devicePixelRatio||1,2);let last=performance.now(),fN=0,fT=0,drops=0,good=0,pr=renderer.getPixelRatio();
+let doorWant=null;
 function frame(now){
   requestAnimationFrame(frame);
+  if((typeof SPIL!=='undefined')&&SPIL.pause){last=now;return}
   const raw=(now-last)/1000,dt=clamp(raw,0,.05);last=now;time+=dt;
   if(document.body.dataset.view==='nu')return;
   if(raw<.5){mN++;mT+=raw;mW=Math.max(mW,raw);if(mT>=1){meter.textContent=`${Math.round(mN/mT)} billeder/s · langsomste ${Math.round(mW*1000)} ms · skarphed ${pr.toFixed(2).replace('.',',')} · byen bagt på ${Math.round(bakeMs)} ms · klar efter ${(readyAt/1000).toFixed(1).replace('.',',')} s`;mN=0;mT=0;mW=0}}
@@ -189,9 +191,11 @@ function frame(now){
   if(raw<.5&&!document.hidden&&performance.now()-readyAt>2500&&readyAt){fT+=raw;if(++fN>=60){const avg=fT/fN;
     if(avg>.021&&pr>1&&drops<4){pr=Math.max(1,pr-.25);drops++;good=0;renderer.setPixelRatio(pr);bake()}
     else if(avg<.0135&&pr<PRMAX&&++good>=2){pr=Math.min(PRMAX,pr+.25);good=0;renderer.setPixelRatio(pr);bake()}fN=0;fT=0}}
-  if(time>autoT){autoT=time+R(8,12);if(rnd()<.6){const s=Object.values(SPOTS);goTo(...s[Math.floor(R(s.length))])}else goTo(R(-60,60),R(-14,30))}
+  if((typeof SPIL!=='undefined'))autoT=time+99;/* i spillet går heksen kun, når man beder hende om det */
+  if(time>autoT){autoT=time+R(8,12);doorWant=null;if(rnd()<.6){const s=Object.values(SPOTS);goTo(...s[Math.floor(R(s.length))])}else goTo(R(-60,60),R(-14,30))}
   if(W0.q&&W0.q.length&&Math.hypot(W0.tx-W0.x,W0.tz-W0.z)<1.4)[W0.tx,W0.tz]=W0.q.shift();
   stepWalker(W0,dt);
+  if(doorWant&&!W0.q.length){const sp=SPOTS[doorWant];if(Math.hypot(W0.x-sp[0],W0.z-sp[1])<.6){const d=doorWant;doorWant=null;if((typeof SPIL!=='undefined'))SPIL.arrive(d)}}
   /* katten følger heksens spor et par skridt bagud */
   {const l=trail[trail.length-1];if(Math.hypot(W0.x-l[0],W0.z-l[1])>.6){trail.push([W0.x,W0.z]);if(trail.length>60)trail.shift()}
     let acc=0,px=W0.x,pz=W0.z;for(let i=trail.length-1;i>=0&&acc<5.5;i--){acc+=Math.hypot(trail[i][0]-px,trail[i][1]-pz);px=trail[i][0];pz=trail[i][1]}

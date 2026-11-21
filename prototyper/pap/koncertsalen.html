@@ -448,7 +448,7 @@ function puff(cx,cy,rx,ry,n=9,bump=.22,seed=0){const o=[];const ph=R(TAU);for(le
 const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2+t*l,xx=Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}for(let i=7;i>0;i--){const t=i/8,yy=-l/2+t*l,xx=-Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}return o.map(([px,py])=>[x+px*Math.cos(a)-py*Math.sin(a),y+px*Math.sin(a)+py*Math.cos(a)])};
 
 /* ============ en scene der bages én gang (lys, skygger, kontaktskygger, dybde, glød) med et levende lag ovenpå ============ */
-function makeStage({cam,CD,fit,P_={}}){P_=Object.assign({aoR:.75,dof:[.11,.3],haze:[1.08,1.45,.38],hazeC:[.075,.06,.16],bloom:1,bg:'#0d0a12'},P_);
+function makeStage({cam,CD,fit,P_={},scene:bagt=scene,live:levende=live}){/* scenerne gives med, så flere rum kan leve i samme spil */P_=Object.assign({aoR:.75,dof:[.11,.3],haze:[1.08,1.45,.38],hazeC:[.075,.06,.16],bloom:1,bg:'#0d0a12'},P_);
   const blitSrc=()=>({depthTest:true,depthWrite:true,depthFunc:THREE.AlwaysDepth,toneMapped:false,
     uniforms:{tColor:{value:null},tDepth:{value:null},uOff:{value:new THREE.Vector2(0,0)},uScl:{value:new THREE.Vector2(1,1)}},
     vertexShader:`uniform vec2 uOff;uniform vec2 uScl;varying vec2 vUv;void main(){vUv=uOff+uv*uScl;gl_Position=vec4(position.xy,0.,1.);}`,
@@ -501,7 +501,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     if(fin)fin.dispose();fin=RT(FW,FH,false);
     Object.assign(coM.uniforms,{});const u=coM.uniforms;u.tC.value=big.texture;u.tD.value=big.depthTexture;u.tAO.value=ao.texture;u.tB1.value=b1.texture;u.tB2.value=b2.texture;u.tDof.value=d1.texture;u.apx.value.set(2/FW,2/FH);u.near.value=cam.near;u.far.value=cam.far;u.seed.value=R(10);u.zf.value=CD;u.dofA.value=P_.dof[0];u.dofB.value=P_.dof[1];u.hz0.value=P_.haze[0];u.hz1.value=P_.haze[1];u.hzS.value=P_.haze[2];u.bloomK.value=P_.bloom;u.hzC.value.set(...P_.hazeC);
     pass(coM,fin);renderer.setRenderTarget(null);for(const r of tmp)r.dispose();return fin}
-  return{run}})();
+  return{run,dispose(){q.geometry.dispose();if(fin)fin.dispose();fin=null;for(const m of[aoM,brM,blM,coM])m.dispose()}}})();
   const blitScene=new THREE.Scene(),copyScene=new THREE.Scene();
   for(const[sc,mat]of[[blitScene,blitMat],[copyScene,copyMat]]){const q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);q.frustumCulled=false;sc.add(q)}
   renderer.setClearColor(P_.bg);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
@@ -512,18 +512,20 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     big=new THREE.WebGLRenderTarget(FW,FH,{type:THREE.HalfFloatType,depthTexture:new THREE.DepthTexture(FW,FH)});
     const tile=new THREE.WebGLRenderTarget(FW,FH,{samples:4,type:THREE.HalfFloatType,depthTexture:new THREE.DepthTexture(FW,FH)});
     renderer.autoClear=false;renderer.shadowMap.enabled=true;renderer.shadowMap.needsUpdate=true;
-    renderer.setRenderTarget(tile);renderer.clear();renderer.render(scene,cam);
+    renderer.setRenderTarget(tile);renderer.clear();renderer.render(bagt,cam);
     copyMat.uniforms.tColor.value=tile.texture;copyMat.uniforms.tDepth.value=tile.depthTexture;
     renderer.setRenderTarget(big);renderer.clear();renderer.render(copyScene,blitCam);renderer.setRenderTarget(null);tile.dispose();
     const fin=POST.run(big,FW,FH);blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;baked=true;S.bakeMs=performance.now()-t0};
-  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(live,cam)};
-  let rt=0;new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(S.bake,250)}).observe(stage);
+  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(levende,cam)};
+  let rt=0;const ro=new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(S.bake,250)});ro.observe(stage);
+  /* når rummet forlades: slip billederne igen, så næste rum har pladsen */
+  S.dispose=function(){ro.disconnect();clearTimeout(rt);baked=false;if(big){big.depthTexture.dispose();big.dispose();big=null}POST.dispose();blitMat.dispose();copyMat.dispose();for(const sc of[blitScene,copyScene])sc.children[0].geometry.dispose()};
   return S}
 
 /* ============ Koncertsalen indefra: et papirteater med gnome-band, fløjlstæppe og publikum ============
    Salen bages én gang. Bandet, tæppet, kulisserne og lyset ligger i det levende lag, så man kan ønske en sang. */
 const scene=new THREE.Scene(),live=new THREE.Scene();scene.background=new THREE.Color('#120a14');
-{const e=tx(makeEnv(),true);e.mapping=THREE.EquirectangularReflectionMapping;const pm=new THREE.PMREMGenerator(renderer);const env=pm.fromEquirectangular(e).texture;scene.environment=env;live.environment=env;scene.environmentIntensity=live.environmentIntensity=.3;pm.dispose()}
+{let env=(typeof ctx!=='undefined')?ctx.env:null;/* i spillet lånes byens omgivelseslys */if(!env){const e=tx(makeEnv(),true);e.mapping=THREE.EquirectangularReflectionMapping;const pm=new THREE.PMREMGenerator(renderer);env=pm.fromEquirectangular(e).texture;pm.dispose();e.dispose()}scene.environment=env;live.environment=env;scene.environmentIntensity=live.environmentIntensity=.3;}
 const key=new THREE.DirectionalLight('#ffd8b0',1.5);key.position.set(-30,80,140);key.target.position.set(0,20,0);scene.add(key,key.target);
 key.castShadow=true;key.shadow.mapSize.set(4096,4096);Object.assign(key.shadow.camera,{left:-90,right:90,top:70,bottom:-20,near:40,far:320});key.shadow.bias=-.0004;key.shadow.normalBias=.05;key.shadow.radius=3;
 scene.add(new THREE.HemisphereLight('#c9a8ff','#3a2018',.45));
@@ -686,10 +688,10 @@ function cone(col){const c=cv(64,256),g=c.getContext('2d');const gr=g.createLine
 
 /* ---- kamera og bagning ---- */
 const cam=new THREE.PerspectiveCamera(30,1,20,800),CD=190;
-const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;c.position.set(0,23+CD*Math.sin(.21),CD*Math.cos(.21)+10);c.lookAt(0,22,10)},P_:{aoR:.6,dof:[.12,.3],haze:[1.5,2,.0],hazeC:[.06,.03,.05],bloom:1.1,bg:'#120a14'}});
+const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;c.position.set(0,23+CD*Math.sin(.21),CD*Math.cos(.21)+10);c.lookAt(0,22,10)},P_:{aoR:.6,dof:[.12,.3],haze:[1.5,2,.0],hazeC:[.06,.03,.05],bloom:1.1,bg:'#120a14'}});
 
 (async()=>{try{const fams=['Alegreya SC'];try{await Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,3000))])}catch(_){}
-  for(const b of BUILD){await new Promise(r=>setTimeout(r,0));b()}
+  for(const b of BUILD){await new Promise(r=>setTimeout(r,0));if((typeof ctx!=='undefined')&&!ctx.alive)return;b()}
   for(const k of['nat','rock','disko','solnedgang','klassisk','lade'])backdrop(k);
   const shTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(10,4,10,.6)');gr.addColorStop(1,'rgba(10,4,10,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
   const insts=['guitar','mic','trommer','bas'];insts.forEach((ins,i)=>{const o=gnome(i,ins),m=MARK[i];o.x=m.x;o.z=m.z;o.q=[];o.sc=1.25;o.dir=1;put(live,o.G,m.x,OPEN.y0+.15+floorY(m.x,m.z),m.z);o.G.scale.setScalar(o.sc);BAND.push(o);const sp=cone('#ffe2b0');put(live,sp,m.x,OPEN.y0+15+floorY(m.x,m.z),m.z-1.5);SPOT.push(sp);
@@ -701,7 +703,7 @@ const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const 
   setStyle('hygge',true);
   ST.bake();msg.classList.add('gone');
   let t=0,last=performance.now();
-  const loop=now=>{requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
     for(const o of BAND){const walking=o.q.length>0;
       if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
       else o.dir+=(1-o.dir)*Math.min(1,dt*8);
@@ -724,7 +726,7 @@ let busy=false;
 function setStyle(k,now){const S=STY[k];cur=k;for(const n in BD)BD[n].visible=n===S.bd;for(const o of BAND)dress(o,k);SPOT.forEach(sp=>sp.material.color.set(S.light));liveHemi.color.set(S.light);
   if(curtain&&now){curtain.t=0;curtain.target=0}}
 /* tøjet skiftes først, når tæppet er helt for, så ingen ser det ske */
-const until=f=>new Promise(r=>{const c=()=>f()?r():setTimeout(c,50);c()});
+const until=f=>new Promise(r=>{const c=()=>(f()||((typeof ctx!=='undefined')&&!ctx.alive))?r():setTimeout(c,50);c()});
 /* bandet går ud i kulissen, tæppet går for, og de kommer gående ind igen i det nye tøj */
 const OFF=42;
 function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.ex*OFF,m.z])}}

@@ -1,7 +1,7 @@
 /* ============ Garderoben: heksens omklædningsværelse i papir, med heks A og tøj der kan skiftes ============
    Værelset bages én gang. Heksen står i det levende lag med rigtige skygger mellem papirlagene. */
 const scene=new THREE.Scene(),live=new THREE.Scene();scene.background=new THREE.Color('#120e1a');
-{const e=tx(makeEnv(),true);e.mapping=THREE.EquirectangularReflectionMapping;const pm=new THREE.PMREMGenerator(renderer);const env=pm.fromEquirectangular(e).texture;scene.environment=env;live.environment=env;scene.environmentIntensity=.3;live.environmentIntensity=.35;pm.dispose()}
+{let env=(typeof ctx!=='undefined')?ctx.env:null;/* i spillet lånes byens omgivelseslys */if(!env){const e=tx(makeEnv(),true);e.mapping=THREE.EquirectangularReflectionMapping;const pm=new THREE.PMREMGenerator(renderer);env=pm.fromEquirectangular(e).texture;pm.dispose();e.dispose()}scene.environment=env;live.environment=env;scene.environmentIntensity=.3;live.environmentIntensity=.35;}
 const mkKey=(sc,sh)=>{const k=new THREE.DirectionalLight('#ffe2c4',sh?2.1:1.9);k.position.set(-28,62,110);k.target.position.set(-8,16,0);sc.add(k,k.target);if(sh){k.castShadow=true;k.shadow.mapSize.set(2048,2048);Object.assign(k.shadow.camera,{left:-34,right:34,top:44,bottom:-6,near:40,far:240});k.shadow.bias=-.0006;k.shadow.normalBias=.05;k.shadow.radius=2.5}return k};
 mkKey(scene,true);scene.add(new THREE.HemisphereLight('#b8a8ff','#3a2a20',.5));
 mkKey(live,true);live.add(new THREE.HemisphereLight('#c8b8ff','#4a3628',.75));{const r=new THREE.DirectionalLight('#9fb6ff',.5);r.position.set(50,40,-40);live.add(r)}
@@ -50,21 +50,21 @@ const VALG={Hat:['hat',[['heksehat','Heksehat'],['eventyrhat','Eventyrhat'],['na
   Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde']]]};
 let FIG=null,pop=0;const sparks=[];
 const cam=new THREE.PerspectiveCamera(30,1,20,600),CD=150;
-const ST=makeStage({cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,panel=wide?Math.min(.3*w,340)/w+24/w:0,needH=wide?47:66,needW=wide?54/(1-panel):40;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;const cx=wide?-12.5+H*asp*panel/2:FX,cy=wide?19:9;c.position.set(cx,cy+1+CD*Math.sin(.1),CD*Math.cos(.1));c.lookAt(cx,cy,0)},P_:{aoR:.45,dof:[.05,.14],haze:[2,3,0],bloom:1.1,bg:'#120e1a'}});
+const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,panel=wide?Math.min(.3*w,340)/w+24/w:0,needH=wide?47:66,needW=wide?54/(1-panel):40;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;const cx=wide?-12.5+H*asp*panel/2:FX,cy=wide?19:9;c.position.set(cx,cy+1+CD*Math.sin(.1),CD*Math.cos(.1));c.lookAt(cx,cy,0)},P_:{aoR:.45,dof:[.05,.14],haze:[2,3,0],bloom:1.1,bg:'#120e1a'}});
 (async()=>{try{try{await Promise.race([Promise.all(['Alegreya SC'].map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,2500))])}catch(_){}
-  for(const b of BUILD){await new Promise(r=>setTimeout(r,0));b()}
-  FIG=makeFigure({});FIG.shadow=true;FIG.G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});FIG.G.position.set(FX,.35,1.5);live.add(FIG.G);
+  for(const b of BUILD){await new Promise(r=>setTimeout(r,0));if((typeof ctx!=='undefined')&&!ctx.alive)return;b()}
+  FIG=makeFigure((typeof ctx!=='undefined')&&ctx.look?Object.assign({},ctx.look):{});UI.draw();FIG.shadow=true;FIG.G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});FIG.G.position.set(FX,.35,1.5);live.add(FIG.G);
   {const c=cv(128,64),g=c.getContext('2d'),gr=g.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.6)');gr.addColorStop(1,'rgba(10,6,20,0)');g.setTransform(1,0,0,.5,0,16);g.fillStyle=gr;g.fillRect(0,0,128,128);const m=new THREE.Mesh(new THREE.PlaneGeometry(15,6),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(FX,.42,1.5);live.add(m)}
   for(const gl of GLOW){const s=glowS(gl.c,gl.s);s.position.set(...gl.p);live.add(s);gl.spr=s;gl.ph=R(TAU)}
   for(let i=0;i<14;i++){const s=glowS('rgba(255,236,170,.95)',1);live.add(s);s.visible=false;sparks.push({s,t:9})}
   ST.bake();msg.classList.add('gone');let t=0,last=performance.now();
-  const loop=now=>{requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;pop=Math.max(0,pop-dt*2.2);
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;pop=Math.max(0,pop-dt*2.2);
     const k=1+.06*Math.sin(pop*Math.PI)*pop;FIG.G.scale.set(k,2-k,1);FIG.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;FIG.tick(t,{ph:0,amp:0});
     for(const gl of GLOW){const f=gl.f?(.9+.1*Math.sin(t*9+gl.ph)*Math.sin(t*5.1)):(.9+.1*Math.sin(t*2+gl.ph));gl.spr.scale.set(gl.s*f,gl.s*f,1)}
     for(const sp of sparks){sp.t+=dt;if(sp.t>1){sp.s.visible=false;continue}sp.s.visible=true;sp.s.position.set(sp.x+sp.vx*sp.t,sp.y+sp.vy*sp.t+3*sp.t*sp.t*-1+2*sp.t,6);const z=(1-sp.t)*1.6;sp.s.scale.set(z,z,1)}
     ST.draw()};requestAnimationFrame(loop);
   window.__gard={ready:true,set:(k,v)=>{choose(k,v);UI.draw()},fig:FIG}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
-function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
+function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);if((typeof ctx!=='undefined')&&ctx.onLook)ctx.onLook(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj';const secs={};
   UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0])))}};

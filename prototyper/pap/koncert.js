@@ -1,7 +1,7 @@
 /* ============ Koncertsalen indefra: et papirteater med gnome-band, fløjlstæppe og publikum ============
    Salen bages én gang. Bandet, tæppet, kulisserne og lyset ligger i det levende lag, så man kan ønske en sang. */
 const scene=new THREE.Scene(),live=new THREE.Scene();scene.background=new THREE.Color('#120a14');
-{const e=tx(makeEnv(),true);e.mapping=THREE.EquirectangularReflectionMapping;const pm=new THREE.PMREMGenerator(renderer);const env=pm.fromEquirectangular(e).texture;scene.environment=env;live.environment=env;scene.environmentIntensity=live.environmentIntensity=.3;pm.dispose()}
+{let env=(typeof ctx!=='undefined')?ctx.env:null;/* i spillet lånes byens omgivelseslys */if(!env){const e=tx(makeEnv(),true);e.mapping=THREE.EquirectangularReflectionMapping;const pm=new THREE.PMREMGenerator(renderer);env=pm.fromEquirectangular(e).texture;pm.dispose();e.dispose()}scene.environment=env;live.environment=env;scene.environmentIntensity=live.environmentIntensity=.3;}
 const key=new THREE.DirectionalLight('#ffd8b0',1.5);key.position.set(-30,80,140);key.target.position.set(0,20,0);scene.add(key,key.target);
 key.castShadow=true;key.shadow.mapSize.set(4096,4096);Object.assign(key.shadow.camera,{left:-90,right:90,top:70,bottom:-20,near:40,far:320});key.shadow.bias=-.0004;key.shadow.normalBias=.05;key.shadow.radius=3;
 scene.add(new THREE.HemisphereLight('#c9a8ff','#3a2018',.45));
@@ -164,10 +164,10 @@ function cone(col){const c=cv(64,256),g=c.getContext('2d');const gr=g.createLine
 
 /* ---- kamera og bagning ---- */
 const cam=new THREE.PerspectiveCamera(30,1,20,800),CD=190;
-const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;c.position.set(0,23+CD*Math.sin(.21),CD*Math.cos(.21)+10);c.lookAt(0,22,10)},P_:{aoR:.6,dof:[.12,.3],haze:[1.5,2,.0],hazeC:[.06,.03,.05],bloom:1.1,bg:'#120a14'}});
+const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;c.position.set(0,23+CD*Math.sin(.21),CD*Math.cos(.21)+10);c.lookAt(0,22,10)},P_:{aoR:.6,dof:[.12,.3],haze:[1.5,2,.0],hazeC:[.06,.03,.05],bloom:1.1,bg:'#120a14'}});
 
 (async()=>{try{const fams=['Alegreya SC'];try{await Promise.race([Promise.all(fams.map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,3000))])}catch(_){}
-  for(const b of BUILD){await new Promise(r=>setTimeout(r,0));b()}
+  for(const b of BUILD){await new Promise(r=>setTimeout(r,0));if((typeof ctx!=='undefined')&&!ctx.alive)return;b()}
   for(const k of['nat','rock','disko','solnedgang','klassisk','lade'])backdrop(k);
   const shTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(10,4,10,.6)');gr.addColorStop(1,'rgba(10,4,10,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
   const insts=['guitar','mic','trommer','bas'];insts.forEach((ins,i)=>{const o=gnome(i,ins),m=MARK[i];o.x=m.x;o.z=m.z;o.q=[];o.sc=1.25;o.dir=1;put(live,o.G,m.x,OPEN.y0+.15+floorY(m.x,m.z),m.z);o.G.scale.setScalar(o.sc);BAND.push(o);const sp=cone('#ffe2b0');put(live,sp,m.x,OPEN.y0+15+floorY(m.x,m.z),m.z-1.5);SPOT.push(sp);
@@ -179,7 +179,7 @@ const ST=makeStage({cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,needH=62;const 
   setStyle('hygge',true);
   ST.bake();msg.classList.add('gone');
   let t=0,last=performance.now();
-  const loop=now=>{requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
     for(const o of BAND){const walking=o.q.length>0;
       if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
       else o.dir+=(1-o.dir)*Math.min(1,dt*8);
@@ -202,7 +202,7 @@ let busy=false;
 function setStyle(k,now){const S=STY[k];cur=k;for(const n in BD)BD[n].visible=n===S.bd;for(const o of BAND)dress(o,k);SPOT.forEach(sp=>sp.material.color.set(S.light));liveHemi.color.set(S.light);
   if(curtain&&now){curtain.t=0;curtain.target=0}}
 /* tøjet skiftes først, når tæppet er helt for, så ingen ser det ske */
-const until=f=>new Promise(r=>{const c=()=>f()?r():setTimeout(c,50);c()});
+const until=f=>new Promise(r=>{const c=()=>(f()||((typeof ctx!=='undefined')&&!ctx.alive))?r():setTimeout(c,50);c()});
 /* bandet går ud i kulissen, tæppet går for, og de kommer gående ind igen i det nye tøj */
 const OFF=42;
 function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.ex*OFF,m.z])}}

@@ -1,0 +1,30 @@
+/* går rundt i spillet: ind i Garderoben, skifter tøj, ud igen, ind i Koncertsalen, ud igen, og ind i Garderoben en gang til */
+const { chromium } = require('playwright');
+(async () => {
+  const [, , W = '1280', H = '800', dpr = '1'] = process.argv;
+  const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+  const p = await b.newPage({ viewport: { width: +W, height: +H }, deviceScaleFactor: +dpr });
+  let fejl = 0; p.on('pageerror', e => { fejl++; console.log('FEJL', e.message, (e.stack || '').split('\n').slice(1, 3).join(' | ')) }); p.on('console', m => { if (m.type() === 'error' && !/GL Driver/.test(m.text())) { fejl++; console.log('konsol', m.text().slice(0, 300)) } });
+  await p.route(/fonts\.googleapis/, r => r.fulfill({ path: __dirname + '/fonts-local.css', contentType: 'text/css' })); await p.route(/fonts\.gstatic/, r => r.abort());
+  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
+  await p.goto('file://' + __dirname + '/testspil.html');
+  await p.waitForFunction(() => document.getElementById('msg').classList.contains('gone'), null, { timeout: 120000 });
+  const shot = n => p.screenshot({ path: __dirname + `/spil-${n}.png`, timeout: 240000 });
+  const info = async n => console.log(n, JSON.stringify(await p.evaluate(() => __spil.info())));
+  const inde = () => p.waitForFunction(() => __spil.room && document.getElementById('door').classList.contains('gone') && !document.getElementById('hjem').hidden, null, { timeout: 180000 });
+  const ude = () => p.waitForFunction(() => !__spil.room && document.getElementById('door').classList.contains('gone'), null, { timeout: 60000 });
+  const tapHus = async navn => { const pt = await p.evaluate(n => { const k = __kort, h = k.HOUSE[n]; k.center(h.door[0], 4, h.door[1]); return new Promise(r => setTimeout(() => { const v = new k.THREE.Vector3(h.door[0], 3, h.door[1]).project(k.cam), c = document.querySelector('#stage canvas').getBoundingClientRect(); r([c.left + (v.x + 1) / 2 * c.width, c.top + (1 - v.y) / 2 * c.height]) }, 400)) }, navn); await p.mouse.click(pt[0], pt[1]) };
+  await p.waitForTimeout(1500); await info('start'); await shot('1-by');
+  let t = Date.now(); await tapHus('kollegie'); await inde(); console.log('Garderoben: gik og kom ind på', Date.now() - t, 'ms, heraf rummet', await p.evaluate(() => __spil.roomMs), 'ms');
+  await p.waitForTimeout(1200); await info('i garderoben'); await shot('2-garderobe');
+  for (const navn of ['Eventyrer', 'Eventyrhat', 'Fletning', 'Rygsæk', 'Ingen kappe']) await p.click(`#opts button:has-text("${navn}")`).catch(async () => { console.log('kunne ikke trykke', navn) });
+  await p.waitForTimeout(2500); await shot('3-skiftet');
+  await p.click('#hjem'); await ude(); await p.waitForTimeout(2500); console.log('heksen i byen:', JSON.stringify(await p.evaluate(() => __spil.heks())), 'gemt:', await p.evaluate(() => { try { return localStorage.getItem('magiske-mig-pap') } catch (e) { return 'ingen adgang' } }));
+  await info('ude igen'); await shot('4-by-nyt-toej');
+  t = Date.now(); await tapHus('koncert'); await inde(); console.log('Koncertsalen: gik og kom ind på', Date.now() - t, 'ms, heraf rummet', await p.evaluate(() => __spil.roomMs), 'ms');
+  await p.waitForTimeout(1500); await info('i koncertsalen'); await shot('5-koncert');
+  await p.click('#songs button:nth-of-type(2)'); await p.waitForTimeout(1500); await p.click('#hjem'); await ude(); await p.waitForTimeout(1500); await info('ude igen'); await shot('6-by');
+  await tapHus('bobler'); await p.waitForTimeout(9000); console.log('besked ved lukket hus:', await p.evaluate(() => document.getElementById('toast').hidden ? '(væk igen)' : document.getElementById('toast').textContent)); await shot('7-lukket');
+  await p.evaluate(() => __spil.enter('kollegie')); await inde(); await p.waitForTimeout(800); await info('i garderoben igen'); await shot('8-garderobe-igen'); await p.click('#hjem'); await ude(); await p.waitForTimeout(800); await info('slut');
+  console.log('fejl i alt:', fejl); await b.close();
+})();

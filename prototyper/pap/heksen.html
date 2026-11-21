@@ -444,7 +444,7 @@ function puff(cx,cy,rx,ry,n=9,bump=.22,seed=0){const o=[];const ph=R(TAU);for(le
 const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2+t*l,xx=Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}for(let i=7;i>0;i--){const t=i/8,yy=-l/2+t*l,xx=-Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}return o.map(([px,py])=>[x+px*Math.cos(a)-py*Math.sin(a),y+px*Math.sin(a)+py*Math.cos(a)])};
 
 /* ============ en scene der bages én gang (lys, skygger, kontaktskygger, dybde, glød) med et levende lag ovenpå ============ */
-function makeStage({cam,CD,fit,P_={}}){P_=Object.assign({aoR:.75,dof:[.11,.3],haze:[1.08,1.45,.38],hazeC:[.075,.06,.16],bloom:1,bg:'#0d0a12'},P_);
+function makeStage({cam,CD,fit,P_={},scene:bagt=scene,live:levende=live}){/* scenerne gives med, så flere rum kan leve i samme spil */P_=Object.assign({aoR:.75,dof:[.11,.3],haze:[1.08,1.45,.38],hazeC:[.075,.06,.16],bloom:1,bg:'#0d0a12'},P_);
   const blitSrc=()=>({depthTest:true,depthWrite:true,depthFunc:THREE.AlwaysDepth,toneMapped:false,
     uniforms:{tColor:{value:null},tDepth:{value:null},uOff:{value:new THREE.Vector2(0,0)},uScl:{value:new THREE.Vector2(1,1)}},
     vertexShader:`uniform vec2 uOff;uniform vec2 uScl;varying vec2 vUv;void main(){vUv=uOff+uv*uScl;gl_Position=vec4(position.xy,0.,1.);}`,
@@ -497,7 +497,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     if(fin)fin.dispose();fin=RT(FW,FH,false);
     Object.assign(coM.uniforms,{});const u=coM.uniforms;u.tC.value=big.texture;u.tD.value=big.depthTexture;u.tAO.value=ao.texture;u.tB1.value=b1.texture;u.tB2.value=b2.texture;u.tDof.value=d1.texture;u.apx.value.set(2/FW,2/FH);u.near.value=cam.near;u.far.value=cam.far;u.seed.value=R(10);u.zf.value=CD;u.dofA.value=P_.dof[0];u.dofB.value=P_.dof[1];u.hz0.value=P_.haze[0];u.hz1.value=P_.haze[1];u.hzS.value=P_.haze[2];u.bloomK.value=P_.bloom;u.hzC.value.set(...P_.hazeC);
     pass(coM,fin);renderer.setRenderTarget(null);for(const r of tmp)r.dispose();return fin}
-  return{run}})();
+  return{run,dispose(){q.geometry.dispose();if(fin)fin.dispose();fin=null;for(const m of[aoM,brM,blM,coM])m.dispose()}}})();
   const blitScene=new THREE.Scene(),copyScene=new THREE.Scene();
   for(const[sc,mat]of[[blitScene,blitMat],[copyScene,copyMat]]){const q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);q.frustumCulled=false;sc.add(q)}
   renderer.setClearColor(P_.bg);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
@@ -508,12 +508,14 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     big=new THREE.WebGLRenderTarget(FW,FH,{type:THREE.HalfFloatType,depthTexture:new THREE.DepthTexture(FW,FH)});
     const tile=new THREE.WebGLRenderTarget(FW,FH,{samples:4,type:THREE.HalfFloatType,depthTexture:new THREE.DepthTexture(FW,FH)});
     renderer.autoClear=false;renderer.shadowMap.enabled=true;renderer.shadowMap.needsUpdate=true;
-    renderer.setRenderTarget(tile);renderer.clear();renderer.render(scene,cam);
+    renderer.setRenderTarget(tile);renderer.clear();renderer.render(bagt,cam);
     copyMat.uniforms.tColor.value=tile.texture;copyMat.uniforms.tDepth.value=tile.depthTexture;
     renderer.setRenderTarget(big);renderer.clear();renderer.render(copyScene,blitCam);renderer.setRenderTarget(null);tile.dispose();
     const fin=POST.run(big,FW,FH);blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;baked=true;S.bakeMs=performance.now()-t0};
-  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(live,cam)};
-  let rt=0;new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(S.bake,250)}).observe(stage);
+  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(levende,cam)};
+  let rt=0;const ro=new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(S.bake,250)});ro.observe(stage);
+  /* når rummet forlades: slip billederne igen, så næste rum har pladsen */
+  S.dispose=function(){ro.disconnect();clearTimeout(rt);baked=false;if(big){big.depthTexture.dispose();big.dispose();big=null}POST.dispose();blitMat.dispose();copyMat.dispose();for(const sc of[blitScene,copyScene])sc.children[0].geometry.dispose()};
   return S}
 
 /* ============ heksen: tre udkast side om side, bygget af papir i lag ============ */
