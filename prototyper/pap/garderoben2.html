@@ -581,7 +581,7 @@ function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,frec
 
 
 /* ---- figuren ---- */
-const LOOK0={hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
+const LOOK0={støvler:'snør',hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
 function makeFigure(look={}){
   const L=Object.assign({},LOOK0,look),F={L,G:new THREE.Group()},G=F.G;
   const T=26,hh=L.hh,w=hh*.82,cy=T-hh/2,S=T-hh-1,sw=3,Wy=S-4.3,ww=2.05,HIP=Wy-1.7,PY=S+.4;F.D={T,hh,w,cy,S,sw,Wy,ww,HIP};
@@ -634,10 +634,21 @@ function makeFigure(look={}){
 
   /* ---- tøj: ben og støvler, krop, skørt/skøder og ærmer ---- */
   const HEM=.9,HW=5.6,hx=sw+2.2;
-  const boots=(bh,col,{cuff=null,lace=true,z=0}={})=>{LG.forEach((lg,i)=>{const sx=i?1:-1,x=sx*1.15,bt=sm([[x-.95,.12],[x-.7,-.04],[x+.7,-.04],[x+.95,.12],[x+.92,.9],[x+.84,bh,1],[x-.84,bh,1],[x-.92,.9]],6);
-    fp(lg.i,toCCW(bt),{t:.3,s:40,ed:col,paint:P=>{P.wash(col,toCCW(bt),{edge:.5,top:hexOf(shade(hexOf(col),.18))});if(lace)for(let y=1.1;y<bh-.2;y+=.55){P.pen([[x-.45,y],[x+.45,y+.4]],C.cream,.07,.9);P.pen([[x+.45,y],[x-.45,y+.4]],C.cream,.07,.9)}}},z);
-    fp(lg.i,sm([[x-1.02,-.08],[x+1.02,-.08],[x+1.05,.3],[x-1.05,.3]],3),{color:C.brownDk,t:.34},z+.02);if(cuff)fp(lg.i,box(x-1.05,bh-.75,x+1.05,bh+.25),{color:cuff,kind:'water',t:.36},z+.04)})};
-  const legs=(col,y0,{stripes=null,wd=.68}={})=>{LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15,sh=box(x-wd,y0,x+wd,HIP+.5);if(stripes)fp(lg.i,sh,{t:.15,s:40,ed:stripes,paint:P=>{P.flat(col);for(let y=y0;y<HIP+.5;y+=.7)P.flat(stripes,box(-9,y,9,y+.35),.85)}},-.1);else fp(lg.i,sh,{color:col,kind:'water',t:.18},-.1)})};
+  /* støvlerne: ti slags. 'snør' er tøjets egne snørestøvler; de andre har samme form over hele garderoben */
+  const STV={spidse:{toe:'spids',lace:false},'høje':{h:5.8,cuff:1},ballerina:{h:1.15,lace:false,bow:1},gummi:{h:4.3,lace:false,gloss:1,col:'#e0a020'},pels:{h:3.8,lace:false,fur:1,col:'#8a6240'},sandaler:{h:1.5,lace:false,sandal:1},krul:{toe:'krul',lace:false,col:'#7a2f6a'},'spænde':{lace:false,buckle:1,col:'#2e2833'},knap:{lace:false,buttons:1,col:'#7a2f3a'}};
+  let bootH=2.6;
+  const boots=(bh,col,{cuff=null,lace=true,z=0}={})=>{const st=STV[L.støvler]||{};bh=st.h||bh;col=L.col.støvler||st.col||col;if(st.lace===false)lace=false;if(st.cuff)cuff=cuff||hexOf(shade(hexOf(col),.25));else if(STV[L.støvler])cuff=null;bootH=bh;
+    LG.forEach((lg,i)=>{const sx=i?1:-1,x=sx*1.15,bt=sm([[x-.95,.12],[x-.7,-.04],[x+.7,-.04],[x+.95,.12],[x+.92,.9],[x+.84,bh,1],[x-.84,bh,1],[x-.92,.9]],6),cd=hexOf(shade(hexOf(col),-.4));
+    if(st.toe==='spids')fp(lg.i,toCCW([[x+sx*.5,-.04],[x+sx*2.1,.05],[x+sx*.7,.95]]),{color:col,kind:'water',t:.3,edge:cd},z-.01);
+    if(st.toe==='krul'){for(const q of thick([curve([[x+sx*.6,.3],[x+sx*1.7,.2],[x+sx*2.2,1],[x+sx*1.6,1.5]],8)],.34))fp(lg.i,q,{color:col,kind:'water',t:.3,edge:cd},z-.01);fp(lg.i,circ(x+sx*1.5,1.55,.3,.3,10),{mat:gold(),t:.34},z+.02)}
+    fp(lg.i,toCCW(bt),{t:.3,s:40,ed:col,paint:P=>{if(st.sandal){P.wash(L.skin,toCCW(bt),{edge:.4});for(const y of[.35,.95])P.fill(box(x-1.2,y,x+1.2,y+.24),col,1);P.fill(box(x-.14,.35,x+.14,bh),col,1)}else{P.wash(col,toCCW(bt),{edge:.5,top:hexOf(shade(hexOf(col),.18))});
+        if(lace)for(let y=1.1;y<bh-.2;y+=.55){P.pen([[x-.45,y],[x+.45,y+.4]],C.cream,.07,.9);P.pen([[x+.45,y],[x-.45,y+.4]],C.cream,.07,.9)}
+        if(st.gloss)P.pen([[x-sx*.5,.7],[x-sx*.5,bh-.5]],'#fff6d0',.16,.5);if(st.buckle){P.fill(box(x-.5,bh*.42,x+.5,bh*.42+.62),'#d9a83a',1);P.fill(box(x-.26,bh*.42+.16,x+.26,bh*.42+.46),col,1)}
+        if(st.buttons)for(let y=.8;y<bh-.2;y+=.6)P.fill(circ(x+sx*.5,y,.14,.14,8),'#d9a83a',1);if(st.bow)P.fill(circ(x,.75,.2,.2,8),'#ff9ad0',1)}}},z);
+    fp(lg.i,sm([[x-1.02,-.08],[x+1.02,-.08],[x+1.05,.3],[x-1.05,.3]],3),{color:st.sandal?col:C.brownDk,t:.34},z+.02);
+    if(st.fur){const f=[];for(let k=0;k<=6;k++)f.push([x-1.15+k*.383,bh+.35+(k%2?.28:0)]);f.push([x+1.15,bh-.55],[x-1.15,bh-.55]);fp(lg.i,toCCW(sm(f,3)),{color:'#f6f0e2',kind:'water',t:.4},z+.05)}
+    else if(cuff)fp(lg.i,box(x-1.05,bh-.75,x+1.05,bh+.25),{color:cuff,kind:'water',t:.36},z+.04)})};
+  const legs=(col,y0,{stripes=null,wd=.68}={})=>{y0=Math.min(y0,bootH-.3);if(STV[L.støvler]&&STV[L.støvler].sandal&&col===C.cream&&!stripes)col=L.skin;/* bare ben i sandaler, men kun hvor der ellers var strømper */LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15,sh=box(x-wd,y0,x+wd,HIP+.5);if(stripes)fp(lg.i,sh,{t:.15,s:40,ed:stripes,paint:P=>{P.flat(col);for(let y=y0;y<HIP+.5;y+=.7)P.flat(stripes,box(-9,y,9,y+.35),.85)}},-.1);else fp(lg.i,sh,{color:col,kind:'water',t:.18},-.1)})};
   const hand=(grp,pts,z)=>{const hs=sm(pts,6);fp(grp,hs,{t:.12,s:60,ed:L.skinSh,paint:P=>P.wash(L.skin,hs,{edge:.35})},z)};
   /* ærmer: venstre hænger, højre holder staven (eller hænger, hvis der ingen stav er) */
   function arms(col,{sl=.7,cuff='gold',bracer=false}={}){const sleeve=(grp,pts,z)=>fp(grp,sm(pts,6),{color:col,kind:'water',t:.18},z);
@@ -741,8 +752,8 @@ function makeFigure(look={}){
     F.orb=new THREE.Mesh(new THREE.SphereGeometry(1.05,24,16),new THREE.MeshStandardMaterial({color:'#c9f1ff',emissive:'#5fc6ff',emissiveIntensity:1.8,roughness:.2}));put(F.gStaff,F.orb,stx,sTop+1.6,.68)}
   const shade_=()=>G.traverse(o=>{if(o.isMesh){o.castShadow=!!F.shadow;o.receiveShadow=!!F.shadow}});
   /* farver: tøjets, hattens og kappens hovedfarve, og hårets */
-  F.setCol=(k,v)=>{FRES=L.res||1;if(k==='hår'){L.hair=[v,hexOf(shade(v,.25)),hexOf(shade(v,-.35))];[H0,H1,H2]=L.hair;buildHead();buildHair();buildHat()}else{L.col=Object.assign({},L.col,{[k]:v});if(k==='tøj')buildOutfit();else if(k==='hat')buildHat();else if(k==='kappe')buildCape()}shade_();FRES=1};
-  F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår')buildHair();else if(k==='tøj'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
+  F.setCol=(k,v)=>{FRES=L.res||1;if(k==='hår'){L.hair=[v,hexOf(shade(v,.25)),hexOf(shade(v,-.35))];[H0,H1,H2]=L.hair;buildHead();buildHair();buildHat()}else{L.col=Object.assign({},L.col,{[k]:v});if(k==='tøj'||k==='støvler')buildOutfit();else if(k==='hat')buildHat();else if(k==='kappe')buildCape()}shade_();FRES=1};
+  F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår')buildHair();else if(k==='tøj'||k==='støvler'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
   F.build=()=>{FRES=L.res||1;buildHead();buildHair();buildHat();buildOutfit();buildCape();buildAcc();buildStaff();shade_();FRES=1;return F};
   /* bevægelse: gang (ph er skridtets fase, amp 0..1), åndedræt, hårets sving og blink */
   F.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);F.legs[0].rotation.z=.32*s*amp;F.legs[1].rotation.z=-.32*s*amp;F.skirt.rotation.z=.045*s*amp+.012*Math.sin(t*1.2);
@@ -800,6 +811,7 @@ function fpsafe(shapes,o,z){for(const s of shapes)put(scene,piece(s,o),0,0,z)}
 /* ---- heksen og valgene ---- */
 const VALG={Hat:['hat',[['heksehat','Heksehat'],['eventyrhat','Eventyrhat'],['nathat','Nattehat'],['ingen','Ingen hat']]],Hår:['hår',[['langt','Langt'],['fletning','Fletning'],['bølger','Bølger']]],
   Tøj:['tøj',[['stjernekjole','Stjernekjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['stjerne','Stjernekappe'],['kort','Læderkappe'],['ingen','Ingen kappe']]],
+  Støvler:['støvler',[['snør','Snørestøvler'],['spidse','Spidse sko'],['høje','Høje støvler'],['ballerina','Ballerinasko'],['gummi','Gummistøvler'],['pels','Pelsstøvler'],['sandaler','Sandaler'],['krul','Krøllede tæer'],['spænde','Spændesko'],['knap','Knapstøvler']]],
   Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde']]]};
 let FIG=null,pop=0;const sparks=[];
 const cam=new THREE.PerspectiveCamera(30,1,20,600),CD=150;
@@ -820,7 +832,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,
 function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);if((typeof ctx!=='undefined')&&ctx.onLook)ctx.onLook(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
 const TOEJ=['#7b4fd0','#4a3a9a','#2e4a7a','#43a3d3','#1f6f6a','#3e7a4a','#c98a1e','#e07a45','#b83a3a','#e0457a','#f1ead8','#3a3040'];
-const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,hår:['#f2b33d','#e58a5a','#c2553a','#8a4a2a','#4a2f1c','#2a2030','#d8d2c8','#ff8fc7','#7b4fd0','#43a3d3','#5fd0b0','#f6f0e2']};
+const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,støvler:['#8a4b2e','#5a3a22','#2e2833','#7a2f3a','#e0a020','#2e4a7a','#3e7a4a','#7b4fd0','#e0457a','#f1ead8','#c2452d','#43a3d3'],hår:['#f2b33d','#e58a5a','#c2553a','#8a4a2a','#4a2f1c','#2a2030','#d8d2c8','#ff8fc7','#7b4fd0','#43a3d3','#5fd0b0','#f6f0e2']};
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj';const secs={};
   const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(key,v);
   UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('.grid button').forEach((b,i)=>{b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};

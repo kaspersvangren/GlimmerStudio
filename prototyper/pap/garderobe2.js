@@ -47,6 +47,7 @@ function fpsafe(shapes,o,z){for(const s of shapes)put(scene,piece(s,o),0,0,z)}
 /* ---- heksen og valgene ---- */
 const VALG={Hat:['hat',[['heksehat','Heksehat'],['eventyrhat','Eventyrhat'],['nathat','Nattehat'],['ingen','Ingen hat']]],Hår:['hår',[['langt','Langt'],['fletning','Fletning'],['bølger','Bølger']]],
   Tøj:['tøj',[['stjernekjole','Stjernekjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['stjerne','Stjernekappe'],['kort','Læderkappe'],['ingen','Ingen kappe']]],
+  Støvler:['støvler',[['snør','Snørestøvler'],['spidse','Spidse sko'],['høje','Høje støvler'],['ballerina','Ballerinasko'],['gummi','Gummistøvler'],['pels','Pelsstøvler'],['sandaler','Sandaler'],['krul','Krøllede tæer'],['spænde','Spændesko'],['knap','Knapstøvler']]],
   Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde']]]};
 let FIG=null,pop=0;const sparks=[];
 const cam=new THREE.PerspectiveCamera(30,1,20,600),CD=150;
@@ -67,7 +68,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,
 function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);if((typeof ctx!=='undefined')&&ctx.onLook)ctx.onLook(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
 const TOEJ=['#7b4fd0','#4a3a9a','#2e4a7a','#43a3d3','#1f6f6a','#3e7a4a','#c98a1e','#e07a45','#b83a3a','#e0457a','#f1ead8','#3a3040'];
-const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,hår:['#f2b33d','#e58a5a','#c2553a','#8a4a2a','#4a2f1c','#2a2030','#d8d2c8','#ff8fc7','#7b4fd0','#43a3d3','#5fd0b0','#f6f0e2']};
+const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,støvler:['#8a4b2e','#5a3a22','#2e2833','#7a2f3a','#e0a020','#2e4a7a','#3e7a4a','#7b4fd0','#e0457a','#f1ead8','#c2452d','#43a3d3'],hår:['#f2b33d','#e58a5a','#c2553a','#8a4a2a','#4a2f1c','#2a2030','#d8d2c8','#ff8fc7','#7b4fd0','#43a3d3','#5fd0b0','#f6f0e2']};
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj';const secs={};
   const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(key,v);
   UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('.grid button').forEach((b,i)=>{b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};
