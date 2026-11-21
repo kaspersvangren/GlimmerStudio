@@ -45,8 +45,8 @@ const sm_=(cp,seg=6)=>outline(cp,seg,0);
 function fpsafe(shapes,o,z){for(const s of shapes)put(scene,piece(s,o),0,0,z)}
 
 /* ---- heksen og valgene ---- */
-const VALG={Hat:['hat',[['heksehat','Heksehat'],['eventyrhat','Eventyrhat'],['nathat','Nattehat'],['ingen','Ingen hat']]],Hår:['hår',[['langt','Langt'],['fletning','Fletning'],['bølger','Bølger']]],
-  Tøj:['tøj',[['stjernekjole','Stjernekjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['stjerne','Stjernekappe'],['kort','Læderkappe'],['ingen','Ingen kappe']]],
+const VALG={Hat:['hat',[['heksehat','Heksehat'],['ingen','Ingen hat'],['nathat','Nattehat'],['eventyrhat','Eventyrhat'],['kort','Kort hat'],['høj','Høj hat'],['blomst','Blomsterhat'],['krone','Krone'],['baret','Baret'],['sløjfe','Sløjfe'],['hue','Hue']]],Hår:['hår',[['langt','Langt'],['fletning','Fletning'],['bølger','Bølger']]],
+  Tøj:['tøj',[['stjernekjole','Stjernekjole'],['månekjole','Månekjole'],['blomsterkjole','Blomsterkjole'],['stribekjole','Stribet kjole'],['prikkjole','Prikket kjole'],['hjertekjole','Hjertekjole'],['knapkjole','Knapkjole'],['lagkjole','Lagkjole'],['forklædekjole','Forklædekjole'],['kortkjole','Kort kjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['ingen','Ingen kappe'],['stjerne','Stjernekappe'],['måne','Månekappe'],['takket','Takket kappe'],['blomster','Blomsterkappe'],['stribet','Stribet kappe'],['pelskant','Pelskant'],['hætte','Hættekappe'],['kort','Læderkappe']]],
   Støvler:['støvler',[['snør','Snørestøvler'],['spidse','Spidse sko'],['høje','Høje støvler'],['ballerina','Ballerinasko'],['gummi','Gummistøvler'],['pels','Pelsstøvler'],['sandaler','Sandaler'],['krul','Krøllede tæer'],['spænde','Spændesko'],['knap','Knapstøvler']]],
   Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde']]]};
 let FIG=null,pop=0;const sparks=[];

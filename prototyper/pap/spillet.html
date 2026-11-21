@@ -1085,6 +1085,10 @@ function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,frec
 
 
 /* ---- figuren ---- */
+const HATTE={kort:'#2f7f86','høj':'#3a2a58',blomst:'#e8c878',krone:'#d9a83a',baret:'#b83a3a','sløjfe':'#e0457a',hue:'#3e7a4a'};
+const KAPPER={lang:{},stjerne:{motiv:'stjerner',std:'#1c2250',kant:'#cfb6ee'},'måne':{motiv:'måner',std:'#2a2a5a'},takket:{takket:1,std:'#5a2f6a'},blomster:{motiv:'blomster',std:'#3e6a4a'},stribet:{motiv:'striber',std:'#7a2f3a'},pelskant:{pels:1,std:'#8a2f3a'},'hætte':{haette:1,std:'#2f5a4a'}};
+/* kjolerne deler snit; hver har sit mønster og sin egen farve fra start */
+const KJOLER={stjernekjole:{motiv:'stjerner'},'månekjole':{motiv:'måner',std:'#2e4a7a',krave:'#5a3fa8'},blomsterkjole:{motiv:'blomster',std:'#3e7a4a',krave:'#7a2f6a',sloejfe:1},stribekjole:{motiv:'striber',std:'#b83a3a',krave:'#2a2a3a'},prikkjole:{motiv:'prikker',std:'#e0457a',krave:'#7a2f6a',sloejfe:1},hjertekjole:{motiv:'hjerter',std:'#b83a6a',krave:'#5a1f3a'},knapkjole:{motiv:'knapper',std:'#4a3a9a'},lagkjole:{motiv:'ingen',lag:1,std:'#1f6f6a',krave:'#143f3c'},'forklædekjole':{motiv:'ingen',forkl:1,std:'#43a3d3',krave:'#2e4a7a'},kortkjole:{motiv:'stjerner',kort:1,std:'#e07a45',krave:'#7a2f3a'}};
 const LOOK0={støvler:'snør',hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
 function makeFigure(look={}){
   const L=Object.assign({},LOOK0,look),F={L,G:new THREE.Group()},G=F.G;
@@ -1103,7 +1107,7 @@ function makeFigure(look={}){
     if(L.skæg){const b=sm([[-w*.42,cy-hh*.12],[-w*.5,cy-hh*.4],[-w*.3,cy-hh*.75],[0,cy-hh*.95],[w*.3,cy-hh*.75],[w*.5,cy-hh*.4],[w*.42,cy-hh*.12],[w*.2,cy-hh*.2],[0,cy-hh*.16],[-w*.2,cy-hh*.2]],8);fp(F.gFace,b,{t:.14,s:40,ed:'#b8b0a8',paint:P=>{P.wash(L.skæg,b,{top:'#ffffff',edge:.5});for(let k=0;k<12;k++){const x=R(-w*.4,w*.4);P.score(curve([[x*.7,cy-hh*.2],[x,cy-hh*.8]],4),{w:.05,ink:.3,dark:'#a8a098'})}}},.6);fp(F.gFace,sm([[-w*.3,cy-hh*.2],[0,cy-hh*.15],[w*.3,cy-hh*.2],[w*.12,cy-hh*.28],[0,cy-hh*.24],[-w*.12,cy-hh*.28]],5),{color:'#ffffff',kind:'water',t:.08},.66)}}
 
   /* hår: bagved hovedet og foran */
-  function buildHair(){wipe(hb.i);wipe(F.gHairF);const k=L.hår,dress=L.tøj==='stjernekjole'||L.tøj==='festkjole'||L.tøj==='skovløber',cut=dress?0:1.7;
+  function buildHair(){wipe(hb.i);wipe(F.gHairF);const k=L.hår,dress=(KJOLER[L.tøj]&&!KJOLER[L.tøj].kort)||L.tøj==='festkjole'||L.tøj==='skovløber',cut=dress?0:1.7;
     const bangs=(side)=>{const b=side?sm([[-w*.56,cy+hh*.05],[-w*.5,cy+hh*.44],[0,cy+hh*.6],[w*.52,cy+hh*.42],[w*.56,cy+hh*.12],[w*.2,cy+hh*.3],[-w*.25,cy+hh*.18]],6):sm([[-w*.56,cy+hh*.1],[-w*.52,cy+hh*.42],[0,cy+hh*.6],[w*.52,cy+hh*.42],[w*.56,cy+hh*.1],[w*.44,cy+hh*.22],[w*.3,cy+hh*.12],[w*.14,cy+hh*.26],[0,cy+hh*.2],[-w*.18,cy+hh*.28],[-w*.33,cy+hh*.13],[-w*.46,cy+hh*.24]],6);fp(F.gHairF,b,{t:.14,s:40,ed:H2,paint:hairPaint(b,9)},.68)};
     const lock=(pts,z=.66)=>{const Lk=sm(pts,6);fp(F.gHairF,Lk,{t:.12,s:40,ed:H2,paint:hairPaint(Lk,4)},z)};
     let back;
@@ -1128,6 +1132,20 @@ function makeFigure(look={}){
       if(nat){cord(ht.i,[[w*.97,hy+7.7,.6],[w*1.02,hy+6.2,.6]],.03,'#e9e4d8');const mp=[];for(let i=0;i<=10;i++){const a=-1.9+i/10*3.8;mp.push([w*1.02+Math.cos(a)*.55,hy+5.6+Math.sin(a)*.55])}for(let i=10;i>=0;i--){const a=-1.6+i/10*3.2;mp.push([w*1.02+.25+Math.cos(a)*.43,hy+5.6+Math.sin(a)*.43])}P_(toCCW(mp),{mat:gold(),t:.08},.6)}
       else{P_(starPts(w*.05,hy+.82,.55,.24),{mat:gold(),t:.08},.7);const pt=box(-w*.32,hy+3.2,-w*.08,hy+4.4);P_(pt,{t:.06,s:80,ed:C.pink,paint:P=>{P.flat(C.pink);P.score([...box(-w*.3,hy+3.28,-w*.1,hy+4.32),[-w*.3,hy+3.28]],{w:.04,ink:.6,dark:'#fff'})}},.62)}
       brimS(c2,c0)}
+    if(HATTE[k]!==undefined){/* de øvrige hatte: kort og høj spids hat, blomsterhat, krone, baret, sløjfe og hue */
+      const c0=L.col.hat||HATTE[k],c1=hexOf(shade(c0,.22)),c2=hexOf(shade(c0,-.3)),baand=g=>P_(sm([[-w*.5,hy+.3],[w*.5,hy+.3],[w*.47,hy+1.3],[-w*.47,hy+1.3]],2),g,.62);
+      if(k==='kort'||k==='høj'){const H=k==='høj'?11.6:5,crown=sm([[-w*.48,hy+.3],[w*.48,hy+.3],[w*.3,hy+H*.5],[w*.12,hy+H*.86],[w*.02,hy+H,1],[-w*.14,hy+H*.82],[-w*.32,hy+H*.48]],6);
+        P_(crown,{t:.25,s:30,ed:c0,paint:P=>{P.wash(c0,crown,{top:c1,edge:.55,clouds:8});if(k==='høj'){for(let y=hy+2.6;y<hy+H-1.4;y+=2.3)P.score(curve([[-w*.4,y],[0,y+.25],[w*.4,y]],6),{w:.1,ink:.35,dark:c2});for(let i=0;i<7;i++)P.fill(starPts(R(-w*.24,w*.24),hy+R(1.8,H-3),R(.2,.34),.12,R(1)),C.gold,.9)}else P.score(curve([[-w*.3,hy+2.4],[0,hy+2.7],[w*.28,hy+2.3]],6),{w:.07,ink:.3,dark:c2})}},.5);
+        baand({mat:gold(),t:.08});if(k==='høj')fps(ring(box(-.5,hy+.36,.5,hy+1.24),.14,false),{color:c2,t:.1},ht.i,.7);brimS(c2,c0)}
+      if(k==='blomst'){const crown=sm([[-w*.5,hy+.3],[w*.5,hy+.3],[w*.5,hy+2.3],[w*.3,hy+3.5],[-w*.3,hy+3.5],[-w*.5,hy+2.3]],6);
+        P_(crown,{t:.25,s:30,ed:c0,paint:P=>{P.wash(c0,crown,{top:c1,edge:.55,clouds:4});for(let y=hy+.9;y<hy+3.4;y+=.5)P.pen(curve([[-w*.5,y],[0,y+.14],[w*.5,y]],6),c2,.05,.5)}},.5);baand({color:'#e0457a',kind:'water',t:.08});
+        const fx=w*.34,fy=hy+1.5;for(const q of[0,1,2,3,4,5])P_(circ(fx+Math.cos(q/6*TAU)*.62,fy+Math.sin(q/6*TAU)*.62,.44,.44,12),{color:q%2?'#ffd6ea':'#ff9ad0',kind:'water',t:.1},.72+q*.004);P_(circ(fx,fy,.36,.36,12),{mat:gold(),t:.12},.78);P_(toCCW([[fx-.5,fy-.5],[fx-1.5,fy-.9],[fx-.9,fy-.1]]),{color:'#4f9a5a',kind:'water',t:.08},.7);brimS(c2,c0)}
+      if(k==='krone'){const pts=[[-w*.5,hy+.5],[w*.5,hy+.5]];for(let i=0;i<=8;i++)pts.push([w*.56-w*1.12*i/8,hy+(i%2?2.4:4.4)]);P_(toCCW(pts),{mat:gold(),t:.3},.62);P_(box(-w*.5,hy+.5,w*.5,hy+1.2),{color:'#a87a20',kind:'water',t:.34},.64);
+        [[0,'#e0457a'],[-w*.28,'#43a3d3'],[w*.28,'#5fd0b0']].forEach(([x,c])=>P_(circ(x,hy+1.9,.34,.4,12),{t:.1,mat:paperMat('#ffffff','tissue',{glow:c,gi:1.2})},.7));for(let i=0;i<=8;i+=2)P_(circ(w*.56-w*1.12*i/8,hy+4.5,.26,.26,10),{mat:gold(),t:.3},.66)}
+      if(k==='baret'){const b=sm([[-w*.62,hy+1.1],[-w*.3,hy+.3],[w*.42,hy+.4],[w*.78,hy+1.5],[w*.6,hy+3],[0,hy+3.6],[-w*.5,hy+2.9]],8);P_(b,{t:.3,s:30,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6,clouds:6});P.pen(curve([[-w*.5,hy+1.2],[0,hy+.7],[w*.6,hy+1.3]],8),c2,.12,.6)}},.6);P_(box(-.12,hy+3.5,.12,hy+4.2),{color:c2,t:.2},.6)}
+      if(k==='sløjfe'){for(const sx of[-1,1]){const lp=toCCW(sm([[0,hy+2.2,1],[sx*w*.62,hy+3.9],[sx*w*.72,hy+2.4],[sx*w*.62,hy+.9]],5));P_(lp,{t:.2,s:30,ed:c0,paint:P=>{P.wash(c0,lp,{top:c1,edge:.5});P.pen([[sx*.2,hy+2.2],[sx*w*.5,hy+2.7]],c2,.08,.6)}},.6)}P_(circ(0,hy+2.2,.58,.64,14),{color:c2,kind:'water',t:.26},.66)}
+      if(k==='hue'){const b=sm([[-w*.55,hy+.2],[w*.55,hy+.2],[w*.5,hy+2.7],[w*.24,hy+4.3],[0,hy+4.6],[-w*.24,hy+4.3],[-w*.5,hy+2.7]],8);P_(b,{t:.3,s:30,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.55,clouds:6});for(let x=-w*.45;x<w*.5;x+=.5)P.pen([[x,hy+1.4],[x*.6,hy+4.3]],c2,.06,.45)}},.6);
+        P_(sm([[-w*.58,hy-.1],[w*.58,hy-.1],[w*.57,hy+1.4],[-w*.57,hy+1.4]],3),{color:c1,kind:'water',t:.34},.66);P_(circ(0,hy+5.2,1,1,16),{color:'#f6f0e2',kind:'water',t:.4},.6)}}
     if(k==='eventyrhat'){const c0='#7a4e2c',c1='#9a6a3e',crown=sm([[-w*.5,hy+.3],[w*.5,hy+.3],[w*.44,hy+2.6],[w*.2,hy+4.6],[-w*.1,hy+5.6],[-w*.62,hy+5.9],[-w*.86,hy+5.2],[-w*.5,hy+4.9],[-w*.44,hy+2.8]],6);
       P_(crown,{t:.25,s:30,ed:c0,paint:P=>{P.wash(c0,crown,{top:c1,edge:.55,clouds:8});for(const c of[[[-w*.3,hy+2.2],[0,hy+2.5],[w*.3,hy+2.1]],[[-w*.3,hy+4],[0,hy+4.3]]])P.score(curve(c,6),{w:.07,ink:.35,dark:'#3a2010'});const st=curve([[-w*.4,hy+1.7],[0,hy+1.9],[w*.4,hy+1.7]],10);for(let i=0;i<st.length-1;i+=2)P.score([st[i],st[i+1]],{w:.05,ink:.6,dark:'#f0d6a4'})}},.5);
       P_(sm([[-w*.51,hy+.3],[w*.51,hy+.3],[w*.48,hy+1.25],[-w*.48,hy+1.25]],2),{color:'#3a2414',kind:'water',t:.08},.62);fps(ring(box(-w*.3,hy+.42,-w*.08,hy+1.14),.12,false),{mat:gold(),t:.08},ht.i,.7);
@@ -1170,13 +1188,26 @@ function makeFigure(look={}){
   const belt=(h=.8,col=C.brown,buck=.5)=>{fp(F.gTorso,box(-ww-.18,Wy-.45,ww+.18,Wy-.45+h),{color:col,kind:'water',t:.12},.42);fps(ring(box(-buck,Wy-.58,buck,Wy-.32+h),.17,false),{mat:gold(),t:.1},F.gTorso,.48)};
   const pouch=(x,wd=1.5,col='#8a5432')=>{fp(F.gTorso,sm([[x,Wy-.4,1],[x+wd,Wy-.4,1],[x+wd,Wy-1.8],[x+wd/2,Wy-2.15],[x,Wy-1.8]],5),{color:col,kind:'water',t:.3},.5);fp(F.gTorso,sm([[x-.05,Wy-.35,1],[x+wd+.05,Wy-.35,1],[x+wd,Wy-1.05],[x+wd/2,Wy-1.3],[x,Wy-1.05]],4),{color:hexOf(shade(col,.15)),kind:'water',t:.08},.66);fp(F.gTorso,circ(x+wd/2,Wy-1.12,.13,.13,8),{mat:gold(),t:.08},.72)};
   const crotch=col=>fp(F.gTorso,sm([[-ww-.25,Wy+.1,1],[ww+.25,Wy+.1,1],[ww+.55,HIP-.4],[.15,HIP-.9],[0,HIP-1.5],[-.15,HIP-.9],[-ww-.55,HIP-.4]],5),{color:col,kind:'water',t:.18},.12);
-  function buildOutfit(){for(const lg of LG)wipe(lg.i);wipe(F.gTorso);wipe(sk.i);const k=L.tøj,T_=F.gTorso,SK=sk.i;const KC=L.col.tøj||L.col.kjole,KJ=KC||C.purple,KJL=KC?hexOf(shade(KJ,.22)):C.purpleLt,KJD=KC?hexOf(shade(KJ,-.3)):C.purpleDk,KJB=KC?hexOf(shade(KJ,-.15)):'#5a3290';
-    if(k==='stjernekjole'){boots(2.6,C.brown);legs(C.cream,2.2);
-      const sks=sm([[-ww,Wy+.2,1],[ww,Wy+.2,1],[HW*.8,HEM+3],[HW,HEM],[HW*.5,HEM-.25],[0,HEM-.1],[-HW*.5,HEM-.25],[-HW,HEM],[-HW*.8,HEM+3]],6);
-      fp(SK,sks,{t:.2,s:22,ed:KJ,paint:P=>{P.wash(KJ,sks,{top:KJL,edge:.5,clouds:10});for(let i=0;i<9;i++){const x=mix(-ww,ww,i/8);P.score([[x,Wy-.5],[x*HW/ww*1.02,HEM+.8]],{w:.07,ink:.25,dark:KJD})}for(let i=0;i<16;i++)P.fill(starPts(R(-HW*.85,HW*.85),R(HEM+1,Wy-1),R(.28,.45),.13,R(1)),C.gold,.9)}},.2);
-      fps(thick([curve([[-HW,HEM+.05],[-HW*.5,HEM-.2],[0,HEM-.05],[HW*.5,HEM-.2],[HW,HEM+.05]],8)],.22),{mat:gold(),t:.08},SK,.32);
-      const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:KJ,paint:P=>P.wash(KJ,bd,{top:KJL,edge:.5})},.3);belt();pouch(ww*.45);
-      const c=sm([[-sw-.4,S+.25],[sw+.4,S+.25],[sw*.95,S-1.5],[sw*.4,S-2.2],[0,S-2.4],[-sw*.4,S-2.2],[-sw*.95,S-1.5]],6);fp(T_,c,{t:.16,s:30,ed:C.navy,paint:P=>{P.wash(C.navy,c,{top:C.navyLt,edge:.5});const e=grow(c,-.25)[0].outer;for(let i=0;i<e.length;i+=3)P.fill(circ(e[i][0],e[i][1],.08,.08,6),C.gold,1)}},.5);fp(T_,starPts(0,S-1.25,.7,.3),{mat:gold(),t:.1},.6);
+  function buildOutfit(){for(const lg of LG)wipe(lg.i);wipe(F.gTorso);wipe(sk.i);const k=L.tøj,T_=F.gTorso,SK=sk.i;const KC=L.col.tøj||L.col.kjole||(KJOLER[k]&&KJOLER[k].std),KJ=KC||C.purple,KJL=KC?hexOf(shade(KJ,.22)):C.purpleLt,KJD=KC?hexOf(shade(KJ,-.3)):C.purpleDk,KJB=KC?hexOf(shade(KJ,-.15)):'#5a3290';
+    if(KJOLER[k]){const kv=KJOLER[k],He=kv.kort?7.2:HEM,Hw=kv.kort?4.9:HW,kr=kv.krave||C.navy,krL=hexOf(shade(kr,.2));boots(2.6,C.brown);legs(C.cream,2.2,kv.kort?{stripes:KJD}:{});
+      const sks=sm([[-ww,Wy+.2,1],[ww,Wy+.2,1],[Hw*.8,He+3],[Hw,He],[Hw*.5,He-.25],[0,He-.1],[-Hw*.5,He-.25],[-Hw,He],[-Hw*.8,He+3]],6);
+      /* kjolens mønster: det samme snit, men stjerner, måner, blomster, striber, prikker eller hjerter */
+      const moenster=P=>{const n=kv.kort?9:16,pkt=()=>[R(-Hw*.82,Hw*.82),R(He+1,Wy-1)];
+        if(kv.motiv==='stjerner')for(let i=0;i<n;i++)P.fill(starPts(...pkt(),R(.28,.45),.13,R(1)),C.gold,.9);
+        if(kv.motiv==='måner')for(let i=0;i<n*.8;i++){const[x,y]=pkt(),r=R(.34,.5);P.fill(circ(x,y,r,r,14),'#f6e7c0',.95);P.fill(circ(x+r*.45,y+r*.25,r*.82,r*.82,14),KJ,1)}
+        if(kv.motiv==='blomster')for(let i=0;i<n*.8;i++){const[x,y]=pkt(),r=R(.2,.3),c=['#ffd6ea','#fff6d0','#ffb0d0'][i%3];for(let q=0;q<5;q++)P.fill(circ(x+Math.cos(q/5*TAU)*r*1.15,y+Math.sin(q/5*TAU)*r*1.15,r,r,8),c,.95);P.fill(circ(x,y,r*.7,r*.7,8),'#f2c230',1)}
+        if(kv.motiv==='striber')for(let i=0;i<9;i++){const a=mix(-ww,ww,(i+.25)/9),b=mix(-ww,ww,(i+.75)/9);if(i%2===0)P.fill(toCCW([[a,Wy-.2],[b,Wy-.2],[b*Hw/ww*1.02,He+.3],[a*Hw/ww*1.02,He+.3]]),KJL,.75)}
+        if(kv.motiv==='prikker')for(let i=0;i<n*1.6;i++){const[x,y]=pkt(),r=R(.18,.3);P.fill(circ(x,y,r,r,10),'#fbf5e6',.92)}
+        if(kv.motiv==='hjerter')for(let i=0;i<n*.8;i++){const[x,y]=pkt(),r=R(.22,.32);for(const sx of[-1,1])P.fill(circ(x+sx*r*.55,y+r*.3,r*.62,r*.62,10),'#ffd0e0',.95);P.fill([[x-r*1.1,y+.12*r],[x+r*1.1,y+.12*r],[x,y-r*1.15]],'#ffd0e0',.95)}
+        if(kv.motiv==='knapper')for(let y=He+1.2;y<Wy-.6;y+=1.25)P.fill(circ(0,y,.2,.2,10),C.gold,1)};
+      fp(SK,sks,{t:.2,s:22,ed:KJ,paint:P=>{P.wash(KJ,sks,{top:KJL,edge:.5,clouds:10});for(let i=0;i<9;i++){const x=mix(-ww,ww,i/8);P.score([[x,Wy-.5],[x*Hw/ww*1.02,He+.8]],{w:.07,ink:.25,dark:KJD})}moenster(P);
+        if(kv.lag)for(const y of[He+3.2,He+6.2]){const e=curve([[-Hw,y],[-Hw*.5,y-.3],[0,y-.1],[Hw*.5,y-.3],[Hw,y]],8);P.pen(e,KJD,.22,.7);P.pen(e.map(([x,q])=>[x,q+.3]),KJL,.14,.8)}}},.2);
+      fps(thick([curve([[-Hw,He+.05],[-Hw*.5,He-.2],[0,He-.05],[Hw*.5,He-.2],[Hw,He+.05]],8)],.22),{mat:gold(),t:.08},SK,.32);
+      if(kv.forkl){/* et forklæde med lomme over kjolen */const fb=He+2.2,fo=[[-ww*.9,Wy-.4],[ww*.9,Wy-.4],[ww*1.5,fb+.4]];for(let i=0;i<=6;i++)fo.push([ww*1.5-ww*3*i/6,fb+(i%2?.5:0)]);fo.push([-ww*1.5,fb+.4]);const fs=toCCW(sm(fo,4));
+        fp(SK,fs,{t:.1,s:30,ed:'#d8ccb0',paint:P=>{P.wash('#fbf5e6',fs,{edge:.5,clouds:4});P.pen([[-1.2,Wy-3.4],[1.2,Wy-3.4],[1.2,Wy-5.6],[-1.2,Wy-5.6],[-1.2,Wy-3.4]],'#c8b890',.08,.9);P.fill(starPts(0,Wy-4.5,.6,.26),KJ,.9)}},.34)}
+      const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:KJ,paint:P=>{P.wash(KJ,bd,{top:KJL,edge:.5});if(kv.motiv==='knapper')for(let y=Wy+.7;y<S-2.4;y+=.9)P.fill(circ(0,y,.17,.17,10),C.gold,1);if(kv.forkl)P.fill(box(-ww*.62,Wy,ww*.62,S-2.6),'#fbf5e6',1)}},.3);belt();if(!kv.forkl)pouch(ww*.45);
+      const c=sm([[-sw-.4,S+.25],[sw+.4,S+.25],[sw*.95,S-1.5],[sw*.4,S-2.2],[0,S-2.4],[-sw*.4,S-2.2],[-sw*.95,S-1.5]],6);fp(T_,c,{t:.16,s:30,ed:kr,paint:P=>{P.wash(kr,c,{top:krL,edge:.5});const e=grow(c,-.25)[0].outer;for(let i=0;i<e.length;i+=3)P.fill(circ(e[i][0],e[i][1],.08,.08,6),C.gold,1)}},.5);
+      if(kv.sloejfe){for(const sx of[-1,1])fp(T_,toCCW([[0,S-1.3],[sx*1.5,S-.5],[sx*1.5,S-2.1]]),{color:'#e0457a',kind:'water',t:.12},.6);fp(T_,circ(0,S-1.3,.34,.34,12),{color:'#b83a6a',kind:'water',t:.14},.64)}else fp(T_,starPts(0,S-1.25,.7,.3),{mat:gold(),t:.1},.6);
       arms(KJ,{sl:.7})}
     if(k==='eventyrer'){const TR='#6e4c30',TU=L.col.tøj||L.col.tunika||C.teal,TUD=hexOf(shade(hexOf(TU),-.3));boots(5.2,C.leather,{cuff:'#a06c3e'});legs(TR,4.6,{wd:1.04});
       /* bukser: skridt og lår, med knælapper */
@@ -1235,9 +1266,18 @@ function makeFigure(look={}){
       arms(KJ,{sl:1.3,cuff:C.lilac})}}
   /* kappe */
   function buildCape(){wipe(F.gCape);const k=L.kappe;if(k==='ingen')return;
-    if(k==='lang'||k==='stjerne'){const st=k==='stjerne',kc=L.col.kappe,c0=kc||(st?'#1c2250':C.navy),c1=kc?hexOf(shade(kc,.2)):(st?'#2c3470':C.navyLt),o=sm([[-sw-.2,S],[sw+.2,S],[HW+1.4,HEM+.3],[0,HEM-.2],[-HW-1.4,HEM+.3]],6);
-      if(st)fp(F.gCape,grow(o,.3)[0].outer,{color:C.lilac,kind:'water',t:.1},-.92);
-      fp(F.gCape,o,{t:.2,s:22,ed:c0,paint:P=>{P.wash(c0,o,{top:c1,edge:.6,clouds:8});for(let i=0;i<7;i++){const x=R(-HW,HW);P.score([[x*.4,S],[x,HEM+1]],{w:.08,ink:.3,dark:'#141a3a'})}if(st)for(let i=0;i<40;i++)P.fill(starPts(R(-HW-1,HW+1),R(HEM+.6,S-2),R(.2,.42),.12,R(1)),C.gold,.9)}},-.8)}
+    if(KAPPER[k]){const kv=KAPPER[k],c0=L.col.kappe||kv.std||C.navy,c1=hexOf(shade(c0,.2)),c2=hexOf(shade(c0,-.35)),bund=[];
+      if(kv.takket)for(let i=0;i<=10;i++)bund.push([HW+1.4-(2*HW+2.8)*i/10,HEM+(i%2?1.5:-.1)]);else bund.push([HW+1.4,HEM+.3],[0,HEM-.2],[-HW-1.4,HEM+.3]);
+      const o=kv.takket?toCCW([[-sw-.2,S],[sw+.2,S],...bund]):sm([[-sw-.2,S],[sw+.2,S],...bund],6),pkt=()=>[R(-HW-1,HW+1),R(HEM+.8,S-2)];
+      if(kv.kant)fp(F.gCape,grow(o,.3)[0].outer,{color:kv.kant,kind:'water',t:.1},-.92);
+      if(kv.haette){const hd=circ(0,cy+.2,w*.5+1.5,hh*.5+1.5,36);fp(F.gCape,hd,{t:.2,s:22,ed:c0,paint:P=>{P.wash(c0,hd,{top:c1,edge:.7,clouds:6})}},-.86)}
+      fp(F.gCape,o,{t:.2,s:22,ed:c0,paint:P=>{P.wash(c0,o,{top:c1,edge:.6,clouds:8});for(let i=0;i<7;i++){const x=R(-HW,HW);P.score([[x*.4,S],[x,HEM+1]],{w:.08,ink:.3,dark:c2})}
+        if(kv.motiv==='stjerner')for(let i=0;i<40;i++)P.fill(starPts(...pkt(),R(.2,.42),.12,R(1)),C.gold,.9);
+        if(kv.motiv==='måner')for(let i=0;i<26;i++){const[x,y]=pkt(),r=R(.34,.52);P.fill(circ(x,y,r,r,14),'#f6e7c0',.95);P.fill(circ(x+r*.45,y+r*.25,r*.82,r*.82,14),c0,1)}
+        if(kv.motiv==='blomster')for(let i=0;i<24;i++){const[x,y]=pkt(),r=R(.22,.32),c=['#ffd6ea','#fff6d0','#ffb0d0'][i%3];for(let q=0;q<5;q++)P.fill(circ(x+Math.cos(q/5*TAU)*r*1.15,y+Math.sin(q/5*TAU)*r*1.15,r,r,8),c,.95);P.fill(circ(x,y,r*.7,r*.7,8),'#f2c230',1)}
+        if(kv.motiv==='striber')for(let i=0;i<10;i+=2){const a=(i/10*2-1)*(sw+.2),b=((i+1)/10*2-1)*(sw+.2),k2=(HW+1.4)/(sw+.2);P.fill(toCCW([[a,S],[b,S],[b*k2,HEM],[a*k2,HEM]]),c1,.8)}}},-.8);
+      if(kv.pels){const fu=[];for(let i=0;i<=14;i++)fu.push([-HW-1.5+(2*HW+3)*i/14,HEM+1.5+(i%2?.4:0)-Math.abs(i-7)*.0]);fu.push([HW+1.5,HEM-.1],[0,HEM-.5],[-HW-1.5,HEM-.1]);fp(F.gCape,toCCW(sm(fu,3)),{color:'#f6f0e2',kind:'water',t:.26},-.74);
+        const kr=[];for(let i=0;i<=8;i++)kr.push([-sw-1+(2*sw+2)*i/8,S+.5+(i%2?.35:0)]);kr.push([sw+1.2,S-1.1],[0,S-1.7],[-sw-1.2,S-1.1]);fp(F.gCape,toCCW(sm(kr,3)),{color:'#f6f0e2',kind:'water',t:.2},1.3)}}
     if(k==='kort'){const b=sm([[-sw-1,S+.3],[sw+1,S+.3],[sw+2.6,S-5.2],[sw+1.2,S-6.2],[0,S-5.6],[-sw-1.2,S-6.2],[-sw-2.6,S-5.2]],6);fp(F.gCape,b,{t:.2,s:26,ed:C.leatherDk,paint:P=>{P.wash(C.leather,b,{top:'#a87244',edge:.6,clouds:6});const e=grow(b,-.3)[0].outer;for(let i=0;i<e.length-1;i+=2)P.score([e[i],e[i+1]],{w:.05,ink:.6,dark:'#f0d6a4'})}},-.8);
       for(const sx of[-1,1])fp(F.gCape,toCCW([[sx*.5,S+.1],[sx*(sw+.9),S+.35],[sx*(sw+1.1),S-.9],[sx*sw*.6,S-1.2],[sx*.9,S-.5]]),{color:'#a87244',kind:'water',t:.12,edge:C.leatherDk},1.34);
       fp(F.gCape,circ(0,S-.15,.38,.38,20),{mat:gold(),t:.12},1.42)}}
@@ -1412,14 +1452,17 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.8';
+const PAPVER='pap-0.9';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 const SPIL={look:{},farver:{},rum:{},stj:0,har:[],pause:false,rebake:false,room:null,arrive(){}};
 try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
   if(s.rum)for(const k in s.rum)if(Number.isInteger(s.rum[k]))SPIL.rum[k]=s.rum[k];if(Number.isFinite(s.stj))SPIL.stj=Math.max(0,Math.floor(s.stj));if(Array.isArray(s.har))SPIL.har=s.har.filter(x=>typeof x==='string').slice(0,200);if(Number.isInteger(s.eliksir))SPIL.eliksir=s.eliksir;if(s.farver)for(const k of['tøj','hat','kappe','støvler','hår'])if(/^#[0-9a-f]{6}$/i.test(s.farver[k]||''))SPIL.farver[k]=s.farver[k]}}catch(_){}
 SPIL.save=()=>{try{localStorage.setItem('magiske-mig-pap',JSON.stringify({look:SPIL.look,farver:SPIL.farver,rum:SPIL.rum,stj:SPIL.stj,har:SPIL.har,eliksir:SPIL.eliksir||0}))}catch(_){}};
 /* det man kan få i Boblebutikken; resten har heksen fra starten */
-SPIL.VARER=[['støvler','spidse','De spidse sko'],['støvler','høje','De høje støvler'],['støvler','ballerina','Ballerinaskoene'],['støvler','gummi','Gummistøvlerne'],['støvler','pels','Pelsstøvlerne'],['støvler','sandaler','Sandalerne'],['støvler','krul','Skoene med krøllede tæer'],['støvler','spænde','Spændeskoene'],['støvler','knap','Knapstøvlerne'],['tøj','eventyrer','Eventyrer-tøjet'],['tilbehør','taske','Skuldertasken'],['hat','nathat','Nattehatten'],['hat','eventyrhat','Eventyrhatten'],['hår','fletning','Fletningen'],['hår','bølger','Bølgerne'],['tøj','festkjole','Festkjolen'],['tøj','skovløber','Skovløber-tøjet'],['tøj','opdager','Opdager-tøjet'],['tøj','rejsekappe','Rejsefrakken'],['kappe','stjerne','Stjernekappen'],['kappe','kort','Læderkappen'],['tilbehør','rygsæk','Rygsækken'],['tilbehør','tørklæde','Tørklædet']];
+SPIL.VARER=[['tøj','månekjole','Månekjolen'],['tøj','blomsterkjole','Blomsterkjolen'],['tøj','stribekjole','Den stribede kjole'],['tøj','prikkjole','Den prikkede kjole'],['tøj','hjertekjole','Hjertekjolen'],['tøj','knapkjole','Knapkjolen'],['tøj','lagkjole','Lagkjolen'],['tøj','forklædekjole','Forklædekjolen'],['tøj','kortkjole','Den korte kjole'],
+  ['hat','kort','Den korte hat'],['hat','høj','Den høje hat'],['hat','blomst','Blomsterhatten'],['hat','krone','Kronen'],['hat','baret','Baretten'],['hat','sløjfe','Sløjfen'],['hat','hue','Huen'],
+  ['kappe','måne','Månekappen'],['kappe','takket','Den takkede kappe'],['kappe','blomster','Blomsterkappen'],['kappe','stribet','Den stribede kappe'],['kappe','pelskant','Kappen med pelskant'],['kappe','hætte','Kappen med hætte'],
+  ['støvler','spidse','De spidse sko'],['støvler','høje','De høje støvler'],['støvler','ballerina','Ballerinaskoene'],['støvler','gummi','Gummistøvlerne'],['støvler','pels','Pelsstøvlerne'],['støvler','sandaler','Sandalerne'],['støvler','krul','Skoene med krøllede tæer'],['støvler','spænde','Spændeskoene'],['støvler','knap','Knapstøvlerne'],['tøj','eventyrer','Eventyrer-tøjet'],['tilbehør','taske','Skuldertasken'],['hat','nathat','Nattehatten'],['hat','eventyrhat','Eventyrhatten'],['hår','fletning','Fletningen'],['hår','bølger','Bølgerne'],['tøj','festkjole','Festkjolen'],['tøj','skovløber','Skovløber-tøjet'],['tøj','opdager','Opdager-tøjet'],['tøj','rejsekappe','Rejsefrakken'],['kappe','stjerne','Stjernekappen'],['kappe','kort','Læderkappen'],['tilbehør','rygsæk','Rygsækken'],['tilbehør','tørklæde','Tørklædet']];
 SPIL.ejer=(k,v)=>!SPIL.VARER.some(w=>w[0]===k&&w[1]===v)||SPIL.har.includes(k+':'+v);
 for(const k in SPIL.look)if(!SPIL.ejer(k,SPIL.look[k]))SPIL.har.push(k+':'+SPIL.look[k]);/* det hun allerede har på, er hendes */
 /* hele heksens udseende: tøjvalgene og farverne samlet, sådan som figuren skal have dem */
@@ -1880,8 +1923,8 @@ const sm_=(cp,seg=6)=>outline(cp,seg,0);
 function fpsafe(shapes,o,z){for(const s of shapes)put(scene,piece(s,o),0,0,z)}
 
 /* ---- heksen og valgene ---- */
-const VALG={Hat:['hat',[['heksehat','Heksehat'],['eventyrhat','Eventyrhat'],['nathat','Nattehat'],['ingen','Ingen hat']]],Hår:['hår',[['langt','Langt'],['fletning','Fletning'],['bølger','Bølger']]],
-  Tøj:['tøj',[['stjernekjole','Stjernekjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['stjerne','Stjernekappe'],['kort','Læderkappe'],['ingen','Ingen kappe']]],
+const VALG={Hat:['hat',[['heksehat','Heksehat'],['ingen','Ingen hat'],['nathat','Nattehat'],['eventyrhat','Eventyrhat'],['kort','Kort hat'],['høj','Høj hat'],['blomst','Blomsterhat'],['krone','Krone'],['baret','Baret'],['sløjfe','Sløjfe'],['hue','Hue']]],Hår:['hår',[['langt','Langt'],['fletning','Fletning'],['bølger','Bølger']]],
+  Tøj:['tøj',[['stjernekjole','Stjernekjole'],['månekjole','Månekjole'],['blomsterkjole','Blomsterkjole'],['stribekjole','Stribet kjole'],['prikkjole','Prikket kjole'],['hjertekjole','Hjertekjole'],['knapkjole','Knapkjole'],['lagkjole','Lagkjole'],['forklædekjole','Forklædekjole'],['kortkjole','Kort kjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['ingen','Ingen kappe'],['stjerne','Stjernekappe'],['måne','Månekappe'],['takket','Takket kappe'],['blomster','Blomsterkappe'],['stribet','Stribet kappe'],['pelskant','Pelskant'],['hætte','Hættekappe'],['kort','Læderkappe']]],
   Støvler:['støvler',[['snør','Snørestøvler'],['spidse','Spidse sko'],['høje','Høje støvler'],['ballerina','Ballerinasko'],['gummi','Gummistøvler'],['pels','Pelsstøvler'],['sandaler','Sandaler'],['krul','Krøllede tæer'],['spænde','Spændesko'],['knap','Knapstøvler']]],
   Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde']]]};
 let FIG=null,pop=0;const sparks=[];
