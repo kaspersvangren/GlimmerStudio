@@ -29,6 +29,11 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | 16 | Koncertsalen | ser forkert ud | Gnomebandet er for stort. De er gnomer, så de skal være mindre på scenen | Kasper |
 | 17 | Koncertsalen | ser forkert ud | Gnomernes hænder skal spille på instrumenterne | Kasper |
 | 18 | Koncertsalen | ser forkert ud | Blomsterkransen går ud over alt | Kasper |
+| 19 | Eliksirtimen | ønske | Ny måde at spille på: se hvor langt man kan komme. Eliksirerne bliver sværere og sværere, og man får flere og flere stjerner | Kasper |
+| 20 | Eliksirtimen | virker ikke | Fem effekter gør ikke det, professoren siger: Hjertedrik (hjerter ud af ørerne), Boblebryg (sæbebobler), Blomsterdrik (blomster gror), Regnbuesaft (farve) viser alle bare glimmer, og Kildedrik viser hop | Kasper |
+| 21 | Bank en gnom | ser forkert ud | "SUPER!" ser ud til at blive skåret af | Kasper |
+| 22 | Bank en gnom | ser forkert ud | Gnomerne kommer ikke op af hullerne | Kasper |
+| 23 | Bank en gnom | ønske | Der skal være noget, der giver minus, hvis man slår det | Kasper |
 
 ### Mangler stadig fra originalen
 
