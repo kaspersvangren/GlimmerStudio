@@ -1053,7 +1053,18 @@ const fps=(shapes,o,parent,z=0)=>shapes.map(s=>fp(parent,s,o,z));
 function wipe(g){for(let i=g.children.length-1;i>=0;i--){const c=g.children[i];c.traverse(m=>{if(m.isMesh){m.geometry.dispose();for(const mt of[].concat(m.material))if(mt.userData&&mt.userData.own){mt.map&&mt.map.dispose();mt.bumpMap&&mt.bumpMap.dispose();mt.dispose()}}});g.remove(c)}}
 /* ---- ansigtet: akvarelhud, kinder og fregner, øjne med iris og lys, øjenbryn, næse og smil ---- */
 function faceShape(cx,cy,w,h){const o=[];for(let i=0;i<=24;i++){const a=Math.PI+i/24*Math.PI,x=Math.cos(a),y=Math.sin(a);o.push([cx+x*w/2*(1-.12*y*y),cy+h*.04+y*h*.54*(1-.08*x*x)])}for(let i=1;i<12;i++){const a=i/12*Math.PI;o.push([cx+Math.cos(a)*w/2,cy+h*.04+Math.sin(a)*h*.46])}return toCCW(o)}
-function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,freck=true,smile=.18,brow=C.hairDk,lips='#c4545e',skin=C.skin,skinSh=C.skinSh,blush=1,maerke=null}){const g=P.g,s=P.s,X=x=>P.X(x),Y=y=>P.Y(y);
+/* pupillen tegnes direkte på lærredet (y nedad): rund, stjerne, hjerte, måne, diamant, blomst, katteøje, spiral eller stor */
+function drawPupil(g,x,y,r,k){const p=r*.42;g.fillStyle=g.strokeStyle='#120f18';g.beginPath();
+  if(k==='stjerne')for(let i=0;i<10;i++){const a=-Math.PI/2+i/10*TAU,q=i%2?p*.62:p*1.5;g[i?'lineTo':'moveTo'](x+Math.cos(a)*q,y+Math.sin(a)*q)}
+  else if(k==='hjerte')for(let i=0;i<=30;i++){const t=i/30*TAU;g[i?'lineTo':'moveTo'](x+p*1.4*16*Math.pow(Math.sin(t),3)/17,y-p*.1-p*1.4*(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/17)}
+  else if(k==='maane'){const q=p*1.35,a0=.87,a1=TAU-.87;g.arc(x-p*.15,y,q,a0,a1);g.quadraticCurveTo(x-p*.15-q*.2,y,x-p*.15+Math.cos(a0)*q,y+Math.sin(a0)*q)}
+  else if(k==='diamant'){g.moveTo(x,y-p*1.55);g.lineTo(x+p*1.05,y);g.lineTo(x,y+p*1.55);g.lineTo(x-p*1.05,y)}
+  else if(k==='blomst'){for(let i=0;i<5;i++){const a=-Math.PI/2+i/5*TAU,cx=x+Math.cos(a)*p*.8,cy=y+Math.sin(a)*p*.8;g.moveTo(cx+p*.56,cy);g.arc(cx,cy,p*.56,0,TAU)}g.moveTo(x+p*.5,y);g.arc(x,y,p*.5,0,TAU)}
+  else if(k==='kat')g.ellipse(x,y,p*.44,r*.84,0,0,TAU);
+  else if(k==='spiral'){g.lineWidth=r*.13;g.lineCap='round';for(let i=0;i<=60;i++){const a=i/60*TAU*2.4,q=r*.74*i/60;g[i?'lineTo':'moveTo'](x+Math.cos(a)*q,y+Math.sin(a)*q)}g.stroke();g.beginPath();g.arc(x,y,r*.12,0,TAU)}
+  else g.arc(x,y,k==='stor'?r*.66:p,0,TAU);
+  g.fill()}
+function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,freck=true,smile=.18,brow=C.hairDk,lips='#c4545e',skin=C.skin,skinSh=C.skinSh,blush=1,maerke=null,pupil='rund',mund='smil'}){const g=P.g,s=P.s,X=x=>P.X(x),Y=y=>P.Y(y);
   const F=faceShape(cx,cy,w,h);P.wash(skin,F,{edge:.28,clouds:5,grain:.1,top:hexOf(shade(hexOf(skin),.25))});
   P.wash(skinSh,sm([[-w/2,cy+h*.5],[w/2,cy+h*.5],[w/2,cy+h*.18],[0,cy+h*.3],[-w/2,cy+h*.18]],6),{alpha:.35,edge:.6,clouds:0});
   for(const sx of[-1,1]){const bx=X(cx+sx*w*.29),by=Y(cy-h*.14),r=w*.16*s,gr=g.createRadialGradient(bx,by,0,bx,by,r);gr.addColorStop(0,'rgba(240,120,120,.5)');gr.addColorStop(1,'rgba(240,120,120,0)');g.fillStyle=gr;g.fillRect(bx-r,by-r,2*r,2*r);
@@ -1078,9 +1089,10 @@ function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,frec
     const gr=g.createRadialGradient(ix,iy+ir*.25,ir*.05,ix,iy,ir);gr.addColorStop(0,irisC[0]);gr.addColorStop(.7,irisC[1]);gr.addColorStop(1,'#163a24');g.fillStyle=gr;g.beginPath();g.arc(ix,iy,ir,0,TAU);g.fill();
     g.strokeStyle='rgba(255,255,220,.35)';g.lineWidth=Math.max(1,ir*.04);for(let k=0;k<14;k++){const a=k/14*TAU;g.beginPath();g.moveTo(ix+Math.cos(a)*ir*.5,iy+Math.sin(a)*ir*.5);g.lineTo(ix+Math.cos(a)*ir*.85,iy+Math.sin(a)*ir*.85);g.stroke()}
     g.strokeStyle='rgba(20,40,30,.85)';g.lineWidth=ir*.1;g.beginPath();g.arc(ix,iy,ir*.96,0,TAU);g.stroke();
-    g.fillStyle='#120f18';g.beginPath();g.arc(ix,iy,ir*.42,0,TAU);g.fill();
+    drawPupil(g,ix,iy,ir,pupil);
     g.fillStyle='rgba(40,20,40,.35)';g.fillRect(X(x0-eyeW),Y(ey+eyeH),eyeW*2*s,eyeH*.34*s);
-    g.fillStyle='#fff';g.beginPath();g.ellipse(ix-ir*.34,iy-ir*.34,ir*.3,ir*.24,-.5,0,TAU);g.fill();g.globalAlpha=.85;g.beginPath();g.arc(ix+ir*.32,iy+ir*.3,ir*.12,0,TAU);g.fill();g.globalAlpha=1;g.restore();
+    {const hk=pupil==='stor'?1.35:pupil==='glimt'?1.15:1;g.fillStyle='#fff';g.beginPath();g.ellipse(ix-ir*.34,iy-ir*.34,ir*.3*hk,ir*.24*hk,-.5,0,TAU);g.fill();g.globalAlpha=.85;g.beginPath();g.arc(ix+ir*.32,iy+ir*.3,ir*.12*hk,0,TAU);g.fill();g.globalAlpha=1;
+      if(pupil==='glimt'||pupil==='stor'){const qx=ix+ir*.36,qy=iy-ir*.3,q=ir*(pupil==='glimt'?.34:.2);g.beginPath();for(let i=0;i<8;i++){const a=i/8*TAU,rr=i%2?q*.28:q;g[i?'lineTo':'moveTo'](qx+Math.cos(a)*rr,qy+Math.sin(a)*rr)}g.fill()}}g.restore();
     /* lågkant, vipper og nedre vippelinje */
     const lid=top.map(([x,y])=>[x,y+eyeH*.02]),oc=sx>0?lid.length-1:0,o=lid[oc];const flick=[o[0]+sx*eyeH*.32,o[1]+eyeH*.2];
     const L=sx>0?[...lid.slice(2),flick]:[flick,...lid.slice(0,-2)];g.save();g.lineCap=g.lineJoin='round';g.strokeStyle=LASH;g.globalAlpha=.95;
@@ -1093,8 +1105,19 @@ function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,frec
   /* næse: en lille skygge og et lys */
   P.pen(curve([[cx+w*.012,cy-h*.17],[cx+w*.03,cy-h*.2],[cx+w*.008,cy-h*.215]],5),'#d29a84',w*.016,.8);P.fill(circ(cx-w*.012,cy-h*.18,w*.012,w*.01,8),'#fff4ea',.6);
   /* mund: et blidt smil med løftede mundvige og en antydning af underlæbe */
-  const mw=w*smile,my=cy-h*.3;P.fill(sm([[cx-mw*.32,my-h*.012],[cx+mw*.32,my-h*.012],[cx+mw*.18,my-h*.05],[cx-mw*.18,my-h*.05]],5),lips,.45);
-  P.pen(curve([[cx-mw/2,my+h*.012],[cx-mw*.25,my-h*.012],[cx,my-h*.02],[cx+mw*.25,my-h*.012],[cx+mw/2,my+h*.012]],6),'#7a2e38',w*.017,.95)}
+  const mw=w*smile,my=cy-h*.3,u=w*.01,v=w*.0145,LD='#7a2e38',MD='#6a1e2a',TG='#e86a7a',smil=()=>{P.fill(sm([[cx-mw*.32,my-h*.012],[cx+mw*.32,my-h*.012],[cx+mw*.18,my-h*.05],[cx-mw*.18,my-h*.05]],5),lips,.45);
+    P.pen(curve([[cx-mw/2,my+h*.012],[cx-mw*.25,my-h*.012],[cx,my-h*.02],[cx+mw*.25,my-h*.012],[cx+mw/2,my+h*.012]],6),LD,w*.017,.95)};
+  if(mund==='grin'){const a=mw*.62,sh=sm([[cx-a,my+u*1.2,1],[cx+a,my+u*1.2,1],[cx+a*.72,my-u*4.6],[cx,my-u*6.6],[cx-a*.72,my-u*4.6]],6);P.fill(sh,MD,1);P.fill([[cx-a*.9,my+u*1.2],[cx+a*.9,my+u*1.2],[cx+a*.78,my-u*.9],[cx-a*.78,my-u*.9]],'#fffaf2',1);P.fill(circ(cx,my-u*4.5,a*.42,u*1.6,14),TG,1);P.pen([...sh,sh[0]],LD,w*.014,.95)}
+  else if(mund==='pust'){P.fill(circ(cx,my-v*1.6,v*2.5,v*2.1,18),lips,.92);P.fill(circ(cx,my-v*1.6,v*.95,v*.8,12),MD,.9);P.fill(circ(cx-v*.9,my-v*.8,v*.5,v*.3,8),'#fff4ea',.6)}
+  else if(mund==='tunge'){P.fill(sm([[cx-v*2.5,my-v*1.6,1],[cx+v*2.5,my-v*1.6,1],[cx+v*2.3,my-v*4.8],[cx,my-v*6.4],[cx-v*2.3,my-v*4.8]],5),TG,1);P.pen([[cx,my-v*2.4],[cx,my-v*5]],'#c24a5e',v*.5,.8);smil()}
+  else if(mund==='kys'){const hp=[];for(let i=0;i<26;i++){const t=i/26*TAU;hp.push([cx+v*3.1*16*Math.pow(Math.sin(t),3)/17,my-v*1.4+v*3.1*(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/17])}P.fill(hp,'#d2485e',.95);P.pen([[cx-v*2.2,my-v*1.2],[cx,my-v*1.8],[cx+v*2.2,my-v*1.2]],LD,v*.5,.7);P.fill(circ(cx-v*1.2,my-v*.2,v*.5,v*.32,8),'#fff4ea',.6)}
+  else if(mund==='kysstor'){const a=mw*.56;P.fill(sm([[cx-a,my-u*.8],[cx-a*.42,my+u*1.7],[cx,my+u*.7],[cx+a*.42,my+u*1.7],[cx+a,my-u*.8],[cx+a*.5,my-u*4.4],[cx-a*.5,my-u*4.4]],6),'#d2485e',.96);P.pen(curve([[cx-a,my-u*.8],[cx-a*.4,my-u*1.3],[cx,my-u*1],[cx+a*.4,my-u*1.3],[cx+a,my-u*.8]],6),LD,u*.55,.85);P.fill(circ(cx,my-u*3,a*.4,u*.5,10),'#fff4ea',.4)}
+  else if(mund==='skaev'){P.fill(sm([[cx-mw*.2,my-u*1.6],[cx+mw*.36,my-u*.6],[cx+mw*.2,my-u*4],[cx-mw*.1,my-u*4.4]],5),lips,.4);P.pen(curve([[cx-mw*.5,my-u*.9],[cx-mw*.2,my-u*2.2],[cx+mw*.18,my-u*1.5],[cx+mw*.58,my+u*2.2]],7),LD,w*.017,.95)}
+  else if(mund==='oh'){const o=circ(cx,my-v*2.4,v*2.3,v*3,20);P.fill(o,MD,1);P.fill(circ(cx,my-v*4,v*1.3,v*1,10),TG,.9);P.pen([...o,o[0]],lips,v*.9,.95)}
+  else if(mund==='tand'){for(const sx of[-1,1]){const x=cx+sx*mw*.2;P.fill([[x-v*.9,my-v*1.3],[x+v*.9,my-v*1.3],[x,my-v*3.9]],'#fffaf2',1);P.pen([[x-v*.9,my-v*1.3],[x,my-v*3.9],[x+v*.9,my-v*1.3]],LD,v*.3,.7)}smil()}
+  else if(mund==='kat'){for(const sx of[-1,1])P.pen(curve([[cx+sx*mw*.56,my+u*.9],[cx+sx*mw*.3,my-u*2.6],[cx,my-u*.3]],7),LD,w*.017,.95);P.pen([[cx,my-u*.3],[cx,my+u*1.2]],LD,w*.012,.8)}
+  else if(mund==='glad'){const a=mw*.76,sh=sm([[cx-a,my+u*1.8,1],[cx-a*.5,my-u*.4],[cx,my-u*1],[cx+a*.5,my-u*.4],[cx+a,my+u*1.8,1],[cx+a*.55,my-u*3.6],[cx,my-u*5],[cx-a*.55,my-u*3.6]],5);P.fill(sh,'#fffaf2',1);P.pen([[cx-a*.72,my-u*2],[cx+a*.72,my-u*2]],'#d8c8c0',u*.3,.6);P.pen([...sh,sh[0]],LD,w*.014,.95)}
+  else smil()}
 
 
 /* ---- figuren ---- */
@@ -1102,7 +1125,7 @@ const HATTE={kort:'#2f7f86','høj':'#3a2a58',blomst:'#e8c878',krone:'#d9a83a',ba
 const KAPPER={lang:{},stjerne:{motiv:'stjerner',std:'#1c2250',kant:'#cfb6ee'},'måne':{motiv:'måner',std:'#2a2a5a'},takket:{takket:1,std:'#5a2f6a'},blomster:{motiv:'blomster',std:'#3e6a4a'},stribet:{motiv:'striber',std:'#7a2f3a'},pelskant:{pels:1,std:'#8a2f3a'},'hætte':{haette:1,std:'#2f5a4a'}};
 /* kjolerne deler snit; hver har sit mønster og sin egen farve fra start */
 const KJOLER={stjernekjole:{motiv:'stjerner'},'månekjole':{motiv:'måner',std:'#2e4a7a',krave:'#5a3fa8'},blomsterkjole:{motiv:'blomster',std:'#3e7a4a',krave:'#7a2f6a',sloejfe:1},stribekjole:{motiv:'striber',std:'#b83a3a',krave:'#2a2a3a'},prikkjole:{motiv:'prikker',std:'#e0457a',krave:'#7a2f6a',sloejfe:1},hjertekjole:{motiv:'hjerter',std:'#b83a6a',krave:'#5a1f3a'},knapkjole:{motiv:'knapper',std:'#4a3a9a'},lagkjole:{motiv:'ingen',lag:1,std:'#1f6f6a',krave:'#143f3c'},'forklædekjole':{motiv:'ingen',forkl:1,std:'#43a3d3',krave:'#2e4a7a'},kortkjole:{motiv:'stjerner',kort:1,std:'#e07a45',krave:'#7a2f3a'}};
-const LOOK0={mærke:'fregner',pande:'lige',støvler:'snør',hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
+const LOOK0={mærke:'fregner',pupil:'rund',mund:'smil',pande:'lige',støvler:'snør',hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
 function makeFigure(look={}){
   const L=Object.assign({},LOOK0,look),F={L,G:new THREE.Group()},G=F.G;
   const T=26,hh=L.hh,w=hh*.82,cy=T-hh/2,S=T-hh-1,sw=3,Wy=S-4.3,ww=2.05,HIP=Wy-1.7,PY=S+.4;F.D={T,hh,w,cy,S,sw,Wy,ww,HIP};
@@ -1115,7 +1138,7 @@ function makeFigure(look={}){
   /* hoved: hals, ansigt og øjenlåg til blink */
   function buildHead(){const nk=sm([[-w*.15,S-.3,1],[w*.15,S-.3,1],[w*.13,cy-hh*.38,1],[-w*.13,cy-hh*.38,1]],2);fp(F.gNeck,nk,{t:.16,s:50,ed:L.skinSh,paint:P=>{P.wash(L.skin,nk,{edge:.3});P.wash(L.skinSh,box(-2,cy-hh*.5,2,cy-hh*.36),{alpha:.5,edge:0})}},.25);
     const FS=faceShape(0,cy,w,hh),eyeW=w*L.eye,eyeH=eyeW*.78,ey=cy-hh*.03,ex=w*.215;
-    fp(F.gFace,FS,{t:.2,s:80,cap:1024,ed:L.skinSh,paint:P=>drawFace(P,{cx:0,cy,w,h:hh,eyeW,eyeH,lash:L.lash,freck:L.freck&&(!L.mærke||L.mærke==='fregner'),maerke:L.mærke,smile:L.smile,irisC:L.iris,brow:H2,skin:L.skin,skinSh:L.skinSh})},.4);
+    fp(F.gFace,FS,{t:.2,s:80,cap:1024,ed:L.skinSh,paint:P=>drawFace(P,{cx:0,cy,w,h:hh,eyeW,eyeH,lash:L.lash,freck:L.freck&&(!L.mærke||L.mærke==='fregner'),maerke:L.mærke,pupil:L.pupil,mund:L.mund,smile:L.smile,irisC:L.iris,brow:H2,skin:L.skin,skinSh:L.skinSh})},.4);
     F.lids=g(F.gFace);for(const sx of[-1,1]){fp(F.lids,circ(sx*ex,ey+eyeH*.1,eyeW*.58,eyeH*.66,20),{color:hexOf(shade(L.skin,-.1)),kind:'water',t:.04,edge:hexOf(shade(L.skin,-.1))},.52);fps(thick([curve([[sx*ex-eyeW*.5,ey+eyeH*.02],[sx*ex,ey-eyeH*.2],[sx*ex+eyeW*.5,ey+eyeH*.02]],8)],eyeH*.07),{color:'#2e1c22',t:.03},F.lids,.56)}F.lids.visible=false;
     if(L.skæg){const b=sm([[-w*.42,cy-hh*.12],[-w*.5,cy-hh*.4],[-w*.3,cy-hh*.75],[0,cy-hh*.95],[w*.3,cy-hh*.75],[w*.5,cy-hh*.4],[w*.42,cy-hh*.12],[w*.2,cy-hh*.2],[0,cy-hh*.16],[-w*.2,cy-hh*.2]],8);fp(F.gFace,b,{t:.14,s:40,ed:'#b8b0a8',paint:P=>{P.wash(L.skæg,b,{top:'#ffffff',edge:.5});for(let k=0;k<12;k++){const x=R(-w*.4,w*.4);P.score(curve([[x*.7,cy-hh*.2],[x,cy-hh*.8]],4),{w:.05,ink:.3,dark:'#a8a098'})}}},.6);fp(F.gFace,sm([[-w*.3,cy-hh*.2],[0,cy-hh*.15],[w*.3,cy-hh*.2],[w*.12,cy-hh*.28],[0,cy-hh*.24],[-w*.12,cy-hh*.28]],5),{color:'#ffffff',kind:'water',t:.08},.66)}}
 
@@ -1329,7 +1352,7 @@ function makeFigure(look={}){
   const shade_=()=>G.traverse(o=>{if(o.isMesh){o.castShadow=!!F.shadow;o.receiveShadow=!!F.shadow}});
   /* farver: tøjets, hattens og kappens hovedfarve, og hårets */
   F.setCol=(k,v)=>{FRES=L.res||1;if(k==='hud'){L.skin=v;L.skinSh=hexOf(shade(v,-.16));F.build();return}if(k==='øjne'){L.iris=[hexOf(shade(v,.35)),hexOf(shade(v,-.2))];buildHead();buildHair();buildHat();shade_();FRES=1;return}if(k==='hår'){L.hair=[v,hexOf(shade(v,.25)),hexOf(shade(v,-.35))];[H0,H1,H2]=L.hair;buildHead();buildHair();buildHat()}else{L.col=Object.assign({},L.col,{[k]:v});if(k==='tøj'||k==='støvler')buildOutfit();else if(k==='hat')buildHat();else if(k==='kappe')buildCape()}shade_();FRES=1};
-  F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår'||k==='pande')buildHair();else if(k==='mærke'){buildHead();buildHair();buildHat()}else if(k==='tøj'||k==='støvler'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
+  F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår'||k==='pande')buildHair();else if(k==='mærke'||k==='pupil'||k==='mund'){buildHead();buildHair();buildHat()}else if(k==='tøj'||k==='støvler'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
   F.build=()=>{FRES=L.res||1;buildHead();buildHair();buildHat();buildOutfit();buildCape();buildAcc();buildStaff();shade_();FRES=1;return F};
   /* bevægelse: gang (ph er skridtets fase, amp 0..1), åndedræt, hårets sving og blink */
   F.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);F.legs[0].rotation.z=.32*s*amp;F.legs[1].rotation.z=-.32*s*amp;F.skirt.rotation.z=.045*s*amp+.012*Math.sin(t*1.2);
@@ -1530,16 +1553,18 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.13';
+const PAPVER='pap-0.14';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 const SPIL={look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,har:[],pause:false,rebake:false,room:null,arrive(){}};
-try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
+try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
   if(s.rum)for(const k in s.rum)if(typeof s.rum[k]==='string')SPIL.rum[k]=s.rum[k];if(s.rumc)for(const k in s.rumc)if(/^#[0-9a-f]{6}$/i.test(s.rumc[k]||''))SPIL.rumc[k]=s.rumc[k];if(Number.isFinite(s.stj))SPIL.stj=Math.max(0,Math.floor(s.stj));if(Array.isArray(s.har))SPIL.har=s.har.filter(x=>typeof x==='string').slice(0,200);if(Number.isInteger(s.eliksir))SPIL.eliksir=s.eliksir;if(s.dyr){for(const k of['kind','moenster','pynt'])if(typeof s.dyr[k]==='string')SPIL.dyr[k]=s.dyr[k];for(const k of['a','b','c','eye'])if(/^#[0-9a-f]{6}$/i.test(s.dyr[k]||''))SPIL.dyr[k]=s.dyr[k]}if(s.farver)for(const k of['tøj','hat','kappe','støvler','hår','hud','øjne'])if(/^#[0-9a-f]{6}$/i.test(s.farver[k]||''))SPIL.farver[k]=s.farver[k]}}catch(_){}
 SPIL.save=()=>{try{localStorage.setItem('magiske-mig-pap',JSON.stringify({look:SPIL.look,farver:SPIL.farver,dyr:SPIL.dyr,rum:SPIL.rum,rumc:SPIL.rumc,stj:SPIL.stj,har:SPIL.har,eliksir:SPIL.eliksir||0}))}catch(_){}};
 /* det man kan få i Boblebutikken; resten har heksen fra starten */
 SPIL.VARER=[['dyr','hund','Hunden'],['dyr','kanin','Kaninen'],['dyr','enhjørning','Enhjørningen'],['dyr','bjørn','Bjørnen'],['dyr','drage','Dragen'],['dyr','ugle','Uglen'],['dyr','ræv','Ræven'],['dyr','frø','Frøen'],
   ['dyrmønster','pletter','Pletterne til kæledyret'],['dyrmønster','striber','Striberne til kæledyret'],['dyrmønster','øjeplet','Pletten om øjet'],['dyrmønster','hjerter','Hjerterne til kæledyret'],['dyrmønster','stjerner','Stjernerne til kæledyret'],['dyrmønster','prikker','Prikkerne til kæledyret'],['dyrmønster','plet','Den store plet'],['dyrmønster','glimmer','Glimmeret til kæledyret'],
   ['dyrpynt','sløjfe','Kæledyrets sløjfe'],['dyrpynt','krone','Kæledyrets krone'],['dyrpynt','vinger','Feevingerne'],['dyrpynt','hat','Den lille heksehat'],['dyrpynt','blomst','Blomsten ved øret'],['dyrpynt','stjerne','Stjernespændet'],['dyrpynt','tørklæde','Kæledyrets tørklæde'],['dyrpynt','butterfly','Butterflyen'],['dyrpynt','briller','Kæledyrets briller'],
+  ['pupil','glimt','Glimtet i øjet'],['pupil','stjerne','Stjerneøjnene'],['pupil','hjerte','Hjerteøjnene'],['pupil','maane','Måneøjnene'],['pupil','diamant','Diamantøjnene'],['pupil','blomst','Blomsterøjnene'],['pupil','kat','Katteøjnene'],['pupil','spiral','De snurrende øjne'],['pupil','stor','De store blanke øjne'],
+  ['mund','grin','Det store grin'],['mund','pust','Den lille mund'],['mund','tunge','Tungen der rækkes ud'],['mund','kys','Kyssemunden'],['mund','kysstor','De store kyslæber'],['mund','skaev','Det skæve smil'],['mund','oh','Den overraskede mund'],['mund','tand','De små hjørnetænder'],['mund','kat','Kattemunden'],['mund','glad','Det brede smil'],
   ['mærke','hjerte','Hjertet på kinden'],['mærke','stjerne','Stjernen på kinden'],['mærke','måne','Månen på kinden'],['mærke','glimmer','Glimmeret'],['mærke','ar','Arret'],['mærke','plaster','Plasteret'],['mærke','maling','Krigsmalingen'],['mærke','prik','Skønhedspletten'],
   ['hår','skulder','Det skulderlange hår'],['hår','kort','Det korte hår'],['hår','hestehale','Hestehalen'],['hår','rottehaler','Rottehalerne'],['hår','fletninger','De to fletninger'],['hår','knolde','Knoldene'],['hår','topknold','Topknolden'],['hår','krøller','Krøllerne'],
   ['pande','side','Pandehåret til siden'],['pande','venstre','Pandehåret til venstre'],['pande','midt','Midterskilningen'],['pande','gardin','Gardinpandehåret'],['pande','mini','Det korte pandehår'],['pande','pjusket','Det pjuskede pandehår'],['pande','bølget','Det bølgede pandehår'],['pande','lang','Det lange pandehår'],['pande','tilbage','Det tilbagestrøgne hår'],
@@ -2025,6 +2050,8 @@ const VALG={Hat:['hat',[['heksehat','Heksehat'],['ingen','Ingen hat'],['nathat',
   Pande:['pande',[['lige','Lige'],['side','Til siden'],['venstre','Til venstre'],['midt','Midterskilning'],['gardin','Gardin'],['mini','Kort'],['pjusket','Pjusket'],['bølget','Bølget'],['lang','Langt'],['tilbage','Strøget tilbage']]],
   Tøj:['tøj',[['stjernekjole','Stjernekjole'],['månekjole','Månekjole'],['blomsterkjole','Blomsterkjole'],['stribekjole','Stribet kjole'],['prikkjole','Prikket kjole'],['hjertekjole','Hjertekjole'],['knapkjole','Knapkjole'],['lagkjole','Lagkjole'],['forklædekjole','Forklædekjole'],['kortkjole','Kort kjole'],['festkjole','Festkjole'],['eventyrer','Eventyrer'],['skovløber','Skovløber'],['opdager','Opdager'],['rejsekappe','Rejsefrakke']]],Kappe:['kappe',[['lang','Lang kappe'],['ingen','Ingen kappe'],['stjerne','Stjernekappe'],['måne','Månekappe'],['takket','Takket kappe'],['blomster','Blomsterkappe'],['stribet','Stribet kappe'],['pelskant','Pelskant'],['hætte','Hættekappe'],['kort','Læderkappe']]],
   Ansigt:['mærke',[['fregner','Fregner'],['ingen','Intet mærke'],['hjerte','Hjerte'],['stjerne','Stjerne'],['måne','Måne'],['glimmer','Glimmer'],['ar','Ar'],['plaster','Plaster'],['maling','Krigsmaling'],['prik','Skønhedsplet']]],
+  Øjne:['pupil',[['rund','Runde pupiller'],['glimt','Glimt i øjet'],['stjerne','Stjerner'],['hjerte','Hjerter'],['maane','Måner'],['diamant','Diamanter'],['blomst','Blomster'],['kat','Katteøjne'],['spiral','Snurrende'],['stor','Store og blanke']]],
+  Mund:['mund',[['smil','Smil'],['grin','Stort grin'],['pust','Lille mund'],['tunge','Rækker tunge'],['kys','Kyssemund'],['kysstor','Store kyslæber'],['skaev','Skævt smil'],['oh','Overrasket'],['tand','Små hjørnetænder'],['kat','Kattemund'],['glad','Bredt smil']]],
   Støvler:['støvler',[['snør','Snørestøvler'],['spidse','Spidse sko'],['høje','Høje støvler'],['ballerina','Ballerinasko'],['gummi','Gummistøvler'],['pels','Pelsstøvler'],['sandaler','Sandaler'],['krul','Krøllede tæer'],['spænde','Spændesko'],['knap','Knapstøvler']]],
   Dyr:['kind',[['kat','Kat'],['hund','Hund'],['kanin','Kanin'],['enhjørning','Enhjørning'],['bjørn','Bjørn'],['drage','Drage'],['ugle','Ugle'],['ræv','Ræv'],['frø','Frø']]],
   Mønster:['moenster',[['ingen','Ensfarvet'],['sokker','Sokker'],['pletter','Pletter'],['striber','Striber'],['øjeplet','Plet om øjet'],['hjerter','Hjerter'],['stjerner','Stjerner'],['prikker','Små prikker'],['plet','Stor plet'],['glimmer','Glimmer']]],
@@ -2045,7 +2072,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,
     for(const gl of GLOW){const f=gl.f?(.9+.1*Math.sin(t*9+gl.ph)*Math.sin(t*5.1)):(.9+.1*Math.sin(t*2+gl.ph));gl.spr.scale.set(gl.s*f,gl.s*f,1)}
     for(const sp of sparks){sp.t+=dt;if(sp.t>1){sp.s.visible=false;continue}sp.s.visible=true;sp.s.position.set(sp.x+sp.vx*sp.t,sp.y+sp.vy*sp.t+3*sp.t*sp.t*-1+2*sp.t,6);const z=(1-sp.t)*1.6;sp.s.scale.set(z,z,1)}
     ST.draw()};requestAnimationFrame(loop);
-  window.__gard={ready:true,set:(k,v)=>{choose(k,v);UI.draw()},fig:FIG}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
+  window.__gard={ready:true,cam,set:(k,v)=>{choose(k,v);UI.draw()},fig:FIG}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
 /* kæledyret står ved siden af heksen og bygges på ny, når noget ved det ændres */
 let PET=null;const PETL=(typeof ctx!=='undefined'&&ctx.dyr)?Object.assign({},ctx.dyr):{};
 function setPet(k,v){if(k)PETL[k]=v;if(PET){live.remove(PET.G);PET.G.traverse(o=>{if(o.geometry)o.geometry.dispose();const m=o.material;if(m&&m.userData&&m.userData.own){if(m.map)m.map.dispose();if(m.bumpMap)m.bumpMap.dispose();m.dispose()}})}
@@ -2055,7 +2082,7 @@ function choose(k,v){if(DYRK[k]){if(PETL[k]!==v&&!(k==='kind'&&!PETL.kind&&v==='
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
 const TOEJ=['#7b4fd0','#4a3a9a','#2e4a7a','#43a3d3','#1f6f6a','#3e7a4a','#c98a1e','#e07a45','#b83a3a','#e0457a','#f1ead8','#3a3040'];
 const DYRK={kind:'dyr',moenster:'dyrmønster',pynt:'dyrpynt',a:1,b:1,c:1,eye:1},DYRTAB={Dyr:1,'Mønster':1,Pynt:1},DYRFARVER=['#2d2738','#f3ecda','#c8935a','#8a5a34','#e07a2a','#ffc9e2','#f6f1ff','#b79bff','#5fa34a','#5ab85a','#43a3d3','#e0457a','#ffd86b','#9c6a48'];
-const FLERE={Dyr:[['a',DYRFARVER,'Krop'],['b',DYRFARVER,'Anden farve'],['c',DYRFARVER,'Pynt og detaljer'],['eye',['#b7e26a','#6ac8e8','#3d8bff','#8a6ad8','#f0a030','#e0457a','#c89a5a','#3fae6a'],'Øjne']],Ansigt:[['hud',['#ffd9c2','#f6c8a8','#e8b890','#d6a077','#c68e6a','#a8704e','#8a5a3c','#6a4028','#f7e6dc','#cfe8c4','#dccdf2'],'Hud'],['øjne',['#3fae6a','#3d8bff','#8a6ad8','#c89a5a','#6a4420','#e0457a','#43a3d3','#5a6a7a','#f0a030','#2a2a3a'],'Øjne']]};
+const FLERE={Dyr:[['a',DYRFARVER,'Krop'],['b',DYRFARVER,'Anden farve'],['c',DYRFARVER,'Pynt og detaljer'],['eye',['#b7e26a','#6ac8e8','#3d8bff','#8a6ad8','#f0a030','#e0457a','#c89a5a','#3fae6a'],'Øjne']],Ansigt:[['hud',['#ffd9c2','#f6c8a8','#e8b890','#d6a077','#c68e6a','#a8704e','#8a5a3c','#6a4028','#f7e6dc','#cfe8c4','#dccdf2'],'Hud']],Øjne:[['øjne',['#3fae6a','#3d8bff','#8a6ad8','#c89a5a','#6a4420','#e0457a','#43a3d3','#5a6a7a','#f0a030','#2a2a3a'],'Farve']]};
 const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,støvler:['#8a4b2e','#5a3a22','#2e2833','#7a2f3a','#e0a020','#2e4a7a','#3e7a4a','#7b4fd0','#e0457a','#f1ead8','#c2452d','#43a3d3'],hår:['#f2b33d','#e58a5a','#c2553a','#8a4a2a','#4a2f1c','#2a2030','#d8d2c8','#ff8fc7','#7b4fd0','#43a3d3','#5fd0b0','#f6f0e2']};
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj',hvem='heks';const secs={};
   const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(typeof DYRK[key]==='string'?DYRK[key]:key,v);const valgt=(key)=>DYRK[key]?(PETL[key]||{kind:'kat',moenster:PETL.kind&&PETL.kind!=='kat'||PETL.a?'ingen':'sokker',pynt:'halsbånd'}[key]):(FIG?FIG.L[key]:LOOK0[key]);
@@ -2957,7 +2984,7 @@ const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs
   gang:{navn:'Skolen'},eliksir:{navn:'Eliksirtimen'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden'},gnom:{navn:'Bank en gnom'}};
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
-const SLOTS=['hat','hår','pande','mærke','tøj','kappe','støvler','tilbehør'];
+const SLOTS=['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'];
 const doorEl=document.getElementById('door'),doorT=document.getElementById('doorT'),rumEl=document.getElementById('rum'),hjemEl=document.getElementById('hjem'),hjemT=document.getElementById('hjemT'),toastEl=document.getElementById('toast'),stjN=document.getElementById('stjN'),stjEl=document.getElementById('stj');
 let toastT=0;const toast=txt=>{toastEl.textContent=txt;toastEl.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{toastEl.hidden=true},2600)};
 /* alt hvad rummet selv har malet og bygget, slippes igen; det fælles papir (som byen også bruger) bliver liggende */
