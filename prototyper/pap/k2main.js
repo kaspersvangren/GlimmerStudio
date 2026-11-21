@@ -133,7 +133,7 @@ function frameCam(){const w=stage.clientWidth,h=stage.clientHeight,asp=w/h;cam.a
   place(best.H,best.ly,15)}
 /* bages i fliser på skærmens størrelse, så den kantudglattede mellemstation aldrig bliver større end i dag */
 let bagHvorfor='start';const MRK=l=>{if(typeof LOG!=='undefined')LOG.maerk(l)};
-function bake(){const t0=performance.now();MRK('bager: '+bagHvorfor);const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+let bagW=0,bagH=0;function bake(){const t0=performance.now();MRK('bager: '+bagHvorfor);const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;bagW=w;bagH=h;
   const fx=FW>VW?vx/(FW-VW):.5,fy=FH>VH?vy/(FH-VH):.6;
   renderer.setSize(w,h,false);cam.clearViewOffset();frameCam();const d=renderer.getDrawingBufferSize(new THREE.Vector2());
   VW=d.x;VH=d.y;const mx=renderer.capabilities.maxTextureSize,z=Math.max(1,Math.min(ZOOM,mx/VW,mx/VH,Math.sqrt(9e6/(VW*VH))));FW=Math.round(VW*z);FH=Math.round(VH*z);
@@ -154,7 +154,9 @@ function bake(){const t0=performance.now();MRK('bager: '+bagHvorfor);const w=sta
   vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0;if(typeof LOG!=='undefined'){LOG.row('bag',{ms:Math.round(bakeMs),hvorfor:bagHvorfor,px:`${FW}x${FH}`});LOG.maerk('bagt: '+bagHvorfor)}}
 function applyView(){vx=clamp(vx,0,Math.max(0,FW-VW));vy=clamp(vy,0,Math.max(0,FH-VH));const ox=Math.round(vx),oy=Math.round(vy);
   cam.setViewOffset(FW,FH,ox,oy,VW,VH);blitMat.uniforms.uOff.value.set(ox/FW,1-(oy+VH)/FH);blitMat.uniforms.uScl.value.set(VW/FW,VH/FH)}
-let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;MRK(`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`);bagHvorfor=`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
+/* en ny størrelse bager byen om. Tastaturet til en note gør skærmen lavere et øjeblik: det må ikke bage noget om (det gav hak på et halvt sekund), så der ventes, til noten er lukket, og er størrelsen så den samme som sidst, sker der ingenting */
+let rebakeT=0;const nyStr=()=>{clearTimeout(rebakeT);if(window.__frys){rebakeT=setTimeout(nyStr,500);return}if(stage.clientWidth===bagW&&stage.clientHeight===bagH)return;bagHvorfor=`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}bake()};
+new ResizeObserver(()=>{if(!baked)return;MRK(`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`);clearTimeout(rebakeT);rebakeT=setTimeout(nyStr,250)}).observe(stage);if(typeof window!=='undefined')window.__kortStr=()=>stage.clientWidth!==bagW||stage.clientHeight!==bagH;
 
 /* ============ tryk ============ */
 let HUSBOX=null;const boxP=new THREE.Vector3();const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),-TOP),hitP=new THREE.Vector3();

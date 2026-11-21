@@ -12,6 +12,6 @@ const { chromium } = require('playwright');
   const ind = async id => { await p.evaluate(h => __spil.enter(h), id); await p.waitForFunction(id => __spil.room && __spil.room.id === id && document.getElementById('door').classList.contains('gone') && !document.getElementById('hjem').hidden, id, { timeout: 180000 }) };
   const ud = async () => { while (await p.evaluate(() => !!__spil.room)) { await p.click('#hjem'); await p.waitForTimeout(1500); await p.waitForFunction(() => document.getElementById('door').classList.contains('gone'), null, { timeout: 60000 }) } };
   await shot('by');
-  for (const sti of [['vaerelse'], ['vaerelse', 'garderobe'], ['koncert'], ['gang'], ['gang', 'eliksir'], ['bobler'], ['arkade'], ['arkade', 'gnom']]) { for (const id of sti) await ind(id); await shot(sti[sti.length - 1]); await ud() }
+  for (const sti of [['vaerelse'], ['vaerelse', 'garderobe'], ['koncert'], ['gang'], ['gang', 'eliksir'], ['bobler'], ['arkade'], ['arkade', 'gnom'], ['dyrepark'], ['dyrepark', 'dyrekoekken'], ['dyrepark', 'ungestald']]) { for (const id of sti) await ind(id); await shot(sti[sti.length - 1]); await ud() }
   await shot('by-efter'); console.log('gennemgang', W + 'x' + H, 'fejl:', fejl); await b.close();
 })();

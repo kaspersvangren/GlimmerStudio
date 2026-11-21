@@ -244,5 +244,8 @@ const OFF=42;
 function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.ex*OFF,m.z])}}
 function walkIn(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.x,m.z])}}
 const idle=()=>BAND.every(o=>!o.q.length);
-async function wish(k){if(busy||k===cur)return;busy=true;walkOut();await until(idle);curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false}
+/* musikken: lounge i baggrunden. En ønsket sang (Kaspers egne) spilles én gang, så klapper publikum, og loungen kommer tilbage */
+  const L_=typeof LYD!=='undefined'?LYD:null,lounge=()=>{if(L_&&((typeof ctx==='undefined')||ctx.alive))L_.musik('koncert.lounge'+(1+Math.floor(Math.random()*4)))};if(L_)setTimeout(lounge,600);
+  async function wish(k){if(busy||k===cur)return;busy=true;if(L_){L_.musik(null);L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false;
+    if(L_&&((typeof ctx==='undefined')||ctx.alive)){if(k==='hygge'||!L_.sang('koncert.'+k,fejl=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;if(!fejl)L_.klap();setTimeout(lounge,fejl?0:4800)}))lounge()}}
 {const box_=document.getElementById('songs');for(const k in STY){const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.addEventListener('click',()=>{wish(k);box_.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});if(k==='hygge')b.setAttribute('aria-pressed','true');box_.appendChild(b)}}

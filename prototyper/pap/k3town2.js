@@ -93,7 +93,7 @@ BUILD.push(()=>{const X=64,Z=-22,T=.4,H=house('dyr',[58,-12.8],[58,-10.2]);const
   put(scene,piece(box(55,9.4,61,9.9),{color:PAL.woodDk,kind:'balsa',t:.5}),0,0,fz);
   plate(scene,'Dyreparken','Dyreparken',FONT.dyr,8.6,1.9,{bg:'#6b4a2a',fg:'#f6e7c0',frame:'#3b2213',size:1.2,ls:.03,x:58,y:9.95,z:fz+.15});
   for(const x of[56.4,59.6])cord(scene,[[x,9.4,fz+.3],[x,8.2,fz+.3]],.04);
-  plate(scene,'Dyreparken:snart','Kommer snart',FONT.snart,4.6,1.1,{bg:'#f2e6c8',fg:'#3b2a1f',size:.7,x:58,y:7.1,z:fz+.3});
+  plate(scene,'Dyreparken:aaben','Kom ind!',FONT.snart,4.6,1.1,{bg:'#f2e6c8',fg:'#3b2a1f',size:.7,x:58,y:7.1,z:fz+.3});
   plate(scene,'Fodr ikke','Fodr ikke drageungen',FONT.snart,7.4,1.3,{bg:'#f2e6c8',fg:'#3b2a1f',size:.68,x:71,y:3.4,z:fz+.55});
   /* høstak og trug */
   {const hs=new THREE.Group();put(scene,hs,76,0,-18);prop('høstak',76,-18,3);['#c9962e','#e3b84a','#f0cd6a'].forEach((c,i)=>{const k=1-i*.14;put(hs,piece(puff(0,1.6*k,3*k,1.9*k,8,.12),{color:c,t:.12}),0,0,i*.25)})}

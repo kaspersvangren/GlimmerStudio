@@ -13,29 +13,31 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | Nr. | Sted | Type | Hvad | Fra |
 |---|---|---|---|---|
 | 1 | Kæledyret | ønske | Et næbdyr som kæledyr | Agnes |
-| 4 | Eliksirtimen, Boblebutikken, Koncertsalen | skal virke bedre | Kæledyret er ikke med derinde; i Koncertsalen er heksen heller ikke med | gennemgang |
 | 7 | Værelset | skal virke bedre | Tæppernes form (hjerte, stjerne, måne) er svær at se, fordi gulvet ses meget fladt | gennemgang |
 | 8 | Værelset | skal virke bedre | Hvert valg bager rummet om. Hvor lang tid det tager på tabletten, er ikke målt | gennemgang |
 | 9 | Kortet | skal virke bedre | Opstarten: bagningen af byen er ikke gjort hurtigere. Mangler tal fra tabletten på statistik-linket | Kasper |
 | 11 | Telefon på langs | ser forkert ud | Knapperne øverst dækker stadig lidt af rummene på en lav skærm (Skolens skilte, Arkadens skilt, den venstre stjerne i Bank en gnom), selv om de er gjort mindre | gennemgang |
 | 29 | Koncertsalen | skal virke bedre | Trommeslagerens arme og stikker er små og svære at se bag stortrommen | gennemgang |
 | 30 | Statistik-linket | skal virke bedre | Det er ikke prøvet på en rigtig telefon, om knappen "Ny udgave" dukker op, når en gammel side er gemt. Prøvet på en lokal server | gennemgang |
-| 34 | Kortet | virker ikke | Hak på 0,3–0,5 sekund, mens man går rundt på kortet på telefonen (loggen, udgave 0.17). **Årsagen er ikke fundet.** Gættet om, at det var trykket mod husenes papirdele, var forkert: målt til under 1 ms pr. tryk på en pc (`node trykmaal.js`). Trykket prøves nu alligevel mod én kasse pr. hus. Fra 0.18 skrives hvert hak i loggen (`kind = 'hak'`) med det sidste, der skete lige inden, og hver bagning (`kind = 'bag'`) med årsag og varighed | gennemgang |
 | 12 | Heksen | skal virke bedre | Lange kjoler skjuler støvlerne alle andre steder end på Støvler-fanen i Garderoben | ark |
-| 19 | Eliksirtimen | ønske | Ny måde at spille på: se hvor langt man kan komme. Eliksirerne bliver sværere og sværere, og man får flere og flere stjerner | Kasper |
+| 4 | Koncertsalen | skal virke bedre | Heksen og kæledyret er ikke med derinde. (I Eliksirtimen og Boblebutikken er kæledyret med fra 0.19) | gennemgang |
+| 40 | Lyden | skal virke bedre | De gamle lydfiler er genbrugt fra 0.19, men kun prøvet mod en kopi af lydmappen på en pc. Ikke hørt på tablet eller telefon: styrken mellem musik og effekter, og om løkkerne hopper rent, skal høres af Kasper | gennemgang |
+| 41 | Dyrekøkkenet | skal virke bedre | Musikken er lånt fra Kosteflyvning ("Broomstick Dash"), fordi køkkenet ikke har sin egen. Gården og Ungestalden har byens musik | gennemgang |
+| 42 | Dyrekøkkenet og Ungestalden | skal virke bedre | Sværhedsgraden er sat efter skøn (100 sekunder pr. vagt, tålmodighed 19–27 sekunder, behov der falder på 3–4 minutter). Ikke prøvet af et barn | gennemgang |
+| 43 | Arkaden | skal virke bedre | Billetterne kan ikke bruges endnu (se M2), så Bank en gnom giver lige nu intet, man kan købe for | gennemgang |
+| 44 | Dyreparken | ønske | Idéer, der ikke er lavet: ægget på gården klækker (et nyt kæledyr, fx næbdyret), Dyrefrisøren (klip, børst og pynt et dyr), Forhindringsbanen (tegn en rute, dyret løber den på tid), dagens gave fra en unge, der er bedste ven, og at ungernes livret fra køkkenet giver ekstra | Claude |
 
 ### Mangler stadig fra originalen
 
 | Nr. | Hvad |
 |---|---|
 | M1 | En farve nummer to på tøjet |
-| M2 | De ni præmiestave og præmiebutikken i Arkaden |
+| M2 | De ni præmiestave og præmiebutikken i Arkaden. Fra 0.19 giver Bank en gnom billetter som i originalen, og de gemmes, men de kan ikke bruges til noget, før butikken er lavet |
 | M3 | Navn til kæledyret |
 | M4 | De fire andre arkademaskiner (Stjerneskjoldet, Hekse-invaders, Trylletegning, Gribemaskinen) |
 | M5 | Kosteflyvning og Faldskærm. Kasper (21. nov.): Kosteflyvning skal give en større fornemmelse af fart end den oprindelige |
-| M6 | Dyrepasning og Dyreparken |
+| M6 | Faget Dyrepasning i Skolen (døren er der, men lukket). Dyreparken selv er lavet i 0.19, se R48 |
 | M7 | Startsiden med gemte spil, og bogen i starten |
-| M8 | Sværere eliksirer og valg af sværhedsgrad |
 | M9 | Dragen med vittighederne, Øksebrønden, Støvlen og Klokketårnet (husene er på kortet, men lukkede) |
 | M10 | Malerier på væggene i Værelset |
 
@@ -82,6 +84,15 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R37 | Koncertsalen | ser forkert ud | Gardinet når ikke helt sammen, når der skiftes sang **Rettet:** De to halvdele går helt sammen og overlapper lidt på midten | note 21. nov. | pap-0.18 |
 | R38 | Koncertsalen | ser forkert ud | Som i originalen skal der være større forskel på bandets udseende fra sang til sang: hatte og hår, der passer til scenen, fx cowboyhatte og afro. Rock havde Kiss-look **Rettet:** Hvert bandmedlem har nu et hoved pr. sang: Kiss-maling og sort strithår til rock (stjerneøje, flagermusvinger, kat og sølv), afro, solbriller og stor krave til disko, cowboyhatte til country, hvide parykker til klassisk, stråhatte og blomsterskjorter til Hawaii | note 21. nov. | pap-0.18 |
 | R39 | Kortet | ser forkert ud | Det var ikke staffeliet, han mente i punkt 26, men det til venstre for det: cafébordene ved Koncertsalen. Det kan ikke ses, hvad de er **Rettet:** Bordene hørte til caféen, som er Støvlen, og stod forkert. Nu står ét bord med stribet parasol og to stole foran støvlen ved stigen, og stien går i en bue uden om | note 21. nov. | pap-0.18 |
+| R40 | Eliksirtimen | ser forkert ud | Tegnene for "med uret" og "mod uret" skal ligne hinanden **Rettet:** De to pile er nu hinandens spejlbilleder | note 21. nov. | pap-0.19 |
+| R41 | Hele spillet | skal virke bedre | Når en drik er færdig, skal teksten blive stående, og virkningen vare ved, til man trykker videre. Alle lange tekster skal kræve et tryk **Rettet:** En tekst på 42 tegn eller mere bliver stående, til man trykker et sted. Når noget er færdigt (en eliksir, en boble, et spil), står spillet stille med "Tryk for at gå videre", og eliksirens virkning kører imens | note 21. nov. | pap-0.19 |
+| R42 | Eliksirtimen | ser forkert ud | Når læreren taler, står teksten over ilden, som man skal trykke på **Rettet:** I Eliksirtimen står teksten oppe til højre, over professoren | note 21. nov. | pap-0.19 |
+| R43 | Eliksirtimen | ønske | Det skal blive sværere og sværere, med mulighed for fejl; alle skal kunne klares, men til sidst skal det være svært (max antal fejl, tidspres, opskriften falmer fra top til bund) **Rettet:** "Hvor langt kan du komme": 15 eliksirer i træk. Tre fejl i samme eliksir eller et tomt timeglas, så koger gryden over, og man begynder forfra. Nr. 1–3 tre trin; 4–6 fire trin, røreretning og varme; 7–9 fem trin og timeglas; 10–12 seks trin, kridtet falmer fra oven, to kig; 13–15 syv trin, hurtigere, ét kig. Stjerner pr. eliksir: 1, 1, 2, 2 … 8, og 10 ekstra for alle 15. Det gamle punkt 19 og M8 er dermed lavet | note 21. nov. og Kasper | pap-0.19 |
+| R44 | Boblebutikken | virker ikke | Bobler skal kræve tre tryk og vise grafisk, hvad der var i **Rettet:** Tre tryk ("To gange til …", "Én gang til!"). Det, man får, vises som en rund medaljon med selve tingen: heksen med hatten på, kæledyret med vingerne, sengen fra Værelset | note 21. nov. | pap-0.19 |
+| R45 | Boblebutikken og Arkaden | virker ikke | Aftalerne fra det oprindelige spil var ikke fulgt **Rettet:** En boble koster 10 stjerner (før 2). De tre krukker er Tøj og hår, Kæledyr og Værelset, og man får noget fra den, man vælger. Bank en gnom giver billetter (1 + én for hver 2 gnomer, højst 40), ikke stjerner. Alt står i AFTALER.md | Kasper | pap-0.19 |
+| R46 | Kortet og rummene | virker ikke | Hak på 0,3–0,5 sekund (det gamle punkt 34). Loggen fra 0.18 viste årsagen: tastaturet til en note gør skærmen lavere et øjeblik, og hver gang blev byen (ca. 0,3 + 0,5 sekund) eller rummet (ca. 0,2 sekund) bagt om. De øvrige hak i loggen var bygningen af et rum, som sker bag "Går ind i …" **Rettet:** Mens en note er åben, bages intet om, og bagefter kun, hvis størrelsen faktisk er en anden. Om der er andre hak tilbage, skal ses i loggen fra 0.19 | gennemgang | pap-0.19 |
+| R47 | Lyden | ønske | Genbrug lyden fra det oprindelige spil **Rettet:** Filerne i mappen lyd/ bruges: musik med de valgte løkker (byen, skolen, arkaden med summen, Bank en gnom), gnomlydene, boblelydene, og i Koncertsalen lounge-musik, tæppe, fodtrin, de fem ønskesange og klapsalver. Inde på Claude-siden må en side ikke hente lydfiler, så dér bruges de indbyggede lyde, og der er ingen musik | Kasper | pap-0.19 |
+| R48 | Dyreparken | ønske | Dyrekøkken, hvor man tilbereder magisk foder til dyr på tid, og et sted, hvor man passer nogle enormt nuttede dyr **Rettet:** Dyreparken er åben: en gård med et æg, der ruger; Dyrekøkkenet (dyr bestiller ved lugen, seks råvarer, fire tilberedninger, 100 sekunder, flere og større bestillinger undervejs, stjerner og godbidder); Ungestalden (dragebarnet Gnist, enhjørningeføllet Glimmer, ugleungen Uhu og næbdyrungen Næbbe: kæl, mad, vask, leg; de husker, hvornår man sidst var der; hjerter, to stjerner pr. hjerte, bedste venner ved ti) | Kasper og Agnes | pap-0.19 |
 
 ## Set og lukket
 
@@ -97,4 +108,5 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 4. Når Værelset er ændret: `node vaershot.js <plads>` for de pladser, der er rørt.
 5. Når gangen er ændret: `node gangshot.js` (otte faser af et skridt i bukser og kjole). Når kortet er ændret: `node qa.js` skal give 0 problemer, og `node kortshot.js navn:x,y,z` tager et udsnit.
 6. Når udgave-knappen er ændret: `node udgtest.js`.
-7. Det, der findes, skrives ind her, også når det bliver rettet med det samme.
+7. Når Boblebutikken eller billederne af tingene er ændret: `node bobshot.js "hat:krone,dyr:drage,rum.seng:slot"` (en medaljon pr. ting). Når lyden er ændret: `node lydtest.js` (musikken skal skifte fra sted til sted, og filerne skal hentes).
+8. Det, der findes, skrives ind her, også når det bliver rettet med det samme.

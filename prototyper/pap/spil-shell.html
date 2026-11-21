@@ -63,6 +63,13 @@ button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 #songs button{font:700 16px var(--font);padding:8px 12px;border:0;border-radius:10px;background:#b88d5b;color:#2a1d12;box-shadow:inset 0 0 0 2px rgba(255,235,200,.25),0 4px 0 #76552f;cursor:pointer}
 #songs button[aria-pressed=true]{background:#2a1d12;color:#efe3c8;box-shadow:inset 0 0 0 2px #c9a04a}
 @media (max-height:520px){#songs button{font-size:14px;padding:6px 9px}#songs span{display:none}}
+.valg{position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;max-width:calc(100vw - 24px);padding:6px 8px;border-radius:14px;background:rgba(30,14,20,.72);box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.valg span{font:700 16px var(--font);color:#efe3c8;padding:0 6px}
+.valg button{font:700 19px var(--font);padding:11px 18px;min-width:84px;border:0;border-radius:10px;background:#b88d5b;color:#2a1d12;box-shadow:inset 0 0 0 2px rgba(255,235,200,.25),0 4px 0 #76552f;cursor:pointer}
+.valg button[aria-pressed=true]{background:#2a1d12;color:#efe3c8;box-shadow:inset 0 0 0 2px #c9a04a}
+@media (max-height:520px){.valg button{font-size:14px;padding:6px 9px}.valg span{display:none}}
+.valg{width:max-content;flex-wrap:nowrap}.valg button:disabled{opacity:.45}
+@media (max-width:620px){.valg{flex-wrap:wrap;width:auto}}
 /* spillet: knappen tilbage til byen, døren man går igennem, og en lille besked når et hus ikke er åbent endnu */
 [hidden]{display:none!important}
 body[data-rum] #hint,body[data-rum] #meter{display:none}
@@ -71,6 +78,8 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 #hjem{height:46px;padding:0 16px 0 8px;border:0;border-radius:12px;display:flex;align-items:center;gap:4px;font:700 20px var(--font);cursor:pointer}
 #stj{height:46px;padding:0 14px 0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;font:700 20px var(--font)}
 #stj svg{width:24px;height:24px;fill:#e0a020;stroke:#7a5410;stroke-width:1.2}
+#bil{height:46px;padding:0 14px 0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;font:700 20px var(--font)}
+#bil svg{width:26px;height:26px;fill:#e2507a;stroke:#7a1c3a;stroke-width:1.2}#bil.hop{animation:hop .5s}
 #lydknap{width:46px;height:46px;border:0;border-radius:12px;display:grid;place-items:center;cursor:pointer;padding:0}
 #lydknap svg{width:26px;height:26px;fill:var(--ink);stroke:var(--ink)}
 #lydknap .x{display:none}#lydknap[aria-pressed=false] .x{display:inline}#lydknap[aria-pressed=false] .b{display:none}
@@ -93,6 +102,15 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 #door{position:fixed;inset:0;z-index:8;display:grid;place-items:center;text-align:center;padding:24px;background:repeating-linear-gradient(0deg,rgba(255,235,200,.025) 0 2px,transparent 2px 9px),var(--desk);font:700 30px "Alegreya SC",var(--font);letter-spacing:.03em;color:var(--paper);transition:opacity .28s}
 #door.gone{opacity:0;pointer-events:none}
 #toast{position:fixed;z-index:7;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));padding:10px 18px;border-radius:14px;font:700 20px var(--font);max-width:calc(100vw - 32px);text-align:center;pointer-events:none}
+#videre{position:fixed;inset:0;z-index:6;cursor:pointer}
+#toast.bliv::after{content:"  ▸";opacity:.55}
+#toast.vent{bottom:calc(28px + env(safe-area-inset-bottom,0px));font-size:22px;padding:12px 22px}
+#toast.vent::after{content:"Tryk for at gå videre  ▸";display:block;margin-top:4px;font-size:.78em;opacity:.7;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.3}}
+/* i Eliksirtimen taler professoren oppe til højre, så teksten ikke ligger over ilden og gryden */
+body[data-rum=eliksir] #toast{left:auto;right:max(12px,env(safe-area-inset-right,0px));transform:none;bottom:auto;top:calc(12px + env(safe-area-inset-top,0px));max-width:min(21vw,280px);text-align:left;font-size:18px}
+body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){#toast.vent::after{animation:none}}
 @media (max-height:520px){#fs,#bar{transform:scale(.8);transform-origin:0 0}#fs{top:calc(8px + env(safe-area-inset-top,0px))}#bar{top:calc(8px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 46px)}#hjem{font-size:17px}#door{font-size:24px}#toast{font-size:17px;bottom:calc(48px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#door{transition:none}#stj.hop{animation:none}}
 </style>
@@ -102,12 +120,13 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 
 <div id="fsnote" class="kraft" hidden>Fuld skærm virker ikke inde i Claude-appen. Åbn siden i Chrome, så kan den køre i fuld skærm på langs.</div>
 <div id="meter" class="kraft" aria-live="off"></div>
-<div id="hint">Tryk på et hus, så går heksen derhen og ind · Kollegiet, Skolen, Boblebutikken, Arkaden og Koncertsalen er åbne</div>
+<div id="hint">Tryk på et hus, så går heksen derhen og ind · Kollegiet, Skolen, Boblebutikken, Arkaden, Koncertsalen og Dyreparken er åbne</div>
 <div id="rum"></div>
-<div id="bar"><button id="hjem" class="kraft" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg><span id="hjemT">Byen</span></button><button id="lydknap" class="kraft" type="button" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.2L12 18.6V5.4L7.2 9.5z"/><path class="b" d="M15 8.6a4.6 4.6 0 0 1 0 6.8M17.4 6.2a8 8 0 0 1 0 11.6" fill="none" stroke-width="1.8" stroke-linecap="round"/><path class="x" d="m15.4 9.4 5 5m0-5-5 5" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg></button><button id="noteknap" class="kraft" type="button" aria-label="Skriv en note om noget, der ikke er i orden" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-3.6L15.6 4.8a1.6 1.6 0 0 1 2.3 0l1.3 1.3a1.6 1.6 0 0 1 0 2.3L7.6 20zm2-1.8h.9l9.3-9.3-.9-.9L6 17.3z"/></svg></button><div id="stj" class="kraft" aria-label="Stjerner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.6 2.8 6 6.6.8-4.9 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.6 9.4l6.6-.8z"/></svg><b id="stjN">0</b></div></div>
+<div id="bar"><button id="hjem" class="kraft" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg><span id="hjemT">Byen</span></button><button id="lydknap" class="kraft" type="button" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.2L12 18.6V5.4L7.2 9.5z"/><path class="b" d="M15 8.6a4.6 4.6 0 0 1 0 6.8M17.4 6.2a8 8 0 0 1 0 11.6" fill="none" stroke-width="1.8" stroke-linecap="round"/><path class="x" d="m15.4 9.4 5 5m0-5-5 5" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg></button><button id="noteknap" class="kraft" type="button" aria-label="Skriv en note om noget, der ikke er i orden" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-3.6L15.6 4.8a1.6 1.6 0 0 1 2.3 0l1.3 1.3a1.6 1.6 0 0 1 0 2.3L7.6 20zm2-1.8h.9l9.3-9.3-.9-.9L6 17.3z"/></svg></button><div id="bil" class="kraft" aria-label="Billetter" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v3.2a1.8 1.8 0 0 0 0 3.6V17H3v-3.2a1.8 1.8 0 0 0 0-3.6z"/><path d="M9 7.6v8.8" fill="none" stroke-dasharray="1.6 1.6"/></svg><b id="bilN">0</b></div><div id="stj" class="kraft" aria-label="Stjerner"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.6 2.8 6 6.6.8-4.9 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.6 9.4l6.6-.8z"/></svg><b id="stjN">0</b></div></div>
 <div id="note" hidden><form id="noteF" class="kraft"><h2>Skriv en note</h2><div id="noteT" role="group" aria-label="Hvad handler det om?"><button type="button" data-t="virker-ikke">Virker ikke</button><button type="button" data-t="bedre">Skal virke bedre</button><button type="button" data-t="ser-forkert-ud">Ser forkert ud</button><button type="button" data-t="oenske">Ønske</button></div>
 <textarea id="noteTxt" rows="3" maxlength="600" placeholder="Hvad så du? (må gerne være tom)"></textarea><p id="noteI"></p><div id="noteK"><button type="button" id="noteNej">Fortryd</button><button type="submit" id="noteJa">Gem noten</button></div></form></div>
 <button id="nyudg" class="kraft" type="button" hidden>Ny udgave af spillet · tryk for at hente den</button>
+<div id="videre" hidden></div>
 <div id="toast" class="kraft" role="status" hidden></div>
 <div id="door" class="gone" aria-live="polite"><span id="doorT"></span></div>
 <div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>

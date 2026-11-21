@@ -57,7 +57,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
   for(const[sc,mat]of[[blitScene,blitMat],[copyScene,copyMat]]){const q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);q.frustumCulled=false;sc.add(q)}
   renderer.setClearColor(P_.bg);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   let big=null,baked=false;const S={bakeMs:0};
-  S.bake=function(){const t0=performance.now();if(typeof LOG!=='undefined')LOG.maerk('rum bages');const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+  let bagW=0,bagH=0;S.bake=function(){const t0=performance.now();if(typeof LOG!=='undefined')LOG.maerk('rum bages');const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;bagW=w;bagH=h;
     renderer.setSize(w,h,false);cam.clearViewOffset();cam.aspect=w/h;fit(cam,w,h);cam.updateProjectionMatrix();cam.updateMatrixWorld();const d=renderer.getDrawingBufferSize(new THREE.Vector2());
     const FW=d.x,FH=d.y;if(big)big.dispose();
     big=new THREE.WebGLRenderTarget(FW,FH,{type:THREE.HalfFloatType,depthTexture:new THREE.DepthTexture(FW,FH)});
@@ -68,7 +68,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     renderer.setRenderTarget(big);renderer.clear();renderer.render(copyScene,blitCam);renderer.setRenderTarget(null);tile.dispose();
     const fin=POST.run(big,FW,FH);blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;baked=true;S.bakeMs=performance.now()-t0};
   S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(levende,cam)};
-  let rt=0;const ro=new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(S.bake,250)});ro.observe(stage);
+  let rt=0;const nyStr=()=>{clearTimeout(rt);if(window.__frys){rt=setTimeout(nyStr,500);return}if(stage.clientWidth===bagW&&stage.clientHeight===bagH)return;S.bake()};const ro=new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(nyStr,250)});ro.observe(stage);
   /* når rummet forlades: slip billederne igen, så næste rum har pladsen */
   S.dispose=function(){ro.disconnect();clearTimeout(rt);baked=false;if(big){big.depthTexture.dispose();big.dispose();big=null}POST.dispose();blitMat.dispose();copyMat.dispose();for(const sc of[blitScene,copyScene])sc.children[0].geometry.dispose()};
   return S}
