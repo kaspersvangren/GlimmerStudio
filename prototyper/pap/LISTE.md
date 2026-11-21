@@ -20,6 +20,10 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | 11 | Telefon på langs | ser forkert ud | Knapperne øverst dækker stadig lidt af rummene på en lav skærm (Skolens skilte, Arkadens skilt, den venstre stjerne i Bank en gnom), selv om de er gjort mindre | gennemgang |
 | 29 | Koncertsalen | skal virke bedre | Trommeslagerens arme og stikker er små og svære at se bag stortrommen | gennemgang |
 | 30 | Statistik-linket | skal virke bedre | Det er ikke prøvet på en rigtig telefon, om knappen "Ny udgave" dukker op, når en gammel side er gemt. Prøvet på en lokal server | gennemgang |
+| 31 | Koncertsalen | ser forkert ud | Gardinet når ikke helt sammen, når der skiftes sang | note 21. nov. |
+| 32 | Koncertsalen | ser forkert ud | Som i originalen skal der være større forskel på bandets udseende fra sang til sang: hatte og hår, der passer til scenen, fx cowboyhatte og afro. Rock havde Kiss-look | note 21. nov. |
+| 33 | Kortet | ser forkert ud | Det var ikke staffeliet, han mente i punkt 26, men det til venstre for det: cafébordene ved Koncertsalen. Det kan ikke ses, hvad de er | note 21. nov. |
+| 34 | Kortet | virker ikke | Hvert tryk på kortet giver et hak på cirka et halvt sekund på telefonen (loggen, udgave 0.17). Årsag: trykket bliver prøvet mod hver eneste papirdel i alle husene. Skarpheden holdt sig på 2, så genbagningerne er væk | gennemgang |
 | 12 | Heksen | skal virke bedre | Lange kjoler skjuler støvlerne alle andre steder end på Støvler-fanen i Garderoben | ark |
 | 19 | Eliksirtimen | ønske | Ny måde at spille på: se hvor langt man kan komme. Eliksirerne bliver sværere og sværere, og man får flere og flere stjerner | Kasper |
 
