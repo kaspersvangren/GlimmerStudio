@@ -16,7 +16,7 @@ BUILD.push(()=>{/* væg med stjernetapet og træpanel */
     P.wash('#4a2e1c',box(-81,-3,81,11),{alpha:.97,edge:0,mode:'source-over',clouds:6});for(let x=-80;x<80;x+=7)P.score([...box(x+.6,1,x+6.4,9.4),[x+.6,1]],{w:.12,ink:.4,dark:'#1a0c06'})}}),0,0,-10);
   put(scene,piece(box(-80,10.4,80,11.6),{color:'#6a4426',kind:'balsa',t:.6}),0,0,-9.6);
   /* gulv af planker og et rundt tæppe under heksen */
-  for(let i=0;i<34;i++)flatP(box(-80,-.5,80,.5).map(([x,y])=>[x,y+i*1.05-9.6]),{color:shade('#7a4e2e',R(-.06,.06)),kind:'balsa',t:.3},0,0,0);
+  for(let i=-88;i<34;i++)flatP(box(-80,-.5,80,.5).map(([x,y])=>[x,y+i*1.05-9.6]),{color:shade('#7a4e2e',R(-.06,.06)),kind:'balsa',t:.3},0,0,0);
   flatP(circ(FX,-1.5,13,6.2,56),{color:'#5a2a6a',kind:'water',t:.12},0,.2,0);flatP(ring(circ(FX,-1.5,11.4,5.4,56),.5)[0],{mat:gold(),t:.04},0,.28,0);flatP(circ(FX,-1.5,7.6,3.6,48),{color:'#7a3f92',kind:'water',t:.06},0,.3,0);
   for(let k=0;k<10;k++){const a=k/10*TAU;flatP(starPts(FX+Math.cos(a)*9.6,-1.5+Math.sin(a)*4.5,.6,.25).map(([x,y])=>[x,y]),{mat:gold(),t:.03},0,.32,0)}
   /* vindue med nattehimmel og måne */
@@ -58,16 +58,20 @@ const VALG={Hat:['hat',[['heksehat','Heksehat'],['ingen','Ingen hat'],['nathat',
   Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde'],['briller','Runde briller'],['halskæde','Månekæde'],['perler','Perlekæde'],['lommeur','Lommeur'],['bog','Tryllebog'],['lanterne','Lanterne'],['tryllestav','Tryllestav']]]};
 let FIG=null,pop=0;const sparks=[];
 const cam=new THREE.PerspectiveCamera(30,1,20,600),CD=150;
-const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,panel=wide?Math.min(.3*w,340)/w+24/w:0,needH=wide?47:66,needW=wide?54/(1-panel):40;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;const cx=wide?-12.5+H*asp*panel/2:FX,cy=wide?19:9;c.position.set(cx,cy+1+CD*Math.sin(.1),CD*Math.cos(.1));c.lookAt(cx,cy,0)},P_:{aoR:.45,dof:[.05,.14],haze:[2,3,0],bloom:1.1,bg:'#120e1a'}});
+/* udsnittet følger det, man er ved at ændre: hele rummet, hatten, håret, ansigtet, støvlerne eller kæledyret. Kameraet bliver, hvor det er i dybden; kun udsnittet flytter sig */
+let UD='hel',UDKLAR=false;const UDSNIT={hat:{x:FX,y:27.6,H:21,W:18},haar:{x:FX,y:19.2,H:21.5,W:16},ansigt:{x:FX,y:22.9,H:10.5,W:10},fod:{x:FX,y:4.4,H:11.5,W:16},dyr:{x:FX-15,y:6.6,H:16.5,W:19}},
+  UDTAB={Hat:'hat','Hår':'haar',Pande:'ansigt',Ansigt:'ansigt','Øjne':'ansigt',Mund:'ansigt','Støvler':'fod',Dyr:'dyr','Mønster':'dyr',Pynt:'dyr'};
+const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const Z=UDSNIT[UD];if(Z){const asp=w/h,wide=asp>1.25,pf=wide?(Math.min(.3*w,340)+24)/w:0,pb=wide?0:.4,HH=Math.max(Z.H/(1-pb),Z.W/(1-pf)/asp);c.fov=2*Math.atan(HH/2/CD)*180/Math.PI;c.position.set(Z.x,Z.y+1+CD*Math.sin(.1),CD*Math.cos(.1));c.lookAt(Z.x,Z.y,0);c.setViewOffset(w,h,pf*w/2,pb*h/2,w,h);return}
+  const wide=w/h>1.25,asp=w/h,panel=wide?Math.min(.3*w,340)/w+24/w:0,needH=wide?47:66,needW=wide?54/(1-panel):40;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;const cx=wide?-12.5+H*asp*panel/2:FX,cy=wide?19:9;c.position.set(cx,cy+1+CD*Math.sin(.1),CD*Math.cos(.1));c.lookAt(cx,cy,0)},P_:{aoR:.45,dof:[.05,.14],haze:[2,3,0],bloom:1.1,bg:'#120e1a'}});
 (async()=>{try{try{await Promise.race([Promise.all(['Alegreya SC'].map(f=>document.fonts.load(`700 40px "${f}"`).catch(()=>{}))),new Promise(r=>setTimeout(r,2500))])}catch(_){}
   for(const b of BUILD){await new Promise(r=>setTimeout(r,0));if((typeof ctx!=='undefined')&&!ctx.alive)return;b()}
   FIG=makeFigure((typeof ctx!=='undefined')&&ctx.look?Object.assign({},ctx.look):{});UI.draw();FIG.shadow=true;FIG.G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});FIG.G.position.set(FX,.35,1.5);live.add(FIG.G);setPet();
   {const c=cv(128,64),g=c.getContext('2d'),gr=g.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.6)');gr.addColorStop(1,'rgba(10,6,20,0)');g.setTransform(1,0,0,.5,0,16);g.fillStyle=gr;g.fillRect(0,0,128,128);const m=new THREE.Mesh(new THREE.PlaneGeometry(15,6),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(FX,.42,1.5);live.add(m)}
   for(const gl of GLOW){const s=glowS(gl.c,gl.s);s.position.set(...gl.p);live.add(s);gl.spr=s;gl.ph=R(TAU)}
   for(let i=0;i<14;i++){const s=glowS('rgba(255,236,170,.95)',1);live.add(s);s.visible=false;sparks.push({s,t:9})}
-  ST.bake();msg.classList.add('gone');let t=0,last=performance.now();
+  ST.bake();UDKLAR=true;msg.classList.add('gone');let t=0,last=performance.now();
   const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;pop=Math.max(0,pop-dt*2.2);
-    const k=1+.06*Math.sin(pop*Math.PI)*pop;FIG.G.scale.set(k,2-k,1);FIG.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;FIG.tick(t,{ph:0,amp:0});petPop=Math.max(0,petPop-dt*2.4);if(PET){PET.G.position.y=.35+Math.sin(petPop*Math.PI)*2*petPop;PET.tick(t,{ph:petPop?t*14:0,amp:petPop?1:0})}
+    const k=1+.06*Math.sin(pop*Math.PI)*pop;FIG.G.scale.set(k,2-k,1);FIG.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;FIG.tick(t,{ph:0,amp:0});/* ved støvlerne løfter hun kjolen, ellers kan man ikke se dem */FIG.skirt.scale.y+=((UD==='fod'?.56:1)-FIG.skirt.scale.y)*Math.min(1,dt*8);petPop=Math.max(0,petPop-dt*2.4);if(PET){PET.G.position.y=.35+Math.sin(petPop*Math.PI)*2*petPop;PET.tick(t,{ph:petPop?t*14:0,amp:petPop?1:0})}
     for(const gl of GLOW){const f=gl.f?(.9+.1*Math.sin(t*9+gl.ph)*Math.sin(t*5.1)):(.9+.1*Math.sin(t*2+gl.ph));gl.spr.scale.set(gl.s*f,gl.s*f,1)}
     for(const sp of sparks){sp.t+=dt;if(sp.t>1){sp.s.visible=false;continue}sp.s.visible=true;sp.s.position.set(sp.x+sp.vx*sp.t,sp.y+sp.vy*sp.t+3*sp.t*sp.t*-1+2*sp.t,6);const z=(1-sp.t)*1.6;sp.s.scale.set(z,z,1)}
     ST.draw()};requestAnimationFrame(loop);
@@ -86,7 +90,7 @@ const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,støvler:['#8a4b2e','#5a3a22','#2e283
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj',hvem='heks';const secs={};
   const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(typeof DYRK[key]==='string'?DYRK[key]:key,v);const valgt=(key)=>DYRK[key]?(PETL[key]||{kind:'kat',moenster:PETL.kind&&PETL.kind!=='kat'||PETL.a?'ingen':'sokker',pynt:'halsbånd'}[key]):(FIG?FIG.L[key]:LOOK0[key]);
   UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('.grid button').forEach((b,i)=>{b.setAttribute('aria-pressed',String(valgt(key)===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};
-  const show=()=>{for(const n in secs)secs[n].classList.toggle('on',n===curTab);tabs.querySelectorAll('button[role=tab]').forEach(x=>{x.setAttribute('aria-selected',String(x.textContent===curTab));x.hidden=(!!DYRTAB[x.textContent])!==(hvem==='dyr')});tabs.querySelectorAll('button.hvem').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.hvem===hvem)))};
+  const show=()=>{const u=UDTAB[curTab]||'hel';if(u!==UD){UD=u;if(UDKLAR)ST.bake()}for(const n in secs)secs[n].classList.toggle('on',n===curTab);tabs.querySelectorAll('button[role=tab]').forEach(x=>{x.setAttribute('aria-selected',String(x.textContent===curTab));x.hidden=(!!DYRTAB[x.textContent])!==(hvem==='dyr')});tabs.querySelectorAll('button.hvem').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.hvem===hvem)))};
   for(const[id,navn,tab]of[['heks','Heksen','Tøj'],['dyr','Kæledyret','Dyr']]){const hb=document.createElement('button');hb.type='button';hb.className='hvem';hb.dataset.hvem=id;hb.textContent=navn;hb.addEventListener('click',()=>{hvem=id;curTab=tab;show()});tabs.appendChild(hb)}
   for(const n in VALG){const[key,list]=VALG[n],b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('role','tab');b.addEventListener('click',()=>{curTab=n;show()});tabs.appendChild(b);
     const sec=document.createElement('section'),h=document.createElement('h3'),gr=document.createElement('div');h.textContent=n;gr.className='grid';sec.append(h,gr);opts.appendChild(sec);secs[n]=sec;

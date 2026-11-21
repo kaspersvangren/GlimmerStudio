@@ -37,7 +37,8 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(kind==='drage'||kind==='frø'||fugl||kind==='bjørn'){const be=circ(1,5.2,2.6,1.9,20);fp(K.body,be,{t:.06,s:40,ed:cb,paint:P=>{P.wash(cb,be,{edge:.5});if(kind==='drage')for(let x=-.8;x<3;x+=.8)P.pen([[x,3.7],[x+.2,6.7]],hexOf(shade(cb,-.25)),.07,.6)}},.18)}
     if(kind==='drage')for(const sx of[0,1]){const wg=toCCW(sm([[-1.6,7.6,1],[-3.2,10.4],[-5.6,11.6,1],[-5,9.6],[-4,8.6,1],[-3.4,9.2],[-2.6,7.4,1]],5));fp(K.body,wg,{color:sx?cc:hexOf(shade(cc,-.25)),kind:'water',t:.12,edge:hexOf(shade(cc,-.45))},sx?.22:-.3).position.x=sx?0:.9}
     if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6));fp(K.body,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},.24)}
-    if(pynt==='vinger')for(const sx of[0,1]){const wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]],6));const m=fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34);m.position.x=sx?1.8:0;m.rotation.z=sx?-.5:.15}}
+    /* feevinger: begge sidder på ryggen og drejer om deres rod, så ingen af dem havner ved kinden */
+    if(pynt==='vinger')for(const sx of[0,1]){const a=sx?-.16:.42,bx=sx?.8:-.4,r=([x,y,k])=>[bx+x*Math.cos(a)-(y-8)*Math.sin(a),8+x*Math.sin(a)+(y-8)*Math.cos(a),k],wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]].map(r),6));fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34)}}
   if(fugl)K.legs.push(leg(-.6,.3,false),leg(1.8,.3,false));else K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
   /* pynt om halsen */
   const NK=(sh,po,z)=>fp(G,sh,po,z);

@@ -11,4 +11,4 @@ const LOG=(()=>{const ADR='https://kargzxpaaganyfnpyvmb.supabase.co/rest/v1/spil
   if(on){row('start',{ua:navigator.userAgent,skaerm:`${innerWidth}x${innerHeight}`,dpr:devicePixelRatio,kerner:navigator.hardwareConcurrency||null,hukommelseGB:navigator.deviceMemory||null,net:navigator.connection?navigator.connection.effectiveType:null,sted:location.hostname});
     addEventListener('error',e=>row('fejl',{besked:String(e.message).slice(0,300),hvor:`${String(e.filename||'').split('/').pop()}:${e.lineno}`}));addEventListener('unhandledrejection',e=>row('fejl',{besked:String(e.reason&&e.reason.message||e.reason).slice(0,300)}));
     addEventListener('visibilitychange',()=>{if(document.hidden){sample();flush(true)}});addEventListener('pagehide',()=>{sample();flush(true)});requestAnimationFrame(loop)}
-  return{on,row,flush,skaerm(s){if(s===screen)return;sample();row('skaerm',{fra:screen,til:s},s);screen=s},nu(){sample();flush()}}})();
+  return{on,row,flush,session,skaerm(s){if(s===screen)return;sample();row('skaerm',{fra:screen,til:s},s);screen=s},nu(){sample();flush()}}})();

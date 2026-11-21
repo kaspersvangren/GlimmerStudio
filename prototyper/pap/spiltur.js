@@ -30,5 +30,18 @@ const { chromium } = require('playwright');
   await p.screenshot({ path: __dirname + '/tur-boble.png' }); await p.click('#hjem'); await ude(); await p.waitForTimeout(1000); await info('slut'); await p.screenshot({ path: __dirname + '/tur-slut.png' });
   await p.evaluate(() => __spil.enter('arkade')); await i('arkade'); await klik(-34, 14, -2); await i('gnom'); await klik(0, 40, -9); await p.waitForTimeout(6000); await p.evaluate(() => __spil.room.ctx.test.hitAll()); console.log('gnom:', JSON.stringify(await p.evaluate(() => __spil.room.ctx.test.state())));
   await klik(17, 22, -2); await p.click('#hjem'); await i('arkade'); await klik(17, 22, -2); await p.waitForTimeout(9000); console.log('lukket maskine:', await p.evaluate(() => document.getElementById('toast').textContent)); await p.click('#hjem'); await ude(); await info('helt slut');
+  /* et lukket hus, en boble uden stjerner, notesknappen, og at alt er der igen, når siden åbnes på ny */
+  const tjek = (navn, ok, v) => { if (!ok) fejl++; console.log(ok ? 'ok  ' : 'FEJL', navn, v === undefined ? '' : JSON.stringify(v)) };
+  await p.evaluate(() => __spil.arrive('dyr')); await p.waitForTimeout(300); { const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('lukket hus siger til', /åbner snart/.test(t), t) }
+  await p.evaluate(() => { __spil.stj = 0; __spil.enter('bobler') }); await i('bobler'); await klik(16, 20, 3.6); await p.waitForTimeout(500); { const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('boble uden stjerner', /koster 2 stjerner/.test(t) && await p.evaluate(() => __spil.stj) === 0, t) }
+  await p.click('#noteknap'); await p.waitForTimeout(500); tjek('notesknappen åbner', await p.evaluate(() => !document.getElementById('note').hidden)); await p.click('#noteT button[data-t=oenske]'); await p.fill('#noteTxt', 'prøve'); await p.click('#noteJa'); await p.waitForTimeout(300); tjek('noten lukker igen', await p.evaluate(() => document.getElementById('note').hidden));
+  await p.click('#hjem'); await ude();
+  await p.evaluate(() => { __spil.enter('vaerelse') }); await i('vaerelse'); await p.evaluate(() => __spil.enter('garderobe')); await p.waitForFunction(() => __spil.room.id === 'garderobe' && window.__gard && __gard.ready && document.getElementById('door').classList.contains('gone'), null, { timeout: 120000 });
+  await p.evaluate(() => { __gard.set('hat', 'ingen'); __gard.set('kind', 'hund'); __gard.set('moenster', 'striber') }); await p.waitForTimeout(500);
+  await p.evaluate(() => [...document.querySelectorAll('#tabs button')].find(b => b.textContent === 'Kæledyret').click()); await p.waitForTimeout(900); tjek('hund og striber er fri', await p.evaluate(() => { const g = t => [...document.querySelectorAll('#opts button')].find(b => b.textContent === t); return !g('Hund').classList.contains('laas') && !g('Striber').classList.contains('laas') && g('Kanin').classList.contains('laas') }));
+  const foer = await p.evaluate(() => JSON.stringify([__spil.look, __spil.dyr.kind, __spil.dyr.moenster, __spil.rum, __spil.rumc, __spil.har]));
+  await p.reload(); await p.waitForFunction(() => document.getElementById('msg').classList.contains('gone'), null, { timeout: 180000 });
+  const efter = await p.evaluate(() => JSON.stringify([__spil.look, __spil.dyr.kind, __spil.dyr.moenster, __spil.rum, __spil.rumc, __spil.har])); tjek('alt er gemt, når siden åbnes igen', foer === efter && /"hat":"ingen"/.test(efter) && /hund/.test(efter) && /himmelseng/.test(efter), efter.slice(0, 160));
+  tjek('heksen i byen har det valgte på', await p.evaluate(() => __spil.heks().hat) === 'ingen');
   console.log('fejl i alt:', fejl); await b.close();
 })();

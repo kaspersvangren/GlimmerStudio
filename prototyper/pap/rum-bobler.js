@@ -3,7 +3,7 @@ ROOMS.bobler=function(ctx){
   const PRIS=2,P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),JARX=[4,16,28],BX=2,BY=27;let nisse,heks,st=null,nhop=0,dim,bob;
   const mangler=()=>SPIL.VARER.filter(w=>!SPIL.har.includes(w[0]+':'+w[1]));
   const koeb=i=>()=>{if(st)return;const m=mangler();if(!m.length){ctx.say('Du har fået alt, hvad jeg har på hylderne. Kom igen en anden dag!');nhop=1;return}
-    if(SPIL.stj<PRIS){ctx.say(`En boble koster ${PRIS} stjerner. Dem tjener du i eliksirtimen på skolen.`);nhop=1;return}
+    if(SPIL.stj<PRIS){ctx.say(`En boble koster ${PRIS} stjerner. Dem tjener du i eliksirtimen og i Arkaden.`);nhop=1;return}
     LYD.pust();SPIL.giv(-PRIS);st={f:'op',t:0,x0:JARX[i],vare:m[Math.floor(Math.random()*m.length)]};bob.visible=true;nhop=1;ctx.say('Nissen puster en boble op …')};
   const Rm=makeRoom(ctx,{bg:'#0f1416',fit:fitBox(88,50,0,20.5),sky:'#c8e8e0',ground:'#3a3040',amb:.5,key:{col:'#fff0d8',i:1.9,tgt:[0,16,0]},
     miss:()=>{if(st&&st.f==='vent')pop()},
