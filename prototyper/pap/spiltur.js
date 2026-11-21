@@ -24,5 +24,7 @@ const { chromium } = require('playwright');
   await p.evaluate(() => __spil.enter('bobler')); await i('bobler'); await klik(16, 20, 3.6); await p.waitForFunction(() => __spil.room.ctx.test.st() === 'vent', null, { timeout: 60000 }); await klik(2, 27, 12); await p.waitForTimeout(800);
   console.log('efter boblen: stjerner', await p.evaluate(() => __spil.stj), 'har', await p.evaluate(() => JSON.stringify(__spil.har)), '· besked:', await p.evaluate(() => document.getElementById('toast').textContent));
   await p.screenshot({ path: __dirname + '/tur-boble.png' }); await p.click('#hjem'); await ude(); await p.waitForTimeout(1000); await info('slut'); await p.screenshot({ path: __dirname + '/tur-slut.png' });
+  await p.evaluate(() => __spil.enter('arkade')); await i('arkade'); await klik(-34, 14, -2); await i('gnom'); await klik(0, 40, -9); await p.waitForTimeout(6000); await p.evaluate(() => __spil.room.ctx.test.hitAll()); console.log('gnom:', JSON.stringify(await p.evaluate(() => __spil.room.ctx.test.state())));
+  await klik(17, 22, -2); await p.click('#hjem'); await i('arkade'); await klik(17, 22, -2); await p.waitForTimeout(9000); console.log('lukket maskine:', await p.evaluate(() => document.getElementById('toast').textContent)); await p.click('#hjem'); await ude(); await info('helt slut');
   console.log('fejl i alt:', fejl); await b.close();
 })();
