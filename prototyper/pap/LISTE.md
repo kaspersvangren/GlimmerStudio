@@ -13,32 +13,15 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | Nr. | Sted | Type | Hvad | Fra |
 |---|---|---|---|---|
 | 1 | Kæledyret | ønske | Et næbdyr som kæledyr | Agnes |
-| 3 | Boblebutikken | ser forkert ud | Heksen står helt ude ved venstre kant, så hatten rører kanten af skærmen | gennemgang |
 | 4 | Eliksirtimen, Boblebutikken, Koncertsalen | skal virke bedre | Kæledyret er ikke med derinde; i Koncertsalen er heksen heller ikke med | gennemgang |
-| 5 | Heksen | ser forkert ud | Kappen med hætte: frisuren Knolde ligger foran hætten i stedet for under den | ark |
-| 6 | Heksen | ser forkert ud | Festkjolen og den korte kjole: kanten på det vide ærme stikker ud som en tynd streg ved venstre hånd | ark |
 | 7 | Værelset | skal virke bedre | Tæppernes form (hjerte, stjerne, måne) er svær at se, fordi gulvet ses meget fladt | gennemgang |
 | 8 | Værelset | skal virke bedre | Hvert valg bager rummet om. Hvor lang tid det tager på tabletten, er ikke målt | gennemgang |
 | 9 | Kortet | skal virke bedre | Opstarten: bagningen af byen er ikke gjort hurtigere. Mangler tal fra tabletten på statistik-linket | Kasper |
-| 10 | Kortet | ser forkert ud | Udviklerlinjen nederst (billeder pr. sekund osv.) skal væk, før Agnes får spillet | gennemgang |
-| 11 | Telefon på langs | ser forkert ud | Knapperne øverst dækker stadig lidt af rummene på en lav skærm (Skolens skilte, Arkadens skilt), selv om de er gjort mindre | gennemgang |
+| 11 | Telefon på langs | ser forkert ud | Knapperne øverst dækker stadig lidt af rummene på en lav skærm (Skolens skilte, Arkadens skilt, den venstre stjerne i Bank en gnom), selv om de er gjort mindre | gennemgang |
+| 29 | Koncertsalen | skal virke bedre | Trommeslagerens arme og stikker er små og svære at se bag stortrommen | gennemgang |
+| 30 | Statistik-linket | skal virke bedre | Det er ikke prøvet på en rigtig telefon, om knappen "Ny udgave" dukker op, når en gammel side er gemt. Prøvet på en lokal server | gennemgang |
 | 12 | Heksen | skal virke bedre | Lange kjoler skjuler støvlerne alle andre steder end på Støvler-fanen i Garderoben | ark |
-| 13 | Arkaden | ser forkert ud | Skiltet "Bank en gnom" er meget mørkere end de fire andre maskiners skilte | gennemgang |
-| 14 | Heksen og folkene i byen | ser forkert ud | De går med fronten mod os, men ben og arme krydser hinanden som en saks. Ses tydeligst i bukser. Forslag: benene løfter sig skiftevis, kroppen vugger og hopper lidt, armene svinger uden at krydse | Kasper |
-| 15 | Statistik-linket | virker ikke | Telefonen fik en gammel udgave (0.5) og dermed ingen blyant. Forslag: spillet ser selv efter en nyere udgave og viser en knap til at hente den | Kasper |
-| 16 | Koncertsalen | ser forkert ud | Gnomebandet er for stort. De er gnomer, så de skal være mindre på scenen | Kasper |
-| 17 | Koncertsalen | ser forkert ud | Gnomernes hænder skal spille på instrumenterne | Kasper |
-| 18 | Koncertsalen | ser forkert ud | Blomsterkransen går ud over alt | Kasper |
 | 19 | Eliksirtimen | ønske | Ny måde at spille på: se hvor langt man kan komme. Eliksirerne bliver sværere og sværere, og man får flere og flere stjerner | Kasper |
-| 20 | Eliksirtimen | virker ikke | Fem effekter gør ikke det, professoren siger: Hjertedrik (hjerter ud af ørerne), Boblebryg (sæbebobler), Blomsterdrik (blomster gror), Regnbuesaft (farve) viser alle bare glimmer, og Kildedrik viser hop | Kasper |
-| 21 | Bank en gnom | ser forkert ud | "SUPER!" ser ud til at blive skåret af | Kasper |
-| 22 | Bank en gnom | ser forkert ud | Gnomerne kommer ikke op af hullerne | Kasper |
-| 23 | Bank en gnom | ønske | Der skal være noget, der giver minus, hvis man slår det | Kasper |
-| 24 | Kortet | ser forkert ud | Bænkene ser ud til at stå med ryggen til, og man går igennem dem | note 21. nov. |
-| 25 | Kortet | ser forkert ud | Stigen til Støvlen forsvinder ned i jorden | note 21. nov. |
-| 26 | Kortet | ser forkert ud | "Hvad er det, der står for enden af vejen ved Koncertsalen?" Det kan ikke ses, hvad det forestiller | note 21. nov. |
-| 27 | Kortet | ser forkert ud | Skiltet til Koncertsalen peger stort set samme vej som skiltet til Dragen | note 21. nov. |
-| 28 | Kortet | skal virke bedre | Loggen fra telefonen (udgave 0.16) viser 60 hak på over en tiendedel sekund på seks minutter på kortet, det længste 3,4 sekunder. I rummene er der næsten ingen | gennemgang |
 
 ### Mangler stadig fra originalen
 
@@ -76,6 +59,25 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R15 | Heksen | virker ikke | Hver gang ansigtet blev ændret, blev et nyt ansigt lagt oven på det gamle, så hukommelsen voksede | gennemgang | pap-0.15 |
 | R16 | Boblebutikken | skal virke bedre | Teksten sagde, at stjerner kun tjenes i eliksirtimen. Den nævner nu også Arkaden | gennemgang | pap-0.16 |
 | R17 | Telefon på langs | skal virke bedre | Knapperne øverst er gjort mindre på lave skærme | gennemgang | pap-0.16 |
+| R18 | Boblebutikken | ser forkert ud | Heksen står helt ude ved venstre kant, så hatten rører kanten af skærmen **Rettet:** Heksen er rykket ind fra kanten | gennemgang | pap-0.17 |
+| R19 | Heksen | ser forkert ud | Kappen med hætte: frisuren Knolde ligger foran hætten i stedet for under den **Rettet:** Under hætten er knoldene gemt | ark | pap-0.17 |
+| R20 | Heksen | ser forkert ud | Festkjolen og den korte kjole: kanten på det vide ærme stikker ud som en tynd streg ved venstre hånd **Rettet:** Det vide ærme ender nu i en rund åbning, og kanten er klippet til efter ærmet | ark | pap-0.17 |
+| R21 | Kortet | ser forkert ud | Udviklerlinjen nederst (billeder pr. sekund osv.) skal væk, før Agnes får spillet **Rettet:** Linjen er skjult; tallene ligger i loggen | gennemgang | pap-0.17 |
+| R22 | Arkaden | ser forkert ud | Skiltet "Bank en gnom" er meget mørkere end de fire andre maskiners skilte **Rettet:** Skiltet sidder nu i samme højde og lys som de andre, på en bagvæg med græsbakke og stjerner | gennemgang | pap-0.17 |
+| R23 | Heksen og folkene i byen | ser forkert ud | De går med fronten mod os, men ben og arme krydser hinanden som en saks. Ses tydeligst i bukser. Forslag: benene løfter sig skiftevis, kroppen vugger og hopper lidt, armene svinger uden at krydse **Rettet:** Benene løfter sig skiftevis, og armene svinger ud til siden. Intet krydser | Kasper | pap-0.17 |
+| R24 | Statistik-linket | virker ikke | Telefonen fik en gammel udgave (0.5) og dermed ingen blyant. Forslag: spillet ser selv efter en nyere udgave og viser en knap til at hente den **Rettet:** Spillet henter udgave.txt uden om browserens gemte side og viser knappen "Ny udgave af spillet", hvis der findes en nyere | Kasper | pap-0.17 |
+| R25 | Koncertsalen | ser forkert ud | Gnomebandet er for stort. De er gnomer, så de skal være mindre på scenen **Rettet:** Gnomerne er gjort en tredjedel mindre, og trommesættet er skaleret med | Kasper | pap-0.17 |
+| R26 | Koncertsalen | ser forkert ud | Gnomernes hænder skal spille på instrumenterne **Rettet:** Guitaristen holder om halsen og slår på strengene, bassisten har en hånd på halsen og en på strengene, trommeslageren har stikkerne over trommerne, og sangeren holder mikrofonen | Kasper | pap-0.17 |
+| R27 | Koncertsalen | ser forkert ud | Blomsterkransen går ud over alt **Rettet:** Kransen er nu en blomsterkæde om halsen, bag skæg, arme og instrument | Kasper | pap-0.17 |
+| R28 | Eliksirtimen | virker ikke | Fem effekter gør ikke det, professoren siger: Hjertedrik (hjerter ud af ørerne), Boblebryg (sæbebobler), Blomsterdrik (blomster gror), Regnbuesaft (farve) viser alle bare glimmer, og Kildedrik viser hop **Rettet:** Hjerter flyver ud ved ørerne, sæbebobler stiger, blomster gror op om fødderne, regnbuen farver hende, og kildedrikken får hende til at vride sig | Kasper | pap-0.17 |
+| R29 | Bank en gnom | ser forkert ud | "SUPER!" ser ud til at blive skåret af **Rettet:** Mærket er blevet bredere, så hele ordet er med | Kasper | pap-0.17 |
+| R30 | Bank en gnom | ser forkert ud | Gnomerne kommer ikke op af hullerne **Rettet:** Hver vold er nu to lag med gnomen imellem, så han kommer op af hullet | Kasper | pap-0.17 |
+| R31 | Bank en gnom | ønske | Der skal være noget, der giver minus, hvis man slår det **Rettet:** En kanin dukker op en gang imellem. Slår man den, står der "AV! −2", og to point ryger | Kasper | pap-0.17 |
+| R32 | Kortet | ser forkert ud | Bænkene ser ud til at stå med ryggen til, og man går igennem dem **Rettet:** Bænkene har fået et rigtigt sæde og vender ud mod os. De står nu bag pladsen, uden for stien, og ingen kan gå igennem dem | note 21. nov. | pap-0.17 |
+| R33 | Kortet | ser forkert ud | Stigen til Støvlen forsvinder ned i jorden **Rettet:** Rebstigen strækker sig, så den altid lige når jorden, mens støvlen svæver op og ned | note 21. nov. | pap-0.17 |
+| R34 | Kortet | ser forkert ud | "Hvad er det, der står for enden af vejen ved Koncertsalen?" Det kan ikke ses, hvad det forestiller **Rettet:** Det var en plakat på et staffeli. Det er nu en stor plakatstander med ramme, "I AFTEN · De Falske Toner" og en node | note 21. nov. | pap-0.17 |
+| R35 | Kortet | ser forkert ud | Skiltet til Koncertsalen peger stort set samme vej som skiltet til Dragen **Rettet:** Pilene vipper nu: Dragen peger op (bagerst), Koncertsalen ned (forrest), og tilsvarende for Skolen og Arkaden | note 21. nov. | pap-0.17 |
+| R36 | Kortet | skal virke bedre | Loggen fra telefonen (udgave 0.16) viser 60 hak på over en tiendedel sekund på seks minutter på kortet, det længste 3,4 sekunder. I rummene er der næsten ingen **Rettet:** Skarpheden gik frem og tilbage, og hver ændring bagte byen om (flere sekunder). Nu går den kun ned, og kun efter tre langsomme målinger i træk. Alt i det levende lag lægges op på grafikkortet under opstarten | gennemgang | pap-0.17 |
 
 ## Set og lukket
 
@@ -89,4 +91,6 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 2. Når noget på heksen eller kæledyret er ændret: de billedark, der rører ved det, køres igen (`./kombi.sh` eller fx `./kombi.sh hat-haar dyr-pynt`), og hele arket ses igennem, ikke kun den nye ting. Arkene: hat-haar, hat-pande, kappe-toej, haar-kappe, toej-stoevler, tilb-toej, hat-tilb, dyr-pynt, dyr-moenster.
 3. Når et rum er ændret: `node gennemgang.js 1280 800` (tablet), `node gennemgang.js 915 412 2 mobil` (telefon på langs) og `node gennemgang.js 980 1857` (højkant); alle billederne ses igennem.
 4. Når Værelset er ændret: `node vaershot.js <plads>` for de pladser, der er rørt.
-5. Det, der findes, skrives ind her, også når det bliver rettet med det samme.
+5. Når gangen er ændret: `node gangshot.js` (otte faser af et skridt i bukser og kjole). Når kortet er ændret: `node qa.js` skal give 0 problemer, og `node kortshot.js navn:x,y,z` tager et udsnit.
+6. Når udgave-knappen er ændret: `node udgtest.js`.
+7. Det, der findes, skrives ind her, også når det bliver rettet med det samme.

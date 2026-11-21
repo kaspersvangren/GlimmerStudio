@@ -44,6 +44,9 @@ function enter(id){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=tr
 function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1];cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else toMap()})}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */
+/* ny udgave: browseren gemmer gerne en gammel side. Ved start hentes udgave.txt uden om det gemte; er den nyere end den side, der kører, kommer der en knap, som henter den nye */
+if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());return m?+m[1]*1000+ +m[2]:0},kn=document.getElementById('nyudg');
+  fetch('udgave.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const ny=String(t).trim();if(tal(ny)>tal(PAPVER)){kn.hidden=false;kn.addEventListener('click',()=>{location.replace(location.pathname+'?v='+encodeURIComponent(ny))});LOG.row('udgave',{har:PAPVER,findes:ny})}}).catch(()=>{})}
 /* notesknappen: til den der tester. Den tager et lille billede af skærmen, i det øjeblik man trykker, og gemmer det sammen med typen, teksten og hvor man står,
    samme sted som statistikken. Inde på Claude-siden kan der ikke gemmes, så dér er knappen væk. */
 {const kn=document.getElementById('noteknap'),bx=document.getElementById('note'),fm=document.getElementById('noteF'),tx_=document.getElementById('noteTxt'),inf=document.getElementById('noteI'),tb=[...document.querySelectorAll('#noteT button')];let type='ser-forkert-ud',billede=null,sted=null;

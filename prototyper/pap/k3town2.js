@@ -133,9 +133,12 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
   /* skiltet med pærer */
   plate(g,'Koncertsal','KONCERTSAL',FONT.koncert,13.6,2.3,{bg:'#1d1214',fg:'#ffd27a',frame:'gold',size:1.6,ls:.16,y:11.75,z:Z+T/2+.6});
   for(let x=-6.6;x<=6.61;x+=1.32)for(const y of[11.45,14.35])put(g,piece(circ(x,y,.17,.17,10),{t:.05,mat:paperMat('#fff6d8','tissue',{glow:'#ffd27a',gi:2})}),0,0,Z+T/2+.85);
-  /* plakat på staffeli */
-  {const eg=new THREE.Group();put(scene,eg,-66,0,33.4);prop('staffeli',-66,33.4,1.6);for(const s of[-1,1]){const l=new THREE.Mesh(new THREE.BoxGeometry(.25,6.4,.25),paperMat(PAL.woodDk,'balsa'));l.rotation.z=s*.12;put(eg,l,s*1.4,3,0)}
-   plate(eg,'Plakat','',FONT.snart,3.6,4.4,{bg:'#f2e6c8',y:2.2,z:.2,extra:P=>{P.text('I AFTEN',0,3.7,.62,'#3b2a1f',{font:FONT.koncert,ls:.05});P.pen([[-1.4,3.2],[1.4,3.2]],'#3b2a1f',.04,.6);P.text('De Falske',0,2.5,.6,'#7a1a2a',{font:FONT.snart});P.text('Toner',0,1.7,.6,'#7a1a2a',{font:FONT.snart});P.fill(circ(-.5,.8,.2,.15,10),'#2a2a6a',.9);P.pen([[-.32,.8],[-.32,1.3],[.4,1.45],[.4,.95]],'#2a2a6a',.06,.9);P.fill(circ(.22,.95,.2,.15,10),'#2a2a6a',.9)}})}
+  /* plakatstander ved døren: en A-buk af træ med aftenens plakat, stor nok til at man kan se, hvad det er */
+  {const eg=new THREE.Group();put(scene,eg,-67,0,35.2);prop('staffeli',-67,35.2,2.2);
+   for(const s of[-1,1]){const l=new THREE.Mesh(new THREE.BoxGeometry(.4,8.2,.4),paperMat(PAL.woodDk,'balsa'));l.rotation.z=s*.07;l.castShadow=true;put(eg,l,s*2.55,4,0);const bag=new THREE.Mesh(new THREE.BoxGeometry(.34,7.6,.34),paperMat(PAL.woodDk,'balsa'));bag.rotation.x=.3;put(eg,bag,s*2.3,3.7,-1.2)}
+   put(eg,piece(box(-2.9,1.45,2.9,7.75),{color:'#4a2e1c',kind:'balsa',t:.3}),0,0,.05);put(eg,piece(toCCW([[-1.5,7.75],[1.5,7.75],[0,8.9]]),{mat:gold(),t:.3}),0,0,.05);
+   plate(eg,'Plakat','',FONT.snart,5,5.5,{bg:'#f2e6c8',y:1.85,z:.28,extra:P=>{P.text('I AFTEN',0,4.75,.9,'#3b2a1f',{font:FONT.koncert,ls:.05});P.pen([[-2,4.15],[2,4.15]],'#3b2a1f',.07,.7);P.text('De Falske',0,3.4,.85,'#7a1a2a',{font:FONT.snart});P.text('Toner',0,2.45,.85,'#7a1a2a',{font:FONT.snart});
+     P.fill(circ(-.75,.75,.4,.3,14),'#2a2a6a',.95);P.fill(circ(.75,1,.4,.3,14),'#2a2a6a',.95);P.pen([[-.38,.75],[-.38,1.6],[1.12,1.85],[1.12,1]],'#2a2a6a',.13,.95);P.pen([[-.38,1.42],[1.12,1.67]],'#2a2a6a',.2,.95)}})}
   /* caféborde med duge, kopper og stole */
   for(const[x,z]of[[-71,34.8],[-77,34.6]]){prop('cafébord',x,z,2.2);const tg=new THREE.Group();put(scene,tg,x,0,z);
     stick(tg,0,.3,3.2,0,.3,PAL.iron);put(tg,piece(box(-1,.3,1,.5),{color:PAL.iron,t:1.4}),0,0,0);
@@ -149,7 +152,7 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
 let BOOT=null;
 BUILD.push(()=>{const X=-28.4,Z=28.2,Y0=4.2,b=makeBoot(),B=b.B;B.position.set(X,Y0,Z);live.add(B);B.userData.house='stoevle';
   HOUSE.stoevle={g:B,door:[X+b.doorX,Z+.3],spot:[X+b.doorX,31.2],foot:[X-12,X+10,Z-1,Z+1]};HOUSEG.push(B);SPOTS.stoevle=[X+b.doorX,31.2];
-  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z}});
+  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z,lad:b.lad}});
 
 /* ---- Klokketårnet ---- */
 BUILD.push(()=>{const X=12,Z=31,T=.4;const g=new THREE.Group();put(scene,g,X,0,0);g.userData.house='klokketårn';HOUSEG.push(g);HOUSE['klokketårn']={g,door:[12,31.3],spot:null};

@@ -27,7 +27,7 @@ ROOMS.bobler=function(ctx){
         /* klokken på disken */
         P2(g,sm([[-22.6,14.8],[-18.6,14.8],[-19,16.8],[-20.6,17.8],[-22.2,16.8]],5),{mat:gold(),t:1.6},1.4);P2(g,circ(-20.6,18.1,.45,.45,10),{mat:gold(),t:.6},2)},
       ()=>{const lv=Rm.live;nisse=makeFigure({tøj:'rejsekappe',hat:'nathat',hår:'kort',kappe:'ingen',tilbehør:'tørklæde',stav:false,skæg:'#f1ece2',hair:['#d8d2c8','#f4f0e8','#a8a098'],lash:0,freck:false,col:{hat:'#b83a3a',frakke:'#3f7a4a'}});nisse.G.scale.setScalar(.72);nisse.G.position.set(-9,6.6,-3);lv.add(nisse.G);Rm.tap(nisse.G,()=>{nhop=1;ctx.say(SPIL.stj>=PRIS?'Tryk på en krukke, så puster jeg en boble op til dig.':`Velkommen! En boble koster ${PRIS} stjerner.`)});
-        heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.8);heks.G.position.set(-35,.35,9);lv.add(heks.G);Rm.blob(-35,9,13,5);
+        heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.8);heks.G.position.set(-31.5,.35,9);lv.add(heks.G);Rm.blob(-31.5,9,13,5);
         dim=new THREE.Mesh(new THREE.PlaneGeometry(260,160),new THREE.MeshBasicMaterial({color:'#080612',transparent:true,opacity:0,depthWrite:false}));dim.position.set(0,20,11);dim.userData.noShadow=true;lv.add(dim);
         /* sæbeboblen: næsten gennemsigtig, med regnbuekant og et lysglimt */
         bob=new THREE.Group();bob.visible=false;lv.add(bob);{const c=cv(256,256),q=c.getContext('2d'),gr=q.createRadialGradient(128,128,60,128,128,126);gr.addColorStop(0,'rgba(200,235,255,.10)');gr.addColorStop(.72,'rgba(190,230,255,.22)');gr.addColorStop(.86,'rgba(255,170,220,.55)');gr.addColorStop(.93,'rgba(160,230,255,.75)');gr.addColorStop(.98,'rgba(255,240,170,.8)');gr.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=gr;q.beginPath();q.arc(128,128,127,0,TAU);q.fill();

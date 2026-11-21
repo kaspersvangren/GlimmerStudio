@@ -45,4 +45,4 @@ function makeBoot(){const B=new THREE.Group(),U=new THREE.Group();U.scale.x=-1;B
   plate(B,'Støvlen','Den Flyvende Støvle',FONT.stoevle,7.2,1.3,{bg:'#2a1d14',fg:'#f6e7c0',frame:'gold',size:.82,x:4.3,y:5.65,z:.6});
   plate(B,'Støvlen:snart','Kommer snart',FONT.snart,2.5,.72,{bg:'#f2e6c8',fg:'#3b2a1f',size:.34,x:5,y:2.5,z:.14,t:.06});put(B,new THREE.Mesh(DOME,M.brass),5,3.1,.22).scale.setScalar(.12);
   const lad=new THREE.Group();put(B,lad,5,.2,.95);for(const e of[-.75,.75])cord(lad,[[e,0,0],[e,-2,.4],[e,-4.1,.8]],.06,'#c8a070');for(let k=1;k<=4;k++){const r=new THREE.Mesh(new THREE.BoxGeometry(1.7,.16,.3),paperMat('#8a5a3a','balsa'));put(lad,r,0,-k*.98,k*.18)}
-  B.traverse(o=>{if(o.isMesh)o.castShadow=false});return{B,wings,doorX:5}}
+  B.traverse(o=>{if(o.isMesh)o.castShadow=false});return{B,wings,doorX:5,lad}}

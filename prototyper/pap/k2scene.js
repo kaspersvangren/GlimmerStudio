@@ -32,6 +32,7 @@ const RIVER=[];for(let i=0;i<=30;i++){const t=i/30;RIVER.push([mix(70,26,t)+7*Ma
 const BRIDGE={x:25.4,z:34.9,L:8,w:2.35,rise:2.7};
 const bridgeDeck=dx=>.42+BRIDGE.rise*Math.max(0,1-(dx/BRIDGE.L)**2);
 const bridgeY=(x,z)=>Math.abs(z-BRIDGE.z)<BRIDGE.w&&Math.abs(x-BRIDGE.x)<BRIDGE.L?bridgeDeck(x-BRIDGE.x)-.3:0;
+const BAENKE=[[-12.8,-10.8,.2],[12.8,-10.8,-.2]];/* bænkene: sted og drejning; bruges også, når nogen skal uden om dem */
 const PROPS=[];const prop=(k,x,z,r=1)=>PROPS.push({k,x,z,r});
 SPOTS.skole=[0,-21.6];
 const flagSpots=[],lampSpots=[];

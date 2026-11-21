@@ -17,4 +17,6 @@ HOVED='<!doctype html><html lang="da"><head><meta charset="utf-8"><meta name="vi
 open(os.path.join(D,'spillet-claude.html'),'w').write(s)
 open(os.path.join(D,'spillet.html'),'w').write(HOVED+s+'</body></html>')
 open(os.path.join(D,'testspil.html'),'w').write(HOVED+s+'</body></html>')
+import re
+open(os.path.join(D,'udgave.txt'),'w').write(re.search(r"PAPVER='([^']+)'",r('spil0.js')).group(1))
 print(len(s))

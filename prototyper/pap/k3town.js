@@ -43,15 +43,17 @@ BUILD.push(()=>{const X=0,Z=0;wellAt=new THREE.Vector3(X,3.6,Z);const H=house('b
   /* skiltet på brøndens forside */
   /* (skiltet sad før forneden på brønden; nu sidder det på taget) */
   lamp(X,Z+2,'#b47aff',60,18,5);glowSpots.push([X,4.4,Z,12,'broend']);
-  /* bænke af lister med jernben */
-  for(const[x,z,r]of[[-9.5,-5,.3],[9.5,-5,-.3]]){prop('bænk',x,z,3);const g=new THREE.Group();put(scene,g,x,0,z);g.rotation.y=r;
-    for(const y of[2.35,2.95])put(g,piece(box(-3.3,y,3.3,y+.48),{color:shade(PAL.wood,R(-.05,.05)),kind:'balsa',t:.9}),0,0,.2);
-    for(const y of[3.8,4.6])put(g,piece(box(-3.3,y,3.3,y+.55),{color:shade(PAL.wood,R(-.05,.05)),kind:'balsa',t:.14}),0,0,-.45);
-    for(const s of[-1,1])pieces(thick([[[s*2.7,.4],[s*2.8,2.3],[s*2.75,3.4],[s*2.9,5.1]],[[s*2.7,2.3],[s*2.1,1.5],[s*2.3,.9]]],.15),{color:PAL.iron,t:.12},g,0,0,.75)}});
+  /* bænke: de vender ud mod os, står uden for stien rundt om brønden, og har et rigtigt sæde, der ligger ned, med ryglænet bagved */
+  for(const[x,z,r]of BAENKE){prop('bænk',x,z,3);const g=new THREE.Group();put(scene,g,x,0,z);g.rotation.y=r;
+    for(const d of[-.62,0,.62]){const m=piece(box(-3.3,-.27,3.3,.27),{color:shade(PAL.wood,R(-.05,.05)),kind:'balsa',t:.2});m.rotation.x=-Math.PI/2;put(g,m,0,2.4,.35+d)}
+    put(g,piece(box(-3.3,1.95,3.3,2.32),{color:shade(PAL.wood,-.12),kind:'balsa',t:.16}),0,0,1.12);
+    for(const y of[3.25,4.05,4.85])put(g,piece(box(-3.3,y,3.3,y+.56),{color:shade(PAL.wood,R(-.05,.05)),kind:'balsa',t:.16}),0,0,-.62);
+    for(const s of[-1,1]){pieces(thick([[[s*2.8,.3],[s*2.8,2.3]],[[s*2.8,2.95],[s*3.3,3.2],[s*3.35,2.5]]],.15),{color:PAL.iron,t:.14},g,0,0,1.15);pieces(thick([[[s*2.8,.3],[s*2.8,5.5]]],.15),{color:PAL.iron,t:.14},g,0,0,-.74)}}});
 
 /* ---- vejviseren: firkantet stolpe og pile af farvet karton med trykt skrift ---- */
 BUILD.push(()=>{const X=-22,Z=-8;prop('vejviser',X,Z,.6);stick(scene,X,.4,8.4,Z,.7,PAL.woodDk);put(scene,piece([[-.55,8.4],[.55,8.4],[0,9.6]],{color:PAL.plumDk,t:.7}),X,0,Z);
-  [['Kollegiet',7.3,-1,'#6e5236',-.05],['Skolen',6.9,1,'#5a3a78',.04],['Dragen',5.6,-1,'#4f6a40',.07],['Bobler',5.2,1,'#2f6278',.03],['Koncertsalen',3.9,-1,'#8a4030',.04],['Arkaden',3.5,1,'#7a3058',-.05]].forEach(([t,y,dir,c,rot])=>{const w=t.length*.8+1.8;
+  /* pilene peger derhen, hvor stedet ligger: op betyder længere væk, ned betyder nærmere os. Dragen ligger bagerst til venstre og Koncertsalen forrest til venstre */
+  [['Dragen',7.5,-1,'#4f6a40',-.2],['Skolen',7.1,1,'#5a3a78',.2],['Kollegiet',5.7,-1,'#6e5236',0],['Bobler',5.3,1,'#2f6278',.03],['Koncertsalen',3.9,-1,'#8a4030',.17],['Arkaden',3.5,1,'#7a3058',-.16]].forEach(([t,y,dir,c,rot])=>{const w=t.length*.8+1.8;
     const pts=dir>0?[[0,-.85],[w,-.85],[w+1.15,0],[w,.85],[0,.85]]:[[0,-.85],[-w,-.85],[-w-1.15,0],[-w,.85],[0,.85]];
     const m=piece(pts,{t:.16,s:46,base:'card',both:true,paint:P=>{P.flat(c);const inset=pts.map(([x,yy])=>[x===0?dir*.25:x-dir*.25*(Math.abs(x)>w?1.6:1),yy*.74]);P.score([...inset,inset[0]],{w:.05,ink:.3,dark:'#1a1018'});P.text(t,dir*(w/2+.2),0,1.3,'#f6ead0',{font:FONT.pil,ls:.03})}});
     m.rotation.z=rot;m.userData.sign='pil:'+t;m.userData.dir=dir;put(scene,m,X,y,Z+(dir>0?.45:-.45));pin(scene,X+dir*.9,y,Z+(dir>0?.55:-.55),Z,.14)})});

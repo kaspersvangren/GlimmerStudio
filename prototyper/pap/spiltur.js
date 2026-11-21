@@ -32,6 +32,16 @@ const { chromium } = require('playwright');
   await klik(17, 22, -2); await p.click('#hjem'); await i('arkade'); await klik(17, 22, -2); await p.waitForTimeout(9000); console.log('lukket maskine:', await p.evaluate(() => document.getElementById('toast').textContent)); await p.click('#hjem'); await ude(); await info('helt slut');
   /* et lukket hus, en boble uden stjerner, notesknappen, og at alt er der igen, når siden åbnes på ny */
   const tjek = (navn, ok, v) => { if (!ok) fejl++; console.log(ok ? 'ok  ' : 'FEJL', navn, v === undefined ? '' : JSON.stringify(v)) };
+  /* Bank en gnom: tre gnomer giver tre point, kaninen trækker to fra */
+  await p.evaluate(() => __spil.enter('arkade')); await i('arkade'); await p.evaluate(() => __spil.enter('gnom')); await i('gnom');
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; T.start(); T.op(6, 1); T.ram(0); T.ram(2); T.ram(3); const a = T.state().sc; T.ram(1); return [a, T.state().sc] }); tjek('gnomer giver point, kaninen trækker fra', r[0] === 3 && r[1] === 1, r) }
+  await p.click('#hjem'); await i('arkade'); await p.click('#hjem'); await ude();
+  /* de nye effekter i Eliksirtimen kan startes og ryddes igen uden fejl */
+  await p.evaluate(() => __spil.enter('gang')); await i('gang'); await p.evaluate(() => __spil.enter('eliksir')); await i('eliksir');
+  for (const k of ['hjerter', 'bobler', 'blomster', 'regnbue', 'kilde', 'svaev']) { await p.evaluate(k => __spil.room.ctx.test.fx(k), k); await p.waitForTimeout(700) } tjek('effekterne kører', true);
+  await p.click('#hjem'); await i('gang'); await p.click('#hjem'); await ude();
+  /* ingen kan stå inde i en bænk */
+  { const r = await p.evaluate(() => { __kort.goTo(-12.8, -10.8); return [__kort.W0.q.length ? __kort.W0.q[__kort.W0.q.length - 1] : [__kort.W0.tx, __kort.W0.tz]] }); tjek('man stiller sig foran bænken', r[0][1] > -9, r) }
   await p.evaluate(() => __spil.arrive('dyr')); await p.waitForTimeout(300); { const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('lukket hus siger til', /åbner snart/.test(t), t) }
   await p.evaluate(() => { __spil.stj = 0; __spil.enter('bobler') }); await i('bobler'); await klik(16, 20, 3.6); await p.waitForTimeout(500); { const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('boble uden stjerner', /koster 2 stjerner/.test(t) && await p.evaluate(() => __spil.stj) === 0, t) }
   await p.click('#noteknap'); await p.waitForTimeout(500); tjek('notesknappen åbner', await p.evaluate(() => !document.getElementById('note').hidden)); await p.click('#noteT button[data-t=oenske]'); await p.fill('#noteTxt', 'prøve'); await p.click('#noteJa'); await p.waitForTimeout(300); tjek('noten lukker igen', await p.evaluate(() => document.getElementById('note').hidden));

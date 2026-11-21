@@ -13,6 +13,7 @@ let HOUSES=[];
 function houseAt(x,z){for(const h of HOUSES)if(x>h[1]&&x<h[2]&&z>h[3]&&z<h[4])return h;return null}
 function clampWalk(x,z){x=clamp(x,-78,78);z=clamp(z,-22,36);
   const dx=x,dz=z,d=Math.hypot(dx/1.3,dz);if(d<7){const k=7/(d||1);x=dx*k;z=dz*k}
+  for(const[bx,bz]of BAENKE)if(Math.abs(x-bx)<4.2&&Math.abs(z-bz)<1.8)z=bz+2.4;/* man kan ikke stå inde i en bænk: man stiller sig foran den */
   const h=houseAt(x,z);if(h&&SPOTS[h[0]]){const s=SPOTS[h[0]];return[s[0],s[1]]}return[x,z]}
 /* svævende skridt (ca. 2,2 i sekundet): ét hop pr. skridtlængde, toppen af hoppet holdes lidt, og hoppene ebber ud, når figuren stopper */
 const GAIT={heks:{len:4.1,h:.4},kat:{len:4.1,h:.45},npc:{len:3.8,h:.3}};
@@ -22,6 +23,8 @@ function stepWalker(w,dt){
   w.v=(w.v||0)+((moving?w.sp:0)-(w.v||0))*Math.min(1,dt*4);
   if(moving){const s=Math.min(d,Math.max(w.v,1.5)*dt);w.x+=dx/d*s;w.z+=dz/d*s;if(Math.abs(dx)>.3)w.face=dx>0?1:-1;w.ph+=s/g.len*Math.PI}
   else if(w.amp>.02){const r=w.ph%Math.PI;if(r>.05)w.ph+=Math.min(Math.PI-r,dt*2.5)}
+  /* ingen går igennem en bænk: den, der ikke er på vej hen for at sætte sig, glider uden om */
+  for(const[bx,bz]of BAENKE)if(Math.abs(w.x-bx)<3.9&&Math.abs(w.z-bz)<1.5&&Math.hypot(w.tx-bx,w.tz-bz)>1.5&&!w.acting)w.z=bz+(w.z>=bz?1.5:-1.5);
   w.moving=moving;const bob=Math.pow(Math.abs(Math.sin(w.ph)),.6)*g.h*w.amp;
   const by=bridgeY(w.x,w.z);w.root.position.set(w.x,TOP+.08+bob+by+(w.yOff||0),w.z);w.root.scale.set(w.face*w.sc,w.sc*(w.sq||1),w.sc);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
   w.sh.position.set(w.x,TOP+.12+by+(w.yOff||0)*.6,w.z);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
@@ -174,25 +177,25 @@ const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 /* ============ løkken ============ */
 const _fv=new THREE.Vector3();
 /* steder hvor byens folk gerne vil hen, og hvad de gør der */
-const POIS=[{n:'bænk-v',at:[-9.4,-5.1],act:'sit',y:2.3,face:1,dur:[7,12]},{n:'bænk-h',at:[9.4,-5.1],act:'sit',y:2.3,face:-1,dur:[7,12]},
+const POIS=[{n:'bænk-v',at:[-12.1,-10.6],act:'sit',y:2.3,face:1,dur:[7,12]},{n:'bænk-h',at:[12.1,-10.6],act:'sit',y:2.3,face:-1,dur:[7,12]},
   {n:'brønd-v',at:[-2.8,7],act:'look',face:1},{n:'brønd-h',at:[3,7],act:'look',face:-1},{n:'ænder',at:[58.8,-2.4],act:'look',face:1,dur:[6,10]},
   {n:'træ-ø',at:[10,19.6],act:'rest',face:1,dur:[8,14]},{n:'træ-v',at:[-15.6,24.6],act:'rest',face:-1,dur:[8,14]},{n:'vejviser',at:[-30.5,-1.1],act:'look',face:1},
   {n:'vindue',at:[26.6,6.2],act:'look',face:1},{n:'enhjørning',at:[58.6,-9.8],act:'look',face:1},{n:'plakat',at:[-64.4,32.4],act:'look',face:-1},
   {n:'bro',at:[25.4,35],act:'look',face:1},{n:'arkade',at:[63.4,31.6],act:'look',face:1},{n:'kollegie',at:[-43.4,-4.6],act:'look',face:-1}];
 function freePoi(n){const taken=new Set(walkers.filter(w=>w!==n&&w.poi).map(w=>w.poi.n));const ok=POIS.filter(p=>!taken.has(p.n)&&p!==n.poi);return ok[Math.floor(R(ok.length))]}
 function actPose(n,p){n.yOff=p.act==='sit'?p.y:0;n.sq=p.act==='rest'?.74:1;if(p.face)n.face=p.face}const meter=document.getElementById('meter');let mN=0,mT=0,mW=0,readyAt=0,time=0,autoT=7,wakeT=-9,uniT=-9,trollT=-9;
-const PRMAX=Math.min(window.devicePixelRatio||1,2);let last=performance.now(),fN=0,fT=0,drops=0,good=0,pr=renderer.getPixelRatio();
+const PRMAX=Math.min(window.devicePixelRatio||1,2);let last=performance.now(),fN=0,fT=0,drops=0,roligFra=0,pr=renderer.getPixelRatio();
 let doorWant=null;const sek=ms=>(ms/1000).toFixed(1).replace('.',',')+' s';
 function frame(now){
   requestAnimationFrame(frame);
-  if((typeof SPIL!=='undefined')&&SPIL.pause){last=now;return}
+  if((typeof SPIL!=='undefined')&&SPIL.pause){last=now;roligFra=now;fN=0;fT=0;return}
   const raw=(now-last)/1000,dt=clamp(raw,0,.05);last=now;time+=dt;
   if(document.body.dataset.view==='nu')return;
   if(raw<.5){mN++;mT+=raw;mW=Math.max(mW,raw);if(mT>=1){meter.textContent=`${Math.round(mN/mT)} billeder/s · langsomste ${Math.round(mW*1000)} ms · skarphed ${pr.toFixed(2).replace('.',',')} · klar efter ${(readyAt/1000).toFixed(1).replace('.',',')} s: hentet ${sek(__tid.hentet)}, skrifter ${sek(__tid.skrifter)}, klippet og malet ${sek(__tid.malet)}, bagt ${sek(__tid.bagt)}, første billede ${sek(__tid.foerste||0)}${typeof SPIL!=='undefined'&&SPIL.roomMs?` · sidste rum ${sek(SPIL.roomMs)}`:''}`;mN=0;mT=0;mW=0}}
-  /* skarpheden: måles først efter opstarten (de første billeder er altid tunge), og går op igen, når der er luft */
-  if(raw<.5&&!document.hidden&&performance.now()-readyAt>2500&&readyAt){fT+=raw;if(++fN>=60){const avg=fT/fN;
-    if(avg>.021&&pr>1&&drops<4){pr=Math.max(1,pr-.25);drops++;good=0;renderer.setPixelRatio(pr);bake()}
-    else if(avg<.0135&&pr<PRMAX&&++good>=2){pr=Math.min(PRMAX,pr+.25);good=0;renderer.setPixelRatio(pr);bake()}fN=0;fT=0}}
+  /* skarpheden går kun ned, aldrig op igen: hver ændring koster en ny bagning af byen (flere sekunder på en telefon), og før gik den frem og tilbage og gav lange hak.
+     Den går først ned, når tre målinger i træk er langsomme, og de tunge billeder lige efter en bagning eller et besøg i et rum tæller ikke med */
+  if(raw<.5&&!document.hidden&&readyAt&&performance.now()-Math.max(readyAt,roligFra)>2500){if(raw>.024)fT++;if(++fN>=60){if(fT>36)drops++;else drops=0;
+      if(drops>=3&&pr>1){pr=Math.max(1,pr-.25);drops=0;renderer.setPixelRatio(pr);bake();roligFra=performance.now()}fN=0;fT=0}}else if(raw>=.5){fN=0;fT=0;drops=0;roligFra=performance.now()}
   if((typeof SPIL!=='undefined'))autoT=time+99;/* i spillet går heksen kun, når man beder hende om det */
   if(time>autoT){autoT=time+R(8,12);doorWant=null;if(rnd()<.6){const s=Object.values(SPOTS);goTo(...s[Math.floor(R(s.length))])}else goTo(R(-60,60),R(-14,30))}
   if(W0.q&&W0.q.length&&Math.hypot(W0.tx-W0.x,W0.tz-W0.z)<1.4)[W0.tx,W0.tz]=W0.q.shift();
@@ -230,7 +233,7 @@ function frame(now){
   for(const d of fall.drops){d.t=(d.t+dt*d.sp)%1;d.s.position.set(fallAt.x+d.dx+d.t*d.vx,fallAt.y-d.t*26,fallAt.z+.2);d.s.material.opacity=Math.sin(d.t*Math.PI)*.8}
   for(const m of fall.mist){m.t=(m.t+dt*.25)%1;const sz=3+m.t*5;m.s.scale.set(sz,sz,1);m.s.position.set(fallAt.x+m.dx,fallAt.y-25.5+m.t*2.5,fallAt.z+.5);m.s.material.opacity=Math.sin(m.t*Math.PI)*.55}
   /* den flyvende støvle svæver og slår med vingerne */
-  if(BOOT){const b=BOOT.B;b.position.y=BOOT.Y0+.45*Math.sin(time*1.3);b.rotation.z=.03*Math.sin(time*.9);for(const w of BOOT.wings){const f=Math.sin(time*3.2+(w.s<0?.5:0));w.g.rotation.z=-.15+.38*f;w.g.rotation.y=w.s*.12*f}
+  if(BOOT){const b=BOOT.B;b.position.y=BOOT.Y0+.45*Math.sin(time*1.3);b.rotation.z=.03*Math.sin(time*.9);if(BOOT.lad)BOOT.lad.scale.y=(b.position.y+.2-.42)/4.1;/* rebstigen når altid lige ned til jorden, uanset hvor højt støvlen svæver */for(const w of BOOT.wings){const f=Math.sin(time*3.2+(w.s<0?.5:0));w.g.rotation.z=-.15+.38*f;w.g.rotation.y=w.s*.12*f}
     if(BOOT.sh){const k=1-.08*Math.sin(time*1.3);BOOT.sh.scale.set(k,k,1)}}
   for(const g of glints){g.t=(g.t+dt*g.sp)%1;const i=g.t*(RIVER.length-1),a=RIVER[Math.floor(i)],b=RIVER[Math.min(RIVER.length-1,Math.floor(i)+1)],k=i%1;g.s.position.set(mix(a[0],b[0],k)+Math.sin(g.t*40)*.6,TOP+.3,mix(a[1],b[1],k));g.s.material.opacity=.4+.6*Math.abs(Math.sin(time*2+g.t*20))}
   for(const l of leaves){l.y-=l.vy*dt;l.x+=Math.sin(time*1.3+l.ph)*dt*2;if(l.y<TOP){l.y=R(24,34);l.x=R(-80,80);l.z=R(-20,34)}l.m.position.set(l.x,l.y,l.z);l.m.rotation.set(Math.sin(time*2+l.ph),time*1.5+l.ph,Math.sin(time*1.7+l.ph))}
@@ -253,7 +256,9 @@ function frame(now){
   if(BOOT){const c=cv(128,64),g2=c.getContext('2d'),gr=g2.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.62)');gr.addColorStop(.55,'rgba(10,6,20,.35)');gr.addColorStop(1,'rgba(10,6,20,0)');g2.setTransform(1,0,0,.5,0,16);g2.fillStyle=gr;g2.fillRect(0,0,128,128);
     BOOT.sh=new THREE.Mesh(new THREE.PlaneGeometry(21,5.5),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));BOOT.sh.rotation.x=-Math.PI/2;live.add(BOOT.sh);BOOT.sh.position.set(BOOT.X-.8,TOP+.12,BOOT.Z+1.6)}
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
-  TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
+  TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);
+    /* alt i det levende lag tegnes én gang nu, også det der står uden for billedet, så billeder og former er lagt op på grafikkortet, før man begynder at trække rundt (ellers hakker det første gang, noget nyt kommer ind i billedet) */
+    {const fc=[];live.traverse(o=>{if(o.frustumCulled){fc.push(o);o.frustumCulled=false}});const rt=new THREE.WebGLRenderTarget(8,8);renderer.setRenderTarget(rt);renderer.render(live,cam);renderer.setRenderTarget(null);rt.dispose();for(const o of fc)o.frustumCulled=true}TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
 
   window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
