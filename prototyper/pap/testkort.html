@@ -389,9 +389,9 @@ class Painter2 extends Painter{
 
 /* ---- et stykke: præcist udskåret, evt. med huller, af en bestemt papirtype ----
    shape: punkter eller {outer,holes}. paint: maler forsiden på akvarelpapir (ellers bruges det fælles papir). */
-function piece(shape,{color='#ffffff',kind='card',t=.2,edge,paint,s=24,cap=1024,base,front,both=false,mat}={}){
+function piece(shape,{color='#ffffff',kind='card',t=.2,edge,paint,s=24,cap=1024,base,front,both=false,mat,fladt=false}={}){
   const outer=shape.outer||shape,holes=shape.holes||[];let fm,uv;
-  if(paint){const P=new Painter2(outer,s,{cap,base:base||kind});paint(P);fm=new THREE.MeshStandardMaterial({map:tx(P.c,true),bumpMap:tx(P.b,false),bumpScale:PAPER[base||kind].bs,roughness:.9});fm.userData.own=true;uv=(x,y)=>[(x-P.minx)/P.W,(y-P.miny)/P.H]}
+  if(paint){const P=new Painter2(outer,s,{cap,base:base||kind});paint(P);fm=new THREE.MeshStandardMaterial(fladt?{map:tx(P.c,true),roughness:.9}:{map:tx(P.c,true),bumpMap:tx(P.b,false),bumpScale:PAPER[base||kind].bs,roughness:.9});fm.userData.own=true;uv=(x,y)=>[(x-P.minx)/P.W,(y-P.miny)/P.H]}
   else{makePapers();fm=mat||paperMat(color,kind);const k=PAPER[kind].k;uv=(x,y)=>[x*k,y*k]}
   const bm=both?fm:paperMat(paint?'#f2ece0':color,paint?'water':kind),em=paperMat(edge||coreOf(paint?'#f2ece0':color,paint?'water':kind),'card');
   const m=new THREE.Mesh(slabGeo(outer,holes,t,uv),[fm,bm,em]);m.castShadow=m.receiveShadow=true;return m}
@@ -1006,7 +1006,7 @@ const sm=(cp,seg=8)=>outline(cp,seg,0);
 const C={skin:'#f7d8c4',skinSh:'#e6b29a',hair:'#eab84e',hairLt:'#f8dc8c',hairDk:'#c08628',purple:'#6a3fa2',purpleLt:'#8d62c8',purpleDk:'#4e2c80',navy:'#2b3468',navyLt:'#3f4b8c',gold:'#e2b85a',brown:'#7a4a2a',brownDk:'#4e2e18',leather:'#8a5632',leatherDk:'#5e3a20',cream:'#f4ead2',lilac:'#cfb6ee',teal:'#3f7f78',tealDk:'#2a5a56',pink:'#e88aa8',red:'#c4573e'};
 /* hvert stykke får en mørk snitkant i sin egen farve, som en fin streg rundt om delen */
 let FRES=1;
-const fp=(parent,shape,o,z=0)=>put(parent,piece(shape,Object.assign({edge:o.mat?undefined:hexOf(shade(hexOf(o.color||o.ed||'#5a4070'),-.55))},o,o.s&&FRES!==1?{s:Math.max(8,o.s*FRES)}:null)),0,0,z);
+const fp=(parent,shape,o,z=0)=>put(parent,piece(shape,Object.assign({edge:o.mat?undefined:hexOf(shade(hexOf(o.color||o.ed||'#5a4070'),-.55))},o,o.s&&FRES!==1?{s:Math.max(8,o.s*FRES),fladt:true}:null)),0,0,z);/* små figurer på kortet: lavere opløsning og intet relief, så der er halvt så mange billeder at sende til grafikkortet */
 const fps=(shapes,o,parent,z=0)=>shapes.map(s=>fp(parent,s,o,z));
 function wipe(g){for(let i=g.children.length-1;i>=0;i--){const c=g.children[i];c.traverse(m=>{if(m.isMesh){m.geometry.dispose();for(const mt of[].concat(m.material))if(mt.userData&&mt.userData.own){mt.map&&mt.map.dispose();mt.bumpMap&&mt.bumpMap.dispose();mt.dispose()}}});g.remove(c)}}
 /* ---- ansigtet: akvarelhud, kinder og fregner, øjne med iris og lys, øjenbryn, næse og smil ---- */
@@ -1550,7 +1550,7 @@ function frame(now){
   if((typeof SPIL!=='undefined')&&SPIL.pause){last=now;return}
   const raw=(now-last)/1000,dt=clamp(raw,0,.05);last=now;time+=dt;
   if(document.body.dataset.view==='nu')return;
-  if(raw<.5){mN++;mT+=raw;mW=Math.max(mW,raw);if(mT>=1){meter.textContent=`${Math.round(mN/mT)} billeder/s · langsomste ${Math.round(mW*1000)} ms · skarphed ${pr.toFixed(2).replace('.',',')} · klar efter ${(readyAt/1000).toFixed(1).replace('.',',')} s: hentet ${sek(__tid.hentet)}, skrifter ${sek(__tid.skrifter)}, klippet og malet ${sek(__tid.malet)}, bagt ${sek(__tid.bagt)}${typeof SPIL!=='undefined'&&SPIL.roomMs?` · sidste rum ${sek(SPIL.roomMs)}`:''}`;mN=0;mT=0;mW=0}}
+  if(raw<.5){mN++;mT+=raw;mW=Math.max(mW,raw);if(mT>=1){meter.textContent=`${Math.round(mN/mT)} billeder/s · langsomste ${Math.round(mW*1000)} ms · skarphed ${pr.toFixed(2).replace('.',',')} · klar efter ${(readyAt/1000).toFixed(1).replace('.',',')} s: hentet ${sek(__tid.hentet)}, skrifter ${sek(__tid.skrifter)}, klippet og malet ${sek(__tid.malet)}, bagt ${sek(__tid.bagt)}, første billede ${sek(__tid.foerste||0)}${typeof SPIL!=='undefined'&&SPIL.roomMs?` · sidste rum ${sek(SPIL.roomMs)}`:''}`;mN=0;mT=0;mW=0}}
   /* skarpheden: måles først efter opstarten (de første billeder er altid tunge), og går op igen, når der er luft */
   if(raw<.5&&!document.hidden&&performance.now()-readyAt>2500&&readyAt){fT+=raw;if(++fN>=60){const avg=fT/fN;
     if(avg>.021&&pr>1&&drops<4){pr=Math.max(1,pr-.25);drops++;good=0;renderer.setPixelRatio(pr);bake()}
@@ -1615,11 +1615,11 @@ function frame(now){
   if(BOOT){const c=cv(128,64),g2=c.getContext('2d'),gr=g2.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.62)');gr.addColorStop(.55,'rgba(10,6,20,.35)');gr.addColorStop(1,'rgba(10,6,20,0)');g2.setTransform(1,0,0,.5,0,16);g2.fillStyle=gr;g2.fillRect(0,0,128,128);
     BOOT.sh=new THREE.Mesh(new THREE.PlaneGeometry(21,5.5),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));BOOT.sh.rotation.x=-Math.PI/2;live.add(BOOT.sh);BOOT.sh.position.set(BOOT.X-.8,TOP+.12,BOOT.Z+1.6)}
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
-  TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);TID.bagt=performance.now()-tb}
+  TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
 
   window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
-  requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();msg.classList.add('gone')})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
+  requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();TID.foerste=readyAt-TID.klarTil;msg.classList.add('gone');if(typeof LOG!=='undefined'){LOG.row('opstart',{klar:Math.round(readyAt),foerste:Math.round(TID.foerste),hentet:Math.round(TID.hentet),skrifter:Math.round(TID.skrifter),malet:Math.round(TID.malet),bagt:Math.round(TID.bagt),trin:TID.trin.map(Math.round)});LOG.flush()}})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
 
 const viewBtns=document.querySelectorAll('#views [data-view]');
 viewBtns.forEach(b=>b.addEventListener('click',()=>{document.body.dataset.view=b.dataset.view;viewBtns.forEach(x=>x.setAttribute('aria-pressed',x===b))}));

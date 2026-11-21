@@ -5,7 +5,7 @@ const sm=(cp,seg=8)=>outline(cp,seg,0);
 const C={skin:'#f7d8c4',skinSh:'#e6b29a',hair:'#eab84e',hairLt:'#f8dc8c',hairDk:'#c08628',purple:'#6a3fa2',purpleLt:'#8d62c8',purpleDk:'#4e2c80',navy:'#2b3468',navyLt:'#3f4b8c',gold:'#e2b85a',brown:'#7a4a2a',brownDk:'#4e2e18',leather:'#8a5632',leatherDk:'#5e3a20',cream:'#f4ead2',lilac:'#cfb6ee',teal:'#3f7f78',tealDk:'#2a5a56',pink:'#e88aa8',red:'#c4573e'};
 /* hvert stykke får en mørk snitkant i sin egen farve, som en fin streg rundt om delen */
 let FRES=1;
-const fp=(parent,shape,o,z=0)=>put(parent,piece(shape,Object.assign({edge:o.mat?undefined:hexOf(shade(hexOf(o.color||o.ed||'#5a4070'),-.55))},o,o.s&&FRES!==1?{s:Math.max(8,o.s*FRES)}:null)),0,0,z);
+const fp=(parent,shape,o,z=0)=>put(parent,piece(shape,Object.assign({edge:o.mat?undefined:hexOf(shade(hexOf(o.color||o.ed||'#5a4070'),-.55))},o,o.s&&FRES!==1?{s:Math.max(8,o.s*FRES),fladt:true}:null)),0,0,z);/* små figurer på kortet: lavere opløsning og intet relief, så der er halvt så mange billeder at sende til grafikkortet */
 const fps=(shapes,o,parent,z=0)=>shapes.map(s=>fp(parent,s,o,z));
 function wipe(g){for(let i=g.children.length-1;i>=0;i--){const c=g.children[i];c.traverse(m=>{if(m.isMesh){m.geometry.dispose();for(const mt of[].concat(m.material))if(mt.userData&&mt.userData.own){mt.map&&mt.map.dispose();mt.bumpMap&&mt.bumpMap.dispose();mt.dispose()}}});g.remove(c)}}
 /* ---- ansigtet: akvarelhud, kinder og fregner, øjne med iris og lys, øjenbryn, næse og smil ---- */

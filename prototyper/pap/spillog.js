@@ -1,0 +1,14 @@
+/* ============ statistik: samme tabel som originalen (spil_log), hvor Claude kan læse den. Der sendes kun tekniske tal:
+   enheden, opstartstider, hvor længe hvert rum er om at åbne, billeder pr. sekund og fejl. Inde på Claude-siden er det spærret, så dér er loggen slået fra. ============ */
+const LOG=(()=>{const ADR='https://kargzxpaaganyfnpyvmb.supabase.co/rest/v1/spil_log',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imthcmd6eHBhYWdhbnlmbnB5dm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMTY2NTEsImV4cCI6MjEwMDg5MjY1MX0.V3bb0XVkHvuQEqDqhn1nRprIa2ooA4Se6AYR5J32r54';
+  const on=location.protocol!=='file:'&&!/claude|anthropic/i.test(location.hostname),session=Date.now().toString(36)+Math.random().toString(36).slice(2,6);let queue=[],frames=[],last=0,sampleT=0,flushT=0,screen='by';
+  const row=(kind,data,scr)=>{if(!on)return;queue.push({session,version:PAPVER,kind,screen:scr||screen,data});if(queue.length>200)queue.splice(0,queue.length-200)};
+  const flush=keep=>{if(!on||!queue.length)return;const body=JSON.stringify(queue);queue=[];try{fetch(ADR,{method:'POST',keepalive:!!keep&&body.length<60000,headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body}).catch(()=>{})}catch(e){}};
+  const sample=()=>{const n=frames.length;if(n>5){const f=frames.slice().sort((a,b)=>a-b),sum=frames.reduce((a,b)=>a+b,0),q=p=>+f[Math.min(n-1,Math.floor(p*n))].toFixed(1);
+      row('maaling',{sek:+(sum/1000).toFixed(1),fps:+(n*1000/sum).toFixed(1),p50:q(.5),p95:q(.95),max:q(1),hak50:frames.filter(x=>x>50).length,hak100:frames.filter(x=>x>100).length,heapMB:performance.memory?+(performance.memory.usedJSHeapSize/1048576).toFixed(1):null,
+        gl:typeof renderer!=='undefined'?{geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,skarphed:+renderer.getPixelRatio().toFixed(2)}:null})}frames=[]};
+  const loop=t=>{requestAnimationFrame(loop);if(document.hidden){last=0;return}if(last)frames.push(t-last);last=t;if(t-sampleT>5000){sample();sampleT=t}if(t-flushT>30000){flush();flushT=t}};
+  if(on){row('start',{ua:navigator.userAgent,skaerm:`${innerWidth}x${innerHeight}`,dpr:devicePixelRatio,kerner:navigator.hardwareConcurrency||null,hukommelseGB:navigator.deviceMemory||null,net:navigator.connection?navigator.connection.effectiveType:null,sted:location.hostname});
+    addEventListener('error',e=>row('fejl',{besked:String(e.message).slice(0,300),hvor:`${String(e.filename||'').split('/').pop()}:${e.lineno}`}));addEventListener('unhandledrejection',e=>row('fejl',{besked:String(e.reason&&e.reason.message||e.reason).slice(0,300)}));
+    addEventListener('visibilitychange',()=>{if(document.hidden){sample();flush(true)}});addEventListener('pagehide',()=>{sample();flush(true)});requestAnimationFrame(loop)}
+  return{on,row,flush,skaerm(s){if(s===screen)return;sample();row('skaerm',{fra:screen,til:s},s);screen=s},nu(){sample();flush()}}})();

@@ -186,7 +186,7 @@ function frame(now){
   if((typeof SPIL!=='undefined')&&SPIL.pause){last=now;return}
   const raw=(now-last)/1000,dt=clamp(raw,0,.05);last=now;time+=dt;
   if(document.body.dataset.view==='nu')return;
-  if(raw<.5){mN++;mT+=raw;mW=Math.max(mW,raw);if(mT>=1){meter.textContent=`${Math.round(mN/mT)} billeder/s · langsomste ${Math.round(mW*1000)} ms · skarphed ${pr.toFixed(2).replace('.',',')} · klar efter ${(readyAt/1000).toFixed(1).replace('.',',')} s: hentet ${sek(__tid.hentet)}, skrifter ${sek(__tid.skrifter)}, klippet og malet ${sek(__tid.malet)}, bagt ${sek(__tid.bagt)}${typeof SPIL!=='undefined'&&SPIL.roomMs?` · sidste rum ${sek(SPIL.roomMs)}`:''}`;mN=0;mT=0;mW=0}}
+  if(raw<.5){mN++;mT+=raw;mW=Math.max(mW,raw);if(mT>=1){meter.textContent=`${Math.round(mN/mT)} billeder/s · langsomste ${Math.round(mW*1000)} ms · skarphed ${pr.toFixed(2).replace('.',',')} · klar efter ${(readyAt/1000).toFixed(1).replace('.',',')} s: hentet ${sek(__tid.hentet)}, skrifter ${sek(__tid.skrifter)}, klippet og malet ${sek(__tid.malet)}, bagt ${sek(__tid.bagt)}, første billede ${sek(__tid.foerste||0)}${typeof SPIL!=='undefined'&&SPIL.roomMs?` · sidste rum ${sek(SPIL.roomMs)}`:''}`;mN=0;mT=0;mW=0}}
   /* skarpheden: måles først efter opstarten (de første billeder er altid tunge), og går op igen, når der er luft */
   if(raw<.5&&!document.hidden&&performance.now()-readyAt>2500&&readyAt){fT+=raw;if(++fN>=60){const avg=fT/fN;
     if(avg>.021&&pr>1&&drops<4){pr=Math.max(1,pr-.25);drops++;good=0;renderer.setPixelRatio(pr);bake()}
@@ -251,8 +251,8 @@ function frame(now){
   if(BOOT){const c=cv(128,64),g2=c.getContext('2d'),gr=g2.createRadialGradient(64,32,0,64,32,64);gr.addColorStop(0,'rgba(10,6,20,.62)');gr.addColorStop(.55,'rgba(10,6,20,.35)');gr.addColorStop(1,'rgba(10,6,20,0)');g2.setTransform(1,0,0,.5,0,16);g2.fillStyle=gr;g2.fillRect(0,0,128,128);
     BOOT.sh=new THREE.Mesh(new THREE.PlaneGeometry(21,5.5),new THREE.MeshBasicMaterial({map:tx(c,false),transparent:true,depthWrite:false}));BOOT.sh.rotation.x=-Math.PI/2;live.add(BOOT.sh);BOOT.sh.position.set(BOOT.X-.8,TOP+.12,BOOT.Z+1.6)}
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
-  TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);TID.bagt=performance.now()-tb}
+  TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
 
   window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
-  requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();msg.classList.add('gone')})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
+  requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();TID.foerste=readyAt-TID.klarTil;msg.classList.add('gone');if(typeof LOG!=='undefined'){LOG.row('opstart',{klar:Math.round(readyAt),foerste:Math.round(TID.foerste),hentet:Math.round(TID.hentet),skrifter:Math.round(TID.skrifter),malet:Math.round(TID.malet),bagt:Math.round(TID.bagt),trin:TID.trin.map(Math.round)});LOG.flush()}})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
