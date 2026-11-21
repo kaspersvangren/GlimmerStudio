@@ -55,7 +55,7 @@ const VALG={Hat:['hat',[['heksehat','Heksehat'],['ingen','Ingen hat'],['nathat',
   Dyr:['kind',[['kat','Kat'],['hund','Hund'],['kanin','Kanin'],['enhjørning','Enhjørning'],['bjørn','Bjørn'],['drage','Drage'],['ugle','Ugle'],['ræv','Ræv'],['frø','Frø']]],
   Mønster:['moenster',[['ingen','Ensfarvet'],['sokker','Sokker'],['pletter','Pletter'],['striber','Striber'],['øjeplet','Plet om øjet'],['hjerter','Hjerter'],['stjerner','Stjerner'],['prikker','Små prikker'],['plet','Stor plet'],['glimmer','Glimmer']]],
   Pynt:['pynt',[['halsbånd','Halsbånd'],['ingen','Ingen pynt'],['sløjfe','Sløjfe'],['krone','Krone'],['vinger','Feevinger'],['hat','Lille heksehat'],['blomst','Blomst ved øret'],['stjerne','Stjernespænde'],['tørklæde','Tørklæde'],['butterfly','Butterfly'],['briller','Briller']]],
-  Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde']]]};
+  Ekstra:['tilbehør',[['ingen','Ingenting'],['taske','Skuldertaske'],['rygsæk','Rygsæk'],['tørklæde','Tørklæde'],['briller','Runde briller'],['halskæde','Månekæde'],['perler','Perlekæde'],['lommeur','Lommeur'],['bog','Tryllebog'],['lanterne','Lanterne'],['tryllestav','Tryllestav']]]};
 let FIG=null,pop=0;const sparks=[];
 const cam=new THREE.PerspectiveCamera(30,1,20,600),CD=150;
 const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,panel=wide?Math.min(.3*w,340)/w+24/w:0,needH=wide?47:66,needW=wide?54/(1-panel):40;const H=Math.max(needH,needW/asp);c.fov=2*Math.atan(H/2/CD)*180/Math.PI;const cx=wide?-12.5+H*asp*panel/2:FX,cy=wide?19:9;c.position.set(cx,cy+1+CD*Math.sin(.1),CD*Math.cos(.1));c.lookAt(cx,cy,0)},P_:{aoR:.45,dof:[.05,.14],haze:[2,3,0],bloom:1.1,bg:'#120e1a'}});
