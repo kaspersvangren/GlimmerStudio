@@ -6,7 +6,7 @@ const RUM={vaerelse:{navn:'Værelset'},garderobe:{navn:'Garderoben',html:'<div i
   gang:{navn:'Skolen'},eliksir:{navn:'Eliksirtimen'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden'},gnom:{navn:'Bank en gnom'}};
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
-const SLOTS=['hat','hår','tøj','kappe','støvler','tilbehør'];
+const SLOTS=['hat','hår','pande','tøj','kappe','støvler','tilbehør'];
 const doorEl=document.getElementById('door'),doorT=document.getElementById('doorT'),rumEl=document.getElementById('rum'),hjemEl=document.getElementById('hjem'),hjemT=document.getElementById('hjemT'),toastEl=document.getElementById('toast'),stjN=document.getElementById('stjN'),stjEl=document.getElementById('stj');
 let toastT=0;const toast=txt=>{toastEl.textContent=txt;toastEl.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{toastEl.hidden=true},2600)};
 /* alt hvad rummet selv har malet og bygget, slippes igen; det fælles papir (som byen også bruger) bliver liggende */

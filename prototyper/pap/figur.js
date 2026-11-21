@@ -49,7 +49,7 @@ const HATTE={kort:'#2f7f86','høj':'#3a2a58',blomst:'#e8c878',krone:'#d9a83a',ba
 const KAPPER={lang:{},stjerne:{motiv:'stjerner',std:'#1c2250',kant:'#cfb6ee'},'måne':{motiv:'måner',std:'#2a2a5a'},takket:{takket:1,std:'#5a2f6a'},blomster:{motiv:'blomster',std:'#3e6a4a'},stribet:{motiv:'striber',std:'#7a2f3a'},pelskant:{pels:1,std:'#8a2f3a'},'hætte':{haette:1,std:'#2f5a4a'}};
 /* kjolerne deler snit; hver har sit mønster og sin egen farve fra start */
 const KJOLER={stjernekjole:{motiv:'stjerner'},'månekjole':{motiv:'måner',std:'#2e4a7a',krave:'#5a3fa8'},blomsterkjole:{motiv:'blomster',std:'#3e7a4a',krave:'#7a2f6a',sloejfe:1},stribekjole:{motiv:'striber',std:'#b83a3a',krave:'#2a2a3a'},prikkjole:{motiv:'prikker',std:'#e0457a',krave:'#7a2f6a',sloejfe:1},hjertekjole:{motiv:'hjerter',std:'#b83a6a',krave:'#5a1f3a'},knapkjole:{motiv:'knapper',std:'#4a3a9a'},lagkjole:{motiv:'ingen',lag:1,std:'#1f6f6a',krave:'#143f3c'},'forklædekjole':{motiv:'ingen',forkl:1,std:'#43a3d3',krave:'#2e4a7a'},kortkjole:{motiv:'stjerner',kort:1,std:'#e07a45',krave:'#7a2f3a'}};
-const LOOK0={støvler:'snør',hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
+const LOOK0={pande:'lige',støvler:'snør',hat:'heksehat',hår:'langt',tøj:'stjernekjole',kappe:'lang',tilbehør:'ingen',stav:true,skin:C.skin,skinSh:C.skinSh,hair:[C.hair,C.hairLt,C.hairDk],iris:['#9be0a6','#2f7a44'],freck:true,hh:7.1,eye:.27,lash:1,smile:.17,skæg:null,col:{}};
 function makeFigure(look={}){
   const L=Object.assign({},LOOK0,look),F={L,G:new THREE.Group()},G=F.G;
   const T=26,hh=L.hh,w=hh*.82,cy=T-hh/2,S=T-hh-1,sw=3,Wy=S-4.3,ww=2.05,HIP=Wy-1.7,PY=S+.4;F.D={T,hh,w,cy,S,sw,Wy,ww,HIP};
@@ -68,18 +68,37 @@ function makeFigure(look={}){
 
   /* hår: bagved hovedet og foran */
   function buildHair(){wipe(hb.i);wipe(F.gHairF);const k=L.hår,dress=(KJOLER[L.tøj]&&!KJOLER[L.tøj].kort)||L.tøj==='festkjole'||L.tøj==='skovløber',cut=dress?0:1.7;
-    const bangs=(side)=>{const b=side?sm([[-w*.56,cy+hh*.05],[-w*.5,cy+hh*.44],[0,cy+hh*.6],[w*.52,cy+hh*.42],[w*.56,cy+hh*.12],[w*.2,cy+hh*.3],[-w*.25,cy+hh*.18]],6):sm([[-w*.56,cy+hh*.1],[-w*.52,cy+hh*.42],[0,cy+hh*.6],[w*.52,cy+hh*.42],[w*.56,cy+hh*.1],[w*.44,cy+hh*.22],[w*.3,cy+hh*.12],[w*.14,cy+hh*.26],[0,cy+hh*.2],[-w*.18,cy+hh*.28],[-w*.33,cy+hh*.13],[-w*.46,cy+hh*.24]],6);fp(F.gHairF,b,{t:.14,s:40,ed:H2,paint:hairPaint(b,9)},.68)};
+    /* pandehåret: ti slags. Kanten forneden tegnes fra højre mod venstre; resten følger hovedets top */
+    const bangs=()=>{const p=L.pande||'lige',zz=(n,amp,base)=>{const o=[];for(let i=0;i<=n;i++)o.push([w*.5-w*i/n,cy+hh*(base+(i%2?amp:0))]);return o};let low,yl=cy+hh*.1,yr=cy+hh*.1,spejl=false;
+      if(p==='mini')low=zz(10,.05,.3);else if(p==='lang')low=zz(6,.04,.02);else if(p==='pjusket')low=[...Array(9)].map((_,i)=>[w*.5-w*i/8,cy+hh*(.05+((i*7)%5)*.055)]);
+      else if(p==='bølget')low=[...Array(13)].map((_,i)=>[w*.5-w*i/12,cy+hh*(.17+.07*Math.sin(i*1.6))]);
+      else if(p==='midt')low=[[w*.5,cy+hh*.16],[w*.24,cy+hh*.3],[0,cy+hh*.5],[-w*.24,cy+hh*.3],[-w*.5,cy+hh*.16]];
+      else if(p==='gardin'){yl=yr=cy-hh*.12;low=[[w*.47,cy-hh*.04],[w*.3,cy+hh*.24],[0,cy+hh*.47],[-w*.3,cy+hh*.24],[-w*.47,cy-hh*.04]]}
+      else if(p==='tilbage')low=[[w*.5,cy+hh*.3],[w*.25,cy+hh*.42],[0,cy+hh*.45],[-w*.25,cy+hh*.42],[-w*.5,cy+hh*.3]];
+      else if(p==='side'||p==='venstre'){yl=cy+hh*.05;yr=cy+hh*.12;low=[[w*.2,cy+hh*.3],[-w*.25,cy+hh*.18]];spejl=p==='venstre'}
+      else low=[[w*.44,cy+hh*.22],[w*.3,cy+hh*.12],[w*.14,cy+hh*.26],[0,cy+hh*.2],[-w*.18,cy+hh*.28],[-w*.33,cy+hh*.13],[-w*.46,cy+hh*.24]];
+      let b=sm([[-w*.56,yl],[-w*.52,cy+hh*.42],[0,cy+hh*.6],[w*.52,cy+hh*.42],[w*.56,yr],...low],6);if(spejl)b=toCCW(b.map(([x,y])=>[-x,y]));fp(F.gHairF,b,{t:.14,s:40,ed:H2,paint:hairPaint(b,9)},.68)};
+    const kasket=()=>sm([[-w*.6,cy+hh*.1],[-w*.66,cy-hh*.34],[-w*.52,cy-hh*.5],[w*.52,cy-hh*.5],[w*.66,cy-hh*.34],[w*.6,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]],8),
+      hale=(pts,z=-.02)=>{const q=toCCW(sm(pts,6));fp(hb.i,q,{t:.2,s:30,ed:H2,paint:hairPaint(q,8)},z)},baand=(x,y,c=C.teal)=>fp(F.gHairF,circ(x,y,.62,.5,14),{color:c,kind:'water',t:.14},.7),
+      flet=(x,y0,n=9)=>{for(let i=0;i<n;i++){const y=y0-i*.85,sz=.95-i*.03;fp(F.gHairF,leafPts(x+(i%2?.22:-.22)*sz,y,1.35*sz,.95*sz,(i%2?-1:1)*.75),{color:i%2?H0:H1,kind:'water',t:.06,edge:H2},.64+i*.004)}fp(F.gHairF,sm([[x-.55,y0-n*.85+.5],[x+.55,y0-n*.85+.5],[x+.3,y0-n*.85-.9],[x-.3,y0-n*.85-.9]],4),{color:H0,kind:'water',t:.08,edge:H2},.66);fp(F.gHairF,sm([[x-.55,y0-n*.85+.9],[x+.55,y0-n*.85+.9],[x+.9,y0-n*.85+.2],[x-.9,y0-n*.85+.2]],4),{color:C.teal,kind:'water',t:.1},.7)};
     const lock=(pts,z=.66)=>{const Lk=sm(pts,6);fp(F.gHairF,Lk,{t:.12,s:40,ed:H2,paint:hairPaint(Lk,4)},z)};
     let back;
     if(k==='langt'){back=sm([[-w*.62,cy+hh*.1],[-w*.72,cy-hh*.4],[-w*.8,S-2],[-w*.74,S-6.6+cut],[-w*.35,S-7.4+cut],[0,S-6.8+cut],[w*.35,S-7.4+cut],[w*.74,S-6.6+cut],[w*.8,S-2],[w*.72,cy-hh*.4],[w*.62,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]],8);bangs();for(const sx of[-1,1])lock([[sx*w*.54,cy+hh*.22],[sx*w*.62,cy-hh*.2],[sx*w*.6,S-.6],[sx*w*.66,S-2.6],[sx*w*.52,S-4.2],[sx*w*.44,S-2.8],[sx*w*.48,S-.8],[sx*w*.42,cy-hh*.3],[sx*w*.44,cy+hh*.12]])}
     else if(k==='fletning'){back=sm([[-w*.6,cy+hh*.1],[-w*.68,cy-hh*.4],[-w*.62,S-.8],[0,S-1.2],[w*.62,S-.8],[w*.68,cy-hh*.4],[w*.6,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]],8);bangs();
       for(let i=0;i<10;i++){const y=S+.4-i*.85,x=-w*.55+Math.sin(i*.45)*.2,sz=.95-i*.03;fp(F.gHairF,leafPts(x+(i%2?.22:-.22)*sz,y,1.35*sz,.95*sz,(i%2?-1:1)*.75),{color:i%2?H0:H1,kind:'water',t:.06,edge:H2},.64+i*.004)}
       fp(F.gHairF,sm([[-w*.55-.6,S-8.1],[-w*.55+.6,S-8.1],[-w*.55+.3,S-9.4],[-w*.55-.3,S-9.4]],4),{color:H0,kind:'water',t:.08,edge:H2},.66);fp(F.gHairF,sm([[-w*.55-.55,S-7.7],[-w*.55+.55,S-7.7],[-w*.55+.9,S-8.4],[-w*.55-.9,S-8.4]],4),{color:C.teal,kind:'water',t:.1},.7)}
-    else if(k==='bølger'){const o=[[-w*.62,cy+hh*.1],[-w*.72,cy-hh*.4]];const n=dress?6:4;for(let i=0;i<n;i++)o.push([-w*.8-(i%2?.5:0),S-1-i*1.5]);o.push([-w*.3,S-.6-n*1.5],[0,S-n*1.5],[w*.3,S-.6-n*1.5]);for(let i=n-1;i>=0;i--)o.push([w*.8+(i%2?.5:0),S-1-i*1.5]);o.push([w*.72,cy-hh*.4],[w*.62,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]);back=sm(o,8);bangs(true);
+    else if(k==='bølger'){const o=[[-w*.62,cy+hh*.1],[-w*.72,cy-hh*.4]];const n=dress?6:4;for(let i=0;i<n;i++)o.push([-w*.8-(i%2?.5:0),S-1-i*1.5]);o.push([-w*.3,S-.6-n*1.5],[0,S-n*1.5],[w*.3,S-.6-n*1.5]);for(let i=n-1;i>=0;i--)o.push([w*.8+(i%2?.5:0),S-1-i*1.5]);o.push([w*.72,cy-hh*.4],[w*.62,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]);back=sm(o,8);bangs();
       const wl=[];for(let i=0;i<7;i++)wl.push([w*.66+(i%2?.4:0),cy+hh*.2-i*1.2]);wl.push([w*.5,cy+hh*.2-7.6]);for(let i=6;i>=0;i--)wl.push([w*.46+(i%2?.3:-.02)+(i===0?.06:0),cy+hh*.2-i*1.2]);lock(wl);
       fp(hb.i,sm([[w*.45,cy+hh*.42],[w*.9,cy+hh*.75],[w*1.05,cy+hh*.35],[w*.6,cy+hh*.3]],4),{color:C.lilac,kind:'water',t:.08},.25)}
     else if(k==='knolde'){back=sm([[-w*.6,cy+hh*.1],[-w*.64,cy-hh*.3],[-w*.5,cy-hh*.44],[w*.5,cy-hh*.44],[w*.64,cy-hh*.3],[w*.6,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]],8);bangs();for(const sx of[-1,1])fp(hb.i,circ(sx*w*.62,cy+hh*.52,hh*.2,hh*.2,24),{color:H0,kind:'water',t:.2,edge:H2},.1)}
-    else{back=sm([[-w*.6,cy+hh*.1],[-w*.66,cy-hh*.34],[-w*.52,cy-hh*.5],[w*.52,cy-hh*.5],[w*.66,cy-hh*.34],[w*.6,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]],8);bangs(true)}
+    else if(k==='skulder'){back=sm([[-w*.62,cy+hh*.1],[-w*.72,cy-hh*.4],[-w*.84,S+.6],[-w*.6,S-1.9],[-w*.25,S-1.4],[0,S-1.7],[w*.25,S-1.4],[w*.6,S-1.9],[w*.84,S+.6],[w*.72,cy-hh*.4],[w*.62,cy+hh*.1],[w*.5,cy+hh*.46],[0,cy+hh*.62],[-w*.5,cy+hh*.46]],8);bangs();for(const sx of[-1,1])lock([[sx*w*.54,cy+hh*.22],[sx*w*.62,cy-hh*.2],[sx*w*.66,S+.9],[sx*w*.5,S-.4],[sx*w*.44,cy-hh*.3]])}
+    else if(k==='hestehale'){back=kasket();bangs();hale([[w*.42,cy+hh*.5],[w*.95,cy+hh*.46],[w*1.14,cy-hh*.1],[w*1.06,S-2.6],[w*.86,S-5.6],[w*.7,S-3],[w*.8,cy-hh*.3],[w*.62,cy+hh*.16]]);baand(w*.6,cy+hh*.44)}
+    else if(k==='rottehaler'){back=kasket();bangs();for(const sx of[-1,1]){hale([[sx*w*.5,cy+hh*.12],[sx*w*.98,cy+hh*.1],[sx*w*1.12,cy-hh*.5],[sx*w*.98,S-2.4],[sx*w*.8,S-4.2],[sx*w*.7,cy-hh*.6],[sx*w*.6,cy-hh*.1]]);baand(sx*w*.66,cy-hh*.02,C.pink)}}
+    else if(k==='fletninger'){back=kasket();bangs();for(const sx of[-1,1])flet(sx*w*.58,S+.6,8)}
+    else if(k==='topknold'){back=kasket();bangs();fp(hb.i,circ(0,cy+hh*.74,hh*.26,hh*.24,28),{t:.2,s:40,ed:H2,paint:hairPaint(circ(0,cy+hh*.74,hh*.26,hh*.24,28),6)},-.02);baand(0,cy+hh*.56,C.pink)}
+    else if(k==='krøller'){const o=[],n=40;for(let i=0;i<n;i++){const a=i/n*TAU,bump=1+.07*Math.sin(a*11),ex=w*.98*bump,ymid=(cy+hh*.3+S-2.2)/2,ey=(cy+hh*.75-(S-2.2))/2*bump;o.push([Math.cos(a)*ex,ymid+Math.sin(a)*ey])}back=toCCW(o);bangs();
+      for(const sx of[-1,1])for(let i=0;i<5;i++)fp(F.gHairF,circ(sx*w*(.6+(i%2?.06:0)),cy+hh*.1-i*1.25,.72,.72,14),{color:i%2?H0:H1,kind:'water',t:.08,edge:H2},.64+i*.004)}
+    else{back=kasket();bangs()}
     fp(hb.i,back,{t:.25,s:26,ed:H2,paint:hairPaint(back,24)},0)}
 
   /* hat */
@@ -257,7 +276,7 @@ function makeFigure(look={}){
   const shade_=()=>G.traverse(o=>{if(o.isMesh){o.castShadow=!!F.shadow;o.receiveShadow=!!F.shadow}});
   /* farver: tøjets, hattens og kappens hovedfarve, og hårets */
   F.setCol=(k,v)=>{FRES=L.res||1;if(k==='hår'){L.hair=[v,hexOf(shade(v,.25)),hexOf(shade(v,-.35))];[H0,H1,H2]=L.hair;buildHead();buildHair();buildHat()}else{L.col=Object.assign({},L.col,{[k]:v});if(k==='tøj'||k==='støvler')buildOutfit();else if(k==='hat')buildHat();else if(k==='kappe')buildCape()}shade_();FRES=1};
-  F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår')buildHair();else if(k==='tøj'||k==='støvler'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
+  F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår'||k==='pande')buildHair();else if(k==='tøj'||k==='støvler'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
   F.build=()=>{FRES=L.res||1;buildHead();buildHair();buildHat();buildOutfit();buildCape();buildAcc();buildStaff();shade_();FRES=1;return F};
   /* bevægelse: gang (ph er skridtets fase, amp 0..1), åndedræt, hårets sving og blink */
   F.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);F.legs[0].rotation.z=.32*s*amp;F.legs[1].rotation.z=-.32*s*amp;F.skirt.rotation.z=.045*s*amp+.012*Math.sin(t*1.2);
