@@ -7,8 +7,10 @@ const LOG=(()=>{const ADR='https://kargzxpaaganyfnpyvmb.supabase.co/rest/v1/spil
   const sample=()=>{const n=frames.length;if(n>5){const f=frames.slice().sort((a,b)=>a-b),sum=frames.reduce((a,b)=>a+b,0),q=p=>+f[Math.min(n-1,Math.floor(p*n))].toFixed(1);
       row('maaling',{sek:+(sum/1000).toFixed(1),fps:+(n*1000/sum).toFixed(1),p50:q(.5),p95:q(.95),max:q(1),hak50:frames.filter(x=>x>50).length,hak100:frames.filter(x=>x>100).length,heapMB:performance.memory?+(performance.memory.usedJSHeapSize/1048576).toFixed(1):null,
         gl:typeof renderer!=='undefined'?{geo:renderer.info.memory.geometries,tex:renderer.info.memory.textures,skarphed:+renderer.getPixelRatio().toFixed(2)}:null})}frames=[]};
-  const loop=t=>{requestAnimationFrame(loop);if(document.hidden){last=0;return}if(last)frames.push(t-last);last=t;if(t-sampleT>5000){sample();sampleT=t}if(t-flushT>30000){flush();flushT=t}};
+  /* hak: hvert billede, der er over 120 ms om at komme, skrives ned sammen med det sidste, der skete lige inden (et tryk, et træk, en bagning, en ny størrelse …), så årsagen kan findes */
+  let mk={l:'start',t:0},hakN=0;const maerk=l=>{mk={l,t:performance.now()}};
+  const loop=t=>{requestAnimationFrame(loop);if(document.hidden){last=0;return}if(last&&t-last>120&&hakN<80&&mk.l!=='start'){hakN++;row('hak',{ms:Math.round(t-last),sidst:mk.l,siden:Math.round(last-mk.t)})}if(last)frames.push(t-last);last=t;if(t-sampleT>5000){sample();sampleT=t}if(t-flushT>30000){flush();flushT=t}};
   if(on){row('start',{ua:navigator.userAgent,skaerm:`${innerWidth}x${innerHeight}`,dpr:devicePixelRatio,kerner:navigator.hardwareConcurrency||null,hukommelseGB:navigator.deviceMemory||null,net:navigator.connection?navigator.connection.effectiveType:null,sted:location.hostname});
     addEventListener('error',e=>row('fejl',{besked:String(e.message).slice(0,300),hvor:`${String(e.filename||'').split('/').pop()}:${e.lineno}`}));addEventListener('unhandledrejection',e=>row('fejl',{besked:String(e.reason&&e.reason.message||e.reason).slice(0,300)}));
     addEventListener('visibilitychange',()=>{if(document.hidden){sample();flush(true)}});addEventListener('pagehide',()=>{sample();flush(true)});requestAnimationFrame(loop)}
-  return{on,row,flush,session,skaerm(s){if(s===screen)return;sample();row('skaerm',{fra:screen,til:s},s);screen=s},nu(){sample();flush()}}})();
+  return{on,row,flush,session,maerk,skaerm(s){if(s===screen)return;sample();row('skaerm',{fra:screen,til:s},s);screen=s},nu(){sample();flush()}}})();

@@ -508,7 +508,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
   for(const[sc,mat]of[[blitScene,blitMat],[copyScene,copyMat]]){const q=new THREE.Mesh(new THREE.PlaneGeometry(2,2),mat);q.frustumCulled=false;sc.add(q)}
   renderer.setClearColor(P_.bg);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
   let big=null,baked=false;const S={bakeMs:0};
-  S.bake=function(){const t0=performance.now();const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+  S.bake=function(){const t0=performance.now();if(typeof LOG!=='undefined')LOG.maerk('rum bages');const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
     renderer.setSize(w,h,false);cam.clearViewOffset();cam.aspect=w/h;fit(cam,w,h);cam.updateProjectionMatrix();cam.updateMatrixWorld();const d=renderer.getDrawingBufferSize(new THREE.Vector2());
     const FW=d.x,FH=d.y;if(big)big.dispose();
     big=new THREE.WebGLRenderTarget(FW,FH,{type:THREE.HalfFloatType,depthTexture:new THREE.DepthTexture(FW,FH)});
@@ -617,9 +617,9 @@ BUILD.push(()=>{for(const r of RIS){pc(scene,box(r.x0,OPEN.y0,r.x1,OPEN.y0+r.h),
 /* sangene: hver har sit bagtæppe, sine farver på hatte og trøjer, sit lys og en lille ting på gnomerne */
 const STY={
   hygge:{n:'Hyggelig',hats:['#e05a8a','#3b6fd1','#f2c230','#2f8f86'],tun:['#3f7a4a','#c25a2e','#7a4fb0','#b0283a'],light:'#ffe2b0',bd:'nat',acc:null},
-  rock:{n:'Rock',hats:['#1a1a22','#2a1a2e','#1a1a22','#3a1218'],tun:['#2a2a32','#5a1020','#2a2a32','#1a1a22'],light:'#ff4a7a',bd:'rock',acc:'briller'},
-  disko:{n:'Disko',hats:['#ff5ab4','#5ae0ff','#ffd23a','#9a5aff'],tun:['#f2f2ff','#ff5ab4','#5ae0ff','#ffd23a'],light:'#c87aff',bd:'disko',acc:'glimmer'},
-  hawaii:{n:'Hawaii',hats:['#f2a03a','#3ac0a0','#ff6a5a','#f2d23a'],tun:['#ff6a5a','#3ac0a0','#f2a03a','#5aa0ff'],light:'#ffb070',bd:'solnedgang',acc:'krans'},
+  rock:{n:'Rock',hats:['#1a1a22','#2a1a2e','#1a1a22','#3a1218'],tun:['#2a2a32','#5a1020','#2a2a32','#1a1a22'],light:'#ff4a7a',bd:'rock',acc:['nitter']},
+  disko:{n:'Disko',tun:['#f2f2ff','#ff5ab4','#5ae0ff','#ffd23a'],light:'#c87aff',bd:'disko',acc:['glimmer','briller','krave'],hats:['#3a2a20','#e8843a','#7a3ab8','#e0457a']},
+  hawaii:{n:'Hawaii',hats:['#f2a03a','#3ac0a0','#ff6a5a','#f2d23a'],tun:['#ff6a5a','#3ac0a0','#f2a03a','#5aa0ff'],light:'#ffb070',bd:'solnedgang',acc:['krans','blomsterskjorte']},
   klassisk:{n:'Klassisk',hats:['#1a1a2a','#1a1a2a','#1a1a2a','#1a1a2a'],tun:['#1a1a2a','#20203a','#1a1a2a','#20203a'],light:'#bcd4ff',bd:'klassisk',acc:'butterfly'},
   country:{n:'Country',hats:['#a0642a','#7a4a22','#c08040','#8a5a2a'],tun:['#c03a2a','#3a5aa0','#c08a3a','#5a8a3a'],light:'#ffc070',bd:'lade',acc:'halstørklæde'}};
 let cur='hygge';
@@ -680,12 +680,40 @@ function gnome(i,inst){const G=new THREE.Group(),SKIN='#f4c8a0';const o={G,i,ins
   o.acc.glimmer=new THREE.Group();put(G,o.acc.glimmer,0,0,.3);for(let k=0;k<7;k++)pc(o.acc.glimmer,starPts(R(-2,2),R(3,6.8),.35,.15,R(1)),{mat:gold(),t:.04},0);
   o.acc.butterfly=new THREE.Group();put(H,o.acc.butterfly,0,-3.9,.6);pc(o.acc.butterfly,sm([[0,0],[-1,.55],[-1,-.55]],3),{color:'#0a0a12',t:.06},0);pc(o.acc.butterfly,sm([[0,0],[1,.55],[1,-.55]],3),{color:'#0a0a12',t:.06},0);
   o.acc['halstørklæde']=new THREE.Group();put(G,o.acc['halstørklæde'],0,0,.3);pc(o.acc['halstørklæde'],sm([[-2.3,7.1],[2.3,7.1],[0,2.6]],3),{color:'#c03a2a',t:.06},0);
+  o.acc.nitter=new THREE.Group();put(G,o.acc.nitter,0,0,.3);for(const sx of[-1,1]){for(let k=0;k<3;k++)pc(o.acc.nitter,toCCW([[sx*(1.5+k*.55),7.05],[sx*(2+k*.55),7.05],[sx*(1.9+k*.6),8.1-k*.15]]),{color:'#c8ccd8',kind:'card',t:.08},0)}for(let x=-2.2;x<=2.21;x+=.88)pc(o.acc.nitter,circ(x,4.4,.2,.2,8),{color:'#c8ccd8',kind:'card',t:.06},0);
+  o.acc.krave=new THREE.Group();put(G,o.acc.krave,0,0,.3);for(const sx of[-1,1])pc(o.acc.krave,toCCW([[sx*.2,7.25],[sx*3.1,7.5],[sx*1.9,5.3]]),{color:'#ffffff',kind:'water',t:.06},0);
+  o.acc.blomsterskjorte=new THREE.Group();put(G,o.acc.blomsterskjorte,0,0,.27);for(const[x,y]of[[-1.7,6],[1.6,6.5],[-2,3.3],[1.9,3.5],[2.2,5.2],[-2.3,5]]){for(let j=0;j<5;j++)pc(o.acc.blomsterskjorte,circ(x+Math.cos(j*1.256)*.2,y+Math.sin(j*1.256)*.2,.17,.17,8),{color:'#fff6e8',t:.03},0);pc(o.acc.blomsterskjorte,circ(x,y,.1,.1,6),{color:'#ffd23a',t:.03},.02)}
+  /* ---- et hoved til hver sang: nissehuen til de hyggelige, Kiss-maling og strithår til rock, afro til disko, cowboyhat til country, paryk til klassisk og stråhat til Hawaii ---- */
+  o.hoved={hygge:o.hatG};const hd=k=>{const g=new THREE.Group();put(H,g,0,0,0);o.hoved[k]=g;return g},SORT='#15121c';
+  {const g=hd('rock'),st=[];for(let k=0;k<22;k++){const a=-.5+k/21*(Math.PI+1),r=k%2?4.5-(k%3)*.3:2.8;st.push([Math.cos(a)*r*.95,2.1+Math.sin(a)*r])}st.push([-2.9,-1.6],[-1.6,.4],[1.6,.4],[2.9,-1.6]);pc(g,toCCW(st),{color:SORT,kind:'water',t:.12},-.12);
+    pc(g,circ(0,1.6,1.9,1.9,32),{color:'#f6f4fc',kind:'water',t:.06},.29);const m=(sh,c=SORT)=>pc(g,sh,{color:c,kind:'water',t:.04},.37);
+    if(i===0)m(starPts(.92,2.3,1.15,.5,.2));
+    if(i===1)for(const sx of[-1,1])m(toCCW([[sx*.25,1.95],[sx*.5,2.7],[sx*1.85,3.3],[sx*1.45,2.6],[sx*1.9,2.25],[sx*1.4,1.85],[sx*.4,1.7]]));
+    if(i===2){for(const sx of[-1,1]){m(circ(sx*.92,2.3,.55,.5,16));for(const q of thick([[[sx*.7,1.45],[sx*1.8,1.6]],[[sx*.7,1.3],[sx*1.8,1.1]]],.06))pc(g,q,{color:SORT,t:.04},.62)}pc(g,circ(0,1.62,.3,.24,10),{color:SORT,t:.04},.66)}
+    if(i===3)for(const sx of[-1,1]){m(toCCW([[sx*.2,2.05],[sx*1.9,3.1],[sx*1.8,1.85]]),'#b8bcd0');m(toCCW([[sx*.45,2.1],[sx*1.55,2.75],[sx*1.5,2.02]]))}
+    for(const sx of[-1,1])pc(g,circ(sx*.92,2.3,.3,.34,12),{color:'#ffffff',t:.04},.415);pc(g,sm([[-.5,.95],[.5,.95],[.3,.7],[-.3,.7]],3),{color:SORT,t:.04},.6)}
+  {const g=hd('disko'),c=STY.disko.hats[i],bl=[circ(0,3.4,2.7,2.5,28)];for(let k=0;k<11;k++){const a=-.45+k/10*(Math.PI+.9);bl.push(circ(Math.cos(a)*2.75,3.3+Math.sin(a)*2.5,1.15,1.15,14))}const af=clip(bl,[],'union')[0].outer;
+    pc(g,af,{t:.14,s:26,ed:hexOf(shade(c,-.4)),paint:P=>{P.wash(c,af,{top:hexOf(shade(c,.25)),edge:.7,clouds:6});for(let k=0;k<40;k++){const x=R(-3.6,3.6),y=R(.6,6.6);P.pen(curve([[x-.25,y],[x,y+.22],[x+.25,y]],4),hexOf(shade(c,-.35)),.07,.6)}}},-.12);
+    for(const q of clip([af],[box(-5,3.1,5,9)],'inter'))pc(g,q,{t:.1,s:26,ed:hexOf(shade(c,-.4)),paint:P=>{P.wash(c,q.outer||q,{top:hexOf(shade(c,.25)),edge:.6,clouds:5});for(let k=0;k<26;k++){const x=R(-3.6,3.6),y=R(3.2,6.6);P.pen(curve([[x-.25,y],[x,y+.22],[x+.25,y]],4),hexOf(shade(c,-.35)),.07,.6)}}},.46);
+    pc(g,box(-2.05,3.02,2.05,3.4),{mat:gold(),t:.06},.56);pc(g,starPts(0,3.21,.34,.15),{color:'#ff5ab4',t:.04},.62)}
+  {const g=hd('country'),c=STY.country.hats[i],cd=hexOf(shade(c,-.3)),cr=sm([[-1.5,3.3],[1.5,3.3],[1.75,5.2],[.7,5.75],[0,5.25],[-.7,5.75],[-1.75,5.2]],5),br=sm([[-3.7,3.75],[-2.4,3.05],[0,2.9],[2.4,3.05],[3.7,3.75],[3.4,4.25],[1.7,3.6],[0,3.48],[-1.7,3.6],[-3.4,4.25]],6);
+    pc(g,cr,{t:.2,s:30,ed:cd,paint:P=>{P.wash(c,cr,{top:hexOf(shade(c,.2)),edge:.6,clouds:4});P.pen(curve([[0,5.2],[0,4.5]],3),cd,.1,.6)}},.3);pc(g,box(-1.56,3.42,1.56,3.88),{color:cd,kind:'water',t:.06},.42);pc(g,starPts(0,3.65,.3,.13),{mat:gold(),t:.05},.48);
+    pc(g,br,{t:.16,s:30,ed:cd,paint:P=>{P.wash(c,br,{top:hexOf(shade(c,.2)),edge:.6,clouds:4})}},.5);if(i===0)for(const q of thick([[[.5,.85],[2.7,.35]]],.07))pc(g,q,{color:'#e8c86a',t:.05},.64)}
+  {const g=hd('klassisk'),PW='#f4f1fa',PG='#b8b2c8',top=sm([[-2.25,2.95],[-2.2,4.4],[-1.1,5.3],[0,5.5],[1.1,5.3],[2.2,4.4],[2.25,2.95],[1.2,3.25],[0,3.08],[-1.2,3.25]],6);
+    pc(g,top,{t:.16,s:30,ed:PG,paint:P=>{P.wash(PW,top,{top:'#ffffff',edge:.6,clouds:3});for(let x=-1.6;x<=1.61;x+=.8)P.pen(curve([[x,3.3],[x*1.05,4.3],[x*.8,5.2]],5),PG,.07,.6)}},.46);
+    for(const sx of[-1,1])[[2.35,2.55],[2.6,1.45],[2.45,.35]].forEach(([x,y],k)=>{const q=circ(sx*x,y,.78,.72,18);pc(g,q,{t:.14,s:40,ed:PG,paint:P=>{P.wash(PW,q,{top:'#ffffff',edge:.6,clouds:2});const sp=[];for(let j=0;j<=14;j++){const a=j/14*TAU*1.4,r=.55*(1-j/16);sp.push([sx*x+Math.cos(a)*r,y+Math.sin(a)*r])}P.pen(sp,PG,.07,.7)}},.52+k*.01)});
+    pc(g,toCCW([[-.5,5.4],[.5,5.4],[.9,6.1],[0,5.75],[-.9,6.1]]),{color:SORT,kind:'water',t:.06},.3)}
+  {const g=hd('hawaii'),c=STY.hawaii.hats[i],SG='#e8c48a',SD='#b8925a',br=sm([[-3.6,3],[3.6,3],[3.4,3.5],[-3.4,3.5]],3),cr=sm([[-1.85,3.45],[1.85,3.45],[1.65,4.9],[1,5.3],[-1,5.3],[-1.65,4.9]],5);
+    pc(g,cr,{t:.2,s:30,ed:SD,paint:P=>{P.wash(SG,cr,{top:'#f6dca8',edge:.5,clouds:3});for(let y=3.7;y<5.3;y+=.32)P.pen([[-1.9,y],[1.9,y]],SD,.05,.5)}},.3);pc(g,box(-1.8,3.5,1.8,4),{color:c,kind:'water',t:.06},.42);
+    pc(g,br,{t:.14,s:30,ed:SD,paint:P=>{P.wash(SG,br,{top:'#f6dca8',edge:.5,clouds:3});for(let x=-3.4;x<3.5;x+=.4)P.pen([[x,3.02],[x+.1,3.48]],SD,.05,.5)}},.5);
+    for(let j=0;j<5;j++)pc(g,circ(1.25+Math.cos(j*1.256)*.36,3.85+Math.sin(j*1.256)*.36,.3,.3,10),{color:'#ff6a9a',t:.04},.56);pc(g,circ(1.25,3.85,.2,.2,8),{color:'#ffd23a',t:.04},.6)}
+  for(const k in o.hoved)if(k!=='hygge')o.hoved[k].visible=false;
   for(const k in o.acc)o.acc[k].visible=false;
   G.traverse(m=>{if(m.isMesh)m.castShadow=false});return o}
-function dress(o,sty){const S=STY[sty];o.hat.material[0]=paperMat(S.hats[o.i],'water');o.hat.material[1]=o.hat.material[0];const t=paperMat(S.tun[o.i],'water');o.tun.material[0]=t;o.sleeveR.material[0]=t;o.sleeveL.material[0]=t;for(const k in o.acc)o.acc[k].visible=k===S.acc}
+function dress(o,sty){const S=STY[sty];o.hat.material[0]=paperMat(S.hats[o.i],'water');o.hat.material[1]=o.hat.material[0];const t=paperMat(S.tun[o.i],'water');o.tun.material[0]=t;o.sleeveR.material[0]=t;o.sleeveL.material[0]=t;const A=[].concat(S.acc||[]);for(const k in o.acc)o.acc[k].visible=A.includes(k);for(const k in o.hoved)o.hoved[k].visible=k===sty}
 
 /* ---- tæppet: to halvdele af fløjl i folder, der glider sammen ---- */
-function makeCurtain(){const C={halves:[],t:0,target:0};for(const s of[-1,1]){const g=new THREE.Group();put(live,g,0,0,5.5);
+function makeCurtain(){const C={halves:[],t:0,target:0};for(const s of[-1,1]){const g=new THREE.Group();put(live,g,0,0,5.5+(s>0?.06:0));
     for(let k=0;k<9;k++){const x0=k*3.6,f=[[x0,OPEN.y0-.2],[x0+3.8,OPEN.y0-.2]];for(let i=0;i<=6;i++){const t=i/6;f.push([x0+3.8-t*3.8,OPEN.y0-.2+(i%2?-.25:.15)])}const strip=toCCW([[x0,OPEN.y0-.2],[x0+3.8,OPEN.y0-.2],[x0+3.8,OPEN.y1+3],[x0,OPEN.y1+3]]);
       const m=pc(g,strip.map(([x,y])=>[s*(x+.1),y]),{t:.2,s:10,paint:P=>{const r=toCCW(strip.map(([x,y])=>[s*(x+.1),y]));P.wash(k%2?'#9a1226':'#b81a30',r,{edge:.6,clouds:4});P.wash('#5a0614',box(s>0?x0+2.8:-x0-3.9,OPEN.y0-1,s>0?x0+3.9:-x0-2.8,OPEN.y1+4),{alpha:.5,edge:.8})}},k*.05)}
     pieces(thick([[[s*.1,OPEN.y0+.2],[s*33,OPEN.y0+.2]]],.3),{mat:gold(),t:.1},g,0,0,.5);
@@ -726,9 +754,10 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
     SPOT.forEach((sp,i)=>{sp.rotation.z=.08*Math.sin(t*.7+i*1.3)});
     if(BD.disko&&BD.disko.visible)BD.disko.userData.ball.rotation.y+=dt*.8;
     /* tæppet */
-    const c=curtain;c.t+=(c.target-c.t)*Math.min(1,dt*2.6);for(const h of c.halves){h.g.position.x=h.s*(mix(28,0,c.t))-h.s*0+h.s*0;h.g.scale.x=mix(.18,1,c.t)}
+    /* de to halvdele går helt sammen og overlapper lidt på midten, så der ikke står en sprække */
+    const c=curtain;c.t+=(c.target-c.t)*Math.min(1,dt*2.6);if(Math.abs(c.target-c.t)<.012)c.t=c.target;for(const h of c.halves){h.g.position.x=h.s*mix(28,-1.4,c.t);h.g.scale.x=mix(.18,1,c.t)}
     ST.draw()};requestAnimationFrame(loop);
-  window.__koncert={ready:true,setStyle,bakeMs:ST.bakeMs}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
+  window.__koncert={ready:true,luk:()=>{curtain.target=1},gardin:()=>curtain.t,setStyle,bakeMs:ST.bakeMs}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
 
 /* ---- ønsk en sang: tæppet går for, bandet skifter tøj, og tæppet går fra igen ---- */
 let busy=false;
@@ -741,7 +770,7 @@ const OFF=42;
 function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.ex*OFF,m.z])}}
 function walkIn(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.x,m.z])}}
 const idle=()=>BAND.every(o=>!o.q.length);
-async function wish(k){if(busy||k===cur)return;busy=true;walkOut();await until(idle);curtain.target=1;await until(()=>curtain.t>.97);setStyle(k);await new Promise(r=>setTimeout(r,450));curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false}
+async function wish(k){if(busy||k===cur)return;busy=true;walkOut();await until(idle);curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false}
 {const box_=document.getElementById('songs');for(const k in STY){const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.addEventListener('click',()=>{wish(k);box_.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});if(k==='hygge')b.setAttribute('aria-pressed','true');box_.appendChild(b)}}
 
 </script>

@@ -23,7 +23,7 @@ const PATHS=[
   [[0,0],[11,2.5],[22,7.2],[33,7.6],[37,5]],                       /* til boblebutikkens dør */
   [[22,7.2],[36,9.4],[46,7.5],[52,1],[56,-6],[58,-10.6]],        /* til dyreparkens låge */
   [[0,0],[-6,10],[-11,20],[-11.5,28],[-15,31.6],[-23.4,31.4]], /* til støvlens stige */
-  [[-15,31.6],[-30,33],[-46,32.6],[-62,30.8]],               /* til koncertsalen */
+  [[-15,31.6],[-30,34],[-46,33.2],[-62,30.8]],               /* til koncertsalen, i en bue uden om cafébordet foran støvlen */
   [[0,0],[5,12],[6,22],[5.6,30],[8,34.2],[12,35]],                    /* forbi klokketårnet */
   [[12,35],[22,35],[32,34.8],[46,34],[58,33],[66,31]]];    /* over broen til arkaden */
 const RIVER=[];for(let i=0;i<=30;i++){const t=i/30;RIVER.push([mix(70,26,t)+7*Math.sin(t*5.5+.4),mix(-4,40,t)])}

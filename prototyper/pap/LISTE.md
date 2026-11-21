@@ -20,10 +20,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | 11 | Telefon på langs | ser forkert ud | Knapperne øverst dækker stadig lidt af rummene på en lav skærm (Skolens skilte, Arkadens skilt, den venstre stjerne i Bank en gnom), selv om de er gjort mindre | gennemgang |
 | 29 | Koncertsalen | skal virke bedre | Trommeslagerens arme og stikker er små og svære at se bag stortrommen | gennemgang |
 | 30 | Statistik-linket | skal virke bedre | Det er ikke prøvet på en rigtig telefon, om knappen "Ny udgave" dukker op, når en gammel side er gemt. Prøvet på en lokal server | gennemgang |
-| 31 | Koncertsalen | ser forkert ud | Gardinet når ikke helt sammen, når der skiftes sang | note 21. nov. |
-| 32 | Koncertsalen | ser forkert ud | Som i originalen skal der være større forskel på bandets udseende fra sang til sang: hatte og hår, der passer til scenen, fx cowboyhatte og afro. Rock havde Kiss-look | note 21. nov. |
-| 33 | Kortet | ser forkert ud | Det var ikke staffeliet, han mente i punkt 26, men det til venstre for det: cafébordene ved Koncertsalen. Det kan ikke ses, hvad de er | note 21. nov. |
-| 34 | Kortet | virker ikke | Hvert tryk på kortet giver et hak på cirka et halvt sekund på telefonen (loggen, udgave 0.17). Årsag: trykket bliver prøvet mod hver eneste papirdel i alle husene. Skarpheden holdt sig på 2, så genbagningerne er væk | gennemgang |
+| 34 | Kortet | virker ikke | Hak på 0,3–0,5 sekund, mens man går rundt på kortet på telefonen (loggen, udgave 0.17). **Årsagen er ikke fundet.** Gættet om, at det var trykket mod husenes papirdele, var forkert: målt til under 1 ms pr. tryk på en pc (`node trykmaal.js`). Trykket prøves nu alligevel mod én kasse pr. hus. Fra 0.18 skrives hvert hak i loggen (`kind = 'hak'`) med det sidste, der skete lige inden, og hver bagning (`kind = 'bag'`) med årsag og varighed | gennemgang |
 | 12 | Heksen | skal virke bedre | Lange kjoler skjuler støvlerne alle andre steder end på Støvler-fanen i Garderoben | ark |
 | 19 | Eliksirtimen | ønske | Ny måde at spille på: se hvor langt man kan komme. Eliksirerne bliver sværere og sværere, og man får flere og flere stjerner | Kasper |
 
@@ -82,6 +79,9 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R34 | Kortet | ser forkert ud | "Hvad er det, der står for enden af vejen ved Koncertsalen?" Det kan ikke ses, hvad det forestiller **Rettet:** Det var en plakat på et staffeli. Det er nu en stor plakatstander med ramme, "I AFTEN · De Falske Toner" og en node | note 21. nov. | pap-0.17 |
 | R35 | Kortet | ser forkert ud | Skiltet til Koncertsalen peger stort set samme vej som skiltet til Dragen **Rettet:** Pilene vipper nu: Dragen peger op (bagerst), Koncertsalen ned (forrest), og tilsvarende for Skolen og Arkaden | note 21. nov. | pap-0.17 |
 | R36 | Kortet | skal virke bedre | Loggen fra telefonen (udgave 0.16) viser 60 hak på over en tiendedel sekund på seks minutter på kortet, det længste 3,4 sekunder. I rummene er der næsten ingen **Rettet:** Skarpheden gik frem og tilbage, og hver ændring bagte byen om (flere sekunder). Nu går den kun ned, og kun efter tre langsomme målinger i træk. Alt i det levende lag lægges op på grafikkortet under opstarten | gennemgang | pap-0.17 |
+| R37 | Koncertsalen | ser forkert ud | Gardinet når ikke helt sammen, når der skiftes sang **Rettet:** De to halvdele går helt sammen og overlapper lidt på midten | note 21. nov. | pap-0.18 |
+| R38 | Koncertsalen | ser forkert ud | Som i originalen skal der være større forskel på bandets udseende fra sang til sang: hatte og hår, der passer til scenen, fx cowboyhatte og afro. Rock havde Kiss-look **Rettet:** Hvert bandmedlem har nu et hoved pr. sang: Kiss-maling og sort strithår til rock (stjerneøje, flagermusvinger, kat og sølv), afro, solbriller og stor krave til disko, cowboyhatte til country, hvide parykker til klassisk, stråhatte og blomsterskjorter til Hawaii | note 21. nov. | pap-0.18 |
+| R39 | Kortet | ser forkert ud | Det var ikke staffeliet, han mente i punkt 26, men det til venstre for det: cafébordene ved Koncertsalen. Det kan ikke ses, hvad de er **Rettet:** Bordene hørte til caféen, som er Støvlen, og stod forkert. Nu står ét bord med stribet parasol og to stole foran støvlen ved stigen, og stien går i en bue uden om | note 21. nov. | pap-0.18 |
 
 ## Set og lukket
 

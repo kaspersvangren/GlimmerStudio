@@ -139,20 +139,22 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
    put(eg,piece(box(-2.9,1.45,2.9,7.75),{color:'#4a2e1c',kind:'balsa',t:.3}),0,0,.05);put(eg,piece(toCCW([[-1.5,7.75],[1.5,7.75],[0,8.9]]),{mat:gold(),t:.3}),0,0,.05);
    plate(eg,'Plakat','',FONT.snart,5,5.5,{bg:'#f2e6c8',y:1.85,z:.28,extra:P=>{P.text('I AFTEN',0,4.75,.9,'#3b2a1f',{font:FONT.koncert,ls:.05});P.pen([[-2,4.15],[2,4.15]],'#3b2a1f',.07,.7);P.text('De Falske',0,3.4,.85,'#7a1a2a',{font:FONT.snart});P.text('Toner',0,2.45,.85,'#7a1a2a',{font:FONT.snart});
      P.fill(circ(-.75,.75,.4,.3,14),'#2a2a6a',.95);P.fill(circ(.75,1,.4,.3,14),'#2a2a6a',.95);P.pen([[-.38,.75],[-.38,1.6],[1.12,1.85],[1.12,1]],'#2a2a6a',.13,.95);P.pen([[-.38,1.42],[1.12,1.67]],'#2a2a6a',.2,.95)}})}
-  /* caféborde med duge, kopper og stole */
-  for(const[x,z]of[[-71,34.8],[-77,34.6]]){prop('cafébord',x,z,2.2);const tg=new THREE.Group();put(scene,tg,x,0,z);
-    stick(tg,0,.3,3.2,0,.3,PAL.iron);put(tg,piece(box(-1,.3,1,.5),{color:PAL.iron,t:1.4}),0,0,0);
-    const top=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.9,.2,28),paperMat('#f2e6c8','card'));top.castShadow=top.receiveShadow=true;put(tg,top,0,3.3,0);
-    const cloth=new THREE.Mesh(new THREE.CylinderGeometry(1.95,2.15,.7,28,1,true),paperMat('#c8344a','card'));cloth.material=cloth.material.clone();cloth.material.side=THREE.DoubleSide;put(tg,cloth,0,3.05,0);
-    for(const[cx,cz,c]of[[.6,.4,'#f6ead0'],[-.7,-.2,'#7fd6ff']]){const cup=new THREE.Mesh(new THREE.CylinderGeometry(.32,.26,.5,14),paperMat(c,'card'));cup.castShadow=true;put(tg,cup,cx,3.65,cz)}
-    for(const s of[-1,1]){const ch=new THREE.Group();put(tg,ch,s*2.7,0,0);stick(ch,0,.3,4.4,-.2,.2,PAL.woodDk);put(ch,piece(box(-.8,2.2,.8,2.45),{color:'#8a5a3a',kind:'balsa',t:1.4}),0,0,0);put(ch,piece(box(-.8,3.2,.8,4.4),{color:'#8a5a3a',kind:'balsa',t:.12}),0,0,-.55);stick(ch,-.6,.3,2.2,.5,.16,PAL.woodDk);stick(ch,.6,.3,2.2,.5,.16,PAL.woodDk)}}
   lamp(X,Z+5,'#ffb35c',70,20,6)});
 
 /* ---- Den Flyvende Støvle (formen ligger i stoevle.js): svæver i det levende lag ---- */
 let BOOT=null;
 BUILD.push(()=>{const X=-28.4,Z=28.2,Y0=4.2,b=makeBoot(),B=b.B;B.position.set(X,Y0,Z);live.add(B);B.userData.house='stoevle';
   HOUSE.stoevle={g:B,door:[X+b.doorX,Z+.3],spot:[X+b.doorX,31.2],foot:[X-12,X+10,Z-1,Z+1]};HOUSEG.push(B);SPOTS.stoevle=[X+b.doorX,31.2];
-  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z,lad:b.lad}});
+  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z,lad:b.lad};
+  /* caféens bord står foran støvlen, ved siden af stigen: dug, kopper, to stole og en stribet parasol */
+  {const x=-31,z=30.4;prop('cafébord',x,z,1.4);const tg=new THREE.Group();put(scene,tg,x,0,z);
+    stick(tg,0,.3,3,0,.28,PAL.iron);put(tg,piece(box(-.8,.3,.8,.5),{color:PAL.iron,t:1.1}),0,0,0);
+    const top=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,.2,28),paperMat('#f2e6c8','card'));top.castShadow=top.receiveShadow=true;put(tg,top,0,3.1,0);
+    const cloth=new THREE.Mesh(new THREE.CylinderGeometry(1.55,1.75,.7,28,1,true),paperMat('#c8344a','card'));cloth.material=cloth.material.clone();cloth.material.side=THREE.DoubleSide;put(tg,cloth,0,2.85,0);
+    for(const[cx,cz,c]of[[.5,.35,'#f6ead0'],[-.55,-.15,'#7fd6ff']]){const cup=new THREE.Mesh(new THREE.CylinderGeometry(.3,.24,.46,14),paperMat(c,'card'));cup.castShadow=true;put(tg,cup,cx,3.43,cz)}
+    for(const s of[-1,1]){const ch=new THREE.Group();put(tg,ch,s*2.5,0,.1);stick(ch,0,.3,4.3,-.2,.2,PAL.woodDk);put(ch,piece(box(-.75,2.1,.75,2.35),{color:'#8a5a3a',kind:'balsa',t:1.3}),0,0,0);put(ch,piece(box(-.75,3.1,.75,4.3),{color:'#8a5a3a',kind:'balsa',t:.12}),0,0,-.5);stick(ch,-.55,.3,2.1,.45,.16,PAL.woodDk);stick(ch,.55,.3,2.1,.45,.16,PAL.woodDk)}
+    stick(tg,0,3.2,8.3,-.25,.2,PAL.woodDk);const par=[[-3.5,6.7]];for(let k=0;k<7;k++){par.push([-3.5+k+.5,6.35],[-3.5+k+1,6.7])}par.push([2.4,8.1],[0,8.75],[-2.4,8.1]);const ps=toCCW(sm(par.map((q,k)=>k<15?[q[0],q[1],1]:q),5));
+    put(tg,piece(ps,{t:.16,s:30,both:true,paint:P=>{P.wash('#f6ead0',ps,{edge:.5,clouds:3});for(let k=0;k<7;k+=2)P.fill(toCCW([[-3.5+k,6.3],[-2.5+k,6.3],[(-3+k)*.3+.15,8.8],[(-3+k)*.3-.15,8.8]]),'#c8344a',.92)}}),0,0,-.2);put(tg,piece(circ(0,8.85,.3,.3,10),{mat:gold(),t:.3}),0,0,-.2)}});
 
 /* ---- Klokketårnet ---- */
 BUILD.push(()=>{const X=12,Z=31,T=.4;const g=new THREE.Group();put(scene,g,X,0,0);g.userData.house='klokketårn';HOUSEG.push(g);HOUSE['klokketårn']={g,door:[12,31.3],spot:null};

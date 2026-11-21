@@ -132,7 +132,8 @@ function frameCam(){const w=stage.clientWidth,h=stage.clientHeight,asp=w/h;cam.a
     if(best&&best.bad===0)break}
   place(best.H,best.ly,15)}
 /* bages i fliser på skærmens størrelse, så den kantudglattede mellemstation aldrig bliver større end i dag */
-function bake(){const t0=performance.now();const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+let bagHvorfor='start';const MRK=l=>{if(typeof LOG!=='undefined')LOG.maerk(l)};
+function bake(){const t0=performance.now();MRK('bager: '+bagHvorfor);const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
   const fx=FW>VW?vx/(FW-VW):.5,fy=FH>VH?vy/(FH-VH):.6;
   renderer.setSize(w,h,false);cam.clearViewOffset();frameCam();const d=renderer.getDrawingBufferSize(new THREE.Vector2());
   VW=d.x;VH=d.y;const mx=renderer.capabilities.maxTextureSize,z=Math.max(1,Math.min(ZOOM,mx/VW,mx/VH,Math.sqrt(9e6/(VW*VH))));FW=Math.round(VW*z);FH=Math.round(VH*z);
@@ -150,27 +151,32 @@ function bake(){const t0=performance.now();const w=stage.clientWidth,h=stage.cli
   big.viewport.set(0,0,FW,FH);renderer.setRenderTarget(null);tile.dispose();const maal=!baked,gl=renderer.getContext();if(maal)gl.finish();const t1=performance.now();
   cam.clearViewOffset();const fin=POST.run(big,FW,FH);if(maal){gl.finish();window.__bagdele={fliser:Math.round(t1-t0),efter:Math.round(performance.now()-t1),px:`${FW}x${FH}`,felter:nx*ny}}
   blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;
-  vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0}
+  vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0;if(typeof LOG!=='undefined'){LOG.row('bag',{ms:Math.round(bakeMs),hvorfor:bagHvorfor,px:`${FW}x${FH}`});LOG.maerk('bagt: '+bagHvorfor)}}
 function applyView(){vx=clamp(vx,0,Math.max(0,FW-VW));vy=clamp(vy,0,Math.max(0,FH-VH));const ox=Math.round(vx),oy=Math.round(vy);
   cam.setViewOffset(FW,FH,ox,oy,VW,VH);blitMat.uniforms.uOff.value.set(ox/FW,1-(oy+VH)/FH);blitMat.uniforms.uScl.value.set(VW/FW,VH/FH)}
-let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
+let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;MRK(`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`);bagHvorfor=`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
 
 /* ============ tryk ============ */
-const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),-TOP),hitP=new THREE.Vector3();
+let HUSBOX=null;const boxP=new THREE.Vector3();const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),-TOP),hitP=new THREE.Vector3();
 const cvEl=renderer.domElement;let down=null;const hintEl=document.getElementById('hint');
 const devPx=()=>VW/(stage.clientWidth||1);
-cvEl.addEventListener('pointerdown',e=>{if(down||((typeof SPIL!=='undefined')&&SPIL.pause))return;down={id:e.pointerId,x:e.clientX,y:e.clientY,lx:e.clientX,ly:e.clientY,lt:performance.now(),drag:false};velX=velY=0;try{cvEl.setPointerCapture(e.pointerId)}catch(_){}});
+cvEl.addEventListener('pointerdown',e=>{if(down||((typeof SPIL!=='undefined')&&SPIL.pause))return;MRK('finger ned');down={id:e.pointerId,x:e.clientX,y:e.clientY,lx:e.clientX,ly:e.clientY,lt:performance.now(),drag:false};velX=velY=0;try{cvEl.setPointerCapture(e.pointerId)}catch(_){}});
 cvEl.addEventListener('pointermove',e=>{if(!down||e.pointerId!==down.id)return;
   if(!down.drag&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>10){down.drag=true;hintEl.classList.add('gone')}
-  if(down.drag){const k=devPx(),dx=(e.clientX-down.lx)*k,dy=(e.clientY-down.ly)*k,now=performance.now(),dts=Math.max(.008,(now-down.lt)/1000);
+  if(down.drag){MRK('træk');const k=devPx(),dx=(e.clientX-down.lx)*k,dy=(e.clientY-down.ly)*k,now=performance.now(),dts=Math.max(.008,(now-down.lt)/1000);
     vx-=dx;vy-=dy;velX=mix(velX,-dx/dts,.5);velY=mix(velY,-dy/dts,.5);down.lx=e.clientX;down.ly=e.clientY;down.lt=now;dragT=time}});
 cvEl.addEventListener('pointercancel',e=>{if(down&&e.pointerId===down.id)down=null});
 cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;const wasDrag=down.drag;down=null;
+  MRK(wasDrag?'træk slut':'tryk');
   if(wasDrag){dragT=time;return}
   const r=cvEl.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,cam);
   const hits=ray.intersectObjects([dragon.root,unicorn.root,troll.root],true);
   if(hits.length){const o=hits[0].object;if(within(o,dragon.root))wakeT=time;else if(within(o,unicorn.root))uniT=time;else trollT=time}
-  {const hh=ray.intersectObjects(HOUSEG,true);if(hh.length){let o=hh[0].object;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);doorWant=o.userData.house;hintEl.classList.add('gone');autoT=time+14;return}}}
+  /* husene: trykket prøves mod én kasse pr. hus (målt én gang), ikke mod hver papirdel. Før kostede hvert tryk et halvt sekund på en telefon.
+     Kassen tæller kun, hvis den rammes før jorden, så et tryk på græsset foran et hus stadig er et tryk på græsset */
+  {if(!HUSBOX)HUSBOX=HOUSEG.map(g=>({g,b:new THREE.Box3().setFromObject(g).expandByScalar(.6)}));const jord=ray.ray.intersectPlane(ground,hitP)?ray.ray.origin.distanceTo(hitP):1e9;let best=null,bd=jord;
+    for(const h of HUSBOX)if(ray.ray.intersectBox(h.b,boxP)){const d=ray.ray.origin.distanceTo(boxP);if(d<bd){bd=d;best=h.g}}
+    if(best){let o=best;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);doorWant=o.userData.house;hintEl.classList.add('gone');autoT=time+14;return}}}
   if(ray.ray.intersectPlane(ground,hitP)){goTo(hitP.x,hitP.z);doorWant=null;hintEl.classList.add('gone');autoT=time+14}});
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
@@ -195,7 +201,7 @@ function frame(now){
   /* skarpheden går kun ned, aldrig op igen: hver ændring koster en ny bagning af byen (flere sekunder på en telefon), og før gik den frem og tilbage og gav lange hak.
      Den går først ned, når tre målinger i træk er langsomme, og de tunge billeder lige efter en bagning eller et besøg i et rum tæller ikke med */
   if(raw<.5&&!document.hidden&&readyAt&&performance.now()-Math.max(readyAt,roligFra)>2500){if(raw>.024)fT++;if(++fN>=60){if(fT>36)drops++;else drops=0;
-      if(drops>=3&&pr>1){pr=Math.max(1,pr-.25);drops=0;renderer.setPixelRatio(pr);bake();roligFra=performance.now()}fN=0;fT=0}}else if(raw>=.5){fN=0;fT=0;drops=0;roligFra=performance.now()}
+      if(drops>=3&&pr>1){pr=Math.max(1,pr-.25);drops=0;renderer.setPixelRatio(pr);bagHvorfor='skarphed ned til '+pr;bake();roligFra=performance.now()}fN=0;fT=0}}else if(raw>=.5){fN=0;fT=0;drops=0;roligFra=performance.now()}
   if((typeof SPIL!=='undefined'))autoT=time+99;/* i spillet går heksen kun, når man beder hende om det */
   if(time>autoT){autoT=time+R(8,12);doorWant=null;if(rnd()<.6){const s=Object.values(SPOTS);goTo(...s[Math.floor(R(s.length))])}else goTo(R(-60,60),R(-14,30))}
   if(W0.q&&W0.q.length&&Math.hypot(W0.tx-W0.x,W0.tz-W0.z)<1.4)[W0.tx,W0.tz]=W0.q.shift();
@@ -258,6 +264,7 @@ function frame(now){
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
   TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);
     /* alt i det levende lag tegnes én gang nu, også det der står uden for billedet, så billeder og former er lagt op på grafikkortet, før man begynder at trække rundt (ellers hakker det første gang, noget nyt kommer ind i billedet) */
+    HUSBOX=HOUSEG.map(g=>({g,b:new THREE.Box3().setFromObject(g).expandByScalar(.6)}));
     {const fc=[];live.traverse(o=>{if(o.frustumCulled){fc.push(o);o.frustumCulled=false}});const rt=new THREE.WebGLRenderTarget(8,8);renderer.setRenderTarget(rt);renderer.render(live,cam);renderer.setRenderTarget(null);rt.dispose();for(const o of fc)o.frustumCulled=true}TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
 
   window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),

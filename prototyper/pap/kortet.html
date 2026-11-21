@@ -473,7 +473,7 @@ const PATHS=[
   [[0,0],[11,2.5],[22,7.2],[33,7.6],[37,5]],                       /* til boblebutikkens dør */
   [[22,7.2],[36,9.4],[46,7.5],[52,1],[56,-6],[58,-10.6]],        /* til dyreparkens låge */
   [[0,0],[-6,10],[-11,20],[-11.5,28],[-15,31.6],[-23.4,31.4]], /* til støvlens stige */
-  [[-15,31.6],[-30,33],[-46,32.6],[-62,30.8]],               /* til koncertsalen */
+  [[-15,31.6],[-30,34],[-46,33.2],[-62,30.8]],               /* til koncertsalen, i en bue uden om cafébordet foran støvlen */
   [[0,0],[5,12],[6,22],[5.6,30],[8,34.2],[12,35]],                    /* forbi klokketårnet */
   [[12,35],[22,35],[32,34.8],[46,34],[58,33],[66,31]]];    /* over broen til arkaden */
 const RIVER=[];for(let i=0;i<=30;i++){const t=i/30;RIVER.push([mix(70,26,t)+7*Math.sin(t*5.5+.4),mix(-4,40,t)])}
@@ -820,20 +820,22 @@ BUILD.push(()=>{const X=-62,Z=27,T=.4,H=house('koncert',[-62,27.3],[-62,30.6]);c
    put(eg,piece(box(-2.9,1.45,2.9,7.75),{color:'#4a2e1c',kind:'balsa',t:.3}),0,0,.05);put(eg,piece(toCCW([[-1.5,7.75],[1.5,7.75],[0,8.9]]),{mat:gold(),t:.3}),0,0,.05);
    plate(eg,'Plakat','',FONT.snart,5,5.5,{bg:'#f2e6c8',y:1.85,z:.28,extra:P=>{P.text('I AFTEN',0,4.75,.9,'#3b2a1f',{font:FONT.koncert,ls:.05});P.pen([[-2,4.15],[2,4.15]],'#3b2a1f',.07,.7);P.text('De Falske',0,3.4,.85,'#7a1a2a',{font:FONT.snart});P.text('Toner',0,2.45,.85,'#7a1a2a',{font:FONT.snart});
      P.fill(circ(-.75,.75,.4,.3,14),'#2a2a6a',.95);P.fill(circ(.75,1,.4,.3,14),'#2a2a6a',.95);P.pen([[-.38,.75],[-.38,1.6],[1.12,1.85],[1.12,1]],'#2a2a6a',.13,.95);P.pen([[-.38,1.42],[1.12,1.67]],'#2a2a6a',.2,.95)}})}
-  /* caféborde med duge, kopper og stole */
-  for(const[x,z]of[[-71,34.8],[-77,34.6]]){prop('cafébord',x,z,2.2);const tg=new THREE.Group();put(scene,tg,x,0,z);
-    stick(tg,0,.3,3.2,0,.3,PAL.iron);put(tg,piece(box(-1,.3,1,.5),{color:PAL.iron,t:1.4}),0,0,0);
-    const top=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.9,.2,28),paperMat('#f2e6c8','card'));top.castShadow=top.receiveShadow=true;put(tg,top,0,3.3,0);
-    const cloth=new THREE.Mesh(new THREE.CylinderGeometry(1.95,2.15,.7,28,1,true),paperMat('#c8344a','card'));cloth.material=cloth.material.clone();cloth.material.side=THREE.DoubleSide;put(tg,cloth,0,3.05,0);
-    for(const[cx,cz,c]of[[.6,.4,'#f6ead0'],[-.7,-.2,'#7fd6ff']]){const cup=new THREE.Mesh(new THREE.CylinderGeometry(.32,.26,.5,14),paperMat(c,'card'));cup.castShadow=true;put(tg,cup,cx,3.65,cz)}
-    for(const s of[-1,1]){const ch=new THREE.Group();put(tg,ch,s*2.7,0,0);stick(ch,0,.3,4.4,-.2,.2,PAL.woodDk);put(ch,piece(box(-.8,2.2,.8,2.45),{color:'#8a5a3a',kind:'balsa',t:1.4}),0,0,0);put(ch,piece(box(-.8,3.2,.8,4.4),{color:'#8a5a3a',kind:'balsa',t:.12}),0,0,-.55);stick(ch,-.6,.3,2.2,.5,.16,PAL.woodDk);stick(ch,.6,.3,2.2,.5,.16,PAL.woodDk)}}
   lamp(X,Z+5,'#ffb35c',70,20,6)});
 
 /* ---- Den Flyvende Støvle (formen ligger i stoevle.js): svæver i det levende lag ---- */
 let BOOT=null;
 BUILD.push(()=>{const X=-28.4,Z=28.2,Y0=4.2,b=makeBoot(),B=b.B;B.position.set(X,Y0,Z);live.add(B);B.userData.house='stoevle';
   HOUSE.stoevle={g:B,door:[X+b.doorX,Z+.3],spot:[X+b.doorX,31.2],foot:[X-12,X+10,Z-1,Z+1]};HOUSEG.push(B);SPOTS.stoevle=[X+b.doorX,31.2];
-  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z,lad:b.lad}});
+  const glow=new THREE.PointLight('#ffb35c',30,18,2);put(B,glow,0,8,4);BOOT={B,Y0,wings:b.wings,X,Z,lad:b.lad};
+  /* caféens bord står foran støvlen, ved siden af stigen: dug, kopper, to stole og en stribet parasol */
+  {const x=-31,z=30.4;prop('cafébord',x,z,1.4);const tg=new THREE.Group();put(scene,tg,x,0,z);
+    stick(tg,0,.3,3,0,.28,PAL.iron);put(tg,piece(box(-.8,.3,.8,.5),{color:PAL.iron,t:1.1}),0,0,0);
+    const top=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,.2,28),paperMat('#f2e6c8','card'));top.castShadow=top.receiveShadow=true;put(tg,top,0,3.1,0);
+    const cloth=new THREE.Mesh(new THREE.CylinderGeometry(1.55,1.75,.7,28,1,true),paperMat('#c8344a','card'));cloth.material=cloth.material.clone();cloth.material.side=THREE.DoubleSide;put(tg,cloth,0,2.85,0);
+    for(const[cx,cz,c]of[[.5,.35,'#f6ead0'],[-.55,-.15,'#7fd6ff']]){const cup=new THREE.Mesh(new THREE.CylinderGeometry(.3,.24,.46,14),paperMat(c,'card'));cup.castShadow=true;put(tg,cup,cx,3.43,cz)}
+    for(const s of[-1,1]){const ch=new THREE.Group();put(tg,ch,s*2.5,0,.1);stick(ch,0,.3,4.3,-.2,.2,PAL.woodDk);put(ch,piece(box(-.75,2.1,.75,2.35),{color:'#8a5a3a',kind:'balsa',t:1.3}),0,0,0);put(ch,piece(box(-.75,3.1,.75,4.3),{color:'#8a5a3a',kind:'balsa',t:.12}),0,0,-.5);stick(ch,-.55,.3,2.1,.45,.16,PAL.woodDk);stick(ch,.55,.3,2.1,.45,.16,PAL.woodDk)}
+    stick(tg,0,3.2,8.3,-.25,.2,PAL.woodDk);const par=[[-3.5,6.7]];for(let k=0;k<7;k++){par.push([-3.5+k+.5,6.35],[-3.5+k+1,6.7])}par.push([2.4,8.1],[0,8.75],[-2.4,8.1]);const ps=toCCW(sm(par.map((q,k)=>k<15?[q[0],q[1],1]:q),5));
+    put(tg,piece(ps,{t:.16,s:30,both:true,paint:P=>{P.wash('#f6ead0',ps,{edge:.5,clouds:3});for(let k=0;k<7;k+=2)P.fill(toCCW([[-3.5+k,6.3],[-2.5+k,6.3],[(-3+k)*.3+.15,8.8],[(-3+k)*.3-.15,8.8]]),'#c8344a',.92)}}),0,0,-.2);put(tg,piece(circ(0,8.85,.3,.3,10),{mat:gold(),t:.3}),0,0,-.2)}});
 
 /* ---- Klokketårnet ---- */
 BUILD.push(()=>{const X=12,Z=31,T=.4;const g=new THREE.Group();put(scene,g,X,0,0);g.userData.house='klokketårn';HOUSEG.push(g);HOUSE['klokketårn']={g,door:[12,31.3],spot:null};
@@ -1669,7 +1671,8 @@ function frameCam(){const w=stage.clientWidth,h=stage.clientHeight,asp=w/h;cam.a
     if(best&&best.bad===0)break}
   place(best.H,best.ly,15)}
 /* bages i fliser på skærmens størrelse, så den kantudglattede mellemstation aldrig bliver større end i dag */
-function bake(){const t0=performance.now();const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+let bagHvorfor='start';const MRK=l=>{if(typeof LOG!=='undefined')LOG.maerk(l)};
+function bake(){const t0=performance.now();MRK('bager: '+bagHvorfor);const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
   const fx=FW>VW?vx/(FW-VW):.5,fy=FH>VH?vy/(FH-VH):.6;
   renderer.setSize(w,h,false);cam.clearViewOffset();frameCam();const d=renderer.getDrawingBufferSize(new THREE.Vector2());
   VW=d.x;VH=d.y;const mx=renderer.capabilities.maxTextureSize,z=Math.max(1,Math.min(ZOOM,mx/VW,mx/VH,Math.sqrt(9e6/(VW*VH))));FW=Math.round(VW*z);FH=Math.round(VH*z);
@@ -1687,27 +1690,32 @@ function bake(){const t0=performance.now();const w=stage.clientWidth,h=stage.cli
   big.viewport.set(0,0,FW,FH);renderer.setRenderTarget(null);tile.dispose();const maal=!baked,gl=renderer.getContext();if(maal)gl.finish();const t1=performance.now();
   cam.clearViewOffset();const fin=POST.run(big,FW,FH);if(maal){gl.finish();window.__bagdele={fliser:Math.round(t1-t0),efter:Math.round(performance.now()-t1),px:`${FW}x${FH}`,felter:nx*ny}}
   blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;
-  vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0}
+  vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0;if(typeof LOG!=='undefined'){LOG.row('bag',{ms:Math.round(bakeMs),hvorfor:bagHvorfor,px:`${FW}x${FH}`});LOG.maerk('bagt: '+bagHvorfor)}}
 function applyView(){vx=clamp(vx,0,Math.max(0,FW-VW));vy=clamp(vy,0,Math.max(0,FH-VH));const ox=Math.round(vx),oy=Math.round(vy);
   cam.setViewOffset(FW,FH,ox,oy,VW,VH);blitMat.uniforms.uOff.value.set(ox/FW,1-(oy+VH)/FH);blitMat.uniforms.uScl.value.set(VW/FW,VH/FH)}
-let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
+let rebakeT=0;new ResizeObserver(()=>{if(!baked)return;MRK(`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`);bagHvorfor=`ny størrelse ${stage.clientWidth}x${stage.clientHeight}`;if((typeof SPIL!=='undefined')&&SPIL.pause){SPIL.rebake=true;return}clearTimeout(rebakeT);rebakeT=setTimeout(bake,250)}).observe(stage);
 
 /* ============ tryk ============ */
-const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),-TOP),hitP=new THREE.Vector3();
+let HUSBOX=null;const boxP=new THREE.Vector3();const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ground=new THREE.Plane(new THREE.Vector3(0,1,0),-TOP),hitP=new THREE.Vector3();
 const cvEl=renderer.domElement;let down=null;const hintEl=document.getElementById('hint');
 const devPx=()=>VW/(stage.clientWidth||1);
-cvEl.addEventListener('pointerdown',e=>{if(down||((typeof SPIL!=='undefined')&&SPIL.pause))return;down={id:e.pointerId,x:e.clientX,y:e.clientY,lx:e.clientX,ly:e.clientY,lt:performance.now(),drag:false};velX=velY=0;try{cvEl.setPointerCapture(e.pointerId)}catch(_){}});
+cvEl.addEventListener('pointerdown',e=>{if(down||((typeof SPIL!=='undefined')&&SPIL.pause))return;MRK('finger ned');down={id:e.pointerId,x:e.clientX,y:e.clientY,lx:e.clientX,ly:e.clientY,lt:performance.now(),drag:false};velX=velY=0;try{cvEl.setPointerCapture(e.pointerId)}catch(_){}});
 cvEl.addEventListener('pointermove',e=>{if(!down||e.pointerId!==down.id)return;
   if(!down.drag&&Math.hypot(e.clientX-down.x,e.clientY-down.y)>10){down.drag=true;hintEl.classList.add('gone')}
-  if(down.drag){const k=devPx(),dx=(e.clientX-down.lx)*k,dy=(e.clientY-down.ly)*k,now=performance.now(),dts=Math.max(.008,(now-down.lt)/1000);
+  if(down.drag){MRK('træk');const k=devPx(),dx=(e.clientX-down.lx)*k,dy=(e.clientY-down.ly)*k,now=performance.now(),dts=Math.max(.008,(now-down.lt)/1000);
     vx-=dx;vy-=dy;velX=mix(velX,-dx/dts,.5);velY=mix(velY,-dy/dts,.5);down.lx=e.clientX;down.ly=e.clientY;down.lt=now;dragT=time}});
 cvEl.addEventListener('pointercancel',e=>{if(down&&e.pointerId===down.id)down=null});
 cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;const wasDrag=down.drag;down=null;
+  MRK(wasDrag?'træk slut':'tryk');
   if(wasDrag){dragT=time;return}
   const r=cvEl.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(ndc,cam);
   const hits=ray.intersectObjects([dragon.root,unicorn.root,troll.root],true);
   if(hits.length){const o=hits[0].object;if(within(o,dragon.root))wakeT=time;else if(within(o,unicorn.root))uniT=time;else trollT=time}
-  {const hh=ray.intersectObjects(HOUSEG,true);if(hh.length){let o=hh[0].object;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);doorWant=o.userData.house;hintEl.classList.add('gone');autoT=time+14;return}}}
+  /* husene: trykket prøves mod én kasse pr. hus (målt én gang), ikke mod hver papirdel. Før kostede hvert tryk et halvt sekund på en telefon.
+     Kassen tæller kun, hvis den rammes før jorden, så et tryk på græsset foran et hus stadig er et tryk på græsset */
+  {if(!HUSBOX)HUSBOX=HOUSEG.map(g=>({g,b:new THREE.Box3().setFromObject(g).expandByScalar(.6)}));const jord=ray.ray.intersectPlane(ground,hitP)?ray.ray.origin.distanceTo(hitP):1e9;let best=null,bd=jord;
+    for(const h of HUSBOX)if(ray.ray.intersectBox(h.b,boxP)){const d=ray.ray.origin.distanceTo(boxP);if(d<bd){bd=d;best=h.g}}
+    if(best){let o=best;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);doorWant=o.userData.house;hintEl.classList.add('gone');autoT=time+14;return}}}
   if(ray.ray.intersectPlane(ground,hitP)){goTo(hitP.x,hitP.z);doorWant=null;hintEl.classList.add('gone');autoT=time+14}});
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
@@ -1732,7 +1740,7 @@ function frame(now){
   /* skarpheden går kun ned, aldrig op igen: hver ændring koster en ny bagning af byen (flere sekunder på en telefon), og før gik den frem og tilbage og gav lange hak.
      Den går først ned, når tre målinger i træk er langsomme, og de tunge billeder lige efter en bagning eller et besøg i et rum tæller ikke med */
   if(raw<.5&&!document.hidden&&readyAt&&performance.now()-Math.max(readyAt,roligFra)>2500){if(raw>.024)fT++;if(++fN>=60){if(fT>36)drops++;else drops=0;
-      if(drops>=3&&pr>1){pr=Math.max(1,pr-.25);drops=0;renderer.setPixelRatio(pr);bake();roligFra=performance.now()}fN=0;fT=0}}else if(raw>=.5){fN=0;fT=0;drops=0;roligFra=performance.now()}
+      if(drops>=3&&pr>1){pr=Math.max(1,pr-.25);drops=0;renderer.setPixelRatio(pr);bagHvorfor='skarphed ned til '+pr;bake();roligFra=performance.now()}fN=0;fT=0}}else if(raw>=.5){fN=0;fT=0;drops=0;roligFra=performance.now()}
   if((typeof SPIL!=='undefined'))autoT=time+99;/* i spillet går heksen kun, når man beder hende om det */
   if(time>autoT){autoT=time+R(8,12);doorWant=null;if(rnd()<.6){const s=Object.values(SPOTS);goTo(...s[Math.floor(R(s.length))])}else goTo(R(-60,60),R(-14,30))}
   if(W0.q&&W0.q.length&&Math.hypot(W0.tx-W0.x,W0.tz-W0.z)<1.4)[W0.tx,W0.tz]=W0.q.shift();
@@ -1795,6 +1803,7 @@ function frame(now){
   HOUSES=footprints().filter(f=>SPOTS[f[0]]).map(f=>[f[0],f[1],f[2],f[3]-10,f[4]]);
   TID.malet=performance.now()-t0;TID.trin=stepMs;{const tb=performance.now();renderer.compile(scene,cam);bake();renderer.compile(live,cam);
     /* alt i det levende lag tegnes én gang nu, også det der står uden for billedet, så billeder og former er lagt op på grafikkortet, før man begynder at trække rundt (ellers hakker det første gang, noget nyt kommer ind i billedet) */
+    HUSBOX=HOUSEG.map(g=>({g,b:new THREE.Box3().setFromObject(g).expandByScalar(.6)}));
     {const fc=[];live.traverse(o=>{if(o.frustumCulled){fc.push(o);o.frustumCulled=false}});const rt=new THREE.WebGLRenderTarget(8,8);renderer.setRenderTarget(rt);renderer.render(live,cam);renderer.setRenderTarget(null);rt.dispose();for(const o of fc)o.frustumCulled=true}TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
 
   window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),

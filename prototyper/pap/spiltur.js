@@ -40,6 +40,11 @@ const { chromium } = require('playwright');
   await p.evaluate(() => __spil.enter('gang')); await i('gang'); await p.evaluate(() => __spil.enter('eliksir')); await i('eliksir');
   for (const k of ['hjerter', 'bobler', 'blomster', 'regnbue', 'kilde', 'svaev']) { await p.evaluate(k => __spil.room.ctx.test.fx(k), k); await p.waitForTimeout(700) } tjek('effekterne kører', true);
   await p.click('#hjem'); await i('gang'); await p.click('#hjem'); await ude();
+  /* rigtige tryk på kortet: et tryk på græsset sender heksen derhen, et tryk på Boblebutikken sender hende ind */
+  { const pkt = async (x, y, z) => p.evaluate(([x, y, z]) => { const v = new __kort.THREE.Vector3(x, y, z).project(__kort.cam), r = document.querySelector('#stage canvas').getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height] }, [x, y, z]);
+    await p.evaluate(() => __kort.center(10, 6, 6)); await p.waitForTimeout(500);
+    const g = await pkt(12, 0, 14); await p.mouse.click(g[0], g[1]); await p.waitForTimeout(400); const maal = await p.evaluate(() => { const W = __kort.W0, q = W.q && W.q.length ? W.q[W.q.length - 1] : [W.tx, W.tz]; return [Math.round(q[0]), Math.round(q[1])] }); tjek('tryk på græsset', Math.abs(maal[0] - 12) < 3 && Math.abs(maal[1] - 14) < 3, maal);
+    const h = await pkt(30, 9, 3); const t0 = Date.now(); await p.mouse.click(h[0], h[1]); const ms = await p.evaluate(() => 0); await i('bobler'); tjek('tryk på Boblebutikken fører ind', true, Math.round((Date.now() - t0) / 1000) + ' s'); await p.click('#hjem'); await ude() }
   /* ingen kan stå inde i en bænk */
   { const r = await p.evaluate(() => { __kort.goTo(-12.8, -10.8); return [__kort.W0.q.length ? __kort.W0.q[__kort.W0.q.length - 1] : [__kort.W0.tx, __kort.W0.tz]] }); tjek('man stiller sig foran bænken', r[0][1] > -9, r) }
   await p.evaluate(() => __spil.arrive('dyr')); await p.waitForTimeout(300); { const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('lukket hus siger til', /åbner snart/.test(t), t) }
