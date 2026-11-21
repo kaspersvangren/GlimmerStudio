@@ -24,6 +24,11 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | 11 | Telefon på langs | ser forkert ud | Knapperne øverst dækker stadig lidt af rummene på en lav skærm (Skolens skilte, Arkadens skilt), selv om de er gjort mindre | gennemgang |
 | 12 | Heksen | skal virke bedre | Lange kjoler skjuler støvlerne alle andre steder end på Støvler-fanen i Garderoben | ark |
 | 13 | Arkaden | ser forkert ud | Skiltet "Bank en gnom" er meget mørkere end de fire andre maskiners skilte | gennemgang |
+| 14 | Heksen og folkene i byen | ser forkert ud | De går med fronten mod os, men ben og arme krydser hinanden som en saks. Ses tydeligst i bukser. Forslag: benene løfter sig skiftevis, kroppen vugger og hopper lidt, armene svinger uden at krydse | Kasper |
+| 15 | Statistik-linket | virker ikke | Telefonen fik en gammel udgave (0.5) og dermed ingen blyant. Forslag: spillet ser selv efter en nyere udgave og viser en knap til at hente den | Kasper |
+| 16 | Koncertsalen | ser forkert ud | Gnomebandet er for stort. De er gnomer, så de skal være mindre på scenen | Kasper |
+| 17 | Koncertsalen | ser forkert ud | Gnomernes hænder skal spille på instrumenterne | Kasper |
+| 18 | Koncertsalen | ser forkert ud | Blomsterkransen går ud over alt | Kasper |
 
 ### Mangler stadig fra originalen
 
