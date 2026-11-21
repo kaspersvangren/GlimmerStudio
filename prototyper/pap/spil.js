@@ -23,10 +23,10 @@ function disposeRoom(room,matsBefore){const keep=new Set(MATS.values()),seen=new
 const visStj=()=>{stjN.textContent=SPIL.stj};visStj();
 SPIL.giv=n=>{SPIL.stj=Math.max(0,SPIL.stj+n);SPIL.save();visStj();stjEl.classList.remove('hop');void stjEl.offsetWidth;stjEl.classList.add('hop')};
 /* rummene ligger i en stak: fra Værelset kan man gå videre ind i Garderoben, og tilbage-knappen fører ét trin ud ad gangen */
-const stack=[];let busy=false;
+const stack=[],paaHeks=Object.assign({},SPIL.farver);let busy=false;
 function openRoom(id){const t0=performance.now(),ctx={alive:true,look:{},room:null,env:scene.environment,mats:new Set(MATS.keys())};
-  for(const k of SLOTS)ctx.look[k]=SPIL.look[k]!==undefined?SPIL.look[k]:HEKS.L[k];
-  ctx.onLook=(k,v)=>{SPIL.look[k]=v;SPIL.save()};ctx.go=enter;ctx.say=toast;ctx.back=back;ctx.owns=SPIL.ejer;
+  for(const k of SLOTS)ctx.look[k]=HEKS.L[k];Object.assign(ctx.look,SPIL.lookFuld());
+  ctx.onLook=(k,v)=>{SPIL.look[k]=v;SPIL.save()};ctx.onCol=(k,v)=>{SPIL.farver[k]=v;SPIL.save()};ctx.go=enter;ctx.say=toast;ctx.back=back;ctx.owns=SPIL.ejer;
   ctx.ready=()=>{SPIL.roomMs=Math.round(performance.now()-t0);busy=false;doorEl.classList.add('gone');hjemEl.hidden=false};
   ctx.fail=v=>{if(!v)return;busy=false;doorT.textContent=v;hjemEl.hidden=false};
   ctx.msg={classList:{add(){ctx.ready()}}};ctx.msgN={set textContent(v){ctx.fail(v)}};
@@ -36,6 +36,7 @@ function closeRoom(){const r=SPIL.room;if(!r)return;r.ctx.alive=false;try{if(r.c
 function cover(txt,then){doorT.textContent=txt;doorEl.classList.remove('gone');hjemEl.hidden=true;toastEl.hidden=true;setTimeout(then,300)}
 function toMap(){delete document.body.dataset.rum;renderer.setRenderTarget(null);renderer.setClearColor('#0d0a12');renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=true;
   for(const k of SLOTS)if(SPIL.look[k]!==undefined&&HEKS.L[k]!==SPIL.look[k])HEKS.set(k,SPIL.look[k]);
+  for(const k in SPIL.farver)if(paaHeks[k]!==SPIL.farver[k]){paaHeks[k]=SPIL.farver[k];HEKS.setCol(k,SPIL.farver[k])}
   SPIL.pause=false;if(SPIL.rebake){SPIL.rebake=false;bake()}
   requestAnimationFrame(()=>requestAnimationFrame(()=>{busy=false;doorEl.classList.add('gone')}))}
 function enter(id){if(busy||!ROOMS[id])return;busy=true;SPIL.pause=true;stack.push(id);cover(`Går ind i ${RUM[id].navn} …`,()=>{closeRoom();openRoom(id)})}

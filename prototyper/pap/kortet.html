@@ -1051,7 +1051,7 @@ function makeFigure(look={}){
   const L=Object.assign({},LOOK0,look),F={L,G:new THREE.Group()},G=F.G;
   const T=26,hh=L.hh,w=hh*.82,cy=T-hh/2,S=T-hh-1,sw=3,Wy=S-4.3,ww=2.05,HIP=Wy-1.7,PY=S+.4;F.D={T,hh,w,cy,S,sw,Wy,ww,HIP};
   const g=(parent,x=0,y=0,z=0)=>{const q=new THREE.Group();q.position.set(x,y,z);parent.add(q);return q},piv=(parent,x,y)=>{const o=g(parent,x,y);return{o,i:g(o,-x,-y)}};
-  const[H0,H1,H2]=L.hair;
+  let[H0,H1,H2]=L.hair;
   F.gCape=g(G);const hb=piv(G,0,PY);F.hairB=hb.o;const LG=[piv(G,-1.15,HIP),piv(G,1.15,HIP)];F.legs=LG.map(l=>l.o);F.gTorso=g(G);const sk=piv(G,0,Wy);F.skirt=sk.o;F.gNeck=g(G);
   const aL=piv(G,-sw+.25,S-.4),aR=piv(G,sw-.25,S-.4);F.armL=aL.o;F.armR=aR.o;F.gStaff=g(G);const hd=piv(G,0,PY);F.head=hd.o;const hIn=hd.i;F.gFace=g(hIn);F.gHairF=g(hIn);const ht=piv(hIn,0,cy+hh*.36);F.hat=ht.o;F.gAcc=g(G);
   const hairPaint=(shape,n=10,z0=0)=>P=>{P.wash(H0,shape,{top:H1,edge:.5,clouds:6});let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;for(const[x,y]of shape){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}for(let k=0;k<n;k++){const x=R(x0,x1);P.score(curve([[x,y1],[x+R(-.5,.5),(y0+y1)/2],[x+R(-.8,.8),y0]],6),{w:.055,ink:.35,dark:k%3?H2:'#fff6d0'})}};
@@ -1120,7 +1120,7 @@ function makeFigure(look={}){
   const belt=(h=.8,col=C.brown,buck=.5)=>{fp(F.gTorso,box(-ww-.18,Wy-.45,ww+.18,Wy-.45+h),{color:col,kind:'water',t:.12},.42);fps(ring(box(-buck,Wy-.58,buck,Wy-.32+h),.17,false),{mat:gold(),t:.1},F.gTorso,.48)};
   const pouch=(x,wd=1.5,col='#8a5432')=>{fp(F.gTorso,sm([[x,Wy-.4,1],[x+wd,Wy-.4,1],[x+wd,Wy-1.8],[x+wd/2,Wy-2.15],[x,Wy-1.8]],5),{color:col,kind:'water',t:.3},.5);fp(F.gTorso,sm([[x-.05,Wy-.35,1],[x+wd+.05,Wy-.35,1],[x+wd,Wy-1.05],[x+wd/2,Wy-1.3],[x,Wy-1.05]],4),{color:hexOf(shade(col,.15)),kind:'water',t:.08},.66);fp(F.gTorso,circ(x+wd/2,Wy-1.12,.13,.13,8),{mat:gold(),t:.08},.72)};
   const crotch=col=>fp(F.gTorso,sm([[-ww-.25,Wy+.1,1],[ww+.25,Wy+.1,1],[ww+.55,HIP-.4],[.15,HIP-.9],[0,HIP-1.5],[-.15,HIP-.9],[-ww-.55,HIP-.4]],5),{color:col,kind:'water',t:.18},.12);
-  function buildOutfit(){for(const lg of LG)wipe(lg.i);wipe(F.gTorso);wipe(sk.i);const k=L.tøj,T_=F.gTorso,SK=sk.i;const KJ=L.col.kjole||C.purple,KJL=L.col.kjole?hexOf(shade(KJ,.22)):C.purpleLt,KJD=L.col.kjole?hexOf(shade(KJ,-.3)):C.purpleDk,KJB=L.col.kjole?hexOf(shade(KJ,-.15)):'#5a3290';
+  function buildOutfit(){for(const lg of LG)wipe(lg.i);wipe(F.gTorso);wipe(sk.i);const k=L.tøj,T_=F.gTorso,SK=sk.i;const KC=L.col.tøj||L.col.kjole,KJ=KC||C.purple,KJL=KC?hexOf(shade(KJ,.22)):C.purpleLt,KJD=KC?hexOf(shade(KJ,-.3)):C.purpleDk,KJB=KC?hexOf(shade(KJ,-.15)):'#5a3290';
     if(k==='stjernekjole'){boots(2.6,C.brown);legs(C.cream,2.2);
       const sks=sm([[-ww,Wy+.2,1],[ww,Wy+.2,1],[HW*.8,HEM+3],[HW,HEM],[HW*.5,HEM-.25],[0,HEM-.1],[-HW*.5,HEM-.25],[-HW,HEM],[-HW*.8,HEM+3]],6);
       fp(SK,sks,{t:.2,s:22,ed:KJ,paint:P=>{P.wash(KJ,sks,{top:KJL,edge:.5,clouds:10});for(let i=0;i<9;i++){const x=mix(-ww,ww,i/8);P.score([[x,Wy-.5],[x*HW/ww*1.02,HEM+.8]],{w:.07,ink:.25,dark:KJD})}for(let i=0;i<16;i++)P.fill(starPts(R(-HW*.85,HW*.85),R(HEM+1,Wy-1),R(.28,.45),.13,R(1)),C.gold,.9)}},.2);
@@ -1128,7 +1128,7 @@ function makeFigure(look={}){
       const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:KJ,paint:P=>P.wash(KJ,bd,{top:KJL,edge:.5})},.3);belt();pouch(ww*.45);
       const c=sm([[-sw-.4,S+.25],[sw+.4,S+.25],[sw*.95,S-1.5],[sw*.4,S-2.2],[0,S-2.4],[-sw*.4,S-2.2],[-sw*.95,S-1.5]],6);fp(T_,c,{t:.16,s:30,ed:C.navy,paint:P=>{P.wash(C.navy,c,{top:C.navyLt,edge:.5});const e=grow(c,-.25)[0].outer;for(let i=0;i<e.length;i+=3)P.fill(circ(e[i][0],e[i][1],.08,.08,6),C.gold,1)}},.5);fp(T_,starPts(0,S-1.25,.7,.3),{mat:gold(),t:.1},.6);
       arms(KJ,{sl:.7})}
-    if(k==='eventyrer'){const TR='#6e4c30',TU=L.col.tunika||C.teal,TUD=hexOf(shade(hexOf(TU),-.3));boots(5.2,C.leather,{cuff:'#a06c3e'});legs(TR,4.6,{wd:1.04});
+    if(k==='eventyrer'){const TR='#6e4c30',TU=L.col.tøj||L.col.tunika||C.teal,TUD=hexOf(shade(hexOf(TU),-.3));boots(5.2,C.leather,{cuff:'#a06c3e'});legs(TR,4.6,{wd:1.04});
       /* bukser: skridt og lår, med knælapper */
       crotch(TR);
       LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15;fp(lg.i,sm([[x-.62,8],[x+.62,8],[x+.68,6.6],[x-.68,6.6]],3),{color:'#8a6240',kind:'water',t:.06},-.02)});
@@ -1143,7 +1143,7 @@ function makeFigure(look={}){
       belt(1,C.leatherDk,.6);pouch(-ww-.2,1.5,'#8a5432');pouch(ww*.3,1.3,'#7a4a2a');
       {const bx=-.55;fp(T_,sm([[bx-.38,Wy-.5],[bx+.38,Wy-.5],[bx+.42,Wy-1.5],[bx,Wy-1.85],[bx-.42,Wy-1.5]],4),{t:.2,mat:paperMat('#d8fff0','tissue',{glow:'#5fe0b0',gi:1.1})},.56);fp(T_,box(bx-.2,Wy-.5,bx+.2,Wy-.2),{color:'#c8a070',kind:'balsa',t:.22},.58)}
       arms(C.cream,{sl:.1,bracer:true})}
-    if(k==='skovløber'){const TU=L.col.tunika||'#5d7d3c',TUD=hexOf(shade(TU,-.3)),TUL=hexOf(shade(TU,.2)),TR='#5a4632';boots(4.8,'#6a4426',{cuff:'#8a6240'});legs(TR,4.2,{wd:1.02});crotch(TR);
+    if(k==='skovløber'){const TU=L.col.tøj||L.col.tunika||'#5d7d3c',TUD=hexOf(shade(TU,-.3)),TUL=hexOf(shade(TU,.2)),TR='#5a4632';boots(4.8,'#6a4426',{cuff:'#8a6240'});legs(TR,4.2,{wd:1.02});crotch(TR);
       /* lang tunika med takket søm, snøre i halsen og syet kant */
       const hemY=HIP-3.4,o=[[-ww,Wy+.2],[ww,Wy+.2],[ww+1.7,hemY+.7]];for(let i=0;i<=8;i++){const x=(ww+1.7)*(1-i/4);o.push([x,hemY+(i%2?.75:0)])}
       const tk=toCCW(o);fp(SK,tk,{t:.16,s:36,ed:TUD,paint:P=>{P.wash(TU,tk,{top:TUL,edge:.5,clouds:6});for(let i=0;i<8;i++){const a=[(ww+1.7)*(1-i/4),hemY+(i%2?.75:0)+.35],b=[(ww+1.7)*(1-(i+1)/4),hemY+((i+1)%2?.75:0)+.35];P.score([a,[(a[0]+b[0])/2,(a[1]+b[1])/2]],{w:.05,ink:.7,dark:C.gold})}P.score([[0,Wy],[0,hemY+.9]],{w:.06,ink:.3,dark:TUD})}},.22);
@@ -1154,7 +1154,7 @@ function makeFigure(look={}){
       belt(1.05,C.leatherDk,.68);pouch(-ww-.3,1.6,'#8a5432');pouch(ww*.35,1.25,'#6a4426');
       {const hx_=ww+.2;fps(thick([[[hx_,Wy-.4],[hx_+.2,Wy-3.2]]],.2),{color:'#d9d2c0',kind:'card',t:.1},T_,.4);fp(T_,sm([[hx_-.2,Wy-.3],[hx_+.3,Wy-.3],[hx_+.32,Wy-1.1],[hx_-.18,Wy-1.1]],3),{color:C.leatherDk,kind:'water',t:.14},.46)}
       arms(TU,{sl:.1,bracer:true})}
-    if(k==='opdager'){const TR=L.col.bukser||'#b3935a',TRD=hexOf(shade(TR,-.3));boots(3.2,C.brownDk,{cuff:null});legs(C.cream,2.8,{stripes:'#c2452d',wd:.66});crotch(TR);
+    if(k==='opdager'){const TR=L.col.tøj||L.col.bukser||'#b3935a',TRD=hexOf(shade(TR,-.3));boots(3.2,C.brownDk,{cuff:null});legs(C.cream,2.8,{stripes:'#c2452d',wd:.66});crotch(TR);
       /* knæbukser over stribede strømper */
       LG.forEach((lg,i)=>{const x=(i?1:-1)*1.15,kn=sm([[x-.98,HIP+.5,1],[x+.98,HIP+.5,1],[x+1.02,7.4],[x+.84,6.5],[x-.84,6.5],[x-1.02,7.4]],4);fp(lg.i,kn,{t:.16,s:40,ed:TRD,paint:P=>{P.wash(TR,kn,{top:hexOf(shade(TR,.15)),edge:.5})}},-.04);fp(lg.i,box(x-.9,6.35,x+.9,6.85),{color:TRD,kind:'water',t:.2},-.02);fp(lg.i,circ(x+(i?.6:-.6),6.6,.13,.13,8),{mat:gold(),t:.06},.12)});
       /* skjorte med knapper og krave, seler med messingspænder, og et lille halstørklæde */
@@ -1166,7 +1166,7 @@ function makeFigure(look={}){
       /* kompas i en kæde ved bæltet */
       {const kx=ww*.55,ky=Wy-1.35;fps(thick([[[kx-.5,Wy-.4],[kx-.1,ky+.3]]],.05),{mat:gold(),t:.04},T_,.5);fp(T_,circ(kx,ky,.52,.52,20),{mat:gold(),t:.12},.52);fp(T_,circ(kx,ky,.38,.38,20),{color:'#f6efe0',kind:'card',t:.04},.6);fp(T_,[[kx,ky+.32],[kx+.09,ky],[kx,ky-.32],[kx-.09,ky]],{color:'#c2452d',kind:'card',t:.03},.63)}
       arms('#f3ead6',{sl:.15,cuff:'#e0d4b8'})}
-    if(k==='rejsekappe'){const CO=L.col.frakke||'#4a3460',COL=hexOf(shade(CO,.18)),COD=hexOf(shade(CO,-.35)),TR='#46506e';boots(3.6,C.brownDk,{cuff:null});legs(TR,3.2,{wd:1});
+    if(k==='rejsekappe'){const CO=L.col.tøj||L.col.frakke||'#4a3460',COL=hexOf(shade(CO,.18)),COD=hexOf(shade(CO,-.35)),TR='#46506e';boots(3.6,C.brownDk,{cuff:null});legs(TR,3.2,{wd:1});
       crotch(TR);
       const bd=bodiceS();fp(T_,bd,{t:.2,s:30,ed:'#c8b890',paint:P=>{P.flat(C.cream,bd);for(let x=-3;x<3;x+=.6)P.flat(C.teal,box(x,Wy-1,x+.22,S+1),.8)}},.3);belt(.7,C.brown,.45);
       for(const sx of[-1,1]){const up=toCCW([[sx*(sw+.1),S+.1],[sx*sw*.32,S-.1],[sx*.95,S-2.3],[sx*1.15,Wy-.2],[sx*(ww+.55),Wy-.2],[sx*sw*1.0,S-1.2]]);fp(T_,up,{t:.16,s:40,ed:COD,paint:P=>{P.wash(CO,up,{top:COL,edge:.5})}},.46);
@@ -1205,6 +1205,8 @@ function makeFigure(look={}){
     fps(thick([curve([[stx,sTop],[stx-1.2,sTop+.8],[stx-.9,sTop+2.2],[stx-.2,sTop+2.9]],6),curve([[stx,sTop],[stx+1.2,sTop+.8],[stx+.9,sTop+2.2],[stx+.2,sTop+2.9]],6)],.12),{mat:gold(),t:.12},F.gStaff,.68);
     F.orb=new THREE.Mesh(new THREE.SphereGeometry(1.05,24,16),new THREE.MeshStandardMaterial({color:'#c9f1ff',emissive:'#5fc6ff',emissiveIntensity:1.8,roughness:.2}));put(F.gStaff,F.orb,stx,sTop+1.6,.68)}
   const shade_=()=>G.traverse(o=>{if(o.isMesh){o.castShadow=!!F.shadow;o.receiveShadow=!!F.shadow}});
+  /* farver: tøjets, hattens og kappens hovedfarve, og hårets */
+  F.setCol=(k,v)=>{FRES=L.res||1;if(k==='hår'){L.hair=[v,hexOf(shade(v,.25)),hexOf(shade(v,-.35))];[H0,H1,H2]=L.hair;buildHead();buildHair();buildHat()}else{L.col=Object.assign({},L.col,{[k]:v});if(k==='tøj')buildOutfit();else if(k==='hat')buildHat();else if(k==='kappe')buildCape()}shade_();FRES=1};
   F.set=(k,v)=>{FRES=L.res||1;L[k]=v;if(k==='hat')buildHat();else if(k==='hår')buildHair();else if(k==='tøj'){buildOutfit();buildHair()}else if(k==='kappe')buildCape();else if(k==='tilbehør')buildAcc();else if(k==='stav'){buildOutfit();buildStaff()}shade_();FRES=1};
   F.build=()=>{FRES=L.res||1;buildHead();buildHair();buildHat();buildOutfit();buildCape();buildAcc();buildStaff();shade_();FRES=1;return F};
   /* bevægelse: gang (ph er skridtets fase, amp 0..1), åndedræt, hårets sving og blink */
@@ -1362,7 +1364,7 @@ function buildLive(){
 
 /* ============ heksen, katten og gåturene ============ */
 const TOP=.3,SC=.3;
-const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.look:null)),KAT=makeCat({res:.6});
+const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.lookFuld():null)),KAT=makeCat({res:.6});
 live.add(HEKS.G);HEKS.G.scale.setScalar(SC);live.add(KAT.G);KAT.G.scale.setScalar(SC);
 const shadowTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
 const blob=(w,d)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;live.add(m);return m};

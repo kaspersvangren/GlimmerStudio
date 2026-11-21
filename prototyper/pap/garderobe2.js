@@ -66,11 +66,15 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const wide=w/h>1.25,asp=w/h,
   window.__gard={ready:true,set:(k,v)=>{choose(k,v);UI.draw()},fig:FIG}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
 function choose(k,v){if(!FIG||FIG.L[k]===v)return;FIG.set(k,v);if((typeof ctx!=='undefined')&&ctx.onLook)ctx.onLook(k,v);pop=1;for(const sp of sparks){sp.t=R(0,.3);sp.x=FX+R(-6,6);sp.y=R(6,30);sp.vx=R(-4,4);sp.vy=R(2,8)}}
 /* knapperne: alle grupper på én gang når der er højde til det, ellers faner */
+const TOEJ=['#7b4fd0','#4a3a9a','#2e4a7a','#43a3d3','#1f6f6a','#3e7a4a','#c98a1e','#e07a45','#b83a3a','#e0457a','#f1ead8','#3a3040'];
+const PALET={tøj:TOEJ,hat:TOEJ,kappe:TOEJ,hår:['#f2b33d','#e58a5a','#c2553a','#8a4a2a','#4a2f1c','#2a2030','#d8d2c8','#ff8fc7','#7b4fd0','#43a3d3','#5fd0b0','#f6f0e2']};
 const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.getElementById('opts');let curTab='Tøj';const secs={};
   const laast=(key,v)=>(typeof ctx!=='undefined')&&ctx.owns&&!ctx.owns(key,v);
-  UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('button').forEach((b,i)=>{b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};
+  UI.draw=()=>{for(const n in VALG){const[key,list]=VALG[n];secs[n].querySelectorAll('.grid button').forEach((b,i)=>{b.setAttribute('aria-pressed',String((FIG?FIG.L[key]:LOOK0[key])===list[i][0]));b.classList.toggle('laas',laast(key,list[i][0]))})}};
   const show=()=>{for(const n in secs)secs[n].classList.toggle('on',n===curTab);tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',String(x.textContent===curTab)))};
   for(const n in VALG){const[key,list]=VALG[n],b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('role','tab');b.addEventListener('click',()=>{curTab=n;show()});tabs.appendChild(b);
     const sec=document.createElement('section'),h=document.createElement('h3'),gr=document.createElement('div');h.textContent=n;gr.className='grid';sec.append(h,gr);opts.appendChild(sec);secs[n]=sec;
-    for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.textContent=navn;ob.addEventListener('click',()=>{if(laast(key,v)){ctx.say('Den kan du få i en boble i Boblebutikken');return}choose(key,v);UI.draw()});gr.appendChild(ob)}}
+    for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.textContent=navn;ob.addEventListener('click',()=>{if(laast(key,v)){ctx.say('Den kan du få i en boble i Boblebutikken');return}choose(key,v);UI.draw()});gr.appendChild(ob)}
+    if(PALET[key]){const row=document.createElement('div');row.className='sw';row.setAttribute('role','group');row.setAttribute('aria-label','Farve');sec.appendChild(row);
+      for(const c of PALET[key]){const sb=document.createElement('button');sb.type='button';sb.style.background=c;sb.setAttribute('aria-label','Farve '+c);sb.setAttribute('aria-pressed','false');sb.addEventListener('click',()=>{if(!FIG)return;FIG.setCol(key,c);FIG.G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});pop=1;if((typeof ctx!=='undefined')&&ctx.onCol)ctx.onCol(key,c);row.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===sb)))});row.appendChild(sb)}}}
   show();UI.draw()}

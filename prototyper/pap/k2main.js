@@ -1,6 +1,6 @@
 /* ============ heksen, katten og gåturene ============ */
 const TOP=.3,SC=.3;
-const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.look:null)),KAT=makeCat({res:.6});
+const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.lookFuld():null)),KAT=makeCat({res:.6});
 live.add(HEKS.G);HEKS.G.scale.setScalar(SC);live.add(KAT.G);KAT.G.scale.setScalar(SC);
 const shadowTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
 const blob=(w,d)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;live.add(m);return m};
