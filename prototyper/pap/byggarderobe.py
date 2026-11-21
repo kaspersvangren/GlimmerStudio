@@ -4,7 +4,7 @@ F=os.path.join(D,'pap-testscene.html') if os.path.exists(os.path.join(D,'pap-tes
 L=open(F).read().split('\n')
 helpers='\n'.join(L[76:236]).replace('antialias:false','antialias:true')
 r=lambda n:open(os.path.join(D,n)).read()
-js=helpers+'\n'+r('k2detail.js')+'\n'+r('k3craft.js')+'\n'+r('k3stage.js')+'\n'+r('figur.js')+'\n'+r('garderobe2.js')
+js=helpers+'\n'+r('k2detail.js')+'\n'+r('k3craft.js')+'\n'+r('k3stage.js')+'\n'+r('figur.js')+'\n'+r('k3folk.js')+'\n'+r('garderobe2.js')
 s=r('garderobe2-shell.html').replace('__JS__',js)
 open(os.path.join(D,'garderoben2.html'),'w').write(s)
 open(os.path.join(D,'testgard.html'),'w').write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+s+'</body></html>')

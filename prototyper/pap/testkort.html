@@ -1301,31 +1301,77 @@ function makeFigure(look={}){
 const fgrp=(p,x=0,y=0,z=0)=>{const q=new THREE.Group();q.position.set(x,y,z);p.add(q);return q},fpiv=(p,x,y,z=0)=>{const o=fgrp(p,x,y,z);return{o,i:fgrp(o,-x,-y)}};
 const eyeBig=(P,x,y,r,iris,dark)=>{P.fill(circ(x,y,r,r*1.08,20),'#fdfaf0',1);P.fill(circ(x,y-r*.05,r*.74,r*.84,18),iris,1);P.fill(circ(x,y-r*.05,r*.4,r*.52,14),dark||'#17121f',1);P.fill(circ(x+r*.28,y+r*.34,r*.22,r*.22,10),'#ffffff',1);P.fill(circ(x-r*.3,y-r*.4,r*.1,r*.1,8),'#ffffff',.9)};
 
-/* ---- katten: krop fra siden, hovedet vendt mod os ---- */
-function makeCat(o={}){const K={G:new THREE.Group()},G=K.G,c0=o.col||'#2d2738',c1=hexOf(shade(c0,.3)),cd=hexOf(shade(c0,-.45)),sock=o.sock||'#f3ecda';FRES=o.res||1;
-  const leg=(x,z,far)=>{const p=fpiv(G,x,4.2,z),col=far?hexOf(shade(c0,-.25)):c0,sh=sm([[x-.72,4.6,1],[x+.72,4.6,1],[x+.66,1.2],[x+.95,.25],[x+.8,0,1],[x-.7,0,1],[x-.66,1.2]],4);
-    fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(sock,-.2)):sock,1)}},0);return p.o};
-  K.legs=[leg(-2.5,-.3,true),leg(3.3,-.3,true)];
+/* ---- kæledyret: krop fra siden, hovedet vendt mod os. Ni arter deler krop; ører, hale, snude, mønster og pynt skifter ---- */
+const DYR={kat:['#2d2738','#f3ecda','#6a3fa2'],hund:['#c8935a','#f6ead2','#c2452d'],kanin:['#f1ead8','#ffc8dc','#43a3d3'],'enhjørning':['#f6f1ff','#ffd86b','#ff9ad0'],'bjørn':['#8a5a34','#e8c8a0','#3e7a4a'],drage:['#5fa34a','#f2e2a8','#c2453a'],ugle:['#9c6a48','#f2e2c0','#e0a020'],'ræv':['#e07a2a','#fbf5e6','#7b4fd0'],'frø':['#5ab85a','#c8f0a0','#e0457a']};
+function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(),kind},G=K.G,STD=DYR[kind],c0=o.a||o.col||STD[0],cb=o.b||o.sock||STD[1],cc=o.c||o.band||STD[2],c1=hexOf(shade(c0,.3)),cd=hexOf(shade(c0,-.45)),
+    eyeC=o.eye||{kat:'#b7e26a','frø':'#f2c230',ugle:'#f0a030',drage:'#f0a030'}[kind]||'#6ac8e8',mo=o.moenster||(kind==='kat'&&!o.a?'sokker':'ingen'),pynt=o.pynt===undefined?'halsbånd':o.pynt,fugl=kind==='ugle',MORK='#17121f';FRES=o.res||1;
+  const hx=3.9,hy=10.9,HW=kind==='frø'?3.9:3.5,HH=kind==='frø'?2.6:2.95,eyY=hy+(kind==='frø'?1.5:.15),ex=kind==='frø'?1.7:1.42,er=fugl?1.12:.98;
+  /* mønsteret males på krop og hoved */
+  const moen=(P,x0,x1,y0,y1,n)=>{const p=()=>[R(x0,x1),R(y0,y1)];
+    if(mo==='pletter')for(let i=0;i<n;i++){const[x,y]=p();P.fill(circ(x,y,R(.45,.95),R(.4,.75),10),cb,.95)}
+    if(mo==='striber')for(let x=x0+.5;x<x1;x+=1.25)P.pen([[x,y1],[x+.5,y0+(y1-y0)*.35]],cd,.34,.7);
+    if(mo==='prikker')for(let i=0;i<n*2.2;i++){const[x,y]=p();P.fill(circ(x,y,.2,.2,8),cb,.95)}
+    if(mo==='hjerter')for(let i=0;i<n;i++){const[x,y]=p(),r=.34;for(const sx of[-1,1])P.fill(circ(x+sx*r*.55,y+r*.3,r*.62,r*.62,10),cb,.95);P.fill([[x-r*1.1,y+.12*r],[x+r*1.1,y+.12*r],[x,y-r*1.15]],cb,.95)}
+    if(mo==='stjerner')for(let i=0;i<n;i++){const[x,y]=p();P.fill(starPts(x,y,R(.4,.6),.2,R(1)),'#f2c230',.95)}
+    if(mo==='glimmer')for(let i=0;i<n*2;i++){const[x,y]=p(),q=R(.14,.26);P.fill([[x,y+q*1.7],[x+q*.5,y],[x,y-q*1.7],[x-q*.5,y]],i%2?'#f2c230':'#ffffff',.95)}
+    if(mo==='plet')P.wash(cb,circ((x0+x1)/2-1,(y0+y1)/2+.4,(x1-x0)*.3,(y1-y0)*.34,18),{alpha:.96,edge:.25,mode:'source-over'})};
+  const leg=(x,z,far)=>{const p=fpiv(G,x,4.2,z),col=fugl?'#e0a020':far?hexOf(shade(c0,-.25)):c0,sh=fugl?sm([[x-.3,4.4,1],[x+.3,4.4,1],[x+.3,.5],[x+1.3,.2],[x+1.2,0,1],[x-1,0,1],[x-1.1,.2],[x-.3,.5]],3):sm([[x-.72,4.6,1],[x+.72,4.6,1],[x+.66,1.2],[x+.95,.25],[x+.8,0,1],[x-.7,0,1],[x-.66,1.2]],4);
+    fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});if(mo==='sokker'&&!fugl)P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(cb,-.2)):cb,1)}},0);return p.o};
+  K.legs=fugl?[]:[leg(-2.5,-.3,true),leg(3.3,-.3,true)];
   /* halen */
-  {const t=fpiv(G,-4.2,6.3,-.1);K.tail=t.o;const cv_=curve([[-4.2,6.3],[-6.3,7.2],[-7.2,9.6],[-6.4,12],[-5,12.9]],10);for(const s of thick([cv_],.62))fp(t.i,s,{color:c0,kind:'water',t:.16,edge:cd},0);fp(t.i,circ(-5.05,12.85,.78,.78,16),{color:sock,kind:'water',t:.18},.02)}
+  {const t=fpiv(G,-4.2,6.3,-.1);K.tail=t.o;const HP=(pts,col,w_,z=0)=>{for(const q of thick([curve(pts,10)],w_))fp(t.i,q,{color:col,kind:'water',t:.16,edge:hexOf(shade(col,-.4))},z)};
+    if(kind==='kat'){HP([[-4.2,6.3],[-6.3,7.2],[-7.2,9.6],[-6.4,12],[-5,12.9]],c0,.62);fp(t.i,circ(-5.05,12.85,.78,.78,16),{color:cb,kind:'water',t:.18},.02)}
+    if(kind==='hund')HP([[-4.2,6.6],[-5.7,8],[-5.9,9.8],[-5.2,10.8]],c0,.7);
+    if(kind==='kanin')fp(t.i,circ(-5,6.7,1.35,1.3,18),{color:cb,kind:'water',t:.3,edge:hexOf(shade(cb,-.2))},0);
+    if(kind==='bjørn')fp(t.i,circ(-4.9,7,.85,.8,14),{color:c0,kind:'water',t:.3,edge:cd},0);
+    if(kind==='ræv'){const b=toCCW(sm([[-3.9,5.8,1],[-6.6,6],[-9.3,9.2],[-8.8,12.6,1],[-6.2,11.2],[-4.4,8.6]],6));fp(t.i,b,{t:.2,s:40,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6});P.wash(cb,circ(-8.6,11.6,1.7,1.9,14),{alpha:.97,edge:.4,mode:'source-over'})}},0)}
+    if(kind==='enhjørning')[[[-4.2,6.6],[-6.4,6.2],[-7.4,3.6],[-6.8,1.4]],[[-4.2,6.4],[-5.8,5.2],[-6.2,3],[-5.4,1.2]],[[-4.2,6.8],[-7,7],[-8.4,4.6],[-8.2,2.2]]].forEach((c,i)=>HP(c,[cc,cb,hexOf(shade(cc,.25))][i],.5,i*.02));
+    if(kind==='drage'){HP([[-4.2,5.6],[-6.6,5],[-8.4,6],[-9,8.2]],c0,.9);fp(t.i,toCCW([[-9.9,8],[-8.9,10.6],[-8,8.1]]),{color:cc,kind:'water',t:.2},.04);for(const[x,y]of[[-5.6,5.9],[-7,5.9],[-8.2,6.7]])fp(t.i,[[x-.4,y],[x,y+.9],[x+.4,y]],{color:cc,kind:'water',t:.12},-.04)}
+    if(fugl)for(const a of[-.5,0,.5])fp(t.i,leafPts(-4.6+a*.6,5.2-Math.abs(a),3,1.1,2.4+a*.5),{color:hexOf(shade(c0,-.2+a*.1)),kind:'water',t:.12,edge:cd},a*.02)}
   /* kroppen */
-  {const b=sm([[-4.5,4.3],[-4.9,6.3],[-3.7,7.9],[-.6,8.3],[2.4,7.9],[4.1,6.6],[4.2,4.6],[2.9,3.4],[-3,3.3]],8);K.body=fgrp(G);fp(K.body,b,{t:.24,s:44,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6,clouds:8});for(let i=0;i<10;i++){const x=R(-4,3.4),y=R(4,7.6);P.pen([[x,y],[x+.5,y-.35]],c1,.06,.5)}}},0);
-    const ch=sm([[2.9,7.2],[4.3,6.5],[4.2,4.7],[3.4,3.9],[2.8,5.2]],6);fp(K.body,ch,{t:.08,s:50,ed:sock,paint:P=>{P.wash(sock,ch,{edge:.4});for(let i=0;i<5;i++)P.pen([[3.1+i*.2,6.6-i*.5],[3.4+i*.2,6-i*.5]],'#cfc6b0',.05,.7)}},.2)}
-  K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
-  /* halsbånd og hoved */
-  const h=fpiv(G,3.2,8,.5);K.head=h.o;const hx=3.9,hy=10.9,HW=3.5,HH=2.95;
-  fp(G,sm([[1.9,8.5],[4.6,7.6],[4.8,8.3],[2.1,9.2]],3),{color:o.band||'#6a3fa2',kind:'water',t:.12},.42);fp(G,starPts(3.5,7.75,.62,.27),{mat:gold(),t:.1},.52);
+  {const b=fugl?sm([[-3.4,3.6],[-4,6.6],[-2.6,8.6],[.8,9],[3.4,8],[4.2,6.2],[3.6,4],[1.6,3.1],[-1.6,3]],8):sm([[-4.5,4.3],[-4.9,6.3],[-3.7,7.9],[-.6,8.3],[2.4,7.9],[4.1,6.6],[4.2,4.6],[2.9,3.4],[-3,3.3]],8);K.body=fgrp(G);
+    fp(K.body,b,{t:.24,s:44,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6,clouds:8});moen(P,-4,3.4,4,7.8,7);if(mo==='ingen'||mo==='sokker')for(let i=0;i<10;i++){const x=R(-4,3.4),y=R(4,7.6);P.pen([[x,y],[x+.5,y-.35]],c1,.06,.5)}}},0);
+    if(kind==='kat'||kind==='ræv'||kind==='kanin'){const ch=sm([[2.9,7.2],[4.3,6.5],[4.2,4.7],[3.4,3.9],[2.8,5.2]],6);fp(K.body,ch,{t:.08,s:50,ed:cb,paint:P=>{P.wash(cb,ch,{edge:.4});for(let i=0;i<5;i++)P.pen([[3.1+i*.2,6.6-i*.5],[3.4+i*.2,6-i*.5]],hexOf(shade(cb,-.15)),.05,.7)}},.2)}
+    if(kind==='drage'||kind==='frø'||fugl||kind==='bjørn'){const be=circ(1,5.2,2.6,1.9,20);fp(K.body,be,{t:.06,s:40,ed:cb,paint:P=>{P.wash(cb,be,{edge:.5});if(kind==='drage')for(let x=-.8;x<3;x+=.8)P.pen([[x,3.7],[x+.2,6.7]],hexOf(shade(cb,-.25)),.07,.6)}},.18)}
+    if(kind==='drage')for(const sx of[0,1]){const wg=toCCW(sm([[-1.6,7.6,1],[-3.2,10.4],[-5.6,11.6,1],[-5,9.6],[-4,8.6,1],[-3.4,9.2],[-2.6,7.4,1]],5));fp(K.body,wg,{color:sx?cc:hexOf(shade(cc,-.25)),kind:'water',t:.12,edge:hexOf(shade(cc,-.45))},sx?.22:-.3).position.x=sx?0:.9}
+    if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6));fp(K.body,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},.24)}
+    if(pynt==='vinger')for(const sx of[0,1]){const wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]],6));const m=fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34);m.position.x=sx?1.8:0;m.rotation.z=sx?-.5:.15}}
+  if(fugl)K.legs.push(leg(-.6,.3,false),leg(1.8,.3,false));else K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
+  /* pynt om halsen */
+  const NK=(sh,po,z)=>fp(G,sh,po,z);
+  if(pynt==='halsbånd'||pynt==='tørklæde'){NK(sm([[1.9,8.5],[4.6,7.6],[4.8,8.3],[2.1,9.2]],3),{color:cc,kind:'water',t:.12},.42);if(pynt==='halsbånd')NK(starPts(3.5,7.75,.62,.27),{mat:gold(),t:.1},.52);else NK(toCCW([[2.6,8.2],[3.6,7.9],[3.4,5.6],[2.6,6.2]]),{color:cc,kind:'water',t:.1,edge:hexOf(shade(cc,-.3))},.4)}
+  if(pynt==='sløjfe'||pynt==='butterfly'){const q=pynt==='sløjfe'?1.35:.95;for(const sx of[-1,1])NK(toCCW([[3.5,8],[3.5+sx*1.5*q,8+q*.9],[3.5+sx*1.5*q,8-q*.9]]),{color:cc,kind:'water',t:.12,edge:hexOf(shade(cc,-.3))},.52);NK(circ(3.5,8,.36*q,.4*q,12),{color:hexOf(shade(cc,-.3)),kind:'water',t:.14},.58)}
+  /* hovedet */
+  const h=fpiv(G,3.2,8,.5);K.head=h.o;const HI=h.i,HP2=(sh,po,z)=>fp(HI,sh,po,z);
+  for(const sx of[-1,1]){
+    if(kind==='kat'||kind==='ræv'||kind==='enhjørning'){const q=kind==='ræv'?1.25:kind==='kat'?1:.7,e=toCCW([[hx+sx*1.1,hy+2.3],[hx+sx*(1.1+1.65*q),hy+2.3+2.4*q],[hx+sx*3.25,hy+1.3]]);HP2(e,{t:.14,s:50,ed:c0,paint:P=>{P.wash(c0,e,{edge:.5});P.fill([[hx+sx*1.75,hy+2.5],[hx+sx*(1.2+1.42*q),hy+2.4+1.6*q],[hx+sx*2.9,hy+2]],kind==='ræv'?MORK:'#e59aa8',.95)}},-.06)}
+    if(kind==='hund')HP2(toCCW(sm([[hx+sx*2.2,hy+2.7,1],[hx+sx*4.3,hy+2.1],[hx+sx*4.6,hy-1.4],[hx+sx*3.5,hy-2.3],[hx+sx*2.9,hy+.4]],6)),{color:hexOf(shade(c0,-.3)),kind:'water',t:.14,edge:cd},.1);
+    if(kind==='kanin'){const e=toCCW(sm([[hx+sx*.8,hy+2.3,1],[hx+sx*1.2,hy+7],[hx+sx*2.1,hy+7.6],[hx+sx*2.7,hy+6.6],[hx+sx*2.6,hy+2.1,1]],6));HP2(e,{t:.14,s:50,ed:c0,paint:P=>{P.wash(c0,e,{edge:.5});P.wash(cb,toCCW(sm([[hx+sx*1.3,hy+2.8],[hx+sx*1.6,hy+6.4],[hx+sx*2.1,hy+6.4],[hx+sx*2.2,hy+2.8]],4)),{alpha:.95,edge:.4,mode:'source-over'})}},-.06)}
+    if(kind==='bjørn'){HP2(circ(hx+sx*2.7,hy+2.5,1.25,1.2,18),{color:c0,kind:'water',t:.14,edge:cd},-.06);HP2(circ(hx+sx*2.7,hy+2.5,.7,.66,14),{color:cb,kind:'water',t:.05},-.02)}
+    if(kind==='drage'){HP2(toCCW([[hx+sx*1.5,hy+2.4],[hx+sx*2.9,hy+4.9],[hx+sx*2.7,hy+2]]),{color:'#f3ead2',kind:'card',t:.16},-.05);HP2(toCCW([[hx+sx*3.1,hy+1.2],[hx+sx*5,hy+1.8],[hx+sx*4.4,hy+.2],[hx+sx*4.9,hy-1],[hx+sx*3.2,hy-.8]]),{color:cc,kind:'water',t:.12,edge:hexOf(shade(cc,-.4))},-.08)}
+    if(fugl)HP2(toCCW([[hx+sx*1.6,hy+2.4],[hx+sx*3,hy+4.2],[hx+sx*3.1,hy+1.8]]),{color:hexOf(shade(c0,-.2)),kind:'water',t:.14,edge:cd},-.06);
+    if(kind==='frø')HP2(circ(hx+sx*ex,eyY+.1,1.4,1.35,18),{color:c0,kind:'water',t:.2,edge:cd},-.04)}
+  if(kind==='enhjørning'){const hn=toCCW([[hx-.5,hy+2.5],[hx+.5,hy+2.5],[hx+.12,hy+6.2]]);HP2(hn,{t:.16,s:60,ed:'#a87a20',paint:P=>{P.wash('#d9a83a',hn,{top:'#ffe9a0',edge:.4});for(let y=hy+3;y<hy+5.8;y+=.7)P.pen([[hx-.4,y],[hx+.4,y+.4]],'#a87a20',.07,.9)}},.12);[[[hx-.6,hy+2.8],[hx-2.2,hy+2.4],[hx-3.4,hy+.6],[hx-3.9,hy-1.4]],[[hx-.2,hy+2.6],[hx-1.8,hy+1.6],[hx-2.8,hy-.2]]].forEach((c,i)=>{for(const q of thick([curve(c,8)],.5))HP2(q,{color:i?cb:cc,kind:'water',t:.1,edge:hexOf(shade(i?cb:cc,-.3))},.16+i*.02)})}
   {const hs=[];for(let i=0;i<32;i++){const a=i/32*TAU;hs.push([hx+Math.cos(a)*HW*(1+.06*Math.cos(a*2)),hy+Math.sin(a)*HH*(1-.05*Math.sin(a))])}
-    for(const sx of[-1,1]){const e=toCCW([[hx+sx*1.1,hy+2.3],[hx+sx*2.75,hy+4.7],[hx+sx*3.25,hy+1.3]]);fp(h.i,e,{t:.14,s:50,ed:c0,paint:P=>{P.wash(c0,e,{edge:.5});P.fill([[hx+sx*1.75,hy+2.5],[hx+sx*2.62,hy+4],[hx+sx*2.9,hy+2]],'#e59aa8',.95)}},-.06)}
-    fp(h.i,hs,{t:.22,s:64,cap:768,ed:c0,paint:P=>{P.wash(c0,hs,{top:c1,edge:.6});P.wash(c1,circ(hx,hy-1.2,2.1,1.35,20),{alpha:.55,edge:0,mode:'source-over'});
-      for(const sx of[-1,1])eyeBig(P,hx+sx*1.42,hy+.15,.98,o.eye||'#b7e26a','#17121f');
-      P.fill([[hx-.3,hy-.95],[hx+.3,hy-.95],[hx,hy-1.32]],'#e88aa0',1);P.pen(curve([[hx-.7,hy-1.75],[hx-.3,hy-1.95],[hx,hy-1.4],[hx+.3,hy-1.95],[hx+.7,hy-1.75]],8),'#17121f',.07,.9);
-      for(const sx of[-1,1])for(const dy of[-.25,.2,.65])P.pen([[hx+sx*1.5,hy-1.35+dy*.4],[hx+sx*3.5,hy-1.2+dy]],'#f3ecda',.045,.85);
+    HP2(hs,{t:.22,s:64,cap:768,ed:c0,paint:P=>{P.wash(c0,hs,{top:c1,edge:.6});moen(P,hx-3,hx+3,hy+.8,hy+2.6,4);if(mo==='øjeplet')P.wash(cb,circ(hx-ex,eyY,1.6,1.7,16),{alpha:.97,edge:.3,mode:'source-over'});
+      if(kind==='kat')P.wash(c1,circ(hx,hy-1.2,2.1,1.35,20),{alpha:.55,edge:0,mode:'source-over'});if(kind==='hund'||kind==='bjørn')P.wash(cb,circ(hx,hy-1.15,2,1.4,20),{alpha:.97,edge:.3,mode:'source-over'});
+      if(kind==='ræv')for(const sx of[-1,1])P.fill(toCCW([[hx+sx*.15,hy-.7],[hx+sx*3.4,hy-.1],[hx+sx*2.4,hy-2.5],[hx+sx*.15,hy-2.9]]),cb,.97);if(fugl)for(const sx of[-1,1])P.fill(circ(hx+sx*ex,eyY,1.5,1.55,20),cb,.97);if(kind==='frø')P.wash(cb,circ(hx,hy-1.5,3,1.1,20),{alpha:.9,edge:.4,mode:'source-over'});
+      for(const sx of[-1,1])eyeBig(P,hx+sx*ex,eyY,er,eyeC,MORK);
+      if(kind==='kat'||kind==='ræv'||kind==='kanin'){P.fill([[hx-.3,hy-.95],[hx+.3,hy-.95],[hx,hy-1.32]],kind==='ræv'?MORK:'#e88aa0',1);P.pen(curve([[hx-.7,hy-1.75],[hx-.3,hy-1.95],[hx,hy-1.4],[hx+.3,hy-1.95],[hx+.7,hy-1.75]],8),MORK,.07,.9);for(const sx of[-1,1])for(const dy of[-.25,.2,.65])P.pen([[hx+sx*1.5,hy-1.35+dy*.4],[hx+sx*3.5,hy-1.2+dy]],kind==='kat'?'#f3ecda':'#6a5a4a',.045,.85);if(kind==='kanin')P.fill(box(hx-.34,hy-2.5,hx+.34,hy-1.92),'#ffffff',1),P.pen([[hx,hy-2.5],[hx,hy-1.92]],'#b8a8a0',.04,.9)}
+      if(kind==='hund'||kind==='bjørn'){P.fill(circ(hx,hy-.75,.52,.4,12),MORK,1);P.pen(curve([[hx-.8,hy-1.6],[hx-.3,hy-1.85],[hx,hy-1.2],[hx+.3,hy-1.85],[hx+.8,hy-1.6]],8),MORK,.08,.9);if(kind==='hund')P.fill(toCCW(sm([[hx-.3,hy-1.75],[hx+.3,hy-1.75],[hx+.34,hy-2.5],[hx,hy-2.75],[hx-.34,hy-2.5]],4)),'#f08aa0',1)}
+      if(kind==='enhjørning'||kind==='drage'||kind==='frø'){for(const sx of[-1,1])P.fill(circ(hx+sx*.55,hy-(kind==='frø'?.5:.95),.14,.11,8),hexOf(shade(c0,-.5)),.9);P.pen(curve([[hx-(kind==='frø'?2.4:1.3),hy-1.5],[hx,hy-(kind==='frø'?2.2:2)],[hx+(kind==='frø'?2.4:1.3),hy-1.5]],8),hexOf(shade(c0,-.6)),.1,.9);if(kind==='drage')P.fill([[hx+.7,hy-1.72],[hx+.95,hy-2.3],[hx+1.2,hy-1.62]],'#fbf6ea',1);for(const sx of[-1,1])P.wash('#ff9ab8',circ(hx+sx*2.3,hy-.9,.7,.45,10),{alpha:.5,edge:0,mode:'source-over'})}
+      if(fugl)P.fill([[hx-.5,hy-.6],[hx+.5,hy-.6],[hx,hy-1.6]],'#e0a020',1);
       for(let i=0;i<3;i++)P.pen([[hx-.5+i*.5,hy+2.3],[hx-.4+i*.45,hy+2.85]],cd,.1,.7)}},0);
-    K.lids=fgrp(h.i);for(const sx of[-1,1]){fp(K.lids,circ(hx+sx*1.42,hy+.2,1.06,1.14,20),{color:c0,kind:'water',t:.04,edge:c0},.14);fps(thick([curve([[hx+sx*1.42-.8,hy+.05],[hx+sx*1.42,hy-.3],[hx+sx*1.42+.8,hy+.05]],8)],.09),{color:'#0f0c16',t:.03},K.lids,.18)}K.lids.visible=false}
-  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);K.legs[0].rotation.z=-.5*s*amp;K.legs[1].rotation.z=.5*s*amp;K.legs[2].rotation.z=.5*s*amp;K.legs[3].rotation.z=-.5*s*amp;
-    K.tail.rotation.z=.16*Math.sin(t*1.6)+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
+    K.lids=fgrp(HI);for(const sx of[-1,1]){fp(K.lids,circ(hx+sx*ex,eyY+.05,er*1.08,er*1.16,20),{color:fugl?cb:c0,kind:'water',t:.04,edge:fugl?cb:c0},.14);fps(thick([curve([[hx+sx*ex-.8,eyY-.1],[hx+sx*ex,eyY-.45],[hx+sx*ex+.8,eyY-.1]],8)],.09),{color:'#0f0c16',t:.03},K.lids,.18)}K.lids.visible=false}
+  /* pynt på hovedet */
+  if(pynt==='krone'){const pts=[[hx-1.5,hy+HH-.3],[hx+1.5,hy+HH-.3]];for(let i=0;i<=6;i++)pts.push([hx+1.7-3.4*i/6,hy+HH+(i%2?.7:1.9)]);HP2(toCCW(pts),{mat:gold(),t:.2},.2);HP2(circ(hx,hy+HH+.3,.3,.3,10),{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:1.2})},.3)}
+  if(pynt==='hat'){HP2(toCCW(sm([[hx-1.3,hy+HH-.2,1],[hx+1.3,hy+HH-.2,1],[hx+.5,hy+HH+2.2],[hx+.9,hy+HH+3.6,1],[hx-.1,hy+HH+2.6]],5)),{color:cc,kind:'water',t:.2,edge:hexOf(shade(cc,-.4))},.2);HP2(sm([[hx-2.3,hy+HH-.5],[hx+2.3,hy+HH-.5],[hx+2.1,hy+HH+.1],[hx-2.1,hy+HH+.1]],3),{color:hexOf(shade(cc,-.25)),kind:'water',t:.24},.26);HP2(box(hx-1.2,hy+HH+.1,hx+1.2,hy+HH+.5),{mat:gold(),t:.22},.28)}
+  if(pynt==='blomst'){const fx=hx+2.5,fy=hy+2.2;for(let q=0;q<6;q++)HP2(circ(fx+Math.cos(q/6*TAU)*.62,fy+Math.sin(q/6*TAU)*.62,.44,.44,12),{color:q%2?hexOf(shade(cc,.3)):cc,kind:'water',t:.1},.22+q*.004);HP2(circ(fx,fy,.36,.36,12),{mat:gold(),t:.12},.28)}
+  if(pynt==='stjerne')HP2(starPts(hx+2.5,hy+2.2,.95,.42,.2),{mat:gold(),t:.14},.24);
+  if(pynt==='briller'){for(const sx of[-1,1])for(const q of ring(circ(hx+sx*ex,eyY,er*1.2,er*1.2,24),.16,false))HP2(q,{color:cc,kind:'water',t:.1},.24);HP2(box(hx-ex+er*1.2,eyY-.08,hx+ex-er*1.2,eyY+.08),{color:cc,kind:'water',t:.1},.24)}
+  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp});K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
   FRES=1;return K}
+const makeCat=makePet;
 
 /* ---- byens folk: samme dukke som heksen, i andre farver og andet tøj ---- */
 const FOLK=[
@@ -1444,7 +1490,9 @@ function buildLive(){
 
 /* ============ heksen, katten og gåturene ============ */
 const TOP=.3,SC=.3;
-const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.lookFuld():null)),KAT=makeCat({res:.6});
+const HEKS=makeFigure(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.lookFuld():null));let KAT=makeCat(Object.assign({res:.6},(typeof SPIL!=='undefined')?SPIL.dyr:null));
+/* når kæledyret er lavet om i Garderoben, bygges det på ny til byen */
+if(typeof SPIL!=='undefined')SPIL.nyKat=()=>{live.remove(KAT.G);emptyGroup(KAT.G);KAT=makeCat(Object.assign({res:.6},SPIL.dyr));live.add(KAT.G);KAT.G.scale.setScalar(SC);C0.root=KAT.G};
 live.add(HEKS.G);HEKS.G.scale.setScalar(SC);live.add(KAT.G);KAT.G.scale.setScalar(SC);
 const shadowTex=(()=>{const c=cv(64,64),g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return tx(c,false)})();
 const blob=(w,d)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;live.add(m);return m};

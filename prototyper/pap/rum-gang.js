@@ -31,7 +31,7 @@ ROOMS.gang=function(ctx){
             for(const q of lf){const m=piece(q,{t:.4,s:16,paint:P=>{boards(P,null,'#6a4426',{dir:'v',h:1.6,ink:.3});for(const y of[4,DH-8])P.flat('#2e2028',box(-DW,y,DW,y+.9),.7);P.fill(circ(-s*(DW/2-1.3),DH*.42,.5,.5,12),'#c9a04a',1)}});pv.add(m)}return{pv,s}});
           const hitbox=new THREE.Mesh(new THREE.PlaneGeometry(DW+3,DH+12),new THREE.MeshBasicMaterial({visible:false}));hitbox.position.set(f.x,(DH+12)/2,-8);g.add(hitbox);Rm.tap(hitbox,()=>{if(!opening){W0.tx=f.x;W0.want=f}})}},
       ()=>{heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.8);heks.G.position.set(0,.35,5.4);Rm.live.add(heks.G);W0.sh=Rm.blob(0,5.4,13,5);
-        kat=makeCat();kat.G.scale.setScalar(.5);kat.G.position.set(-8,.35,7.5);Rm.live.add(kat.G);ctx.say('Tryk på en dør, så går heksen derhen')}],
+        kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.5);kat.G.position.set(-8,.35,7.5);Rm.live.add(kat.G);ctx.say('Tryk på en dør, så går heksen derhen')}],
     tick:(t,dt)=>{const d=W0.tx-W0.x,mv=Math.abs(d)>.3&&!opening;if(mv){const st=Math.sign(d)*Math.min(Math.abs(d),24*dt);W0.x+=st;W0.face=Math.sign(d);W0.ph+=Math.abs(st)/3.4*Math.PI}
       W0.amp+=((mv?1:0)-W0.amp)*Math.min(1,dt*8);heks.G.position.x=W0.x;heks.G.scale.x=.8*W0.face;heks.G.position.y=.35+Math.abs(Math.sin(W0.ph))*.5*W0.amp;heks.tick(t,{ph:W0.ph,amp:W0.amp});W0.sh.position.x=W0.x;
       const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km)kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});

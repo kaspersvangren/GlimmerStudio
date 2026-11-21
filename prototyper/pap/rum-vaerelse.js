@@ -81,7 +81,7 @@ ROOMS.vaerelse=function(ctx){
     build:Rm=>[()=>{G.fast=new THREE.Group();Rm.scene.add(G.fast)},...['tapet','gardin','seng','lampe','taeppe','ting'].map(s=>()=>{G[s]=new THREE.Group();Rm.scene.add(G[s]);B[s](G[s],V[s]%3);Rm.tap(G[s],skift(s))}),()=>fast(G.fast),
       ()=>{Rm.tap(G.skab,()=>ctx.go('garderobe'));
         heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{LYD.tryk();pop=1;Rm.burst(HX,22,8,8)});
-        kat=makeCat();kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.op();hop=1});
+        kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.op();hop=1});
         ctx.say('Tryk på tingene for at skifte dem · skabet fører ind i Garderoben')}],
     tick:t=>{pop=Math.max(0,pop-.035);hop=Math.max(0,hop-.04);const k=1+.06*Math.sin(pop*Math.PI)*pop;heks.G.scale.set(k,2-k,1);heks.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;heks.tick(t,{ph:0,amp:0});
       kat.G.position.y=1.1+Math.sin(hop*Math.PI)*2.2*hop;kat.tick(t,{ph:hop?t*14:0,amp:hop?1:0})}})};
