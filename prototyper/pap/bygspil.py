@@ -5,7 +5,7 @@ F=os.path.join(D,'pap-testscene.html') if os.path.exists(os.path.join(D,'pap-tes
 L=open(F).read().split('\n')
 helpers='\n'.join(L[76:236]).replace('antialias:false','antialias:true').replace('const rnd=rng(20261118);','let rnd=rng(20261118);')
 r=lambda n:open(os.path.join(D,n)).read()
-kort='\n'.join(r(n) for n in['k2detail.js','k3craft.js','k2scene.js','k3town.js','stoevle.js','k3town2.js','k3land.js'])+'\n'+r('witch.js').split('const W={};')[0]+'\n'+'\n'.join(r(n) for n in['figur.js','k3folk.js','k2live.js','spil0.js','spillog.js','k2main.js','k3stage.js'])
+kort='\n'.join(r(n) for n in['k2detail.js','k3craft.js','k2scene.js','k3town.js','stoevle.js','k3town2.js','k3land.js'])+'\n'+r('witch.js').split('const W={};')[0]+'\n'+'\n'.join(r(n) for n in['figur.js','k3folk.js','k2live.js','spil0.js','spillog.js','lyd.js','k2main.js','k3stage.js'])
 rum=lambda navn,fil:"ROOMS.%s=function(ctx){const msg=ctx.msg,msgN=ctx.msgN;\n%s\nctx.room={scenes:[scene,live],ST}};\n"%(navn,r(fil))
 import glob
 nye='\n'.join(r(os.path.basename(f)) for f in sorted(glob.glob(os.path.join(D,'rum-*.js'))))

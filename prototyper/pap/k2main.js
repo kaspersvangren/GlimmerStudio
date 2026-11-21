@@ -139,11 +139,11 @@ function bake(){const t0=performance.now();const w=stage.clientWidth,h=stage.cli
   big.viewport.set(0,0,FW,FH);renderer.setRenderTarget(big);renderer.clear();
   copyMat.uniforms.tColor.value=tile.texture;copyMat.uniforms.tDepth.value=tile.depthTexture;
   for(let ty=0;ty<ny;ty++)for(let tx=0;tx<nx;tx++){
-    cam.setViewOffset(FW,FH,tx*tw,ty*th,tw,th);renderer.shadowMap.needsUpdate=true;
+    cam.setViewOffset(FW,FH,tx*tw,ty*th,tw,th);if(!tx&&!ty)renderer.shadowMap.needsUpdate=true;/* skyggerne er ens for alle fliser, så de tegnes kun én gang */
     renderer.setRenderTarget(tile);renderer.clear();renderer.render(scene,cam);
     big.viewport.set(tx*tw,FH-(ty+1)*th,tw,th);renderer.setRenderTarget(big);renderer.render(copyScene,blitCam)}
-  big.viewport.set(0,0,FW,FH);renderer.setRenderTarget(null);tile.dispose();
-  cam.clearViewOffset();const fin=POST.run(big,FW,FH);
+  big.viewport.set(0,0,FW,FH);renderer.setRenderTarget(null);tile.dispose();const maal=!baked,gl=renderer.getContext();if(maal)gl.finish();const t1=performance.now();
+  cam.clearViewOffset();const fin=POST.run(big,FW,FH);if(maal){gl.finish();window.__bagdele={fliser:Math.round(t1-t0),efter:Math.round(performance.now()-t1),px:`${FW}x${FH}`,felter:nx*ny}}
   blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;
   vx=fx*(FW-VW);vy=fy*(FH-VH);applyView();baked=true;bakeMs=performance.now()-t0}
 function applyView(){vx=clamp(vx,0,Math.max(0,FW-VW));vy=clamp(vy,0,Math.max(0,FH-VH));const ox=Math.round(vx),oy=Math.round(vy);
@@ -255,4 +255,4 @@ function frame(now){
 
   window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
-  requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();TID.foerste=readyAt-TID.klarTil;msg.classList.add('gone');if(typeof LOG!=='undefined'){LOG.row('opstart',{klar:Math.round(readyAt),foerste:Math.round(TID.foerste),hentet:Math.round(TID.hentet),skrifter:Math.round(TID.skrifter),malet:Math.round(TID.malet),bagt:Math.round(TID.bagt),trin:TID.trin.map(Math.round)});LOG.flush()}})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
+  requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();TID.foerste=readyAt-TID.klarTil;msg.classList.add('gone');if(typeof LOG!=='undefined'){LOG.row('opstart',{dele:window.__bagdele||null,klar:Math.round(readyAt),foerste:Math.round(TID.foerste),hentet:Math.round(TID.hentet),skrifter:Math.round(TID.skrifter),malet:Math.round(TID.malet),bagt:Math.round(TID.bagt),trin:TID.trin.map(Math.round)});LOG.flush()}})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();

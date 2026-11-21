@@ -44,14 +44,14 @@ ROOMS.eliksir=function(ctx){
   let venter=false;/* et trin kan kun afsluttes én gang, også selv om fingeren bliver ved med at røre */
   const naeste=ms=>{if(venter)return;venter=true;setTimeout(advance,ms)};
   const advance=()=>{venter=false;if(!ctx.alive)return;pot.i++;pot.got=0;stirAcc=0;if(pot.i>=pot.steps.length)finish();else{drawBoard();tip()}};
-  const finish=()=>{busy=true;SPIL.eliksir=(SPIL.eliksir||0)+1;SPIL.giv(1);tgt.set(pot.potion.col);Rm.burst(CX,22,8,14,'rgba(255,240,180,.95)',9);drawBoard();ctx.say(`${pot.name}! ${pot.potion.line}`);fx={kind:pot.potion.fx,t:0};setTimeout(()=>{if(ctx.alive){fx=null;start()}},4600)};
-  const jarTap=id=>()=>{if(busy||!pot||venter)return;const s=step();if(s.kind==='ing'&&s.id===id&&pot.got<s.n){pot.got++;const j=IDS.indexOf(id);const q=fly.find(f=>f.t>1)||fly[0];q.t=0;q.x0=JX[j%2];q.y0=JY[j>>1]+5;q.s.material.color.set(INGR[id].col);
+  const finish=()=>{LYD.fanfare();busy=true;SPIL.eliksir=(SPIL.eliksir||0)+1;SPIL.giv(1);tgt.set(pot.potion.col);Rm.burst(CX,22,8,14,'rgba(255,240,180,.95)',9);drawBoard();ctx.say(`${pot.name}! ${pot.potion.line}`);fx={kind:pot.potion.fx,t:0};setTimeout(()=>{if(ctx.alive){fx=null;start()}},4600)};
+  const jarTap=id=>()=>{if(busy||!pot||venter)return;const s=step();if(s.kind==='ing'&&s.id===id&&pot.got<s.n){LYD.plop();pot.got++;const j=IDS.indexOf(id);const q=fly.find(f=>f.t>1)||fly[0];q.t=0;q.x0=JX[j%2];q.y0=JY[j>>1]+5;q.s.material.color.set(INGR[id].col);
         tgt.lerp(new THREE.Color(INGR[id].col),.55);drawBoard();if(pot.got>=s.n)naeste(620)}
-      else if(s.kind==='ror')ctx.say('Først skal der røres! Tegn cirkler rundt om gryden med fingeren.');else if(s.kind==='varme')ctx.say('Først skal gryden varmes: tryk på ilden.');else{ctx.say(MISS[Math.floor(Math.random()*MISS.length)]);Rm.burst(CX,19,8,8,'rgba(90,90,100,.9)',4)}};
+      else if(s.kind==='ror')ctx.say('Først skal der røres! Tegn cirkler rundt om gryden med fingeren.');else if(s.kind==='varme')ctx.say('Først skal gryden varmes: tryk på ilden.');else{LYD.puf();ctx.say(MISS[Math.floor(Math.random()*MISS.length)]);Rm.burst(CX,19,8,8,'rgba(90,90,100,.9)',4)}};
   const Rm=makeRoom(ctx,{bg:'#0d1012',fit:fitBox(88,50,-2,20.5),sky:'#a8c8b8',ground:'#30382e',amb:.45,key:{col:'#ffe0b8',i:1.7,tgt:[0,16,0]},
     drag:(ph,e,Rm)=>{const s=step();if(!s||s.kind!=='ror'||busy||venter)return;const p=Rm.planeAt(e,6);if(!p)return;const a=Math.atan2((p.y-LY)*2.2,p.x-CX);if(ph==='start'||stirA===null){stirA=a;return}if(ph==='end'){stirA=null;return}
       let d=a-stirA;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;stirA=a;ladA=a;stirAcc=s.dir?Math.max(0,stirAcc-d*s.dir):stirAcc+d;const turns=Math.floor(Math.abs(stirAcc)/TAU);
-      if(turns>pot.got){pot.got=Math.min(s.n,turns);drawBoard();Rm.burst(CX,LY+2,8,5,'rgba(255,255,255,.8)',5);if(pot.got>=s.n){stirA=null;naeste(500)}}},
+      if(turns>pot.got){LYD.roer();pot.got=Math.min(s.n,turns);drawBoard();Rm.burst(CX,LY+2,8,5,'rgba(255,255,255,.8)',5);if(pot.got>=s.n){stirA=null;naeste(500)}}},
     build:Rm=>[()=>{const g=Rm.scene,W=box(-76,-2,76,64);
         P2(g,W,{t:.5,s:9,cap:1800,paint:P=>{P.wash('#4a5650',W,{top:'#2e3a38',edge:0,clouds:16});P.ashlar(W,'#56625c',{rowH:[3.4,4.4],bw:[5.5,9],tint:.07,ink:.24})}},-10);
         for(let i=0;i<40;i++)Rm.floor(box(-76,-10+i*1.05,76,-9+i*1.05),{color:shade('#5a4632',R(-.06,.06)),kind:'balsa',t:.3},0);
@@ -70,7 +70,7 @@ ROOMS.eliksir=function(ctx){
         for(const s of[-1,1])for(const q of ring(circ(CX+s*11,11.4,1.5,1.9,20),.4,false))P2(g,q,{color:'#3a3644',t:.5},5.4);
         P2(g,sm([[CX-10.6,13.1],[CX+10.6,13.1],[CX+10.6,14.9],[CX-10.6,14.9]],3),{color:'#3a3644',kind:'water',t:2},6.6);
         Rm.glow(CX,3.4,8.4,'#ff9a40',16,true);const L=new THREE.PointLight('#ff9a50',60,40,2);put(g,L,CX,4,12);
-        const hb=new THREE.Mesh(new THREE.PlaneGeometry(18,6),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(CX,2.6,9.6);g.add(hb);Rm.tap(hb,()=>{if(busy||!pot||venter)return;const s=step();if(s.kind==='varme'){fire=1;Rm.burst(CX,5,9,8,'rgba(255,170,80,.95)',6);pot.got=1;drawBoard();naeste(650)}else ctx.say('Ilden er fin lige nu. Pust til den, når opskriften siger det.')});
+        const hb=new THREE.Mesh(new THREE.PlaneGeometry(18,6),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(CX,2.6,9.6);g.add(hb);Rm.tap(hb,()=>{if(busy||!pot||venter)return;const s=step();if(s.kind==='varme'){LYD.ild();fire=1;Rm.burst(CX,5,9,8,'rgba(255,170,80,.95)',6);pot.got=1;drawBoard();naeste(650)}else ctx.say('Ilden er fin lige nu. Pust til den, når opskriften siger det.')});
         P2(g,box(CX-15.6,24.2,CX+15.6,46.4),{color:'#6a4426',kind:'balsa',t:.8},-9.4);P2(g,box(CX-15.6,23.4,CX+15.6,24.4),{color:'#86593a',kind:'balsa',t:2},-9.2);P2(g,box(CX-11,24.4,CX-8,25),{color:'#f6f0dc',kind:'card',t:.6},-8.4)},
       ()=>{const lv=Rm.live;bc=cv(896,640);bt=tx(bc,true);const bm=new THREE.Mesh(new THREE.PlaneGeometry(29.2,20.8),new THREE.MeshBasicMaterial({map:bt,toneMapped:false}));bm.position.set(CX,35.4,-8.5);bm.userData.noShadow=true;lv.add(bm);
         liq=new THREE.Mesh(new THREE.CircleGeometry(1,40),new THREE.MeshStandardMaterial({color:mix,emissive:mix,emissiveIntensity:.55,roughness:.5}));liq.scale.set(9.5,1.5,1);liq.position.set(CX,LY,6.3);liq.userData.noShadow=true;lv.add(liq);

@@ -75,13 +75,13 @@ ROOMS.vaerelse=function(ctx){
       const rim=toCCW(sm([[bx-5.4,.2,1],[bx+5.4,.2,1],[bx+5.6,2.4],[bx+3,1.9],[bx,1.7],[bx-3,1.9],[bx-5.6,2.4]],5));P2(g,rim,{t:.4,s:26,paint:P=>{P.wash('#9a6a3c',rim,{top:'#b8864e',edge:.6});for(let x=bx-5.2;x<bx+5.4;x+=.8)P.pen([[x,.3],[x+.4,2.2]],'#5c3c20',.06,.5)}},bz+2.3)}};
   const rebuild=slot=>{emptyGroup(G[slot]);B[slot](G[slot],V[slot])};
   const POS={tapet:[0,40,-8],gardin:[-27,34,-6],seng:[-29,12,2],lampe:[11,39,-3],taeppe:[0,2,6],ting:[21,10,8]};
-  const skift=slot=>()=>{V[slot]=(V[slot]+1)%3;SPIL.rum[slot]=V[slot];SPIL.save();rebuild(slot);Rm.rebake();Rm.burst(...POS[slot])};
+  const skift=slot=>()=>{LYD.valg();V[slot]=(V[slot]+1)%3;SPIL.rum[slot]=V[slot];SPIL.save();rebuild(slot);Rm.rebake();Rm.burst(...POS[slot])};
   ctx.test=slot=>skift(slot)();
   const Rm=makeRoom(ctx,{fit:fitBox(84,50,0,20),key:{tgt:[-2,16,0]},
     build:Rm=>[()=>{G.fast=new THREE.Group();Rm.scene.add(G.fast)},...['tapet','gardin','seng','lampe','taeppe','ting'].map(s=>()=>{G[s]=new THREE.Group();Rm.scene.add(G[s]);B[s](G[s],V[s]%3);Rm.tap(G[s],skift(s))}),()=>fast(G.fast),
       ()=>{Rm.tap(G.skab,()=>ctx.go('garderobe'));
-        heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{pop=1;Rm.burst(HX,22,8,8)});
-        kat=makeCat();kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{hop=1});
+        heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{LYD.tryk();pop=1;Rm.burst(HX,22,8,8)});
+        kat=makeCat();kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.op();hop=1});
         ctx.say('Tryk på tingene for at skifte dem · skabet fører ind i Garderoben')}],
     tick:t=>{pop=Math.max(0,pop-.035);hop=Math.max(0,hop-.04);const k=1+.06*Math.sin(pop*Math.PI)*pop;heks.G.scale.set(k,2-k,1);heks.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;heks.tick(t,{ph:0,amp:0});
       kat.G.position.y=1.1+Math.sin(hop*Math.PI)*2.2*hop;kat.tick(t,{ph:hop?t*14:0,amp:hop?1:0})}})};
