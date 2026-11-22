@@ -57,11 +57,15 @@ ROOMS.dyrepark=function(ctx){
         ctx.say('Velkommen i Dyreparken! Tryk på Dyrekøkkenet eller Ungestalden.')}],
     tick:(t,dt)=>{const d=W0.tx-W0.x,mv=Math.abs(d)>.3&&!gaar;if(mv){const st=Math.sign(d)*Math.min(Math.abs(d),24*dt);W0.x+=st;W0.face=Math.sign(d);W0.ph+=Math.abs(st)/3.4*Math.PI}
       W0.amp+=((mv?1:0)-W0.amp)*Math.min(1,dt*8);heks.G.position.x=W0.x;heks.G.scale.x=.8*W0.face;heks.G.position.y=.35+Math.abs(Math.sin(W0.ph))*.5*W0.amp;heks.tick(t,{ph:W0.ph,amp:W0.amp});W0.sh.position.x=W0.x;
-      const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km)kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});
+      const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km&&(!kat.hopper||kat.luft))kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*(kat.hopper?1.7:1)*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});
       if(W0.want&&!mv&&!gaar){const s=W0.want;W0.want=null;if(s.aeg){vip=1;LYD.pip();ctx.say('Ægget ruger. Det er varmt, og det banker lidt indeni … en dag klækker det!')}else if(ROOMS[s.rum]){gaar=s;ctx.go(s.rum)}}
       vip=Math.max(0,vip-dt*.8);aeg.rotation.z=Math.sin(t*1.1)*.02+Math.sin(vip*Math.PI*5)*.16*vip;aeg.position.y=2.4+Math.abs(Math.sin(vip*Math.PI*5))*.5*vip;
-      if(frys!==null){DYR_.forEach((a,i)=>{a.K.G.position.set(-36+i*18,.5,12);a.K.G.scale.set(.62,.62,.62);a.K.tick(0,{ph:frys*TAU*({kanin:2,'frø':2.6,ugle:1}[a.K.kind]||1),amp:1})})}else
-      for(const a of DYR_){a.pause-=dt;const gaa=a.pause<0;if(gaa){a.x+=a.v*dt;if(a.pause<-R(3,6))a.pause=R(1.5,4);if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}}a.hop=Math.max(0,a.hop-dt*1.6);a.K.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop,a.z);a.K.G.scale.x=.62*Math.sign(a.v);a.K.tick(t+a.i,{ph:t*11+a.i,amp:gaa?1:0})}
+      if(frys!==null){DYR_.forEach((a,i)=>{a.K.G.position.set(-36+i*18,.5,12);a.K.G.scale.set(.62,.62,.62);a.K.tick(0,{ph:frys*TAU*(a.K.cyk||1),amp:1})})}else
+      for(const a of DYR_){const K_=a.K;let gaa;
+        if(K_.hopper){/* et par hop, og så en pause, hvor dyret sidder */
+          if(a.pause>0){a.pause-=dt;gaa=false;if(a.pause<=0){a.ph=0;a.n=K_.kind==='frø'?1+Math.floor(R(2)):2+Math.floor(R(3))}}else{gaa=true;a.ph=(a.ph||0)+dt*11;if(K_.luft)a.x+=a.v*2.4*dt;if(a.ph>=TAU*K_.cyk*a.n)a.pause=R(1.2,3.2)}}
+        else{a.pause-=dt;gaa=a.pause<0;a.ph=t*11+a.i;if(gaa){a.x+=a.v*dt;if(a.pause<-R(3,6))a.pause=R(1.5,4)}}
+        if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}a.hop=Math.max(0,a.hop-dt*1.6);K_.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop,a.z);K_.G.scale.x=.62*Math.sign(a.v);K_.tick(t+a.i,{ph:a.ph,amp:gaa?1:0})}
       for(const q of hj){q.t+=dt*.9;if(q.t>1){q.s.visible=false;continue}q.s.visible=true;q.s.position.set(q.x+Math.sin(q.t*8)*.5,q.y+q.t*8,13);const z=2+q.t*1.6;q.s.scale.set(z,z,1);q.s.material.opacity=1-q.t*q.t}
       for(const q of roeg){q.t=(q.t+dt*.16)%1;q.s.position.set(-20.6+Math.sin(q.t*5+t*.3)*1.2+q.t*3,34.6+q.t*11,-6.6);const z=3+q.t*5;q.s.scale.set(z,z,1);q.s.material.opacity=.55*(1-q.t)}}});
   ctx.test={hop:u=>{frys=u}}};

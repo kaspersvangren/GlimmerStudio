@@ -16,7 +16,7 @@ function clampWalk(x,z){x=clamp(x,-78,78);z=clamp(z,-22,36);
   for(const[bx,bz]of BAENKE)if(Math.abs(x-bx)<4.2&&Math.abs(z-bz)<1.8)z=bz+2.4;/* man kan ikke stå inde i en bænk: man stiller sig foran den */
   const h=houseAt(x,z);if(h&&SPOTS[h[0]]){const s=SPOTS[h[0]];return[s[0],s[1]]}return[x,z]}
 /* svævende skridt (ca. 2,2 i sekundet): ét hop pr. skridtlængde, toppen af hoppet holdes lidt, og hoppene ebber ud, når figuren stopper */
-const GAIT={heks:{len:4.1,h:.4},kat:{len:4.1,h:.45},npc:{len:3.8,h:.3}};
+const GAIT={heks:{len:4.1,h:.4},kat:{len:4.1,h:.45},hop:{len:4.1,h:0},npc:{len:3.8,h:.3}};
 function stepWalker(w,dt){
   const dx=w.tx-w.x,dz=w.tz-w.z,d=Math.hypot(dx,dz),moving=d>.25,g=GAIT[w.kind];
   w.amp=(w.amp||0)+((moving?1:0)-(w.amp||0))*Math.min(1,dt*(moving?5:3));
@@ -222,7 +222,8 @@ function frame(now){
     if(n.acting&&n.poi.face)n.face=n.poi.face;
     stepWalker(n,dt);n.o.tick(time+n.x,{ph:n.ph,amp:n.amp||0})}
   /* heksen og katten */
-  HEKS.tick(time,{ph:W0.ph,amp:W0.amp||0});KAT.tick(time,{ph:C0.ph*2,amp:C0.amp||0});
+  HEKS.tick(time,{ph:W0.ph,amp:W0.amp||0});/* et dyr, der hopper, får sat hoppets længde, så det står stille på jorden mellem hoppene */
+  if(KAT.hopper){C0.kind='hop';const dx=C0.tx-C0.x,dz=C0.tz-C0.z,D=KAT.skridt*SC;KAT.tick(time,{ph:C0.ph*2*KAT.cyk*GAIT.hop.len/D,amp:C0.amp||0,skridt:KAT.skridt*Math.abs(dx)/Math.max(.01,Math.hypot(dx,dz))})}else{C0.kind='kat';KAT.tick(time,{ph:C0.ph*2,amp:C0.amp||0})}
   /* dragen: trækker vejret, sover, vågner hvis man trykker */
   {const awake=time-wakeT<3;dragon.tick(time,{awake});
     const hp=new THREE.Vector3();dragon.head.getWorldPosition(hp);

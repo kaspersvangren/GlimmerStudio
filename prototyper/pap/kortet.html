@@ -1367,9 +1367,9 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(mo==='plet')P.wash(cb,circ((x0+x1)/2-1,(y0+y1)/2+.4,(x1-x0)*.3,(y1-y0)*.34,18),{alpha:.96,edge:.25,mode:'source-over'})};
   const leg=(x,z,far)=>{const p=fpiv(G,x,4.2,z),col=fugl?'#e0a020':far?hexOf(shade(c0,-.25)):c0,sh=fugl?sm([[x-.3,4.4,1],[x+.3,4.4,1],[x+.3,.5],[x+1.3,.2],[x+1.2,0,1],[x-1,0,1],[x-1.1,.2],[x-.3,.5]],3):sm([[x-.72,4.6,1],[x+.72,4.6,1],[x+.66,1.2],[x+.95,.25],[x+.8,0,1],[x-.7,0,1],[x-.66,1.2]],4);
     fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});if(mo==='sokker'&&!fugl)P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(cb,-.2)):cb,1)}},0);return p.o};
-  K.legs=fugl?[]:[leg(-2.5,-.3,true),leg(3.3,-.3,true)];
+  const hopper=kind==='kanin'||kind==='frø';K.legs=fugl||hopper?[]:[leg(-2.5,-.3,true),leg(3.3,-.3,true)];
   /* halen */
-  {const t=fpiv(G,-4.2,6.3,-.1);K.tail=t.o;const HP=(pts,col,w_,z=0)=>{for(const q of thick([curve(pts,10)],w_))fp(t.i,q,{color:col,kind:'water',t:.16,edge:hexOf(shade(col,-.4))},z)};
+  {const t=fugl?fpiv(G,.6,2.4,-.1):fpiv(G,-4.2,6.3,-.1);K.tail=t.o;const HP=(pts,col,w_,z=0)=>{for(const q of thick([curve(pts,10)],w_))fp(t.i,q,{color:col,kind:'water',t:.16,edge:hexOf(shade(col,-.4))},z)};
     if(kind==='kat'){HP([[-4.2,6.3],[-6.3,7.2],[-7.2,9.6],[-6.4,12],[-5,12.9]],c0,.62);fp(t.i,circ(-5.05,12.85,.78,.78,16),{color:cb,kind:'water',t:.18},.02)}
     if(kind==='hund')HP([[-4.2,6.6],[-5.7,8],[-5.9,9.8],[-5.2,10.8]],c0,.7);
     if(kind==='kanin')fp(t.i,circ(-5,6.7,1.35,1.3,18),{color:cb,kind:'water',t:.3,edge:hexOf(shade(cb,-.2))},0);
@@ -1377,17 +1377,19 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(kind==='ræv'){const b=toCCW(sm([[-3.9,5.8,1],[-6.6,6],[-9.3,9.2],[-8.8,12.6,1],[-6.2,11.2],[-4.4,8.6]],6));fp(t.i,b,{t:.2,s:40,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6});P.wash(cb,circ(-8.6,11.6,1.7,1.9,14),{alpha:.97,edge:.4,mode:'source-over'})}},0)}
     if(kind==='enhjørning')[[[-4.2,6.6],[-6.4,6.2],[-7.4,3.6],[-6.8,1.4]],[[-4.2,6.4],[-5.8,5.2],[-6.2,3],[-5.4,1.2]],[[-4.2,6.8],[-7,7],[-8.4,4.6],[-8.2,2.2]]].forEach((c,i)=>HP(c,[cc,cb,hexOf(shade(cc,.25))][i],.5,i*.02));
     if(kind==='drage'){HP([[-4.2,5.6],[-6.6,5],[-8.4,6],[-9,8.2]],c0,.9);fp(t.i,toCCW([[-9.9,8],[-8.9,10.6],[-8,8.1]]),{color:cc,kind:'water',t:.2},.04);for(const[x,y]of[[-5.6,5.9],[-7,5.9],[-8.2,6.7]])fp(t.i,[[x-.4,y],[x,y+.9],[x+.4,y]],{color:cc,kind:'water',t:.12},-.04)}
-    if(fugl)for(const a of[-.5,0,.5])fp(t.i,leafPts(-4.6+a*.6,5.2-Math.abs(a),3,1.1,2.4+a*.5),{color:hexOf(shade(c0,-.2+a*.1)),kind:'water',t:.12,edge:cd},a*.02)}
+    if(fugl)for(const a of[-.5,0,.5])fp(t.i,leafPts(-.3+a*.5,1.9-Math.abs(a)*.6,3,1.1,2.2+a*.5),{color:hexOf(shade(c0,-.2+a*.1)),kind:'water',t:.12,edge:cd},a*.02)}
   /* kroppen */
-  {const b=fugl?sm([[-3.4,3.6],[-4,6.6],[-2.6,8.6],[.8,9],[3.4,8],[4.2,6.2],[3.6,4],[1.6,3.1],[-1.6,3]],8):sm([[-4.5,4.3],[-4.9,6.3],[-3.7,7.9],[-.6,8.3],[2.4,7.9],[4.1,6.6],[4.2,4.6],[2.9,3.4],[-3,3.3]],8);K.body=fgrp(G);
-    fp(K.body,b,{t:.24,s:44,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6,clouds:8});moen(P,-4,3.4,4,7.8,7);if(mo==='ingen'||mo==='sokker')for(let i=0;i<10;i++){const x=R(-4,3.4),y=R(4,7.6);P.pen([[x,y],[x+.5,y-.35]],c1,.06,.5)}}},0);
+  {const b=fugl?circ(3.8,5.1,4.15,4.55,30).map(([x,y])=>[x+(y<5.1?(x-3.8)*.06:0),y]):sm([[-4.5,4.3],[-4.9,6.3],[-3.7,7.9],[-.6,8.3],[2.4,7.9],[4.1,6.6],[4.2,4.6],[2.9,3.4],[-3,3.3]],8);K.body=fgrp(G);
+    fp(K.body,b,{t:.24,s:44,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6,clouds:8});if(fugl)moen(P,.6,7,1.6,8.2,7);else moen(P,-4,3.4,4,7.8,7);if(!fugl&&(mo==='ingen'||mo==='sokker'))for(let i=0;i<10;i++){const x=R(-4,3.4),y=R(4,7.6);P.pen([[x,y],[x+.5,y-.35]],c1,.06,.5)}}},0);
     if(kind==='kat'||kind==='ræv'||kind==='kanin'){const ch=sm([[2.9,7.2],[4.3,6.5],[4.2,4.7],[3.4,3.9],[2.8,5.2]],6);fp(K.body,ch,{t:.08,s:50,ed:cb,paint:P=>{P.wash(cb,ch,{edge:.4});for(let i=0;i<5;i++)P.pen([[3.1+i*.2,6.6-i*.5],[3.4+i*.2,6-i*.5]],hexOf(shade(cb,-.15)),.05,.7)}},.2)}
-    if(kind==='drage'||kind==='frø'||fugl||kind==='bjørn'){const be=circ(1,5.2,2.6,1.9,20);fp(K.body,be,{t:.06,s:40,ed:cb,paint:P=>{P.wash(cb,be,{edge:.5});if(kind==='drage')for(let x=-.8;x<3;x+=.8)P.pen([[x,3.7],[x+.2,6.7]],hexOf(shade(cb,-.25)),.07,.6)}},.18)}
+    if(kind==='drage'||kind==='frø'||fugl||kind==='bjørn'){const be=fugl?circ(3.8,4.1,2.7,3.1,22):circ(1,5.2,2.6,1.9,20);fp(K.body,be,{t:.06,s:40,ed:cb,paint:P=>{P.wash(cb,be,{edge:.5});if(kind==='drage')for(let x=-.8;x<3;x+=.8)P.pen([[x,3.7],[x+.2,6.7]],hexOf(shade(cb,-.25)),.07,.6);if(fugl)for(let j=0;j<3;j++)for(let i=-1.5+(j%2)*.5;i<1.8;i+=1)P.pen(curve([[3.8+i-.34,5.6-j*1.05],[3.8+i,5.2-j*1.05],[3.8+i+.34,5.6-j*1.05]],4),hexOf(shade(c0,-.15)),.1,.75)}},.18)}
     if(kind==='drage')for(const sx of[0,1]){const wg=toCCW(sm([[-1.6,7.6,1],[-3.2,10.4],[-5.6,11.6,1],[-5,9.6],[-4,8.6,1],[-3.4,9.2],[-2.6,7.4,1]],5));fp(K.body,wg,{color:sx?cc:hexOf(shade(cc,-.25)),kind:'water',t:.12,edge:hexOf(shade(cc,-.45))},sx?.22:-.3).position.x=sx?0:.9}
-    if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6)),wp=fpiv(K.body,1,7.7,.24);K.wing=wp.o;fp(wp.i,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},0)}
+    if(fugl){K.wings=[-1,1].map(sx=>{const x0=3.8+sx*3.1,wg=toCCW(sm([[x0-sx*.2,7.9,1],[x0+sx*1.5,7],[x0+sx*1.7,4.2],[x0+sx*.7,2.2],[x0-sx*.5,3],[x0-sx*.9,5.4]],6)),wp=fpiv(K.body,x0,7.6,.26),wc=hexOf(shade(c0,-.28));fp(wp.i,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(wc,wg,{edge:.5});for(let i=0;i<2;i++)P.pen(curve([[x0+sx*(.2+i*.6)-.3,5.6-i*1.3],[x0+sx*(.2+i*.6),5.2-i*1.3],[x0+sx*(.2+i*.6)+.3,5.6-i*1.3]],4),hexOf(shade(c0,.15)),.08,.7)}},0);return{o:wp.o,sx}});
+      /* fødderne: orange, med tre tæer, lige under maven. Ingen ben */
+      K.feet=fgrp(G,0,0,.36);for(const sx of[-1,1]){const fx=3.8+sx*1.45;fp(K.feet,circ(fx,.6,1.05,.6,14),{color:'#f08a24',kind:'water',t:.24,edge:'#a85410'},0);for(const k of[-1,0,1])fp(K.feet,circ(fx+k*.62,.34,.4,.36,10),{color:'#f08a24',kind:'water',t:.26,edge:'#a85410'},.02)}}
     /* feevinger: begge sidder på ryggen og drejer om deres rod, så ingen af dem havner ved kinden */
-    if(pynt==='vinger')for(const sx of[0,1]){const a=sx?-.16:.42,bx=sx?.8:-.4,r=([x,y,k])=>[bx+x*Math.cos(a)-(y-8)*Math.sin(a),8+x*Math.sin(a)+(y-8)*Math.cos(a),k],wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]].map(r),6));fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34)}}
-  if(fugl)K.legs.push(leg(-.6,.3,false),leg(1.8,.3,false));else K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
+    if(pynt==='vinger')for(const sx of[0,1]){const a=sx?-.16:.42,bx=(sx?.8:-.4)+(fugl?1.2:0),r=([x,y,k])=>[bx+x*Math.cos(a)-(y-8)*Math.sin(a),8+x*Math.sin(a)+(y-8)*Math.cos(a),k],wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]].map(r),6));fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34)}}
+  if(!fugl&&!hopper)K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
   /* pynt om halsen */
   const NK=(sh,po,z)=>fp(G,sh,po,z);
   if(pynt==='halsbånd'||pynt==='tørklæde'){NK(sm([[1.9,8.5],[4.6,7.6],[4.8,8.3],[2.1,9.2]],3),{color:cc,kind:'water',t:.12},.42);if(pynt==='halsbånd')NK(starPts(3.5,7.75,.62,.27),{mat:gold(),t:.1},.52);else NK(toCCW([[2.6,8.2],[3.6,7.9],[3.4,5.6],[2.6,6.2]]),{color:cc,kind:'water',t:.1,edge:hexOf(shade(cc,-.3))},.4)}
@@ -1397,7 +1399,7 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
   for(const sx of[-1,1]){
     if(kind==='kat'||kind==='ræv'||kind==='enhjørning'){const q=kind==='ræv'?1.25:kind==='kat'?1:.7,e=toCCW([[hx+sx*1.1,hy+2.3],[hx+sx*(1.1+1.65*q),hy+2.3+2.4*q],[hx+sx*3.25,hy+1.3]]);HP2(e,{t:.14,s:50,ed:c0,paint:P=>{P.wash(c0,e,{edge:.5});P.fill([[hx+sx*1.75,hy+2.5],[hx+sx*(1.2+1.42*q),hy+2.4+1.6*q],[hx+sx*2.9,hy+2]],kind==='ræv'?MORK:'#e59aa8',.95)}},-.06)}
     if(kind==='hund')HP2(toCCW(sm([[hx+sx*2.2,hy+2.7,1],[hx+sx*4.3,hy+2.1],[hx+sx*4.6,hy-1.4],[hx+sx*3.5,hy-2.3],[hx+sx*2.9,hy+.4]],6)),{color:hexOf(shade(c0,-.3)),kind:'water',t:.14,edge:cd},.1);
-    if(kind==='kanin'){const e=toCCW(sm([[hx+sx*.8,hy+2.3,1],[hx+sx*1.2,hy+7],[hx+sx*2.1,hy+7.6],[hx+sx*2.7,hy+6.6],[hx+sx*2.6,hy+2.1,1]],6));HP2(e,{t:.14,s:50,ed:c0,paint:P=>{P.wash(c0,e,{edge:.5});P.wash(cb,toCCW(sm([[hx+sx*1.3,hy+2.8],[hx+sx*1.6,hy+6.4],[hx+sx*2.1,hy+6.4],[hx+sx*2.2,hy+2.8]],4)),{alpha:.95,edge:.4,mode:'source-over'})}},-.06)}
+    if(kind==='kanin'){const e=toCCW(sm([[hx+sx*.8,hy+2.3,1],[hx+sx*1.2,hy+7],[hx+sx*2.1,hy+7.6],[hx+sx*2.7,hy+6.6],[hx+sx*2.6,hy+2.1,1]],6));if(!K.ears)K.ears=fpiv(HI,hx,hy+2.2,0);fp(K.ears.i,e,{t:.14,s:50,ed:c0,paint:P=>{P.wash(c0,e,{edge:.5});P.wash(cb,toCCW(sm([[hx+sx*1.3,hy+2.8],[hx+sx*1.6,hy+6.4],[hx+sx*2.1,hy+6.4],[hx+sx*2.2,hy+2.8]],4)),{alpha:.95,edge:.4,mode:'source-over'})}},-.06)}
     if(kind==='bjørn'){HP2(circ(hx+sx*2.7,hy+2.5,1.25,1.2,18),{color:c0,kind:'water',t:.14,edge:cd},-.06);HP2(circ(hx+sx*2.7,hy+2.5,.7,.66,14),{color:cb,kind:'water',t:.05},-.02)}
     if(kind==='drage'){HP2(toCCW([[hx+sx*1.5,hy+2.4],[hx+sx*2.9,hy+4.9],[hx+sx*2.7,hy+2]]),{color:'#f3ead2',kind:'card',t:.16},-.05);HP2(toCCW([[hx+sx*3.1,hy+1.2],[hx+sx*5,hy+1.8],[hx+sx*4.4,hy+.2],[hx+sx*4.9,hy-1],[hx+sx*3.2,hy-.8]]),{color:cc,kind:'water',t:.12,edge:hexOf(shade(cc,-.4))},-.08)}
     if(fugl)HP2(toCCW([[hx+sx*1.6,hy+2.4],[hx+sx*3,hy+4.2],[hx+sx*3.1,hy+1.8]]),{color:hexOf(shade(c0,-.2)),kind:'water',t:.14,edge:cd},-.06);
@@ -1420,15 +1422,41 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
   if(pynt==='blomst'){const fx=hx+2.5,fy=hy+2.2;for(let q=0;q<6;q++)HP2(circ(fx+Math.cos(q/6*TAU)*.62,fy+Math.sin(q/6*TAU)*.62,.44,.44,12),{color:q%2?hexOf(shade(cc,.3)):cc,kind:'water',t:.1},.22+q*.004);HP2(circ(fx,fy,.36,.36,12),{mat:gold(),t:.12},.28)}
   if(pynt==='stjerne')HP2(starPts(hx+2.5,hy+2.2,.95,.42,.2),{mat:gold(),t:.14},.24);
   if(pynt==='briller'){for(const sx of[-1,1])for(const q of ring(circ(hx+sx*ex,eyY,er*1.2,er*1.2,24),.16,false))HP2(q,{color:cc,kind:'water',t:.1},.24);HP2(box(hx-ex+er*1.2,eyY-.08,hx+ex-er*1.2,eyY+.08),{color:cc,kind:'water',t:.1},.24)}
-  /* alt i dyret ligger i en indre gruppe, så et hop kan løfte hele dyret, uden at den, der flytter dyret rundt, mærker det */
-  K.I=new THREE.Group();for(const c of[...G.children])K.I.add(c);G.add(K.I);const HOP={kanin:[2.2,.62,2],'frø':[3,.5,2.6],ugle:[1.1,.7,1]}[kind];
-  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);
-    if(HOP){/* kanin, frø og ugle går ikke: de hopper. Et hop er en bue i luften og en lille pause på jorden, hvor dyret dukker sig */
-      K.a=(K.a||0)+(amp-(K.a||0))*.22;const A=K.a,c=((ph/(TAU*HOP[2]))%1+1)%1,luft=c<HOP[1],u=luft?c/HOP[1]:0,bue=Math.sin(u*Math.PI),duk=luft?0:Math.sin((c-HOP[1])/(1-HOP[1])*Math.PI);
-      K.I.position.y=HOP[0]*bue*A;K.I.rotation.z=(luft?(.5-u)*.34:0)*A;K.I.scale.y=1-.09*duk*A;
-      if(fugl){K.legs.forEach(l=>{l.rotation.z=-.5*bue*A});if(K.wing)K.wing.rotation.z=-.75*bue*A}
-      else K.legs.forEach((l,i)=>{const bag=i%2===0;l.rotation.z=(bag?-.85*Math.sin(Math.min(1,u*1.6)*Math.PI*.5)*(1-u*.5):.6*bue)*(luft?1:0)*A+(bag?.25:-.2)*duk*A})}
-    else{K.I.position.y=0;K.I.rotation.z=0;K.I.scale.y=1;K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp})}K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
+  /* ---- kanin og frø: de sidder, og de hopper ----
+     Kroppen (med hoved, hale og pynt) ligger i et led ved hoften, så den kan sænkes og vippes. Bagbenene har tre led (lår, skinneben, fod) og sidder foldet
+     under dyret, når det sidder; forbenene er korte. Et hop er en række stillinger, som dyret glider imellem:
+     sidder · sætter af (bagbenene strækkes helt ud, snuden op) · i luften · bagbenene svinges frem, forbenene rækker ned · lander på forbenene · sidder igen.
+     Tallene pr. stilling: [hvor i hoppet, lår, skinneben, fod, forben, kroppens hældning, højde] (vinkler i grader) */
+  const HOPPER={'frø':{hip:[-2.6,4.8],sit:1.7,L:[3.2,3.8,3.2],W:[2.3,1.3,.85],hoved:[-.4,-1.5],sh:[2.5,4.5],Lf:2.9,cyk:2.2,skridt:7,
+      K:[[0,55,-170,107,0,18,0],[.1,-150,-8,-12,-50,30,3.4],[.3,-150,-8,-12,-40,14,5.6],[.46,-40,-100,60,45,-8,2.6],[.56,55,-170,107,12,4,0],[.66,55,-170,107,0,18,0],[1,55,-170,107,0,18,0]]},
+    kanin:{hip:[-2.4,5.4],sit:3.2,L:[2.6,2.2,3.4],W:[2.7,1.05,.9],sh:[2.6,4.5],Lf:2.6,cyk:1.4,skridt:4.5,
+      K:[[0,-35,-105,140,0,4,0],[.1,-150,-15,-10,-35,16,2.2],[.28,-150,-15,-10,20,4,3.4],[.42,10,-120,130,40,-14,1.7],[.52,-20,-110,135,15,-10,.3],[.64,-35,-105,140,0,4,0],[1,-35,-105,140,0,4,0]]}}[kind];
+  let TO=null,BAG=[],FOR=[];
+  if(HOPPER){const H=HOPPER,T=fpiv(G,H.hip[0],H.hip[1],0);TO=T.o;for(const c of[...G.children])if(c!==T.o)T.i.add(c);K.hopper=true;K.cyk=H.cyk;K.skridt=H.skridt;if(H.hoved){K.head.position.x+=H.hoved[0];K.head.position.y+=H.hoved[1]}
+    const kaps=(L,w)=>thick([[[0,0],[L,0]]],w),far=hexOf(shade(c0,-.25));
+    /* bagben: lår → skinneben → fod, hver i sit led. Det bageste ben er mørkere og ligger bag kroppen */
+    BAG=[0,1].map(naer=>{const col=naer?c0:far,ed=hexOf(shade(col,-.5)),rod=fgrp(G,H.hip[0],H.sit,naer?.46:-.4),laar=fgrp(rod),knae=fgrp(laar,H.L[0],0),ankel=fgrp(knae,H.L[1],0);
+      fp(laar,circ(H.L[0]*.5,0,H.L[0]*.5+H.W[0]*.34,H.W[0]*.5,18),{color:col,kind:'water',t:.18,edge:ed},.04);for(const q of kaps(H.L[1],H.W[1]))fp(knae,q,{color:col,kind:'water',t:.16,edge:ed},.02);
+      for(const q of kaps(H.L[2],H.W[2]))fp(ankel,q,{color:mo==='sokker'?cb:col,kind:'water',t:.16,edge:ed},0);
+      if(kind==='frø')for(const a of[-.5,0,.5])fp(ankel,toCCW([[H.L[2]-.2,-.3],[H.L[2]+1.1,Math.sin(a)*1.5-.45],[H.L[2]+1.1,Math.sin(a)*1.5+.45],[H.L[2]-.2,.3]]),{color:col,kind:'water',t:.14,edge:ed},-.02);
+      return{rod,laar,knae,ankel}});
+    /* forben: korte, hænger ned fra skulderen og følger kroppen */
+    FOR=[0,1].map(naer=>{const col=naer?c0:far,ed=hexOf(shade(col,-.5)),p=fpiv(T.i,H.sh[0]+(naer?0:.9),H.sh[1],naer?.34:-.3),x=H.sh[0]+(naer?0:.9),y=H.sh[1];
+      fp(p.i,toCCW(sm([[x-.62,y+.3,1],[x+.62,y+.3,1],[x+.56,y-H.Lf+.9],[x+(kind==='frø'?1.5:.95),y-H.Lf+.25],[x+.8,y-H.Lf,1],[x-.6,y-H.Lf,1],[x-.56,y-H.Lf+.9]],4)),{color:mo==='sokker'?cb:col,kind:'water',t:.16,edge:ed},0);return p.o})}
+  /* alt i dyret ligger i en indre gruppe, så et hop kan løfte og flytte hele dyret, uden at den, der flytter dyret rundt, mærker det */
+  K.I=new THREE.Group();for(const c of[...G.children])K.I.add(c);G.add(K.I);const RAD=Math.PI/180;
+  if(fugl){K.hopper=true;K.cyk=1;K.skridt=2.6}
+  /* skridt: hvor langt dyret flytter sig pr. hop (i dyrets egne mål), når den, der flytter det, kender det; så står det helt stille på jorden mellem hoppene */
+  K.tick=(t,{ph=0,amp=0,skridt}={})=>{const s=Math.sin(ph);K.hr=0;
+    if(HOPPER){const H=HOPPER,KK=H.K;K.a=(K.a||0)+(amp-(K.a||0))*.22;const A=K.a,c=((ph/(TAU*H.cyk))%1+1)%1;let n=0;while(n<KK.length-2&&c>=KK[n+1][0])n++;const k0=KK[n],k1=KK[n+1],u0=(c-k0[0])/(k1[0]-k0[0]),u=u0*u0*(3-2*u0),v=i=>KK[0][i]+(k0[i]+(k1[i]-k0[i])*u-KK[0][i])*A;
+      const tilt=v(5)*RAD,y=H.sit+v(6),pr=Math.min(1,Math.max(0,(c-.05)/.5)),frem=pr*pr*(3-2*pr);K.luft=A>.5&&c>.06&&c<.56;
+      K.I.position.x=(skridt===undefined?H.skridt:skridt)*(frem-c)*A;TO.position.set(H.hip[0],y,0);TO.rotation.z=tilt;K.hr=-tilt*.8;
+      BAG.forEach(b=>{b.rod.position.x=H.hip[0];b.rod.position.y=y;b.laar.rotation.z=v(1)*RAD;b.knae.rotation.z=v(2)*RAD;b.ankel.rotation.z=v(3)*RAD});FOR.forEach(f=>{f.rotation.z=v(4)*RAD-tilt});
+      if(K.ears)K.ears.o.rotation.z=(.12+.5*Math.sin(Math.min(1,Math.max(0,(c-.04)/.5))*Math.PI)*A)+.04*Math.sin(t*1.3)}
+    else if(fugl){/* uglen: små hop på begge fødder. Vingerne slår ud i luften, og kroppen trykkes lidt sammen, når den lander */
+      K.a=(K.a||0)+(amp-(K.a||0))*.22;const A=K.a,c=((ph/TAU)%1+1)%1,luft=c<.62,u=luft?c/.62:0,bue=Math.sin(u*Math.PI),duk=luft?0:Math.sin((c-.62)/.38*Math.PI);K.luft=A>.5&&luft;
+      K.I.position.y=1.5*bue*A;K.I.scale.y=1-.1*duk*A;K.I.scale.x=1+.06*duk*A;K.I.position.x=3.8*(1-(1+.06*duk*A));for(const w of K.wings)w.o.rotation.z=w.sx*(.05+.05*Math.sin(t*1.4)+.9*bue*A);K.feet.position.y=-.5*bue*A;K.feet.rotation.z=0}
+    else{K.I.position.y=0;K.I.rotation.z=0;K.I.scale.y=1;K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp})}K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp+(K.hr||0);K.lids.visible=(t+1.3)%3.1<.13};
   FRES=1;return K}
 const makeCat=makePet;
 
@@ -1565,7 +1593,7 @@ function clampWalk(x,z){x=clamp(x,-78,78);z=clamp(z,-22,36);
   for(const[bx,bz]of BAENKE)if(Math.abs(x-bx)<4.2&&Math.abs(z-bz)<1.8)z=bz+2.4;/* man kan ikke stå inde i en bænk: man stiller sig foran den */
   const h=houseAt(x,z);if(h&&SPOTS[h[0]]){const s=SPOTS[h[0]];return[s[0],s[1]]}return[x,z]}
 /* svævende skridt (ca. 2,2 i sekundet): ét hop pr. skridtlængde, toppen af hoppet holdes lidt, og hoppene ebber ud, når figuren stopper */
-const GAIT={heks:{len:4.1,h:.4},kat:{len:4.1,h:.45},npc:{len:3.8,h:.3}};
+const GAIT={heks:{len:4.1,h:.4},kat:{len:4.1,h:.45},hop:{len:4.1,h:0},npc:{len:3.8,h:.3}};
 function stepWalker(w,dt){
   const dx=w.tx-w.x,dz=w.tz-w.z,d=Math.hypot(dx,dz),moving=d>.25,g=GAIT[w.kind];
   w.amp=(w.amp||0)+((moving?1:0)-(w.amp||0))*Math.min(1,dt*(moving?5:3));
@@ -1771,7 +1799,8 @@ function frame(now){
     if(n.acting&&n.poi.face)n.face=n.poi.face;
     stepWalker(n,dt);n.o.tick(time+n.x,{ph:n.ph,amp:n.amp||0})}
   /* heksen og katten */
-  HEKS.tick(time,{ph:W0.ph,amp:W0.amp||0});KAT.tick(time,{ph:C0.ph*2,amp:C0.amp||0});
+  HEKS.tick(time,{ph:W0.ph,amp:W0.amp||0});/* et dyr, der hopper, får sat hoppets længde, så det står stille på jorden mellem hoppene */
+  if(KAT.hopper){C0.kind='hop';const dx=C0.tx-C0.x,dz=C0.tz-C0.z,D=KAT.skridt*SC;KAT.tick(time,{ph:C0.ph*2*KAT.cyk*GAIT.hop.len/D,amp:C0.amp||0,skridt:KAT.skridt*Math.abs(dx)/Math.max(.01,Math.hypot(dx,dz))})}else{C0.kind='kat';KAT.tick(time,{ph:C0.ph*2,amp:C0.amp||0})}
   /* dragen: trækker vejret, sover, vågner hvis man trykker */
   {const awake=time-wakeT<3;dragon.tick(time,{awake});
     const hp=new THREE.Vector3();dragon.head.getWorldPosition(hp);
