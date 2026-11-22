@@ -231,7 +231,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
     /* de to halvdele går helt sammen og overlapper lidt på midten, så der ikke står en sprække */
     const c=curtain;c.t+=(c.target-c.t)*Math.min(1,dt*2.6);if(Math.abs(c.target-c.t)<.012)c.t=c.target;for(const h of c.halves){h.g.position.x=h.s*mix(28,-1.4,c.t);h.g.scale.x=mix(.18,1,c.t)}
     ST.draw()};requestAnimationFrame(loop);
-  window.__koncert={ready:true,luk:()=>{curtain.target=1},gardin:()=>curtain.t,setStyle,bakeMs:ST.bakeMs}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
+  window.__koncert={ready:true,luk:()=>{curtain.target=1},gardin:()=>curtain.t,setStyle,bakeMs:ST.bakeMs,stil:()=>cur,optaget:()=>busy}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
 
 /* ---- ønsk en sang: tæppet går for, bandet skifter tøj, og tæppet går fra igen ---- */
 let busy=false;
@@ -245,7 +245,10 @@ function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0
 function walkIn(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.x,m.z])}}
 const idle=()=>BAND.every(o=>!o.q.length);
 /* musikken: lounge i baggrunden. En ønsket sang (Kaspers egne) spilles én gang, så klapper publikum, og loungen kommer tilbage */
-  const L_=typeof LYD!=='undefined'?LYD:null,lounge=()=>{if(L_&&((typeof ctx==='undefined')||ctx.alive))L_.musik('koncert.lounge'+(1+Math.floor(Math.random()*4)))};if(L_)setTimeout(lounge,600);
-  async function wish(k){if(busy||k===cur)return;busy=true;if(L_){L_.musik(null);L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false;
-    if(L_&&((typeof ctx==='undefined')||ctx.alive)){if(k==='hygge'||!L_.sang('koncert.'+k,fejl=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;if(!fejl)L_.klap();setTimeout(lounge,fejl?0:4800)}))lounge()}}
-{const box_=document.getElementById('songs');for(const k in STY){const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.addEventListener('click',()=>{wish(k);box_.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))});if(k==='hygge')b.setAttribute('aria-pressed','true');box_.appendChild(b)}}
+  const L_=typeof LYD!=='undefined'?LYD:null,levende=()=>(typeof ctx==='undefined')||ctx.alive,lounge=()=>{if(L_&&levende())L_.musik('koncert.lounge'+(1+Math.floor(Math.random()*4)))};if(L_)setTimeout(lounge,600);
+  /* hygge er ikke noget, man ønsker: det er det, bandet spiller, når ingen har ønsket noget. Når en ønsket sang er slut, og der er klappet, går de selv ud og kommer tilbage i hyggetøjet */
+  let oenskeNr=0;const visValg=k=>document.querySelectorAll('#songs button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===k)));
+  async function wish(k){if(busy||k===cur)return;busy=true;const nr=++oenskeNr;visValg(k);if(L_){L_.musik(null);L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false;
+    if(!levende())return;const hjem=ms=>setTimeout(()=>{if(levende()&&nr===oenskeNr&&cur===k)wish('hygge')},ms);if(k==='hygge'){lounge();return}
+    if(!(L_&&L_.sang('koncert.'+k,fejl=>{if(!levende()||nr!==oenskeNr)return;if(!fejl)L_.klap();hjem(fejl?0:4800)}))){lounge();hjem(typeof window!=='undefined'&&window.__koncertKort?1500:25000)}}
+  {const box_=document.getElementById('songs');for(const k in STY){if(k==='hygge')continue;const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.dataset.k=k;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>wish(k));box_.appendChild(b)}}

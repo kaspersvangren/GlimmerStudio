@@ -26,8 +26,9 @@ function stepWalker(w,dt){
   /* ingen går igennem en bænk: den, der ikke er på vej hen for at sætte sig, glider uden om */
   for(const[bx,bz]of BAENKE)if(Math.abs(w.x-bx)<3.9&&Math.abs(w.z-bz)<1.5&&Math.hypot(w.tx-bx,w.tz-bz)>1.5&&!w.acting)w.z=bz+(w.z>=bz?1.5:-1.5);
   w.moving=moving;const bob=Math.pow(Math.abs(Math.sin(w.ph)),.6)*g.h*w.amp;
-  const by=bridgeY(w.x,w.z);w.root.position.set(w.x,TOP+.08+bob+by+(w.yOff||0),w.z);w.root.scale.set(w.face*w.sc,w.sc*(w.sq||1),w.sc);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
-  w.sh.position.set(w.x,TOP+.12+by+(w.yOff||0)*.6,w.z);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
+  const by=bridgeY(w.x,w.z);/* figuren er trykket næsten flad i dybden, så to figurers papirlag ikke kan flette sig ind i hinanden, og den står lidt frem eller tilbage (vz), når den møder en anden */
+  w.vz=(w.vz||0)+((w.vzT||0)-(w.vz||0))*Math.min(1,dt*5);w.root.position.set(w.x,TOP+.08+bob+by+(w.yOff||0),w.z+w.vz);w.root.scale.set(w.face*w.sc,w.sc*(w.sq||1),w.sc*.34);w.root.rotation.z=.05*Math.cos(w.ph)*w.face*w.amp;
+  w.sh.position.set(w.x,TOP+.12+by+(w.yOff||0)*.6,w.z+w.vz);const k=1-bob*.15;w.sh.scale.set(k,k,1)}
 
 /* ============ stierne er et vejnet: heksen går ad stierne, katten følger hendes spor ============ */
 const NET=(()=>{const N=[],E=[];
@@ -207,6 +208,8 @@ function frame(now){
   if((typeof SPIL!=='undefined'))autoT=time+99;/* i spillet går heksen kun, når man beder hende om det */
   if(time>autoT){autoT=time+R(8,12);doorWant=null;if(rnd()<.6){const s=Object.values(SPOTS);goTo(...s[Math.floor(R(s.length))])}else goTo(R(-60,60),R(-14,30))}
   if(W0.q&&W0.q.length&&Math.hypot(W0.tx-W0.x,W0.tz-W0.z)<1.4)[W0.tx,W0.tz]=W0.q.shift();
+  /* to figurer, der mødes, viger: den forreste træder lidt frem, den bageste lidt tilbage, så de går forbi hinanden i stedet for igennem */
+  {const alle=[W0,C0,...walkers];for(const w of alle)w.vzT=0;for(let i=0;i<alle.length;i++)for(let j=i+1;j<alle.length;j++){const a=alle[i],b=alle[j];if(a.x===undefined||b.x===undefined)continue;const dx=Math.abs(a.x-b.x),dz=a.z-b.z;if(dx<2.4&&Math.abs(dz)<1){const k=(1-dx/2.4)*(1-Math.abs(dz))*.75,s=dz>0||(dz===0&&i<j)?1:-1;a.vzT+=s*k;b.vzT-=s*k}}}
   stepWalker(W0,dt);
   if(doorWant&&!W0.q.length){const sp=SPOTS[doorWant];if(Math.hypot(W0.x-sp[0],W0.z-sp[1])<.6){const d=doorWant;doorWant=null;if((typeof SPIL!=='undefined'))SPIL.arrive(d)}}
   /* katten følger heksens spor et par skridt bagud */
