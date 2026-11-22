@@ -1,6 +1,7 @@
 /* ============ Faldskærm (Skolen) ============
    Som i det oprindelige spil, men i pap: man ser alt lige oppefra, og dybden er rigtig dybde.
-   - Kaptajn Sky spørger, om hun er klar. Hun kommer flyvende på kosten højt over landet og springer af.
+   - Kaptajn Sky spørger, om hun er klar. Så flyver hun på kosten kæmpe højt op fra skolen, set fra siden som i kosteløbet (Kaspers ønske 12. nov.),
+     med faldskærmen på ryggen, og springer af. Den del er ikke interaktiv; et tryk springer frem til springet.
    - Frit fald i 17 sekunder: hun ligger på maven med armene ude, og man trækker hende rundt med fingeren. Stjernebobler stiger op nedefra
      mod en stiplet ring, der viser, hvor de når op; en guldboble (hver sjette) er 3 værd. Tordenskyer koster en boble, skyer suser forbi.
    - Skærmen folder sig ud. Så er der et håndtag i hver side: træk det ene ned for at dreje, skub det andet op samtidig for at dreje skarpere,
@@ -131,7 +132,7 @@ ROOMS.fald=function(ctx){
       h:H0,v:9,sink:3.8,turnV:0,wind:{x:Math.cos(wa)*w,y:Math.sin(wa)*w,s:w,a:wa},ctl:{pl:0,pr:0,L:false,R:false},keys:{},ptrs:new Map(),soft:false,ppm:.45,haze:.75,ryst:0,puf:0};
     makeSpawns();S.floaters=Array.from({length:16},(_,i)=>({x:(Math.random()-.5)*280,y:(Math.random()-.5)*240,a:20+Math.random()*110,c:['#ffb347','#ff8fc7','#ffe27a','#7fd8ff'][i%4]}));
     for(const f of S.floaters){const g=new THREE.Group();P2(g,box(-.45,-.55,.45,.55),{mat:paperMat(f.c,'tissue',{glow:f.c,gi:1.2}),t:.9},0);P2(g,box(-.5,.5,.5,.7),{color:'#5a3a28',kind:'kraft',t:.2},.9);g.visible=false;rod.add(g);f.m=g}
-    heltG.visible=false;heltG.position.set(0,0,0);heltG.scale.setScalar(1);skaerm.visible=false;kost.visible=false;skygge.visible=false;if(landet){jord.remove(landet);landet=null}
+    heltG.visible=false;heltG.position.set(0,0,0);heltG.scale.setScalar(1);skaerm.visible=false;if(side)side.visible=false;skygge.visible=false;if(landet){jord.remove(landet);landet=null}
     tv.saet(0,ALT0);tv.saet(1,0);vindPil.visible=false;haandVis(false);
     ban.vis('Kaptajn Sky: Klar til at springe?',{txt2:'Træk med fingeren, og saml stjernebobler. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6})}
   function ryd(){if(!S)return;for(const o of S.objs)rod.remove(o.el),o.ring&&rod.remove(o.ring);for(const m of S.motes)rod.remove(m.m);for(const f of S.floaters||[])rod.remove(f.m)}
@@ -144,15 +145,28 @@ ROOMS.fald=function(ctx){
     S.spawn.sort((a,b)=>a.t-b.t);S.bubN=S.spawn.filter(s=>s.kind==='bub').length;
     /* fartstriber: lange, tynde papirstrimler, der peger lige op mod os og suser forbi */
     for(let i=0;i<30;i++){const m=new THREE.Mesh(tmpl.strib,tmpl.stribM);m.userData.noShadow=true;m.visible=false;rod.add(m);S.motes.push({m,x:R(-60,60),y:R(-34,34),z:Math.random()})}}
-  /* ---------- turen: kosten kommer, hun springer ---------- */
-  function begynd(){if(!S||S.run!=='kort')return;ban.skjul();S.run='intro';S.t=0;kost.visible=true;heltG.visible=true;LYD.pust()}
-  const T_IN=2.2,T_SLIP=1.15;
-  function stepIntro(dt){S.t+=dt;if(S.t>=T_IN)freeStart()}
-  function drawIntro(){const t=S.t,u=Math.min(1,t/T_IN),bx=-70+u*150,by=6-u*4;kost.position.set(bx,by,40);kost.rotation.z=-.06;
-    if(t<T_SLIP){heltG.position.set(bx+1.5,by+.5,40.5);heltG.rotation.z=-Math.PI/2+.25;heltG.scale.setScalar(.8)}
-    else{const k=ease(Math.min(1,(t-T_SLIP)/(T_IN-T_SLIP))),hx=WX(S.hx),hy=WY(S.hy);heltG.position.set(mix(-70+T_SLIP/T_IN*150+1.5,hx,k),mix(5,hy,k),40*(1-k));heltG.rotation.z=(-Math.PI/2+.25)*(1-k);heltG.scale.setScalar(.8+.2*k)}
-    groundAt(.45,S.x,S.y)}
-  function freeStart(){S.run='free';S.t=0;kost.visible=false;S.firstBub=true;LYD.pust();pt.pop(0,10,8,'Hop!',{col:'#ffb020',h:5});
+  /* ---------- turen op, set fra siden: fra skolen, op gennem skyerne, og så springer hun ---------- */
+  const T_UP=5,T_HOVER=.8,T_JUMP=1.3,T_IN=T_UP+T_HOVER+T_JUMP;let side=null,sideL=null,rytter=null;
+  function bygSide(){side=new THREE.Group();side.position.z=30;rod.add(side);side.visible=false;const H=new THREE.Group(),Sk=new THREE.Group(),J=new THREE.Group();side.add(H,Sk,J);sideL={H,Sk,J};
+    {const B=box(-110,-40,110,170);P2(H,B,{t:.3,s:3,cap:2048,paint:P=>{P.flat('#b4e2f8',B);for(let y=8;y<170;y+=6)P.flat('#3a78d0',box(-110,y,110,170),.075)}},-6)}
+    put(H,piece(circ(30,16,4.5,4.5,30),{mat:paperMat('#fff4c0','tissue',{glow:'#ffe890',gi:1.1}),t:.3}),0,0,-5.5);
+    for(let i=0;i<46;i++){const x=R(-60,60),y=i<6?R(4,22):R(14,300),rx=R(4,10);P2(Sk,puff(x,y,rx,rx*.45,9,.22),{color:'#ffffff',kind:'card',t:.4,edge:'#c8dcec'},R(-3,3))}
+    P2(J,toCCW(sm([[-110,-40],[110,-40],[110,-15],[60,-13],[20,-15.5],[-30,-12.8],[-80,-14.5],[-110,-13.5]],4)),{color:'#7fb06c',kind:'card',t:.6,edge:'#4a7a42'},-2);
+    for(let x=-80;x<80;x+=R(5,8)){if(Math.abs(x+20)<10)continue;const c=['#c0503a','#4a6a9a','#8a5aaa','#b87a4a'][Math.floor(R(4))],w=R(3.2,4.6),h=R(2.4,3.6),g=new THREE.Group();g.position.set(x,-15.6+R(-.4,.4),-1);J.add(g);
+      P2(g,box(-w/2,0,w/2,h),{color:'#e8d8c0',kind:'card',t:.3,edge:'#8a7a6a'},0);P2(g,toCCW([[-w/2-.4,h],[w/2+.4,h],[0,h+w*.55]]),{color:c,kind:'card',t:.3,edge:hexOf(shade(c,-.4))},.1);P2(g,box(-.4,.6,.4,1.6),{color:'#ffe08a',kind:'card',t:.05},.32)}
+    {const g=new THREE.Group();g.position.set(-20,-15,0);g.scale.setScalar(.55);J.add(g);const st='#cfc8e0';P2(g,box(-12,0,12,13),{color:st,kind:'card',t:.6,edge:'#6a6488'},0);
+      for(const tx of[-12,-4,4,12]){P2(g,box(tx-2.4,0,tx+2.4,19),{color:st,kind:'card',t:.7,edge:'#6a6488'},.1);P2(g,toCCW([[tx-3.2,19],[tx+3.2,19],[tx,26]]),{color:'#6a3a88',kind:'card',t:.6,edge:'#3a1a50'},.2)}
+      P2(g,toCCW(sm([[-2.6,0],[2.6,0],[2.6,5],[0,7.4],[-2.6,5]],3)),{color:'#5a3a28',kind:'kraft',t:.1},.7);for(const[wx,wy]of[[-8,8],[8,8],[-4,15],[4,15]])P2(g,box(wx-1,wy-1.4,wx+1,wy+1.4),{color:'#ffe08a',kind:'card',t:.05},.75)}
+    for(let i=0;i<16;i++){const x=R(-80,80);if(Math.abs(x+20)<9)continue;P2(J,puff(x,-14+R(-.5,1),R(1.2,2),R(1.2,2),8,.2),{color:R(1)<.5?'#3a6a40':'#4a7a4a',kind:'card',t:.4,edge:'#264a2a'},.5)}
+    rytter=bygRytter(ctx.look,{gear:true});rytter.G.scale.setScalar(.24);side.add(rytter.G);side.traverse(q=>{if(q.isMesh)q.userData.noShadow=true})}
+  function begynd(){if(!S||S.run!=='kort')return;ban.skjul();S.run='intro';S.t=0;side.visible=true;heltG.visible=false;LYD.pust()}
+  function stepIntro(dt){S.t+=dt;if(S.t>=T_IN){side.visible=false;S.puf=1;freeStart()}}
+  function drawIntro(){const t=S.t,u=Math.min(1,t/T_UP),rise=240*Math.pow(u,2),k=ease(Math.min(1,t/2.2));
+    sideL.J.position.y=-rise;sideL.Sk.position.y=-rise*1.18;sideL.H.position.y=-rise*.35;
+    let x=mix(-20,-2,k),y=mix(-5,2,k)+Math.sin(t*3)*.4,a=.3*(1-Math.max(0,(t-T_UP)/T_HOVER));
+    if(t>T_UP+T_HOVER){const j=Math.min(1,(t-T_UP-T_HOVER)/T_JUMP);a=-1.3*ease(j);y=2+4*Math.sin(j*Math.PI)*.4-30*j*j;x+=6*j}
+    rytter.G.position.set(x,y,2);rytter.G.rotation.z=a;rytter.tick(Rm.t,{fart:1.3});tv.saet(0,Math.round(ALT0*Math.min(1,u)/50)*50);groundAt(.45,S.x,S.y)}
+  function freeStart(){S.run='free';S.t=0;heltG.visible=true;heltG.position.set(WX(S.hx),WY(S.hy),0);heltG.rotation.z=0;heltG.scale.setScalar(1);S.firstBub=true;LYD.pust();pt.pop(0,10,8,'Hop!',{col:'#ffb020',h:5});
     ban.vis('Flyv hen over boblerne!',{sek:2.4,col:'#7a3fa2',y:16})}
   /* ---------- frit fald ---------- */
   function stepFree(dt){S.t+=dt;
@@ -244,14 +258,14 @@ ROOMS.fald=function(ctx){
   const tekster=[];let mpil;
   /* ---------- styring: fingeren i det frie fald, et håndtag i hver side under skærmen ---------- */
   const el=renderer.domElement,last=new Map();
-  const side=e=>{const b=el.getBoundingClientRect();return(e.clientX-b.left)/b.width<.5?'L':'R'};
+  const sideAf=e=>{const b=el.getBoundingClientRect();return(e.clientX-b.left)/b.width<.5?'L':'R'};
   const iVerden=e=>{const p=Rm&&Rm.planeAt(e,0);return p&&{x:p.x/K+SCX,y:-p.y/K+SCY}};
-  const pd=e=>{if(!S||!ctx.alive||!Rm||!Rm.ready)return;if(S.run==='kort'){begynd();return}if(S.run==='intro'){S.t=Math.max(S.t,T_SLIP);return}
-    try{el.setPointerCapture(e.pointerId)}catch(_){}if(S.run==='free'){S.tx=S.hx;S.ty=S.hy;last.set(e.pointerId,iVerden(e))}S.ptrs.set(e.pointerId,{side:side(e),y0:e.clientY,v:0})};
+  const pd=e=>{if(!S||!ctx.alive||!Rm||!Rm.ready)return;if(S.run==='kort'){begynd();return}if(S.run==='intro'){S.t=Math.max(S.t,T_UP);return}
+    try{el.setPointerCapture(e.pointerId)}catch(_){}if(S.run==='free'){S.tx=S.hx;S.ty=S.hy;last.set(e.pointerId,iVerden(e))}S.ptrs.set(e.pointerId,{side:sideAf(e),y0:e.clientY,v:0})};
   const pm=e=>{if(!S||!S.ptrs.has(e.pointerId))return;if(S.run==='free'){const p=iVerden(e),q=last.get(e.pointerId);last.set(e.pointerId,p);if(p&&q){S.tx+=(p.x-q.x)*1.5;S.ty+=(p.y-q.y)*1.5}}
     else{const p=S.ptrs.get(e.pointerId),b=el.getBoundingClientRect();p.v=clamp((e.clientY-p.y0)/(b.height*.2),-1,1)}};
   const pu=e=>{last.delete(e.pointerId);if(S)S.ptrs.delete(e.pointerId)};
-  const kd=e=>{if(!S)return;if(e.key.startsWith('Arrow')){e.preventDefault();S.keys[e.key]=true}if(e.key===' '||e.key==='Enter'){if(S.run==='kort')begynd();else if(S.run==='intro')S.t=Math.max(S.t,T_SLIP)}},ku=e=>{if(S)S.keys[e.key]=false};
+  const kd=e=>{if(!S)return;if(e.key.startsWith('Arrow')){e.preventDefault();S.keys[e.key]=true}if(e.key===' '||e.key==='Enter'){if(S.run==='kort')begynd();else if(S.run==='intro')S.t=Math.max(S.t,T_UP)}},ku=e=>{if(S)S.keys[e.key]=false};
   el.addEventListener('pointerdown',pd);addEventListener('pointermove',pm);addEventListener('pointerup',pu);addEventListener('pointercancel',pu);addEventListener('keydown',kd);addEventListener('keyup',ku);
   /* ---------- rummet ---------- */
   const OPT={bg:'#bfe0f0',fit:(c,w,h)=>{const asp=w/h,HH=Math.max(50,88/asp);c.fov=2*Math.atan(HH/2/CD)*180/Math.PI;c.position.set(0,0,CD);c.lookAt(0,0,0)},sky:'#ffffff',ground:'#8a9a70',amb:1.05,
@@ -261,7 +275,7 @@ ROOMS.fald=function(ctx){
       ()=>{bygTmpl();tmpl.strib=new THREE.BoxGeometry(.18,.18,9);tmpl.stribM=new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.55});
         dis=new THREE.Mesh(new THREE.PlaneGeometry(2000,1400),new THREE.MeshBasicMaterial({color:'#e6f2fa',transparent:true,opacity:.6,depthWrite:false}));dis.position.z=ZG+25;dis.userData.noShadow=true;rod.add(dis);
         puffPlan=new THREE.Mesh(new THREE.PlaneGeometry(200,140),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0,depthWrite:false,depthTest:false}));puffPlan.position.z=100;puffPlan.renderOrder=9;rod.add(puffPlan);
-        heltG=new THREE.Group();rod.add(heltG);helt=bygHelt();heltG.add(helt);skaerm=bygSkaerm();rod.add(skaerm);kost=bygKost();rod.add(kost);
+        heltG=new THREE.Group();rod.add(heltG);helt=bygHelt();heltG.add(helt);skaerm=bygSkaerm();rod.add(skaerm);bygSide();
         pil=new THREE.Group();P2(pil,toCCW([[-.7,0],[.7,0],[.7,2.6],[1.8,2.6],[0,4.6],[-1.8,2.6],[-.7,2.6]].map(([x,y])=>[x,-y])),{color:'#ffe27a',kind:'card',t:.2,edge:'#a87a1a'},0);pil.visible=false;rod.add(pil);
         mpil=new THREE.Group();P2(mpil,circ(0,0,3.2,3.2,24),{color:'#2a2340',kind:'card',t:.3},0);P2(mpil,toCCW([[-1.4,-1.4],[1.7,0],[-1.4,1.4]]),{color:'#ffe27a',kind:'card',t:.1},.32);mpil.visible=false;rod.add(mpil);
         vindPil=new THREE.Group();{const kort=new THREE.Group();vindPil.add(kort);P2(kort,circ(0,0,3,3,24),{color:'#fbf2dc',kind:'card',t:.3,edge:'#a88a5a'},0)}{const a=new THREE.Group();vindPil.add(a);for(const q of thick([[[-1.8,0],[1.4,0]]],.3))P2(a,q,{color:'#2e6aa8',kind:'card',t:.1},.32);P2(a,toCCW([[.9,-1],[2.2,0],[.9,1]]),{color:'#2e6aa8',kind:'card',t:.1},.32)}vindPil.visible=false;rod.add(vindPil);

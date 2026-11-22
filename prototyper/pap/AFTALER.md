@@ -31,7 +31,7 @@ Hentet fra det oprindelige spils kode (grenen main, mappen src) den 21. november
 
 | Aftale i det oprindelige spil | I pap-udgaven |
 |---|---|
-| Kosteflyvning: stjerner = (4 − placering) + bobler delt med 2 | Ikke lavet. Kasper (21. nov.): der skal være en større fornemmelse af fart end i det oprindelige |
+| Kosteflyvning: stjerner = (4 − placering) + bobler delt med 2 | Det samme (0.30), med mere fart i billedet |
 | Faldskærm: stjerner for ringen, man lander i (5, 3, 2, 1), + bobler delt med 4, + 1 for blød landing, mindst 1 | Ikke lavet |
 
 ## Lyden

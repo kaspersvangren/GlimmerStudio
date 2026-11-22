@@ -1,6 +1,6 @@
 /* ============ Skolen: gangen med dørene til fagene. Heksen går hen til den dør man trykker på ============ */
 ROOMS.gang=function(ctx){
-  const FAG=[{id:'eliksir',navn:'Eliksir',x:-33,col:'#2f6a4a',rum:'eliksir'},{id:'kost',navn:'Kosteflyvning',x:-11,col:'#2e4a7a'},{id:'dyr',navn:'Dyrepasning',x:11,col:'#8a5a2a',rum:'dyrepark'},{id:'fald',navn:'Faldskærm',x:33,col:'#6b3fa0',rum:'fald'}];
+  const FAG=[{id:'eliksir',navn:'Eliksir',x:-33,col:'#2f6a4a',rum:'eliksir'},{id:'kost',navn:'Kosteflyvning',x:-11,col:'#2e4a7a',rum:'kost'},{id:'dyr',navn:'Dyrepasning',x:11,col:'#8a5a2a',rum:'dyrepark'},{id:'fald',navn:'Faldskærm',x:33,col:'#6b3fa0',rum:'fald'}];
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),DW=13,DH=24,W0={x:0,tx:0,ph:0,amp:0,face:1,want:null};let heks,kat,opening=null;
   /* fagenes tegn, klippet i papir */
   const tegn=(g,id,x,y,z)=>{

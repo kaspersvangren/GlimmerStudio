@@ -15,8 +15,8 @@ const { chromium } = require('playwright');
   const til = () => T(F + 'f.tilstand()'), spol = s => T(F + `f.spol(${s})`), skud = n => p.screenshot({ path: __dirname + `/fald-${n}.png` });
   await p.waitForTimeout(800); await skud('kort'); let s = await til(); tjek('Kaptajn Sky venter på et tryk', s.fase === 'kort', s);
   await p.mouse.click(W / 2, H / 2); await spol(.04); s = await til(); tjek('et tryk sender hende af sted på kosten', s.fase === 'intro', s.fase);
-  await spol(.9); await p.waitForTimeout(300); await skud('intro');
-  await spol(1.6); s = await til(); tjek('hun springer af og falder frit', s.fase === 'free', s);
+  await spol(1.2); await p.waitForTimeout(300); await skud('intro'); await spol(3); await p.waitForTimeout(300); await skud('intro2'); await spol(1.4); await p.waitForTimeout(200); await skud('intro3');
+  await spol(2); s = await til(); tjek('hun springer af og falder frit', s.fase === 'free', s);
   await spol(2.6); await p.waitForTimeout(200); await skud('frit1');
   /* træk med musen: hun flytter sig samme vej */
   const x0 = await T(F + 'f.S().hx'); await p.mouse.move(W / 2, H / 2); await p.mouse.down(); await p.mouse.move(W / 2 + 200, H / 2, { steps: 5 }); await p.mouse.up(); await spol(.6);

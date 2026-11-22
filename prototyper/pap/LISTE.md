@@ -35,7 +35,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | M2 | Malerierne er lavet i 0.27 (R74). Åbent: originalen havde en editor til at vælge opstilling på billedvæggene; her hænger de på fem faste pladser, og man trykker for at skifte |
 | M3 | Navn til kæledyret |
 | M4 | Arkademaskinen Stjerneskjoldet. Trylletegning er lavet i 0.23 (R64, bosser i 0.24, R67), Gribemaskinen i 0.24 (R66) og BoblePop i 0.24 (R68). Stjerneskjoldet (og Kosteflyvning) skal løftes i gameplay; forslagene er sendt og venter på svar |
-| M5 | Kosteflyvning og Faldskærm. Kasper (21. nov.): Kosteflyvning skal give en større fornemmelse af fart end den oprindelige |
+| M5 | Kosteflyvning og Faldskærm er lavet i 0.29–0.30 (R80–R82). Tilbage: begivenhederne i baggrunden fra originalen (fyrværkeri, flagermus, stjerneskud, lanterner) |
 | M6 | Faget Dyrepasning i Skolen (døren er der, men lukket). Dyreparken selv er lavet i 0.19, se R48 |
 | M7 | Startsiden med gemte spil, og bogen i starten |
 | M9 | Dragen med vittighederne, Øksebrønden, Støvlen og Klokketårnet (husene er på kortet, men lukkede) |
@@ -125,6 +125,8 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R78 | Byen | ønske | Det tager lang tid at gå **Rettet:** Dobbelttryk: hun snurrer af sted i en hvirvelvind af papirstjerner og dukker op, hvor man trykkede. Ved et hus lander hun et par skridt fra døren og går selv ind | Kaspers note | pap-0.28 |
 | R79 | Skolegangen | bedre | Døren til Dyrepasning åbnede ikke **Rettet:** Den fører til Dyreparken | Kaspers note | pap-0.28 |
 | R80 | Faldskærm | mangler | Faget fandtes ikke i pap **Lavet:** Som originalen, set lige oppefra med rigtig dybde: kosten kommer, hun springer af, frit fald i 17 sekunder med stjernebobler (stiplet ring viser, hvor de når op; hver sjette er guld og 3 værd), tordenskyer koster en boble, skyer suser forbi, fartstriber. Skærmen folder sig ud; et håndtag i hver side (træk ned = drej, begge ned = brems, begge op = fart, piletaster på pc). Landet med ringe på 2/6/12/20 m, dam, træer, tilskuere der vinker, skur, nissehus og vindpose. Stjerner som originalen; vind fra tredje spring. Indledningen set fra siden kommer sammen med Kosteflyvning | Kasper | pap-0.29 |
+| R81 | Kosteflyvning | mangler | Faget fandtes ikke i pap, og Kasper ville have mere fart end i originalen **Lavet:** Originalens regler og tal (tryk = op, hold = loop, loop i dobbeltringen = boost gennem fire ringe, to klassekammerater med hver sin dygtighed, guld/sølv/bronze, stjerner = (4 − plads) + bobler/2). Fart: byen i pap i mange lag i rigtig dybde (himmel, bakker og skolen, tage, og lige foran lygtepæle, træer, vimpler, to broer og byporten), kameraet trækker sig tilbage ved fart og ryster under boost, glimmer og strimler suser forbi, fartlamper for ringe i træk, papirmølle på kosten, komethale under boost, klassekammeraterne kommer tæt på, og en stribe viser, hvem der fører. Heksen sidder overskrævs på kosten set fra siden med hænderne om skaftet; hår og kappe blafrer bagud | Kasper | pap-0.30 |
+| R82 | Faldskærm | ønske | Turen op skal ses fra siden over kortet (Kasper 12. nov.) **Lavet:** Hun letter fra skolen med faldskærmen på ryggen, flyver op gennem skyerne, mens byen forsvinder under hende, og springer af. Et tryk springer frem til springet | Kasper | pap-0.30 |
 
 ## Set og lukket
 
