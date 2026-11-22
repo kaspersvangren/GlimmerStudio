@@ -30,7 +30,6 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 
 | Nr. | Hvad |
 |---|---|
-| M1 | En farve nummer to på tøjet |
 | M2 | Malerierne er lavet i 0.27 (R74). Åbent: originalen havde en editor til at vælge opstilling på billedvæggene; her hænger de på fem faste pladser, og man trykker for at skifte |
 | M4 | Arkademaskinen Stjerneskjoldet. Trylletegning er lavet i 0.23 (R64, bosser i 0.24, R67), Gribemaskinen i 0.24 (R66) og BoblePop i 0.24 (R68). Stjerneskjoldet (og Kosteflyvning) skal løftes i gameplay; forslagene er sendt og venter på svar |
 | M6 | Faget Dyrepasning i Skolen (døren er der, men lukket). Dyreparken selv er lavet i 0.19, se R48 |
@@ -134,6 +133,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R91 | Kosteflyvning | mangler | Begivenhederne i baggrunden fra originalen **Lavet:** Fyrværkeri med stjerneregn, en flok flagermus, stjerneskud og lanterner, der stiger op, hvert 4.–9. sekund | originalen | pap-0.32 |
 | R92 | Faldskærm | ønske | Hjelm på turen op (Kasper 12. nov.) **Lavet:** Rød hjelm med flyverbriller i stedet for hatten, når hun flyver op med faldskærmen | Kasper | pap-0.32 |
 | R93 | Garderoben | mangler | Navn til kæledyret (M3) **Lavet:** Et navnefelt øverst under Kæledyret → Dyr, skrevet på spillets eget tastatur, og gemt | originalen | pap-0.32 |
+| R94 | Garderoben | mangler | En farve nummer to på tøjet (M1) **Lavet:** Under Tøj er der en ekstra række farver, "Mønster og krave". Den farver kjolernes mønster (stjerner, måner, blomster, striber, prikker, hjerter) og kraven, og den gemmes og følger heksen ud i byen | originalen | pap-0.33 |
 
 ## Set og lukket
 
