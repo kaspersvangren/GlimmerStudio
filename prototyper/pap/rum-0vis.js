@@ -4,7 +4,7 @@
 function visVare(w,ctx,Rm,o={}){const[k,v]=w,px=o.px||640,sc=new THREE.Scene(),I=new THREE.Group(),G=new THREE.Group();sc.add(I);sc.background=new THREE.Color(o.bg||'#f3e6c4');sc.environment=ctx.env;sc.environmentIntensity=.35;
   sc.add(new THREE.HemisphereLight('#fff8ee','#7a6a5c',1.15));{const d=new THREE.DirectionalLight('#fff0dc',2.1);d.position.set(-30,50,90);sc.add(d)}
   const cam=new THREE.OrthographicCamera(-1,1,1,-1,1,900),bx=new THREE.Box3(),tmp=new THREE.Box3(),glows=[];let tick=null,fra='forfra';
-  const maal=root=>{root.updateMatrixWorld(true);bx.makeEmpty();root.traverse(q=>{if(q.isMesh&&!q.isSprite&&q.visible&&q.geometry){if(!q.geometry.boundingBox)q.geometry.computeBoundingBox();tmp.copy(q.geometry.boundingBox).applyMatrix4(q.matrixWorld);bx.union(tmp)}});return bx};
+  const maal=root=>{I.updateMatrixWorld(true);bx.makeEmpty();root.traverse(q=>{if(q.isMesh&&!q.isSprite&&q.visible&&q.geometry){if(!q.geometry.boundingBox)q.geometry.computeBoundingBox();tmp.copy(q.geometry.boundingBox).applyMatrix4(q.matrixWorld);bx.union(tmp)}});return bx};
   if(k.startsWith('rum.')){const slot=k.slice(4),R0=SPIL.RUMVALG[slot];VAER[slot](I,v,SPIL.rumc[slot]||R0.c0,{Rm:{floor:(sh,po,y,par)=>Rm.floor(sh,po,y,par||I)},glow:(x,y,z,col,size,flick)=>{const q=Rm.glow(x,y,z,col,size,flick,I);glows.push(q);return q}});maal(I);
     if(slot==='vaeg')bx.set(new THREE.Vector3(-13,22,-20),new THREE.Vector3(13,48,0));/* af væggen vises et udsnit, så mønsteret kan ses */
     if(slot==='gulv')fra='oppefra';if(slot==='lampe')sc.background.set('#2b2552');
@@ -13,6 +13,7 @@ function visVare(w,ctx,Rm,o={}){const[k,v]=w,px=o.px||640,sc=new THREE.Scene(),I
   else{const F=makeFigure(Object.assign({},ctx.look,{[k]:v}));I.add(F.G);tick=t=>F.tick(t,{ph:0,amp:0});
     if(['mærke','pupil','mund'].includes(k)){maal(F.gFace);const c=bx.getCenter(new THREE.Vector3()),r=k==='pupil'?2.7:3.3;bx.set(new THREE.Vector3(c.x-r,c.y-r,-20),new THREE.Vector3(c.x+r,c.y+r,20))}
     else if(['hat','hår','pande'].includes(k)){maal(F.head);const c=bx.getCenter(new THREE.Vector3()),r=k==='hat'||k==='hår'?7.4:5.6;bx.set(new THREE.Vector3(c.x-r,c.y-r+(k==='hat'?2.6:k==='hår'?-1.2:0),-20),new THREE.Vector3(c.x+r,c.y+r+(k==='hat'?2.6:k==='hår'?-1.2:0),20))}
+    else if(k==='tilbehør'&&(v==='tryllestav'||STAVE[v])){sc.background.set('#2b2552');maal(F.gHandL);const c=bx.getCenter(new THREE.Vector3()),r=Math.max(bx.max.x-bx.min.x,bx.max.y-bx.min.y)*.5+1.2;bx.set(new THREE.Vector3(c.x-r,c.y-r+1,-20),new THREE.Vector3(c.x+r,c.y+r+1,20))}
     else if(k==='støvler'){F.skirt.scale.y=.56;maal(F.G);const c=bx.getCenter(new THREE.Vector3());bx.set(new THREE.Vector3(c.x-4.6,bx.min.y-.6,-20),new THREE.Vector3(c.x+4.6,bx.min.y+8.6,20))}
     else maal(F.G)}
   const c=bx.getCenter(new THREE.Vector3()),s=bx.getSize(new THREE.Vector3());

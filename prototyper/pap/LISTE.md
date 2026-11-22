@@ -32,9 +32,9 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | Nr. | Hvad |
 |---|---|
 | M1 | En farve nummer to på tøjet |
-| M2 | De ni præmiestave og præmiebutikken i Arkaden. Fra 0.19 giver Bank en gnom billetter som i originalen, og de gemmes, men de kan ikke bruges til noget, før butikken er lavet |
+| M2 | Malerierne i Præmiebutikken (40–90 billetter, og et til 200). Butikken og de ni stave er lavet i 0.23, se R63 |
 | M3 | Navn til kæledyret |
-| M4 | De fire andre arkademaskiner (Stjerneskjoldet, Hekse-invaders, Trylletegning, Gribemaskinen) |
+| M4 | Arkademaskinerne Stjerneskjoldet, BoblePop og Gribemaskinen. Trylletegning er lavet i 0.23, se R64. Kasper (22. nov.): Hekse-invaders droppes og erstattes af BoblePop, en bubble shooter med 3+ i en klynge og powerups, der falder. Stjerneskjoldet (og Kosteflyvning) skal løftes i gameplay; forslagene er sendt og venter på svar |
 | M5 | Kosteflyvning og Faldskærm. Kasper (21. nov.): Kosteflyvning skal give en større fornemmelse af fart end den oprindelige |
 | M6 | Faget Dyrepasning i Skolen (døren er der, men lukket). Dyreparken selv er lavet i 0.19, se R48 |
 | M7 | Startsiden med gemte spil, og bogen i starten |
@@ -106,6 +106,10 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R59 | Kæledyret og dyrene | ser forkert ud | Bjørnens hals er for lang og tynd (set i Dyrekøkkenet). Det var halstørklædets ende, der hang lige ned fra hagen som en tynd grøn stribe. Kasper: bjørne er også mere kompakt bygget **Rettet:** Tørklædet ligger bredt om halsen med en knude og en kort flig til siden (gælder alle dyr). Bjørnen har fået en fyldigere krop, der går helt op til hovedet, tykkere ben og hovedet lidt længere nede | note 22. nov. og Kasper | pap-0.22 |
 | R60 | Koncertsalen | skal virke bedre | Hygge er det, de spiller, når man ikke har ønsket noget, og når de er færdige; ikke noget, man ønsker **Rettet:** Knappen Hygge er væk. Når en ønsket sang er slut, og der er klappet, går bandet ud, tæppet går for, og de kommer tilbage i hyggetøjet med lounge-musikken. På Claude-siden, hvor sangene ikke kan spilles, går de tilbage efter 25 sekunder | note 22. nov. | pap-0.22 |
 | R61 | Dyrene | ser forkert ud | Alle dyr blinkede i samme øjeblik (set på Kaspers billede fra køkkenet) **Rettet:** Hvert dyr blinker i sin egen takt | gennemgang | pap-0.22 |
+| R62 | Dyrekøkkenet | ser forkert ud | Alle dyr kigger mod højre, når de stopper, uanset hvilken retning de kommer fra **Rettet:** Dyret bliver ved med at vende den vej, det kom fra | Kaspers note | pap-0.23 |
+| R63 | Arkaden | mangler | Præmiebutikken (M2) **Rettet:** Bygget i pap bag en lysende luge i hallen: messinguglen bag disken ("Hu-hu!"), de ni tryllestave på en fløjlstavle med prisskilte (30–100 billetter). Første tryk viser prisen, andet tryk køber. Stavene ligger under Ekstra i Garderoben; dem, man ikke har, er låst med besked om butikken. Malerierne mangler stadig | fra originalen | pap-0.23 |
+| R64 | Arkaden | mangler | Trylletegning (M4) **Rettet:** Bygget i pap som i originalen: væsner i balloner over heksens have, tegn tegnet med fingeren et vilkårligt sted, kagen med tre etager, gaveballonen med hjertet, nye tegn i runde 2, 3, 4 og 7, ny etage efter hver tredje runde, billetter som før (1 + point delt med 110, højst 40). Genkendelsen af tegn er den samme som i originalen. Bosserne hver femte runde er ikke med endnu | fra originalen | pap-0.23 |
+| R65 | Alle rum | ser forkert ud | En mørk trekant på gulvet nederst til venstre i alle rum (tydeligst på mørke gulve) **Rettet:** Kontaktskyggen læste dybden præcis på grænsen mellem fire punkter, så afrunding afgjorde, hvilket der blev læst; i den ene halvdel af billedet gav det fuld skygge på gulvet. Den læser nu inde i ét punkt | gennemgang | pap-0.23 |
 
 ## Set og lukket
 

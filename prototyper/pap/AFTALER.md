@@ -23,8 +23,8 @@ Hentet fra det oprindelige spils kode (grenen main, mappen src) den 21. november
 
 | Aftale i det oprindelige spil | I pap-udgaven |
 |---|---|
-| Arkaden giver billetter, ikke stjerner: 1 + point delt med et tal pr. spil (Bank en gnom: 2, Stjerneskjoldet: 20, Hekse-invaders: 70, Trylletegning: 110), højst 40 | Bank en gnom: det samme. De fire andre spil er ikke lavet |
-| Præmiebutikken (uglen, "Hu-hu!"): ni tryllestave til 30–100 billetter (hjerte 30, regnbue 30, blomst 50, sommerfugl 50, slik 60, stjerne 70, måne 80, krystal 90, vinge 100) og malerier til 40–90, og et til 200 | Ikke lavet. Billetterne gemmes, til den er der |
+| Arkaden giver billetter, ikke stjerner: 1 + point delt med et tal pr. spil (Bank en gnom: 2, Stjerneskjoldet: 20, Hekse-invaders: 70, Trylletegning: 110), højst 40 | Bank en gnom og Trylletegning: det samme. Trylletegning har alt fra originalen undtagen bosserne hver femte runde. Hekse-invaders udgår (Kasper, 22. nov.) og erstattes af BoblePop. Stjerneskjoldet, BoblePop og Gribemaskinen er ikke lavet |
+| Præmiebutikken (uglen, "Hu-hu!"): ni tryllestave til 30–100 billetter (hjerte 30, regnbue 30, blomst 50, sommerfugl 50, slik 60, stjerne 70, måne 80, krystal 90, vinge 100) og malerier til 40–90, og et til 200 | Stavene: det samme (0.23). Første tryk viser prisen, andet tryk køber. Malerierne er ikke lavet |
 
 ## Kosteflyvning og Faldskærm
 
@@ -37,7 +37,7 @@ Hentet fra det oprindelige spils kode (grenen main, mappen src) den 21. november
 
 | Aftale i det oprindelige spil | I pap-udgaven |
 |---|---|
-| Musik med Kaspers valgte løkker: byen, skolen/kælderen, arkadehallen (med summen under), hvert arkadespil, kost, fald | Byen, skolen, arkadehallen med summen, Bank en gnom. Resten kommer med spillene |
+| Musik med Kaspers valgte løkker: byen, skolen/kælderen, arkadehallen (med summen under), hvert arkadespil, kost, fald | Byen, skolen, arkadehallen med summen, Bank en gnom. Trylletegning låner kostemusikken, som i originalen. Resten kommer med spillene |
 | Koncertsalen: lounge i baggrunden med mumlen; en ønsket sang (Kaspers fem) spilles én gang, så klapper publikum | Det samme |
 | Egne lydfiler til gnomer, bobler, tæppe m.m. | Genbrugt, hvor spillet findes |
 

@@ -1,4 +1,4 @@
-const PAPVER='pap-0.22';
+const PAPVER='pap-0.23';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 const SPIL={look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
 try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
@@ -29,7 +29,9 @@ SPIL.RUMVALG={
   ting:{navn:'Hjørne',c0:'#3f9a8a',pal:PG,list:[['kedel','Heksekedel'],['kost','Svævende kost','Den svævende kost'],['plante','Måneplante','Måneplanten'],['globus','Stjerneglobus','Stjerneglobussen'],['ur','Bedstefarsur','Bedstefarsuret'],['kiste','Skattekiste','Skattekisten'],['grammofon','Grammofon','Grammofonen'],['teleskop','Teleskop','Teleskopet'],['aeg','Drageæg','Drageægget'],['ovn','Brændeovn','Brændeovnen']]},
   dyreseng:{navn:'Dyreseng',c0:'#e88aa8',pal:PG,list:[['kurv','Kurv'],['pude','Stor pude','Den store pude til kæledyret'],['slot','Lille slot','Kæledyrets lille slot'],['kasse','Papkasse','Papkassen'],['hule','Hule','Kæledyrets hule'],['sofa','Lille sofa','Den lille sofa'],['hundehus','Hundehus','Hundehuset'],['skypude','Skypude','Skypuden'],['muslingeskal','Muslingeskal','Muslingeskallen'],['balje','Zinkbalje','Zinkbaljen']]}};
 for(const s in SPIL.RUMVALG){const o=SPIL.RUMVALG[s];for(const[v,,d]of o.list)if(d)SPIL.VARER.push(['rum.'+s,v,d]);if(!o.list.some(w=>w[0]===SPIL.rum[s]))SPIL.rum[s]=o.list[0][0];if(!SPIL.rumc[s])SPIL.rumc[s]=o.c0}}
-SPIL.ejer=(k,v)=>!SPIL.VARER.some(w=>w[0]===k&&w[1]===v)||SPIL.har.includes(k+':'+v);
+/* præmierne i Arkaden: de kan kun fås for billetter og ligger aldrig i en boble. Priserne er de samme som i det oprindelige spil */
+SPIL.PRAEMIER=[['tilbehør','hjertestav','Hjertetryllestaven',30],['tilbehør','regnbuestav','Regnbuestaven',30],['tilbehør','blomsterstav','Blomsterstaven',50],['tilbehør','sommerfuglestav','Sommerfuglestaven',50],['tilbehør','slikstav','Slikstaven',60],['tilbehør','stjernestav','Stjernestaven',70],['tilbehør','maanestav','Månestaven',80],['tilbehør','krystalstav','Krystalstaven',90],['tilbehør','vingestav','Vingestaven',100]];
+SPIL.ejer=(k,v)=>!(SPIL.VARER.some(w=>w[0]===k&&w[1]===v)||SPIL.PRAEMIER.some(w=>w[0]===k&&w[1]===v))||SPIL.har.includes(k+':'+v);
 for(const k in SPIL.look)if(!SPIL.ejer(k,SPIL.look[k]))SPIL.har.push(k+':'+SPIL.look[k]);/* det hun allerede har på, er hendes */
 /* hele heksens udseende: tøjvalgene og farverne samlet, sådan som figuren skal have dem */
 SPIL.lookFuld=()=>{const l=Object.assign({},SPIL.look),f=SPIL.farver,col={};for(const k of['tøj','hat','kappe','støvler'])if(f[k])col[k]=f[k];l.col=col;if(f.hår)l.hair=[f.hår,hexOf(shade(f.hår,.25)),hexOf(shade(f.hår,-.35))];if(f.hud){l.skin=f.hud;l.skinSh=hexOf(shade(f.hud,-.16))}if(f.øjne)l.iris=[hexOf(shade(f.øjne,.35)),hexOf(shade(f.øjne,-.2))];return l};

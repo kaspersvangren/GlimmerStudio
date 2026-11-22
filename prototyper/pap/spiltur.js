@@ -43,11 +43,21 @@ const { chromium } = require('playwright');
     await p.mouse.click(640, 420); await p.waitForFunction(() => !__spil.room.ctx.test.st(), null, { timeout: 30000 }) }
   await p.click('#hjem'); await ude(); await p.waitForTimeout(1000); await info('slut'); await p.screenshot({ path: __dirname + '/tur-slut.png' });
   await p.evaluate(() => __spil.enter('arkade')); await i('arkade'); await klik(-34, 14, -2); await i('gnom'); await klik(0, 40, -9); await p.waitForTimeout(6000); await p.evaluate(() => __spil.room.ctx.test.hitAll()); console.log('gnom:', JSON.stringify(await p.evaluate(() => __spil.room.ctx.test.state())));
-  await klik(17, 22, -2); await p.click('#hjem'); await i('arkade'); await klik(17, 22, -2); await p.waitForTimeout(9000); console.log('lukket maskine:', await p.evaluate(() => document.getElementById('toast').textContent)); await p.click('#hjem'); await ude(); await info('helt slut');
+  await klik(-19, 22, -2); await p.click('#hjem'); await i('arkade'); await klik(-19, 22, -2); await p.waitForTimeout(9000); console.log('lukket maskine:', await p.evaluate(() => document.getElementById('toast').textContent)); await p.click('#hjem'); await ude(); await info('helt slut');
   /* et lukket hus, en boble uden stjerner, notesknappen, og at alt er der igen, når siden åbnes på ny */
   /* Bank en gnom: tre gnomer giver tre point, kaninen trækker to fra */
   await p.evaluate(() => __spil.enter('arkade')); await i('arkade'); await p.evaluate(() => __spil.enter('gnom')); await i('gnom');
   { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; T.start(); T.op(6, 1); T.ram(0); T.ram(2); T.ram(3); const a = T.state().sc; T.ram(1); return [a, T.state().sc] }); tjek('gnomer giver point, kaninen trækker fra', r[0] === 3 && r[1] === 1, r) }
+  await p.click('#hjem'); await i('arkade');
+  /* Præmiebutikken: første tryk viser prisen, andet tryk køber */
+  await p.evaluate(() => __spil.enter('praemie')); await i('praemie');
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; __spil.givBil(40); const b0 = __spil.bil; T.tryk(0); const a = __spil.har.includes('tilbehør:hjertestav'); T.tryk(0); return [b0, a, __spil.har.includes('tilbehør:hjertestav'), __spil.bil] }); await p.waitForTimeout(900);
+    tjek('Præmiebutikken: første tryk viser prisen, andet køber staven', !r[1] && r[2] && r[3] === r[0] - 30, r); const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('uglen siger tillykke, og beskeden bliver stående', /Hu-hu/.test(t) && !(await p.evaluate(() => document.getElementById('videre').hidden)), t); await p.screenshot({ path: __dirname + '/tur-praemie.png' }); await p.click('#videre') }
+  await p.click('#hjem'); await i('arkade');
+  /* Trylletegning: et spil fra start til billetter */
+  await p.evaluate(() => __spil.enter('tryl')); await i('tryl');
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test, b0 = __spil.bil; T.begynd(); T.frem(); T.spol(4); const s1 = T.tilstand(); T.tegn(s1.foes[0].bal[0]); T.spol(.6); const s2 = T.tilstand(); T.bid(); T.bid(); T.bid(); T.spol(3); return [s1.foes.length, s2.score, s2.forvandlet, b0, __spil.bil, T.tilstand().fase] }); await p.waitForTimeout(600);
+    tjek('Trylletegning: tegn sprænger balloner, og spillet slutter med billetter', r[0] > 0 && r[1] > 0 && r[2] >= 1 && r[4] > r[3] && r[5] === 'vent', r); await p.click('#videre') }
   await p.click('#hjem'); await i('arkade'); await p.click('#hjem'); await ude();
   /* de nye effekter i Eliksirtimen kan startes og ryddes igen uden fejl */
   await p.evaluate(() => __spil.enter('gang')); await i('gang'); await p.evaluate(() => __spil.enter('eliksir')); await i('eliksir');

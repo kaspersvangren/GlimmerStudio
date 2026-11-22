@@ -460,9 +460,9 @@ const POST=(()=>{const q=new THREE.Mesh(new THREE.PlaneGeometry(2,2));q.frustumC
   const U=()=>({near:{value:cam.near},far:{value:cam.far}});
   /* kontaktskygge: sammenligner dybden med punkter parvis på hver side, så skrå flader (jorden) ikke bliver mørke */
   const aoM=mk(`uniform sampler2D tDepth;uniform vec2 px;uniform float rad,cd;${LIN}varying vec2 vUv;
-void main(){float zc=lin(texture2D(tDepth,vUv).x);float occ=0.;
+void main(){vec2 uc=vUv+.25*px;/* midten af et dybdepunkt: i halv opløsning ligger vUv præcis på grænsen mellem fire punkter, og så afgør afrunding, hvilket der læses */float zc=lin(texture2D(tDepth,uc).x);float occ=0.;
  for(int i=0;i<12;i++){float a=float(i)*2.39996+.3;float r=(.2+.8*fract(float(i)*.618+.1))*rad*cd/zc;vec2 o=vec2(cos(a),sin(a))*r*px;
-  float z1=lin(texture2D(tDepth,vUv+o).x),z2=lin(texture2D(tDepth,vUv-o).x);
+  float z1=lin(texture2D(tDepth,uc+o).x),z2=lin(texture2D(tDepth,uc-o).x);
   float d1=(2.*zc-z2)-z1,d2=(2.*zc-z1)-z2;
   occ+=smoothstep(.03,.45,d1)*(1.-smoothstep(1.5,4.,abs(zc-z1)))+smoothstep(.03,.45,d2)*(1.-smoothstep(1.5,4.,abs(zc-z2)));}
  gl_FragColor=vec4(vec3(clamp(1.-occ/24.*1.25,0.,1.)),1.);}`,{tDepth:{value:null},px:{value:new THREE.Vector2()},rad:{value:10},cd:{value:CD},...U()});

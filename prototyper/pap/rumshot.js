@@ -13,6 +13,6 @@ const { chromium } = require('playwright');
   for (const r of rum.split('>')) { await p.evaluate(h => __spil.enter(h), r); try { await inde() } catch (e) { console.log('kom ikke ind:', await p.evaluate(() => document.getElementById('doorT').textContent)); await b.close(); return } }
   console.log('inde på', await p.evaluate(() => [__spil.roomMs, JSON.stringify(window.__rumtid)]));
   await p.waitForTimeout(1200); await p.screenshot({ path: __dirname + `/rum-${rum.replace(/>/g, '-')}.png`, timeout: 240000 });
-  let i = 0; for (const a of acts.split(';;').filter(Boolean)) { try { await p.evaluate(a) } catch (e) { console.log('handling fejlede', e.message.slice(0, 200)) } await p.waitForTimeout(2500); await p.screenshot({ path: __dirname + `/rum-${rum.replace(/>/g, '-')}-${++i}.png`, timeout: 240000 }) }
+  let i = 0; for (const a of acts.split(';;').filter(Boolean)) { try { const r = await p.evaluate(a); if (r !== undefined && r !== null) console.log("svar", String(r).slice(0, 1500)) } catch (e) { console.log('handling fejlede', e.message.slice(0, 200)) } await p.waitForTimeout(2500); await p.screenshot({ path: __dirname + `/rum-${rum.replace(/>/g, '-')}-${++i}.png`, timeout: 240000 }) }
   await b.close();
 })();

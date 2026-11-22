@@ -5,7 +5,7 @@ ROOMS.dyrepark=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:0,tx:0,ph:0,amp:0,face:1,want:null},STEDER=[{id:'koek',navn:'Dyrekøkkenet',x:-27,rum:'dyrekoekken'},{id:'stald',navn:'Ungestalden',x:27,rum:'ungestald'}];
   let heks,kat,aeg,vip=0,gaar=null,frys=null;const DYR_=[],hj=[],roeg=[];
   const hjerte=(x,y)=>{const q=hj.find(h=>h.t>1)||hj[0];q.t=0;q.x=x;q.y=y};
-  const Rm=makeRoom(ctx,{bg:'#0e1418',fit:fitBox(90,50,0,20.5),sky:'#dff0ff',ground:'#5a7a48',amb:.7,key:{col:'#fff2d8',i:2.1,tgt:[0,14,0]},
+  const Rm=makeRoom(ctx,{bg:'#0e1418',fit:fitBox(90,50,0,20.5),sky:'#dff0ff',ground:'#5a7a48',amb:.7,key:{col:'#fff2d8',i:2.1,tgt:[0,14,0],box:[-64,64,56,-34]},
     build:Rm=>[()=>{const g=Rm.scene,H=box(-80,-2,80,66);/* himmel, sol, skyer og bakker */
         P2(g,H,{t:.3,s:8,cap:1800,paint:P=>{P.wash('#a8dcf8',H,{top:'#5eb0ea',edge:0,clouds:12});P.wash('#fff6c8',circ(37,40.5,5.4,5.4,30),{alpha:.95,edge:.8,mode:'source-over'});for(const[x,y,w,h]of[[-22,48,22,5.4],[18,53,18,4.4],[50,45,24,5.6],[-64,40,16,4]])P.wash('#ffffff',VRK.cloud(x,y,w,h),{alpha:.92,edge:.5,mode:'source-over'});
             P.wash('#9ad884',sm([[-81,-2,1],[-81,22],[-56,27],[-30,22],[-4,26],[24,21],[52,26],[81,22],[81,-2,1]],8),{alpha:1,edge:.3,mode:'source-over',top:'#b4e69a'})}},-14);
