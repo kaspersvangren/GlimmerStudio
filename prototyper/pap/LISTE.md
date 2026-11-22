@@ -124,6 +124,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R77 | Præmiebutikken | bedre | Uglen sagde ikke noget om malerierne **Rettet:** Velkomsten nævner tryllestave og malerier og skiltene foroven | Kaspers note | pap-0.28 |
 | R78 | Byen | ønske | Det tager lang tid at gå **Rettet:** Dobbelttryk: hun snurrer af sted i en hvirvelvind af papirstjerner og dukker op, hvor man trykkede. Ved et hus lander hun et par skridt fra døren og går selv ind | Kaspers note | pap-0.28 |
 | R79 | Skolegangen | bedre | Døren til Dyrepasning åbnede ikke **Rettet:** Den fører til Dyreparken | Kaspers note | pap-0.28 |
+| R80 | Faldskærm | mangler | Faget fandtes ikke i pap **Lavet:** Som originalen, set lige oppefra med rigtig dybde: kosten kommer, hun springer af, frit fald i 17 sekunder med stjernebobler (stiplet ring viser, hvor de når op; hver sjette er guld og 3 værd), tordenskyer koster en boble, skyer suser forbi, fartstriber. Skærmen folder sig ud; et håndtag i hver side (træk ned = drej, begge ned = brems, begge op = fart, piletaster på pc). Landet med ringe på 2/6/12/20 m, dam, træer, tilskuere der vinker, skur, nissehus og vindpose. Stjerner som originalen; vind fra tredje spring. Indledningen set fra siden kommer sammen med Kosteflyvning | Kasper | pap-0.29 |
 
 ## Set og lukket
 
