@@ -1676,7 +1676,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.24';
+const PAPVER='pap-0.25';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 const SPIL={look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
 try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
@@ -3614,8 +3614,10 @@ ROOMS.gribe=function(ctx){
   const TOP=96,FLOOR=740,XMIN=312,XMAX=1316,LIMIT=20,WALL_L=212,WALL_R=1388,CHUTE_X=404,CHUTE_TOP=560,SC=1.25,CAT_WALL=1,CAT_PLUSH=2,CAT_CLAW=4,STEP=1/120;
   const PIV=20,ARM=[[0,0],[22,54],[6,106],[-9,110]],OPEN=-.62,SHUT=.14,ANCHOR_Y=104,L0=90,LMAX=470,HW=62,HH=42;/* højre arm målt fra hængslet; venstre er spejlet */
   const rot=(x,y,a)=>({x:x*Math.cos(a)-y*Math.sin(a),y:x*Math.sin(a)+y*Math.cos(a)});
-  const KN=[{id:'v',x:-12,r:3.5,glas:'#3fc7b4'},{id:'h',x:-2,r:3.5,glas:'#3fc7b4'},{id:'grib',x:19,r:5,glas:'#e0305a'}],KY=1.7;
-  let S=null,vogn,kabel,hovedG,bagarm,bagtip,armG=[],ur,urT,vundet=null,nede=null,puls=0;
+  const KN=[{id:'v',x:-12.4,r:2.4,c:'#2fb3a3'},{id:'h',x:-5,r:2.4,c:'#2fb3a3'},{id:'grib',x:8.2,r:3,c:'#e2384e'}],KY=2.4,TX=23.6,TY=2.4,TR=2.6,DX=-24.6,KAB='#d4584f',KREM='#f4e2bc',KRAFT='#d8b07a',PAN='#3a2a5e';
+  let S=null,vogn,kabel,hovedG,bagarm,bagtip,armG=[],urG,kiler=[],klap,vundet=null,nede=null,puls=0;
+  /* et splitben (de små messingsøm, der holder papdele sammen i et led) */
+  const brad=(par,x,y,z,r=.34)=>{P2(par,circ(x,y,r,r,14),{mat:gold(),t:.16},z);P2(par,box(x-r*.62,y-.045,x+r*.62,y+.045),{color:'#6e4b17',kind:'water',t:.02},z+.1)};
   /* ---------------- fysikken ---------------- */
   function byg(){const{Engine,Bodies,Body,Composite,Constraint}=Matter,eng=Engine.create({positionIterations:10,velocityIterations:8,constraintIterations:4});eng.gravity.scale=.0018;
     const wall=(x,y,w,h)=>Bodies.rectangle(x,y,w,h,{isStatic:true,friction:.6,collisionFilter:{category:CAT_WALL}});
@@ -3647,7 +3649,7 @@ ROOMS.gribe=function(ctx){
     for(let i=0;i<420;i++)Matter.Engine.update(S.eng,STEP*1000);/* bunken falder på plads, før man ser den */
     S.plushes=S.plushes.filter(p=>!(p.position.x<CHUTE_X&&p.position.y>CHUTE_TOP));
     S.plushes.forEach((p,i)=>{p.G=new THREE.Group();const q=bamseStykke(ctx,p.k,SC);q.position.set(p.off.x/20,-p.off.y/20,0);p.G.add(q);p.G.userData.ryd=q.userData.ryd;p.G.position.z=-1.6+i*3.2/S.plushes.length;Rm.live.add(p.G)});
-    S.arms.forEach(a=>{const G=new THREE.Group(),pts=a.pts.map(p=>[p.x/20,-p.y/20]);for(const q of thick([pts],.55))put(G,piece(q,{color:'#c8c4d8',kind:'water',t:.3,edge:'#3a3458'}),0,0,0);G.position.z=2.5;Rm.live.add(G);armG.push(G)});tegnUr()}
+    S.arms.forEach(a=>{const G=new THREE.Group(),pts=a.pts.map(p=>[p.x/20,-p.y/20]);for(const q of thick([pts],.62))put(G,piece(q,{color:KRAFT,kind:'kraft',t:.45,edge:'#8a5a28'}),0,0,0);brad(G,pts[0][0],pts[0][1],.3,.3);brad(G,pts[1][0],pts[1][1],.3,.22);G.position.z=2.5;Rm.live.add(G);armG.push(G)});tegnUr()}
   const betal=()=>{if(SPIL.stj<1){ctx.say('Et forsøg koster 1 stjerne. Tjen stjerner i Skolen, og kom tilbage.');LYD.oev();return false}SPIL.giv(-1);S.phase='flyt';S.tid=0;S.sec=LIMIT;S.pt=0;if(vundet){Rm.live.remove(vundet);vundet.userData.ryd();vundet=null}tegnUr();return true};
   const grib=()=>{if(!S||S.phase!=='flyt')return;S.phase='ned';S.dir=0;S.slack=0;LYD.hold('gribe.motor',false);if(!LYD.hold('gribe.ned',true))LYD.pust();tegnUr()};
   const hold=(b,on)=>{if(!S)return;if(on&&S.phase==='klar'){if(!betal()||b==='grib')return}if(S.phase!=='flyt')return;if(b==='grib'){if(on)grib();return}S.dir=on?(b==='v'?-1:1):0};
@@ -3671,60 +3673,65 @@ ROOMS.gribe=function(ctx){
   const nulstil=()=>{if(!S)return;if(S.plushes.filter(p=>!p.gone).length<12)fyld();else Object.assign(S,{phase:'klar',ended:false,vist:false,carried:false,wonP:null,tid:0,sec:LIMIT,grip:greb(),uro:2.5,dir:0,endT:0});tegnUr()};
   function tabt(){LYD.oev();LOG.row('gribe',{vandt:null,baaret:S.carried});S.endT=.4;S.slut=S.carried?'Næsten! Bamsen gled ud af kloen. Så tæt på!':'Øv! Kloen fik ikke ordentligt fat. Prøv at ramme midt over en bamse.'}
   function vandt(p){const b=BAMSER.find(x=>x.k===p.k);(SPIL.data.bamser=SPIL.data.bamser||[]).push(p.k);SPIL.save();LOG.row('gribe',{vandt:p.k,antal:SPIL.data.bamser.length});LYD.fanfare();S.ended=true;S.endT=1.1;
-    vundet=bamseStykke(ctx,p.k,1.35);vundet.position.set(-24.6,.2,8.4);vundet.userData.t=0;Rm.live.add(vundet);Rm.burst(-24.6,1.4,9,14,'rgba(255,236,170,.95)',5);S.slut=`Du vandt en ${b.navn}! Den sidder nu på din seng i Værelset.`}
+    vundet=bamseStykke(ctx,p.k,1.35);vundet.position.set(DX,1.6,8.2);vundet.userData.t=0;Rm.live.add(vundet);Rm.burst(DX,2.6,9,14,'rgba(255,236,170,.95)',5);S.slut=`Du vandt en ${b.navn}! Den sidder nu på din seng i Værelset.`}
   /* ---------------- tegningen ---------------- */
-  const tegnUr=()=>{const g=ur.getContext('2d'),f=S&&S.phase==='flyt'?Math.max(0,1-S.tid/LIMIT):S&&S.phase==='klar'?1:0;g.clearRect(0,0,160,160);g.fillStyle='#160e2c';g.beginPath();g.arc(80,80,78,0,TAU);g.fill();g.strokeStyle='#3a2e5a';g.lineWidth=10;g.beginPath();g.arc(80,80,64,0,TAU);g.stroke();
-    if(f>0){g.strokeStyle=f<.26?'#ff6a5a':'#ffd86b';g.beginPath();g.arc(80,80,64,-Math.PI/2,-Math.PI/2+TAU*f);g.stroke()}g.fillStyle='#ffe9a0';g.textAlign='center';g.textBaseline='middle';g.font=FONT.arkade.replace('X','62px');g.fillText(S&&S.phase==='flyt'?String(S.sec):S&&S.phase==='klar'?'20':'',80,86);urT.needsUpdate=true};
+  const tegnUr=()=>{const sec=S&&S.phase==='flyt'?S.sec:S&&S.phase==='klar'?LIMIT:S?S.sec:LIMIT;kiler.forEach((k,i)=>{k.visible=i===sec})};
   const tegn=()=>{for(const p of S.plushes){if(p.gone)continue;p.G.position.x=X(p.position.x);p.G.position.y=Y(p.position.y);p.G.rotation.z=-p.angle}
     const H=S.head,a=faeste(),tx=X(S.tx),ty=Y(TOP);vogn.position.x=tx;hovedG.position.set(X(H.position.x),Y(H.position.y),2.2);hovedG.rotation.z=-H.angle;
     const dx=X(a.x)-tx,dy=Y(a.y)-ty;kabel.position.set(tx,ty,2.1);kabel.scale.y=Math.max(.01,Math.hypot(dx,dy));kabel.rotation.z=Math.atan2(dy,dx)-Math.PI/2;
     S.arms.forEach((arm,i)=>{const G=armG[i];G.position.x=X(arm.position.x);G.position.y=Y(arm.position.y);G.rotation.z=-(arm.angle-arm.a0)});
     const bag=(72+30*S.close)/20;bagarm.scale.y=bag;bagtip.position.y=-.85-bag};
-  const knapVed=e=>{const p=Rm.planeAt(e,8.2);if(!p)return null;for(const k of KN){const rx=k.r+1,ry=k.r*.55+1.4;if(((p.x-k.x)/rx)**2+((p.y-KY)/ry)**2<1)return k.id}return null};
+  const knapVed=e=>{const p=Rm.planeAt(e,8.2);if(!p)return null;for(const k of KN)if(Math.hypot(p.x-k.x,p.y-KY)<k.r+1.3)return k.id;return null};
   const OPT={bg:'#120810',fit:fitBox(88,50,0,20.5),sky:'#ffe8d0',ground:'#3a2030',amb:.6,key:{col:'#fff0dc',i:1.7,tgt:[0,20,0]},
     drag:(ph,e)=>{if(ph==='start'){nede=knapVed(e);if(nede)hold(nede,true)}else if(ph==='end'){if(nede&&nede!=='grib')hold(nede,false);nede=null}},
     build:Rm=>[()=>{const g=Rm.scene;/* tapetet bag maskinen */
         {const W=box(-80,-8,80,52);P2(g,W,{t:.3,s:8,cap:1800,paint:P=>{P.wash('#34101a',W,{edge:0,clouds:8});for(let y=-6,r=0;y<52;y+=7,r++)for(let x=-78+(r%2?3:0);x<80;x+=6)P.fill(sm([[x,y+2.6],[x+1.6,y+.4],[x,y-2.2],[x-1.6,y+.4]],5),'#4a1a26',.9)}},-14)}
-        /* bagvæggen og bunden i glaskassen */
-        {const B=box(-29.9,8,29.9,43.9);P2(g,B,{t:.3,s:10,cap:1600,paint:P=>{P.wash('#4a2e58',B,{top:'#2a1a3a',edge:.5,clouds:6});for(let i=0;i<110;i++){const r=R(.1,.2);P.fill(circ(R(-29,29),R(9,43),r,r,8),'#5a3a68',.9)}}},-5)}
-        Rm.floor(box(-29.9,-4.8,29.9,3.6),{color:'#2a1a3a',kind:'water',t:.3},8.3);
-        /* skinnen foroven */
-        P2(g,box(-29.3,40.7,29.3,42),{color:'#8a8aa8',kind:'water',t:.8,edge:'#3a3458'},-2.6);P2(g,box(-29,41.25,29,41.45),{color:'#c8c4d8',kind:'water',t:.1},-2.1);
-        /* præmieskakten */
-        P2(g,box(-29.9,8.2,-19.9,17.5),{color:'#140c2a',kind:'water',t:.1},-4.8);plate(g,'gribepraemie','PRÆMIE',FONT.arkade,7.4,1.8,{bg:'#140c2a',fg:'#ffd36e',size:1.25,x:-24.8,y:13.4,z:-4.6});P2(g,toCCW([[-25.6,11.6],[-24,11.6],[-24.8,10.2]]),{color:'#ffd36e',kind:'water',t:.05},-4.6);
-        for(const x of[-27,27]){Rm.glow(x,42.6,-3,'#ffd9a0',9);const L=new THREE.PointLight('#ffe0b0',50,60,2);put(g,L,x,40,0)}},
-      ()=>{const g=Rm.scene;/* skabet: mahogni med messinglister, foran glasset */
-        for(const sx of[-1,1]){const p=box(sx>0?29.9:-33,6.8,sx>0?33:-29.9,52);P2(g,p,{t:2.4,s:10,cap:1400,paint:P=>boards(P,null,'#6a3a20',{dir:'v',h:1.6,ink:.25})},4);P2(g,box(sx*31.45-.16,6.8,sx*31.45+.16,52),{mat:gold(),t:.3},5.3)}
-        {const p=box(-33,43.9,33,52);P2(g,p,{t:2.4,s:10,cap:1400,paint:P=>boards(P,null,'#6a3a20',{dir:'h',h:1.6,ink:.25})},4);P2(g,box(-29.9,43.7,29.9,44.1),{mat:gold(),t:.3},5.3)}
-        /* kontrolpanelet: et gammelt panel i mahogni og messing */
-        {const p=box(-33,-9,33,7);P2(g,p,{t:4,s:10,cap:1600,paint:P=>{boards(P,null,'#7a3a22',{dir:'h',h:1.6,ink:.3});P.wash('#2e110a',box(-34,-9,34,-3),{alpha:.35,edge:0,mode:'source-over'})}},6)}
-        P2(g,box(-33,6,33,7),{mat:gold(),t:.4},8.1);for(let x=-31.5;x<33;x+=3.5)P2(g,circ(x,6.5,.2,.2,8),{color:BRl,kind:'water',t:.2},8.3);
-        /* tandhjul som pynt */
-        for(const[cx,cy,r,n,a0]of[[6.5,2.5,1.7,10,.2],[9.25,.25,1.1,8,.5],[30,-4,1.3,9,0]]){const tp=[];for(let i=0;i<n*2;i++){const a=i/(n*2)*TAU+a0,rr=i%2?r:r*1.18;tp.push([cx+Math.cos(a-.09)*rr,cy+Math.sin(a-.09)*rr],[cx+Math.cos(a+.09)*rr,cy+Math.sin(a+.09)*rr])}P2(g,toCCW(tp),{mat:gold(),t:.3},8.1);P2(g,circ(cx,cy,r*.45,r*.45,14),{color:'#3a1a0c',kind:'water',t:.34},8.12);P2(g,circ(cx,cy,r*.16,r*.16,8),{color:BRl,kind:'water',t:.38},8.14)}
-        /* lågen, hvor den vundne bamse kommer ud */
-        {const d=box(-29,-3.2,-20.2,5.2);P2(g,d,{color:'#140c2a',kind:'water',t:.1},8.05);for(const s of ring(d,.4,false))P2(g,s,{mat:gold(),t:.4},8.1);P2(g,box(-28.4,4.2,-20.8,4.4),{color:'#3a2e5a',kind:'water',t:.05},8.12)}
-        /* knapperne: en messingring om et hul; kuplen af farvet glas ligger i det levende lag, så den kan trykkes ned */
-        for(const k of KN){P2(g,circ(k.x,KY-.8,k.r+.8,(k.r+.8)*.55,30),{color:'#1a0804',kind:'water',t:.05},8.05);P2(g,circ(k.x,KY-.4,k.r+.7,(k.r+.7)*.55,30),{mat:gold(),t:.3},8.1);for(let i=0;i<8;i++){const a=i/8*TAU;P2(g,circ(k.x+Math.cos(a)*(k.r+.35),KY-.4+Math.sin(a)*(k.r+.35)*.55,.15,.15,8),{color:BRl,kind:'water',t:.34},8.12)}P2(g,circ(k.x,KY-.5,k.r,k.r*.55,28),{color:'#120604',kind:'water',t:.36},8.12)}
-        plate(g,'gribehold','Hold pilene nede',FONT.pil,13,1.9,{bg:'#d8b060',fg:'#3a2208',frame:'gold',size:1.15,x:-7,y:-2.45,z:8.3});
-        /* uret: en messingring; tallet står i det levende lag */
-        for(const s of ring(circ(28.3,KY,2.7,2.7,30),.5,false))P2(g,s,{mat:gold(),t:.4},8.1)},
-      ()=>{const lv=Rm.live;/* vognen, wiren og kloen */
-        vogn=new THREE.Group();vogn.position.set(X(XMIN),Y(TOP-15),2.2);lv.add(vogn);P2(vogn,box(-1.3,-.85,1.3,.85),{color:'#6a6480',kind:'water',t:.5,edge:'#2a2440'},0);for(const sx of[-1,1])P2(vogn,circ(sx*.8,.75,.3,.3,10),{color:'#c8c4d8',kind:'water',t:.56},0);
-        kabel=piece(box(-.1,0,.1,1),{color:'#c8c4d8',kind:'water',t:.05});lv.add(kabel);
-        hovedG=new THREE.Group();lv.add(hovedG);P2(hovedG,sm([[-1.55,-1.05],[1.55,-1.05],[1.55,1.05],[-1.55,1.05]],3),{color:'#8a8aa8',kind:'water',t:.5,edge:'#2a2440'},0);P2(hovedG,box(-1.25,.5,1.25,.8),{color:'#b8b6cc',kind:'water',t:.1},.3);
-        put(hovedG,piece(circ(0,-.1,.26,.26,10),{t:.1,mat:paperMat('#ffffff','tissue',{glow:'#e0457a',gi:1.6})}),0,0,.32);for(const sx of[-1,1])P2(hovedG,circ(sx*PIV/20,-.95,.28,.28,10),{color:'#6a6480',kind:'water',t:.1},.34);
+        /* bagvæggen inde i kassen: lilla karton med stjerner klippet i papir og klistret på */
+        {const B=box(-29.9,8,29.9,43.9);P2(g,B,{t:.3,s:10,cap:1600,paint:P=>{P.wash('#4a2e66',B,{top:'#2e1c46',edge:.5,clouds:6})}},-5)}
+        for(let i=0;i<16;i++){const x=-26+(i%8)*7.4+(i>7?3.7:0)+R(-1,1),y=i>7?25+R(-2,2):35.5+R(-2,2),r=R(.7,1.1);P2(g,starPts(x,y,r,r*.45,R(-.4,.4)),{color:i%3?KREM:'#ffd86b',kind:'card',t:.08},-4.7)}
+        Rm.floor(box(-29.9,-4.8,29.9,3.6),{color:'#5a3a76',kind:'card',t:.3},8.3);
+        /* skinnen foroven: en træliste med splitben, og to papirslamper */
+        P2(g,box(-29.3,40.7,29.3,41.9),{color:'#e8d2a6',kind:'balsa',t:.8},-2.6);for(const x of[-28.4,28.4])brad(g,x,41.3,-2.15,.3);
+        /* præmieskakten: en lav kartonkant med et skilt, og en tynd væg ind mod bunken */
+        P2(g,box(-29.9,8.2,-19.9,17.5),{color:'#1e1432',kind:'card',t:.1},-4.8);
+        P2(g,box(-20.3,8.3,-19.6,17.6),{color:KRAFT,kind:'kraft',t:.5},3);P2(g,box(-29.9,8.3,-19.6,10.4),{color:KRAFT,kind:'kraft',t:.5,edge:'#8a5a28'},3.2);
+        P2(g,box(-27,11.6,-22.6,16.4),{color:KREM,kind:'card',t:.12,edge:'#a88a5a'},-4.5);P2(g,toCCW([[-25.3,15.6],[-24.3,15.6],[-24.3,13.6],[-23.3,13.6],[-24.8,12.1],[-26.3,13.6],[-25.3,13.6]]),{color:'#e2384e',kind:'card',t:.06},-4.4);tape(g,-24.8,16.4,-4.35,1.8,.6,.08);
+        for(const x of[-27,27]){P2(g,sm([[x-1.5,43.8],[x+1.5,43.8],[x+1.1,42.4],[x-1.1,42.4]],3),{t:.3,mat:paperMat('#fff0c0','tissue',{glow:'#ffc060',gi:1.4})},-2.4);Rm.glow(x,42.6,-3,'#ffd9a0',9);const L=new THREE.PointLight('#ffe0b0',50,60,2);put(g,L,x,40,0)}},
+      ()=>{const g=Rm.scene;/* skabet: tyk karton, malet koralrød med stjerner sat med skabelon. Kanterne viser pappet */
+        const maling=(p,dir)=>P=>{P.wash(KAB,p,{top:hexOf(shade(KAB,.08)),edge:.3,clouds:6});for(let y=-10,r=0;y<54;y+=4.2,r++)for(let x=-34+(r%2?2.1:0);x<34;x+=4.2)P.fill(starPts(x,y,.55,.24,.2),hexOf(shade(KAB,-.12)),.85)};
+        for(const sx of[-1,1]){const p=box(sx>0?29.9:-33.4,6.8,sx>0?33.4:-29.9,52);P2(g,p,{t:2.6,s:10,cap:1400,paint:maling(p)},4);brad(g,sx*31.65,9,5.4);brad(g,sx*31.65,42,5.4)}
+        {const p=box(-33.4,43.9,33.4,52);P2(g,p,{t:2.6,s:10,cap:1400,paint:maling(p)},4);tape(g,-30.8,44.2,5.45,2.4,.8,.5);tape(g,30.8,44.2,5.45,2.4,.8,-.5)}
+        /* kontrolpanelet: en kartonplade, mørkelilla, med en kant af lys karton foroven */
+        {const p=box(-33.4,-9.5,33.4,7.6);P2(g,p,{t:4,s:10,cap:1600,paint:P=>{P.wash(PAN,p,{top:hexOf(shade(PAN,.1)),edge:.3,clouds:6});for(let i=0;i<60;i++)P.fill(circ(R(-33,33),R(-9,6),R(.08,.16),R(.08,.16),6),'#5a4a86',.8)}},6)}
+        P2(g,box(-33.4,6,33.4,7.8),{color:KREM,kind:'card',t:.5,edge:'#a88a5a'},8.15);for(const x of[-31.6,-16.4,1,16.4,31.6])brad(g,x,6.9,8.45,.26);
+        /* lågen til præmien: et mørkt hul med en kartonkant; selve klappen sidder i det levende lag */
+        {const d=box(-28.6,-1.2,-20.6,5.4);P2(g,d,{color:'#140c22',kind:'card',t:.1},8.05);for(const s of ring(d,.55,false))P2(g,s,{color:KRAFT,kind:'kraft',t:.5,edge:'#8a5a28'},8.15)}
+        /* hullerne til knapperne, med en ring af lys karton */
+        for(const k of KN){P2(g,circ(k.x,KY,k.r+.25,k.r+.25,40),{color:'#120a1c',kind:'card',t:.1},8.05);for(const s of ring(circ(k.x,KY,k.r+.85,k.r+.85,40),.65,false))P2(g,s,{color:KREM,kind:'card',t:.4,edge:'#a88a5a'},8.15);for(let i=0;i<4;i++){const a=i/4*TAU+Math.PI/4;brad(g,k.x+Math.cos(a)*(k.r+.52),KY+Math.sin(a)*(k.r+.52),8.45,.16)}}
+        /* sedler på panelet, sat fast med tape */
+        plate(g,'gribehold3','Hold pilene nede',FONT.pil,11,1.5,{bg:KREM,fg:'#3a2208',size:.95,x:-8.7,y:6.15,z:8.42});
+        plate(g,'gribegrib2','GRIB',FONT.arkade,5,1.5,{bg:KREM,fg:'#c0283e',size:1.15,x:8.2,y:6.15,z:8.42});
+        plate(g,'gribepris2','1 ★ pr. tur',FONT.pil,7,1.5,{bg:KREM,fg:'#3a2208',size:.95,x:TX,y:6.15,z:8.42});
+        /* tidsskiven: en hvid papskive med 20 streger; den røde kile sidder i det levende lag */
+        {const d=circ(TX,TY,TR,TR,48);P2(g,circ(TX,TY,TR+.55,TR+.55,48),{color:KREM,kind:'card',t:.4,edge:'#a88a5a'},8.15);P2(g,d,{t:.3,s:24,paint:P=>{P.wash('#fffaf0',d,{edge:.2});for(let i=0;i<20;i++){const a=Math.PI/2+i/20*TAU,r0=i%5?TR*.84:TR*.72;P.pen([[TX+Math.cos(a)*r0,TY+Math.sin(a)*r0],[TX+Math.cos(a)*TR*.95,TY+Math.sin(a)*TR*.95]],'#3a2208',i%5?.09:.16,.9)}}},8.45)}
+      },
+      ()=>{const lv=Rm.live;/* vognen, snoren og kloen: karton, splitben og en snor */
+        vogn=new THREE.Group();vogn.position.set(X(XMIN),Y(TOP-15),2.2);lv.add(vogn);P2(vogn,box(-1.5,-.9,1.5,.9),{color:KRAFT,kind:'kraft',t:.6,edge:'#8a5a28'},0);for(const sx of[-1,1]){P2(vogn,circ(sx*.85,.9,.42,.42,14),{color:'#e2384e',kind:'card',t:.5},.1);for(const[dx,dy]of[[-.1,.1],[.1,.1],[-.1,-.1],[.1,-.1]])P2(vogn,circ(sx*.85+dx,.9+dy,.05,.05,6),{color:'#7a1a2a',kind:'water',t:.02},.4)}tape(vogn,0,-.2,.35,2.2,.5,0);
+        kabel=piece(box(-.08,0,.08,1),{color:'#ead9b5',kind:'water',t:.06});lv.add(kabel);
+        hovedG=new THREE.Group();lv.add(hovedG);P2(hovedG,sm([[-1.6,-1.1],[1.6,-1.1],[1.6,1.1],[-1.6,1.1]],3),{color:KRAFT,kind:'kraft',t:.6,edge:'#8a5a28'},0);tape(hovedG,0,.55,.35,3.4,.55,0);
+        {const h=[];for(let i=0;i<24;i++){const q=i/24*TAU;h.push([.42*16*Math.pow(Math.sin(q),3)/17,.42*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17-.2])}P2(hovedG,toCCW(h),{color:'#e2384e',kind:'card',t:.1},.38)}
+        for(const sx of[-1,1])brad(hovedG,sx*PIV/20,-.95,.4,.26);
         /* den bagerste arm (den tredje) ses bag bamserne */
-        bagarm=piece(box(-.22,-1,.22,0),{color:'#8a84a0',kind:'water',t:.2});bagarm.position.set(0,-.85,-4.4);hovedG.add(bagarm);bagtip=new THREE.Group();bagtip.position.set(0,-4.5,-4.4);hovedG.add(bagtip);P2(bagtip,toCCW([[-.22,.1],[.22,.1],[.1,-.2],[-.5,-.45],[-.6,-.2]]),{color:'#8a84a0',kind:'water',t:.2},0);
-        /* glasset: genskin, og præmieskaktens plexiglas */
-        {const c=cv(1188,712),q=c.getContext('2d');q.fillStyle='rgba(255,255,255,.07)';for(const pts of[[[34,4],[174,4],[34,264]],[[854,4],[934,4],[654,708],[584,708]]]){q.beginPath();pts.forEach(([x,y],i)=>i?q.lineTo(x,y):q.moveTo(x,y));q.fill()}
-          q.strokeStyle='rgba(221,239,255,.75)';q.lineCap='round';q.lineWidth=7;q.beginPath();q.moveTo(198,524);q.lineTo(198,710);q.stroke();q.lineWidth=5;q.beginPath();q.moveTo(8,524);q.lineTo(198,524);q.stroke();q.fillStyle='rgba(180,220,255,.08)';q.fillRect(8,524,190,188);
-          const m=new THREE.Mesh(new THREE.PlaneGeometry(59.4,35.6),new THREE.MeshBasicMaterial({map:tx(c,true),transparent:true,depthWrite:false,toneMapped:false}));m.position.set(0,Y(36+356),3.4);m.userData.noShadow=true;lv.add(m)}
-        /* kuplerne på knapperne */
-        for(const k of KN){const G=new THREE.Group();G.position.set(k.x,KY,8.3);lv.add(G);k.G=G;P2(G,circ(0,-.35,k.r-.2,(k.r-.2)*.55,28),{color:BRd,kind:'water',t:.1},0);k.lys=paperMat(k.glas,'water',{glow:k.glas,gi:.5}).clone();put(G,piece(circ(0,0,k.r-.3,(k.r-.3)*.55,28),{t:.12,mat:k.lys}),0,0,.1);
-          P2(G,circ(-k.r*.3,k.r*.2,k.r*.28,k.r*.1,12),{color:'#ffffff',kind:'water',t:.02},.2);
-          if(k.id==='grib')P2(G,starPts(0,-.05,1.5,.68,0).map(([x,y])=>[x,y*.6]),{color:'#ffe9a8',kind:'water',t:.03},.22);else{const d=k.id==='v'?1:-1;P2(G,toCCW([[d*1.1,.55],[-d*1.3,0],[d*1.1,-.55]]),{color:'#06302c',kind:'water',t:.03},.22)}}
-        /* uret */
-        ur=cv(160,160);urT=tx(ur,true);{const m=new THREE.Mesh(new THREE.PlaneGeometry(4.6,4.6),new THREE.MeshBasicMaterial({map:urT,transparent:true,toneMapped:false}));m.position.set(28.3,KY,8.2);m.userData.noShadow=true;lv.add(m)}
+        bagarm=piece(box(-.25,-1,.25,0),{color:'#b8905a',kind:'kraft',t:.3});bagarm.position.set(0,-.85,-4.4);hovedG.add(bagarm);bagtip=new THREE.Group();bagtip.position.set(0,-4.5,-4.4);hovedG.add(bagtip);P2(bagtip,toCCW([[-.25,.1],[.25,.1],[.1,-.2],[-.5,-.45],[-.6,-.2]]),{color:'#b8905a',kind:'kraft',t:.3},0);
+        /* knapperne: tre lag papskiver, der trykkes ned i hullet. Pilene og stjernen er klippet i lyst papir */
+        for(const k of KN){const G=new THREE.Group();G.position.set(k.x,KY,8.1);lv.add(G);k.G=G;const T=new THREE.Group();G.add(T);k.T=T;
+          P2(T,circ(0,0,k.r,k.r,40),{color:hexOf(shade(k.c,-.28)),kind:'card',t:.7},.35);P2(T,circ(0,.08,k.r*.9,k.r*.9,40),{color:k.c,kind:'card',t:.6},1);P2(T,circ(-k.r*.34,k.r*.36,k.r*.2,k.r*.13,16),{color:hexOf(shade(k.c,.3)),kind:'card',t:.04},1.32);
+          const sy=k.id==='grib'?starPts(0,0,k.r*.55,k.r*.24,0):(d=>[[-1.6,0],[-.15,1.35],[-.15,.55],[1.5,.55],[1.5,-.55],[-.15,-.55],[-.15,-1.35]].map(([x,y])=>[x*d*k.r/3.4,y*k.r/3.4]))(k.id==='v'?1:-1);
+          P2(T,toCCW(sy.map(([x,y])=>[x,y+.06])),{color:'#fff4dc',kind:'card',t:.12,edge:hexOf(shade(k.c,-.45))},1.36)}
+        /* tidsskivens røde kile: én for hvert sekund, så den bare skal vises */
+        urG=new THREE.Group();urG.position.set(TX,TY,8.62);lv.add(urG);for(let n=0;n<=LIMIT;n++){const G=new THREE.Group();if(n>0){const p=[[0,0]];for(let i=0;i<=Math.max(2,n*2);i++){const a=Math.PI/2+i/Math.max(2,n*2)*TAU*n/LIMIT;p.push([Math.cos(a)*TR*.7,Math.sin(a)*TR*.7])}P2(G,toCCW(p),{color:'#e2384e',kind:'card',t:.08},0)}G.visible=false;urG.add(G);kiler.push(G)}brad(urG,0,0,.12,.42);
+        /* klappen foran præmien: hængslet foroven med to splitben */
+        klap=new THREE.Group();klap.position.set(DX,5.4,8.3);lv.add(klap);plate(klap,'gribeklap3','PRÆMIE',FONT.arkade,7.4,6.4,{bg:KRAFT,fg:'#7a3a1a',size:1.2,x:0,y:-6.4,z:.1});P2(klap,starPts(0,-5.3,.7,.32,0),{color:'#7a3a1a',kind:'card',t:.04},.32);for(const sx of[-1,1])brad(klap,sx*3.3,-.6,.34,.28);
         fyld();tegn();
         ctx.say(SPIL.stj<1?'Et forsøg koster 1 stjerne. Tjen stjerner i Skolen, og kom tilbage.':'Et forsøg koster 1 stjerne. Hold pilene nede for at køre kloen, og tryk på den røde knap for at gribe.')}],
     tick:(t,dt)=>{if(!S)return;const ph=S.phase;
@@ -3739,8 +3746,9 @@ ROOMS.gribe=function(ctx){
       if(ph==='klar'){if(S.uro>0)S.uro-=dt}
       if(ph!=='klar'||S.uro>0){S.acc+=dt;while(S.acc>=STEP){S.acc-=STEP;skridt(STEP)}}
       tegn();puls+=dt;
-      for(const k of KN){const ned=nede===k.id||(k.id!=='grib'&&S.phase==='flyt'&&((k.id==='v'&&S.dir<0)||(k.id==='h'&&S.dir>0)));k.G.position.y+=((ned?KY-.3:KY)-k.G.position.y)*Math.min(1,dt*30);k.lys.emissiveIntensity=k.id==='grib'?(S.phase==='flyt'?.7+.35*Math.sin(puls*6):S.phase==='klar'?.5+.2*Math.sin(puls*2.4):.15):(S.phase==='flyt'||S.phase==='klar'?ned?.9:.45:.12)}
-      if(vundet){vundet.userData.t+=dt;const k=Math.min(1,vundet.userData.t/.4);vundet.position.y=.2-2*(1-k)*(1-k);vundet.rotation.z=.08*Math.sin(t*2)}}},Rm=makeRoom(ctx,OPT);
+      for(const k of KN){const ned=nede===k.id||(k.id!=='grib'&&S.phase==='flyt'&&((k.id==='v'&&S.dir<0)||(k.id==='h'&&S.dir>0))),maal=ned?-.75:0;k.T.position.z+=(maal-k.T.position.z)*Math.min(1,dt*30);const venter=k.id==='grib'?S.phase==='flyt':S.phase==='klar'||S.phase==='flyt';k.T.scale.setScalar(ned?.96:venter&&k.id==='grib'?1+.03*Math.sin(puls*6):1)}
+      urG.rotation.z=S.phase==='flyt'&&S.sec<=5?Math.sin(puls*30)*.05:0;klap.rotation.x+=((vundet?-1.25:0)-klap.rotation.x)*Math.min(1,dt*8);
+      if(vundet){vundet.userData.t+=dt;const k=Math.min(1,vundet.userData.t/.4);vundet.position.y=1.6-2*(1-k)*(1-k);vundet.rotation.z=.08*Math.sin(t*2)}}},Rm=makeRoom(ctx,OPT);
   /* tastaturet, som i originalen: piletaster og mellemrum */
   const kd=e=>{if(e.key==='ArrowLeft'){hold('v',true);e.preventDefault()}else if(e.key==='ArrowRight'){hold('h',true);e.preventDefault()}else if(e.key===' '||e.key==='Enter'){if(!e.repeat)hold('grib',true);e.preventDefault()}},ku=e=>{if(e.key==='ArrowLeft')hold('v',false);else if(e.key==='ArrowRight')hold('h',false)};
   addEventListener('keydown',kd);addEventListener('keyup',ku);
