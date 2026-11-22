@@ -33,17 +33,21 @@ ROOMS.tryl=function(ctx){
   const BPOS={1:[[0,5.9]],2:[[-2.55,5.5],[2.55,5.5]],3:[[-4.2,4.9],[0,7.5],[4.2,4.9]],4:[[-5.2,4.3],[-1.9,7.5],[1.9,7.5],[5.2,4.3]]},SOEDT=['sommerfugl1','sommerfugl2','cupcake','and','hjertevinge'];
   const rundeplan=w=>{const tegn=['vand','lod'];if(w>=2)tegn.push('v');if(w>=3)tegn.push('hat');if(w>=4)tegn.push('ring');if(w>=7)tegn.push('lyn');const nyt=w===1?['vand','lod']:w===2?['v']:w===3?['hat']:w===4?['ring']:w===7?['lyn']:[];
     return{tegn,nyt,antal:Math.min(5+w*2,26),gab:Math.max(.5,2.85-w*.165),fart:Math.min(50+w*6,200)/U}};
-  let frys=false,S=null,lag,lg,heks,kat,kage=[],gaveG,hud,ht,skjul,W_=1,H_=1;const TPL={},BAL={},SKT={},SKI={},v3=new THREE.Vector3();
-  const tegnHud=()=>{const g=hud.getContext('2d');g.clearRect(0,0,640,72);g.fillStyle='#1a1238';g.beginPath();g.roundRect(2,2,636,68,20);g.fill();g.strokeStyle='#ffd86b';g.lineWidth=4;g.stroke();g.fillStyle='#ffe9a0';g.textAlign='center';g.textBaseline='middle';g.font=FONT.arkade.replace('X','34px');
-    g.fillText(S&&S.fase!=='vent'?`${S.boss?S.boss.def.navn:'Runde '+S.runde}  ·  Point ${S.score}`:'Tryk for at begynde',320,38,610);ht.needsUpdate=true};
-  /* fra rummets mål til skærmens punkter (til stregen, teksterne og kortet, som tegnes på et lag oven på rummet) */
-  const tilSkaerm=(x,y,z=10)=>{v3.set(x,y,z).project(Rm.cam);return[(v3.x+1)/2*W_,(1-v3.y)/2*H_]};
+  let frys=false,S=null,heks,kat,kage=[],gaveG,tv,pt,ban,kortG=null,skjul,msgPrev=0,msgSidst='';const TPL={},BAL={},SKT={},SKI={},STJ={},v3=new THREE.Vector3();
+  /* pointtavlen af karton, og kortet i snore, når spillet venter */
+  const tegnHud=()=>{if(!tv)return;tv.saet(0,S?S.runde:0);tv.saet(1,S?S.score:0);if((!S||S.fase==='vent')&&!ban.synlig)ban.vis('Tryk for at begynde',{sek:0,col:'#7a3fa2',txt2:'Tegn tegnet på ballonen med fingeren'})};
+  /* papirdele: en klon af et tegn-skilt, et grønt flueben, og et færdigt (grønt) skilt */
+  const MK='#1a1238',skive=(sym,s)=>{const G=SKI[sym].clone(true);G.scale.setScalar(s);return G};
+  const flueben=(par,s,z)=>{const G=new THREE.Group();for(const q of thick([[[-.55*s,0],[-.15*s,-.42*s],[.6*s,.5*s]]],.32*s))put(G,piece(q,{color:'#ffffff',kind:'card',t:.06}),0,0,0);G.position.z=z;par.add(G);return G};
+  const faerdig=s=>{const G=new THREE.Group();put(G,piece(circ(0,0,1.3*s,1.3*s,22),{color:'#3fa86a',kind:'water',t:.06,edge:MK}),0,0,0);flueben(G,1.3*s,.1);return G};
+  const tilLive=(G,x,y,z)=>{G.position.set(x,y,z);Rm.live.add(G);return G},rydG=G=>{if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(q=>{if(q.userData.ryd)q.userData.ryd()})};
   const gnist=(x,y,c,n,v)=>Rm.burst(x,y,12,Math.min(14,n),c,v/U*.5);
-  const tekst=(x,y,txt,c,size)=>{if(txt)S.tekster.push({x:clamp(x,-34,34),y:Math.min(TOP-6,y),txt,c,size,t:0})};
+  const tekst=(x,y,txt,c,size)=>{if(txt&&pt)pt.pop(clamp(x,-34,34),Math.min(TOP-6,y),11,txt,{col:c==='#fff6d0'?'#ffb020':c,h:size/10})};
   const aktive=()=>S.cfg?S.cfg.tegn.concat(S.gave?['hjerte']:[]):[];
   /* ---------- runderne ---------- */
-  const rydBoss=()=>{if(!S)return;if(S.boss){Rm.live.remove(S.boss.G);S.boss=null}for(const k of S.skud)Rm.live.remove(k.G);S.skud=[]};
-  const begynd=()=>{rydBoss();for(const f of S?S.foes:[])Rm.live.remove(f.G);for(const d of S?S.dyr:[])Rm.live.remove(d.G);for(const b of S?S.frie:[])Rm.live.remove(b.G);
+  const rydUI=B=>{if(B&&B.ui){for(const k in B.ui)rydG(B.ui[k]);B.ui={}}};
+  const rydBoss=()=>{if(!S)return;if(S.boss){rydUI(S.boss);Rm.live.remove(S.boss.G);S.boss=null}for(const k of S.skud){Rm.live.remove(k.G);rydG(k.rad)}S.skud=[]};
+  const begynd=()=>{rydBoss();ban.skjul();for(const st of S?S.spor:[])Rm.live.remove(st.m);for(const f of S?S.foes:[])Rm.live.remove(f.G);for(const d of S?S.dyr:[])Rm.live.remove(d.G);for(const b of S?S.frie:[])Rm.live.remove(b.G);
     S={t:0,score:0,runde:0,liv:3,forvandlet:0,cfg:null,foes:[],frie:[],dyr:[],tekster:[],spor:[],streg:null,koe:[],tving:[],spawnT:0,fase:'spil',faseT:0,kort:null,gave:null,gaveT:-1,hop:0,dyrHop:0,kageHop:0,ryst:0,msg:'',msg2:'',msgT:0,boss:null,skud:[],bossNr:0,superSet:false};gaveG.visible=false;visKage();naesteRunde();tegnHud()};
   const naesteRunde=()=>{S.runde++;const w=S.runde,cfg=S.cfg=rundeplan(w),kan=Object.keys(SLAGS).filter(k=>SLAGS[k].fra<=w),sum=kan.reduce((a,k)=>a+SLAGS[k].tit,0);S.msg2='';if(w%5===0)return bossStart(w);
     S.koe=Array.from({length:cfg.antal},()=>{let r=Math.random()*sum;for(const k of kan){r-=SLAGS[k].tit;if(r<=0)return k}return'gnom'});if(w===1)S.koe.fill('gnom');
@@ -64,16 +68,28 @@ ROOMS.tryl=function(ctx){
   const MOENSTER={trold:{n:3,spred:7.5,forsink:.12,navn:'Bombe-regn!'},foenix:{n:4,spred:4.5,forsink:.32,fra:[[-9,-1],[-3.5,-4.5],[3.5,-4.5],[9,-1]],navn:'Ildregn!'},isdrage:{n:3,spred:6.5,forsink:0,modfase:true,navn:'Isstorm!'},kraken:{n:4,spred:5.5,forsink:.22,fra:[[-8,-4.5],[-2.5,-7.5],[2.5,-7.5],[8,-4.5]],navn:'Blæksprøjt!'}};
   const SUPER={trold:'KÆMPEBOMBE!',foenix:'FLAMMEKUGLE!',isdrage:'ISKÆMPE!',kraken:'BLÆKBOBLE!'},SKUDFARVE={bombe:'#ff7a3a',ild:'#ffb23e',is:'#7fd8ff',blaek:'#b07aff'},LAD=1.7,BY=28.5,BSPAN=22,PYNT=['sloejfe','hjerte','blomst','hjerte','sloejfe'];
   const PYNT_AT={trold:[[-3.4,7.2],[-3.6,-1.4],[3.6,-1.4],[0,-3.2],[3.2,6.6]],foenix:[[0,7.4],[-2,-.2],[2,-.2],[0,-3.2],[-2.6,3.4]],isdrage:[[0,7.2],[-2.6,-.4],[2.6,-.4],[0,-4.4],[2.8,6]],kraken:[[-3,7.4],[-4.4,.6],[4.4,.6],[0,6.4],[-1,-.8]]};
-  const bossSig=txt=>{if(S.boss){S.boss.snak=txt;S.boss.snakT=2.2}};
+  const bossSig=txt=>{if(S.boss){S.boss.snak=txt;S.boss.snakT=2.2;const B=S.boss;rydG(B.ui.snak);/* snakkeboblen: et hvidt kort med en spids */
+      const tm=papirTekstMesh(txt,'#33204f',2.6,FONT.pil,'rgba(0,0,0,0)'),w=tm.userData.b*.82+2,G=new THREE.Group();put(G,piece(box(-w/2,-1.45,w/2,1.45),{color:'#ffffff',kind:'card',t:.2,edge:MK}),0,0,0);put(G,piece(toCCW([[-w/2+1,-1.4],[-w/2+2.4,-1.4],[-w/2+.2,-2.8]]),{color:'#ffffff',kind:'card',t:.2,edge:MK}),0,0,-.02);tm.position.z=.2;G.add(tm);B.ui.snak=tilLive(G,0,0,7.5)}};
+  const bossUI=B=>{const c=SKUDFARVE[B.def.skud];
+    {const G=new THREE.Group();B.hj=[];for(let i=0;i<B.hpMax;i++){const h=new THREE.Group(),hx=(i-(B.hpMax-1)/2)*1.7,form=(f,dz)=>{const p=[];for(let j=0;j<24;j++){const q=j/24*TAU;p.push([hx+.62*16*Math.pow(Math.sin(q),3)/17,.62*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17])}put(h,piece(toCCW(p),{color:f,kind:'card',t:.2,edge:MK}),0,0,dz)};
+      const fuld=new THREE.Group(),tom=new THREE.Group();h.add(fuld,tom);form.call(null,'#e8324a',0);fuld.add(h.children.pop());form('#4a3a66',0);tom.add(h.children.pop());tom.visible=false;G.add(h);B.hj.push({fuld,tom})}B.ui.hj=tilLive(G,0,0,6)}
+    {const G=new THREE.Group();B.ringe=[];for(let i=0;i<3;i++){const r=new THREE.Group();for(const q of ring(circ(0,0,1,1,32),.16,false))put(r,piece(q,{color:c,kind:'card',t:.06}),0,0,0);G.add(r);B.ringe.push(r)}G.visible=false;B.ui.lad=tilLive(G,0,0,6)}};
+  /* panelet under bossen, når den er svimmel: rækken af tegn, der skal tegnes, og en papstrimmel, der bliver kortere */
+  const svimPanel=B=>{rydG(B.ui.svim);const n=B.kombo.length,gap=4.2,W=Math.max(n*gap+3,31),G=new THREE.Group();put(G,piece(box(-W/2,-4.6,W/2,4),{color:'#fbf2dc',kind:'card',t:.4,edge:'#a88a5a'}),0,0,0);
+    const tm=papirTekstMesh('Den er svimmel! Tegn tegnene i rækkefølge','#7a3fa2',1.9,FONT.pil,'rgba(0,0,0,0)');tm.scale.setScalar(Math.min(1,(W-2)/tm.userData.b));tm.position.set(0,2.6,.3);G.add(tm);
+    B.kd=B.kombo.map((sym,i)=>{const d=new THREE.Group();d.position.set((i-(n-1)/2)*gap,-.4,.3);G.add(d);d.add(skive(sym,1.35));return d});
+    put(G,piece(box(-W/2+1.2,-3.6,W/2-1.2,-3),{color:'#d8ccb4',kind:'card',t:.06}),0,0,.25);const bar=new THREE.Group();bar.position.set(-W/2+1.2,-3.3,.35);G.add(bar);put(bar,piece(box(0,-.3,W-2.4,.3),{color:'#ffc21e',kind:'card',t:.06}),0,0,0);B.bar=bar;
+    for(const sx of[-1,1])for(const q of thick([[[sx*(W/2-1.2),3.4],[sx*(W/2-1.6),40]]],.09))put(G,piece(q,{color:'#ead9b5',kind:'water',t:.04}),0,0,-.1);B.ui.svim=tilLive(G,0,0,9)};
+
   /* en angrebsrunde: enkeltskud og bølger på skift, og til sidst et superangreb. Senere bosser kaster flere bølger */
   const lavPlan=B=>{const n=4+Math.min(3,B.nr),p=[];for(let i=0;i<n-1;i++)p.push(B.nr>=5?(i%3===2?'enkelt':'boelge'):(i%2?'boelge':'enkelt'));p.push('super');return p};
   const bossStart=w=>{const nr=++S.bossNr,def=BOSSER[(nr-1)%BOSSER.length],cyk=Math.floor((nr-1)/BOSSER.length),G=new THREE.Group(),A=TRYLBOSS.byg(G,def.k);G.position.set(0,TOP+14,3);Rm.live.add(G);
     S.koe=[];S.tving=[];S.kort=null;S.spawnT=99;S.gaveT=Math.random()<.6?rnd(10,22):-1;
-    S.boss={def,nr,G,A,x:0,y:TOP+14,t:0,vt:0,fase:'ind',faseT:2.4,hp:def.hp+cyk,hpMax:def.hp+cyk,komboN:Math.min(5,def.kombo+cyk),flyv:Math.max(2.2,4.6-.3*(nr-1)),gab:Math.max(.8,2.1-.2*(nr-1)),plan:[],kastI:0,kastT:1.2,lad:0,kombo:[],komboI:0,saarT:0,saarMax:1,ramtT:0,pynt:0,snak:null,snakT:0,besejrT:0,glimt:0};
-    S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.boelge();tegnHud()};
+    S.boss={ui:{},def,nr,G,A,x:0,y:TOP+14,t:0,vt:0,fase:'ind',faseT:2.4,hp:def.hp+cyk,hpMax:def.hp+cyk,komboN:Math.min(5,def.kombo+cyk),flyv:Math.max(2.2,4.6-.3*(nr-1)),gab:Math.max(.8,2.1-.2*(nr-1)),plan:[],kastI:0,kastT:1.2,lad:0,kombo:[],komboI:0,saarT:0,saarMax:1,ramtT:0,pynt:0,snak:null,snakT:0,besejrT:0,glimt:0};
+    bossUI(S.boss);S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.boelge();tegnHud()};
   /* tegnene: forskellige på skud, der flyver samtidig, når det kan lade sig gøre */
   const nytTegn=()=>{const brugt=new Set(S.skud.map(k=>k.sym)),pulje=S.cfg.tegn.filter(t=>!brugt.has(t));return vaelg(pulje.length?pulje:S.cfg.tegn)};
-  const nytSkud=o=>{const G=new THREE.Group();G.add(SKT[o.k].clone(true));o.G=G;o.sk=SKI[o.sym].clone(true);o.sk.position.z=1.2;G.add(o.sk);G.visible=false;G.position.set(o.x0,o.y0,7+S.skud.length%4*.3);Rm.live.add(G);S.skud.push(o);return o};
+  const nytSkud=o=>{const G=new THREE.Group();G.add(SKT[o.k].clone(true));o.G=G;o.adv=STJ.adv.clone(true);o.adv.visible=false;o.adv.position.z=-.3;G.add(o.adv);o.sk=SKI[o.sym].clone(true);o.sk.position.z=1.2;G.add(o.sk);G.visible=false;G.position.set(o.x0,o.y0,7+S.skud.length%4*.3);Rm.live.add(G);S.skud.push(o);return o};
   const bossKast=m=>{const B=S.boss,d=B.def,M=MOENSTER[d.k],boelge=m==='boelge',n=boelge?M.n+(B.nr>8?1:0):d.antal+(B.nr>8?1:0);
     for(let i=0;i<n;i++){const fra=boelge&&M.fra?M.fra[i%M.fra.length]:d.hand,x0=B.x+fra[0],y0=B.y+fra[1],tx=n>1?(i-(n-1)/2)*(boelge?M.spred:6):rnd(-3.5,3.5);
       nytSkud({k:d.skud,bane:d.bane,sym:nytTegn(),x0,y0,tx,ty:7.5,x:x0,y:y0,T:B.flyv*(d.bane==='ret'?.9:1)*rnd(.95,1.08)*(boelge?1.12:1),t:-(boelge?i*M.forsink:i*.5),plan:0,rot:rnd(0,6),ph:boelge&&M.modfase?i*Math.PI:rnd(0,6)})}
@@ -81,13 +97,13 @@ ROOMS.tryl=function(ctx){
   /* superangrebet: først lader bossen op, så sendes kæmpekuglen af sted */
   const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.snor()};
   const superKast=()=>{const B=S.boss,d=B.def,n=Math.min(5,3+Math.floor((B.nr-1)/2)),p=S.cfg.tegn.slice(),syms=[];for(let i=0;i<n;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===syms[i-1]);syms.push(t)}
-    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});B.glimt=.5;S.ryst=.35;LYD.ild();Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
+    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});{const k=S.skud[S.skud.length-1],G=new THREE.Group();k.rd=syms.map((sym,i)=>{const d=new THREE.Group();d.position.x=(i-(n-1)/2)*2.7;d.add(skive(sym,.85));G.add(d);return d});k.rad=tilLive(G,x0,y0+6,11)}B.glimt=.5;S.ryst=.35;LYD.ild();Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
   /* et tegn rammer kæmpekuglen: den skubbes lidt tilbage og bliver mindre; sidste tegn sprænger den */
-  const superRamt=k=>{k.idx++;k.krymp=.25;k.t=Math.max(0,k.t-k.T*.1);gnist(k.x,k.y,SKUDFARVE[k.k],14,380);
+  const superRamt=k=>{{const d=k.rd[k.idx];d.clear();d.add(faerdig(.85))}k.idx++;k.krymp=.25;k.t=Math.max(0,k.t-k.T*.1);gnist(k.x,k.y,SKUDFARVE[k.k],14,380);
     if(k.idx>=k.syms.length){k.plan=S.t+.05;S.score+=60;tekst(k.x,k.y+2,'Super!','#ffe27a',60);tekst(k.x,k.y-.7,'+60','#fff6d0',40);S.hop=.5}
     else{k.sym=k.syms[k.idx];k.G.remove(k.sk);k.sk=SKI[k.sym].clone(true);k.sk.position.z=1.2;k.G.add(k.sk);S.score+=10;tekst(k.x,k.y+6,'+10','#fff6d0',34);LYD.pop()}tegnHud()};
   const ansigt=(B,svim)=>{B.A.nor.visible=!svim;B.A.svim.visible=svim};
-  const bossSaarbar=()=>{const B=S.boss,p=S.cfg.tegn.slice();B.fase='saarbar';B.komboI=0;B.kombo=[];for(let i=0;i<B.komboN;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===B.kombo[i-1]);B.kombo.push(t)}B.saarT=B.saarMax=3+2.1*B.komboN;ansigt(B,true);LYD.kys()};
+  const bossSaarbar=()=>{const B=S.boss,p=S.cfg.tegn.slice();B.fase='saarbar';B.komboI=0;B.kombo=[];for(let i=0;i<B.komboN;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===B.kombo[i-1]);B.kombo.push(t)}B.saarT=B.saarMax=3+2.1*B.komboN;ansigt(B,true);svimPanel(B);LYD.kys()};
   const bossRamt=()=>{const B=S.boss,at=PYNT_AT[B.def.k][B.pynt%5],pg=TRYLBOSS.pynt(new THREE.Group(),PYNT[B.pynt%PYNT.length]);pg.position.set(at[0],at[1],4);pg.rotation.z=-.2;B.G.add(pg);B.pynt++;B.hp--;B.ramtT=1.1;B.fase='ramt';
     S.score+=100;S.hop=.5;S.dyrHop=.5;S.ryst=.25;LYD.fanfare();Rm.burst(B.x,B.y+3,12,16,'rgba(255,226,122,.95)',10);Rm.burst(B.x,B.y+3,12,12,'rgba(255,79,123,.95)',9);tekst(B.x,B.y+1,'+100','#fff6d0',46);bossSig(vaelg(B.def.av));tegnHud()};
   const bossBesejret=()=>{const B=S.boss,p=200+50*B.nr;B.fase='besejret';B.besejrT=1.6;B.lad=0;S.score+=p;S.forvandlet++;LYD.fanfare();Rm.burst(B.x,B.y,12,16,'rgba(255,255,255,.95)',12);Rm.burst(B.x,B.y,12,16,'rgba(255,143,199,.95)',14);
@@ -95,7 +111,7 @@ ROOMS.tryl=function(ctx){
   const skudPos=k=>{const p=Math.min(1,k.t/k.T),lx=k.x0+(k.tx-k.x0)*p,ly=k.y0+(k.ty-k.y0)*p;if(k.bane==='bue')return[lx,ly+11*4*p*(1-p)];if(k.bane==='stor')return[lx+Math.sin(k.t*1.6+k.ph)*3*(1-p),ly+4.5*4*p*(1-p)];if(k.bane==='zigzag')return[lx+Math.sin(p*Math.PI*4+k.ph)*7.5*(1-p),ly];return[lx+Math.sin(p*Math.PI*3+k.ph)*2,ly]};
   const bossFrem=dt=>{const B=S.boss;B.t+=dt;if(B.snakT>0)B.snakT-=dt;if(B.glimt>0)B.glimt-=dt;
     if(B.fase==='ind'){B.faseT-=dt;const k=Math.min(1,1-B.faseT/2.4),e=1-Math.pow(1-k,3);B.y=TOP+14+(BY-TOP-14)*e;B.x=0;if(B.faseT<=0){B.fase='angreb';bossSig(B.def.snak[1])}}
-    else if(B.fase==='besejret'){B.besejrT-=dt;if(B.besejrT<=0){/* den bliver til en lille bamse, der svæver væk */const G=new THREE.Group(),q=new THREE.Group();bygBamse(q,B.def.bamse);q.scale.setScalar(1.5);G.add(q);G.position.set(B.x,B.y,8);Rm.live.add(G);S.dyr.push({G,x:B.x,y:B.y,t:0,vx:rnd(-2,2),vy:6,ph:0});Rm.live.remove(B.G);S.boss=null;tegnHud();return}}
+    else if(B.fase==='besejret'){B.besejrT-=dt;if(B.besejrT<=0){/* den bliver til en lille bamse, der svæver væk */const G=new THREE.Group(),q=new THREE.Group();bygBamse(q,B.def.bamse);q.scale.setScalar(1.5);G.add(q);G.position.set(B.x,B.y,8);Rm.live.add(G);S.dyr.push({G,x:B.x,y:B.y,t:0,vx:rnd(-2,2),vy:6,ph:0});Rm.live.remove(B.G);rydUI(B);S.boss=null;tegnHud();return}}
     else{/* den svæver frem og tilbage. Er den svimmel, eller lader den op, står den stille */const fart=B.fase==='saarbar'||B.lad>0?0:1;B.vt+=dt*fart;B.x=Math.sin(B.vt*.45)*BSPAN;B.y=BY+Math.sin(B.t*1.3)*.7;
       if(B.fase==='angreb'){if(B.lad>0){B.lad-=dt;if(B.lad<=0){B.lad=0;superKast();B.kastT=B.gab}}
         else{B.kastT-=dt;if(B.kastI<B.plan.length&&B.kastT<=0){const m=B.plan[B.kastI++];if(m==='super')superStart();else{bossKast(m);B.kastT=B.gab*(m==='boelge'?1.7:1)*rnd(.85,1.15)}}else if(B.kastI>=B.plan.length&&!S.skud.length)bossSaarbar()}}
@@ -111,13 +127,16 @@ ROOMS.tryl=function(ctx){
     const f={k,x,x0:x,y,v,st:'ned',t:0,ups:0,ph:rnd(0,6),sf:rnd(.7,1.2),sa:def.svaj,side:1,land,G,krop,bal:BPOS[n].map(([dx,dy],i)=>{const b={sym:syms[i],dx,dy,ph:rnd(0,6),pop:false,plan:0,G:ballon(syms[i],dx,dy)};b.G.position.set(dx,dy,-.3+i*.02);G.add(b.G);return b})};
     G.position.set(x,y,6+S.foes.length%5*.3);Rm.live.add(G);S.foes.push(f)};
   /* ---------- når en streg er tegnet færdig ---------- */
-  const tegnet=(pts,skaerm)=>{if(pts.length<3)return;const sym=trylGenkend(pts,aktive());let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx=mx/pts.length/U;my=-my/pts.length/U;
-    if(!sym){S.spor.push({pts:skaerm,t:0,c:'#b8b0d0'});LYD.fuser();return}
-    const c=TG[sym].c;S.spor.push({pts:skaerm,t:0,c});
+  /* fingerens spor er små papirstjerner. Når stregen er færdig, får de tegnets farve og drysser ned (eller bliver grå, hvis det ikke var et tegn) */
+  const stjerne=(st,x,y)=>{if(st.sx!=null&&Math.hypot(x-st.sx,y-st.sy)<.6)return;st.sx=x;st.sy=y;const m=STJ.guld.clone();m.position.set(x,y,11);m.rotation.z=Math.random()*6;m.scale.setScalar(.6);Rm.live.add(m);st.stj.push(m)};
+  const slip=(stj,sym)=>{for(const m of stj||[]){m.material=(sym?STJ[sym]:STJ.graa).material;S.spor.push({m,t:0,vx:rnd(-2,2),vy:rnd(1,4),sym})}};
+  const tegnet=(pts,stj)=>{if(pts.length<3){slip(stj,null);return}const sym=trylGenkend(pts,aktive());let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx=mx/pts.length/U;my=-my/pts.length/U;
+    if(!sym){slip(stj,null);LYD.fuser();return}
+    const c=TG[sym].c;slip(stj,sym);
     if(S.fase==='kort'&&S.kort.nyt.includes(sym)&&!S.kort.ok[sym]){S.kort.ok[sym]=true;S.hop=.4;LYD.ding();gnist(mx,my,c,14,260);if(S.kort.nyt.every(k=>S.kort.ok[k]))S.faseT=Math.min(S.faseT,.9);return}
     if(sym==='hjerte'&&S.gave){hjertebrag();return}
     /* bossen: er den svimmel, og er det næste tegn i rækken, rykker man et skridt frem */
-    let bossOk=false;if(S.boss&&S.boss.fase==='saarbar'&&S.boss.kombo[S.boss.komboI]===sym){const B=S.boss;B.komboI++;bossOk=true;S.hop=.4;gnist(B.x,B.y+6,c,12,280);LYD.ding();if(B.komboI>=B.kombo.length)bossRamt()}
+    let bossOk=false;if(S.boss&&S.boss.fase==='saarbar'&&S.boss.kombo[S.boss.komboI]===sym){const B=S.boss;B.komboI++;bossOk=true;S.hop=.4;gnist(B.x,B.y+6,c,12,280);LYD.ding();{const d=B.kd[B.komboI-1];d.clear();d.add(faerdig(1.35))}if(B.komboI>=B.kombo.length)bossRamt()}
     const store=S.skud.filter(k=>k.stor&&!k.plan&&k.t>=0&&k.sym===sym);store.forEach(superRamt);
     const sk=S.skud.filter(k=>!k.stor&&!k.plan&&k.t>=0&&k.sym===sym);sk.forEach((k,i)=>{k.plan=S.t+.04+i*.06});if(sk.length){const q=10*sk.length;S.score+=q;S.hop=.42;tekst(mx,my+.5,'+'+q,'#fff6d0',34);tegnHud()}
     const ramt=[];for(const f of S.foes){if(f.st!=='ned')continue;for(const b of f.bal)if(!b.pop&&!b.plan&&b.sym===sym&&f.y+b.dy<TOP+BR*.4)ramt.push([f,b])}
@@ -132,7 +151,7 @@ ROOMS.tryl=function(ctx){
   /* et væsen er landet: det slipper ballonerne og løber hen til kagen */
   const lande=f=>{for(const b of f.bal)if(!b.pop){f.G.remove(b.G);b.G.position.set(f.x+b.dx,f.y+b.dy,5);Rm.live.add(b.G);S.frie.push({G:b.G,x:f.x+b.dx,y:f.y+b.dy,vy:11,t:0,ph:b.ph})}f.bal=[];f.st='loeb';f.t=0;f.side=f.x<0?-1:1;LYD.dunk();Rm.burst(f.x,.6,8,5,'rgba(205,232,208,.9)',4)};
   const bid=(f,txt)=>{if(S.liv<=0||S.fase==='tabt')return;S.liv--;S.ryst=.3;S.kageHop=.35;LYD.nam();Rm.burst(0,7+S.liv*2,10,14,'rgba(246,217,168,.95)',8);Rm.burst(0,7+S.liv*2,10,8,'rgba(255,143,199,.95)',7);tekst(f.x,f.y+1,txt||'NAM!','#ff8fc7',54);visKage();
-    if(S.liv<=0){S.fase='tabt';S.faseT=2.1;S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msg2='';S.msgT=9}};
+    if(S.liv<=0){S.fase='tabt';S.faseT=2.1;if(S.streg)slip(S.streg.stj,null);S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msg2='';S.msgT=9}};
   const visKage=()=>kage.forEach((k,i)=>{k.visible=!S||i<S.liv});
   const slut=()=>{const n=S.score,w=S.runde,m=S.forvandlet,bil=Math.min(40,1+Math.floor(n/110)),rek=Math.max(SPIL.data.trylRek||0,n);SPIL.data.trylRek=rek;SPIL.givBil(bil);if(n>=300)LYD.fanfare();else LYD.slut();LOG.row('tryl',{point:n,runde:w,forvandlet:m,billetter:bil});S.fase='vent';rydBoss();for(const q of[...S.foes,...S.dyr,...S.frie])Rm.live.remove(q.G);S.foes=[];S.dyr=[];S.frie=[];tegnHud();
     ctx.vent(`Du nåede runde ${w}, forvandlede ${m} ${m===1?'væsen':'væsner'} og fik ${n} point. Det giver ${bil} ${bil===1?'billet':'billetter'}! Din rekord er ${rek} point.`)};
@@ -161,9 +180,9 @@ ROOMS.tryl=function(ctx){
     const pts=TG[sym].p.map(([x,y])=>[x*BR*.56,-y*BR*.56]);for(const q of thick([pts],.42))P2(g,q,{color:'#ffffff',kind:'water',t:.08,edge:hexOf(shade(c,-.5))},.32)};
   const OPT={bg:'#0a0620',fit:fitBox(88,50,0,20.5),sky:'#b8a8ff',ground:'#1c3a2a',amb:.62,key:{col:'#e8e0ff',i:1.7,tgt:[0,16,0],box:[-64,64,56,-34]},
     /* al tegning med fingeren er trylletegn; et tryk uden for et spil starter det */
-    drag:(ph,e)=>{if(!S||S.fase==='vent'||S.fase==='tabt'){if(ph==='start'&&(!S||S.fase==='vent'))begynd();return}const p=Rm.planeAt(e,10);if(!p)return;const r=lag.getBoundingClientRect(),sk=[e.clientX-r.left,e.clientY-r.top],gp=[p.x*U,-p.y*U];
-      if(ph==='start'){S.streg={pts:[gp],sk:[sk]};return}if(!S.streg)return;const a=S.streg.pts,l=a[a.length-1];if(Math.hypot(gp[0]-l[0],gp[1]-l[1])>5&&a.length<600){a.push(gp);S.streg.sk.push(sk)}
-      if(ph==='end'){const st=S.streg;S.streg=null;tegnet(st.pts,st.sk)}},
+    drag:(ph,e)=>{if(!S||S.fase==='vent'||S.fase==='tabt'){if(ph==='start'&&(!S||S.fase==='vent'))begynd();return}const p=Rm.planeAt(e,10);if(!p)return;const gp=[p.x*U,-p.y*U];
+      if(ph==='start'){S.streg={pts:[gp],stj:[]};stjerne(S.streg,p.x,p.y);return}if(!S.streg)return;const a=S.streg.pts,l=a[a.length-1];if(Math.hypot(gp[0]-l[0],gp[1]-l[1])>5&&a.length<600){a.push(gp);stjerne(S.streg,p.x,p.y)}
+      if(ph==='end'){const st=S.streg;S.streg=null;tegnet(st.pts,st.stj)}},
     build:Rm=>[()=>{const g=Rm.scene,H=box(-80,-2,80,66);/* nattehimlen over haven, med måne, stjerner og hække */
         P2(g,H,{t:.3,s:8,cap:1800,paint:P=>{P.wash('#1a1250',H,{top:'#0c0830',edge:0,clouds:12});P.wash('#fff6c8',circ(30,38,4.6,4.6,30),{alpha:.95,edge:.8,mode:'source-over'});P.wash('#0c0830',circ(31.8,39,3.9,3.9,28),{alpha:.85,edge:.7,mode:'source-over'});for(let i=0;i<110;i++)P.fill(starPts(R(-80,80),R(8,64),R(.14,.4),.14,R(1)),i%4?'#f6f0e2':'#ffd86b',R(.3,.85))}},-14);
         {const p=[[-80,-2,1]];for(let x=-80;x<=80;x+=4)p.push([x,9.6+1.1*Math.sin(x*.55)+R(-.3,.3)]);p.push([80,-2,1]);P2(g,sm(p,5),{color:'#143a28',kind:'water',t:.5},-12)}
@@ -187,13 +206,13 @@ ROOMS.tryl=function(ctx){
         skjul=new THREE.Group();skjul.visible=false;lv.add(skjul);for(const k of[...Object.keys(SLAGS),...SOEDT]){const G=new THREE.Group();byg[k](G);skjul.add(G);TPL[k]=G}for(const sym of Object.keys(TG)){const G=new THREE.Group();bygBallon(G,sym);skjul.add(G);BAL[sym]=G;const K=new THREE.Group();TRYLBOSS.skilt(K,sym);skjul.add(K);SKI[sym]=K}for(const k of['bombe','ild','is','blaek']){const G=new THREE.Group();TRYLBOSS.skud(G,k);skjul.add(G);SKT[k]=G}
         gaveG=new THREE.Group();{const b=BAL.hjerte.clone(true);b.scale.setScalar(1.25);gaveG.add(b);for(const q of thick([[[0,-3.8],[0,-6]]],.07))P2(gaveG,q,{color:'#f6f0e2',t:.03},-.1);P2(gaveG,box(-1.3,-8.2,1.3,-6),{color:'#e0457a',kind:'water',t:1.2},0);P2(gaveG,box(-.3,-8.2,.3,-6),{color:'#ffd86b',kind:'water',t:1.3},.02);P2(gaveG,box(-1.3,-7.3,1.3,-6.8),{color:'#ffd86b',kind:'water',t:1.3},.02)}gaveG.visible=false;lv.add(gaveG);
         heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.62);heks.G.position.set(HX,.35,5);lv.add(heks.G);Rm.blob(HX,5,10,4);kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.42);kat.G.position.set(DX+3,.6,6);kat.G.scale.x=-.42;lv.add(kat.G);
-        hud=cv(640,72);ht=tx(hud,true);{const m=new THREE.Mesh(new THREE.PlaneGeometry(26,2.92),new THREE.MeshBasicMaterial({map:ht,transparent:true,toneMapped:false}));m.position.set(23,43.2,12);m.userData.noShadow=true;lv.add(m)}tegnHud();
-        lag=document.getElementById('tegnlag');lg=lag.getContext('2d');
-        ctx.say('Tegn tegnet på ballonen med fingeren, et vilkårligt sted. Tryk for at begynde.')}],
+        for(const[k,c]of[['guld','#ffd86b'],['graa','#b8b0d0'],['roed','#ff5a5a'],...Object.keys(TG).map(k=>[k,TG[k].c])])STJ[k]=piece(starPts(0,0,.55,.24),{color:c,kind:'card',t:.08});
+        {const G=new THREE.Group();for(const q of ring(circ(0,0,3.4,3.4,36),.3,false))put(G,piece(q,{color:'#ff5a5a',kind:'card',t:.06}),0,0,0);STJ.adv=G}
+        tv=papirTavle(lv,[{navn:'Runde',cifre:2},{navn:'Point',cifre:4}],{x:30,y:40.6,z:-8,s:1.35});pt=papirTekster(lv);ban=papirBanner(lv,{y:31,z:10,w:44});tegnHud();
+        }],
     tick:(t,dt)=>{heks.tick(t,{ph:0,amp:0});kat.tick(t+1,{ph:0,amp:0});
-      /* laget oven på rummet følger skærmens størrelse */
-      {const r=lag.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);W_=r.width;H_=r.height;if(lag.width!==Math.round(W_*d)||lag.height!==Math.round(H_*d)){lag.width=Math.round(W_*d);lag.height=Math.round(H_*d)}lg.setTransform(d,0,0,d,0,0);lg.clearRect(0,0,W_,H_)}
-      if(!S||S.fase==='vent')return;if(frys)dt=0;S.t+=dt;S.faseT-=dt;for(const k of['hop','dyrHop','kageHop','ryst','msgT'])if(S[k]>0)S[k]-=dt;
+      tv.tick(dt);pt.tick(dt);ban.tick(dt);if(kortG&&!(S&&S.kort&&S.kort.G===kortG)){const K=kortG;K.userData.ud=true}if(kortG&&kortG.userData.ud){kortG.position.y+=60*dt;if(kortG.position.y>80){rydG(kortG);kortG=null}}
+      if(!S||S.fase==='vent'){if(!ban.synlig)tegnHud();return}if(frys)dt=0;S.t+=dt;S.faseT-=dt;for(const k of['hop','dyrHop','kageHop','ryst','msgT'])if(S[k]>0)S[k]-=dt;
       heks.G.position.y=.35+Math.max(0,Math.sin(S.hop/.42*Math.PI))*1.2;kat.G.position.y=.6+Math.max(0,Math.sin(S.dyrHop/.5*Math.PI))*1.4;kage.forEach((k,i)=>{k.position.x=S.ryst>0?Math.sin(t*60)*.25:0;k.position.y=S.kageHop>0?Math.sin(S.kageHop/.35*Math.PI)*.5:0});
       if(S.fase==='kort'){S.kort.t+=dt;if(S.faseT<=0){S.fase='spil';S.kort.ud=.35}}if(S.kort&&S.kort.ud>0){S.kort.ud-=dt;if(S.kort.ud<=0)S.kort=null}
       if(S.fase==='spil'){S.spawnT-=dt;if(S.spawnT<=0&&S.koe.length){spawn(S.koe.shift());S.spawnT=S.cfg.gab*rnd(.75,1.25)}
@@ -217,35 +236,30 @@ ROOMS.tryl=function(ctx){
         k.G.scale.setScalar((k.stor?2.1*(1-.1*k.idx)*(k.krymp>0?1-k.krymp*.5:1):1)*(k.plan?1.2:1));k.G.children[0].rotation.z=k.k==='bombe'?k.t*2.2+k.rot:k.k==='is'?k.t*3:k.k==='blaek'?Math.sin(k.t*9)*.1:Math.sin(k.t*8)*.12;
         if(k.plan&&S.t>=k.plan){k.dod=true;LYD.pop();Rm.burst(x,y,12,k.stor?16:10,'rgba(255,255,255,.95)',k.stor?9:5);if(k.stor)LYD.fanfare()}
         else if(!k.plan&&k.t>=k.T){k.dod=true;S.ryst=k.stor?.6:.3;Rm.burst(x,y,12,10,'rgba(255,200,160,.95)',6);if(S.fase!=='tabt')bid({x,y:y+2},(k.stor?'KÆMPE-':'')+(k.k==='bombe'?'BOM!':k.k==='is'?'FRYS!':k.k==='ild'?'AV, VARMT!':'SPLAT!'))}
-        if(k.dod)Rm.live.remove(k.G)}
+        if(k.dod){Rm.live.remove(k.G);rydG(k.rad)}}
       S.skud=S.skud.filter(k=>!k.dod);
       for(const b of S.frie){b.t+=dt;b.vy+=8*dt;b.y+=b.vy*dt;b.x+=Math.sin(b.t*3+b.ph)*2*dt;b.G.position.set(b.x,b.y,5);if(b.y>TOP+8)Rm.live.remove(b.G)}S.frie=S.frie.filter(b=>b.y<=TOP+8);
       for(const d of S.dyr){d.t+=dt;d.x+=(d.vx+Math.sin(d.t*2.6+d.ph)*4.5)*dt;d.y+=d.vy*dt;d.vy+=2*dt;d.G.position.set(d.x,d.y,8);d.G.rotation.z=.2*Math.sin(d.t*5+d.ph);const z=Math.min(1,d.t*4);d.G.scale.set(z*(1+.12*Math.sin(d.t*16)),z,1);if(d.y>TOP+6)Rm.live.remove(d.G)}S.dyr=S.dyr.filter(d=>d.y<=TOP+6);
-      /* ---- laget oven på: stregen, teksterne, beskeden og kortet med nye tegn ---- */
-      const g=lg,linje=(pts,c,w,a)=>{if(pts.length<2)return;g.globalAlpha=a;g.lineCap=g.lineJoin='round';g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=w+6;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();g.strokeStyle=c;g.lineWidth=w;g.stroke();g.globalAlpha=1};
-      for(const s of S.spor){s.t+=dt;linje(s.pts,s.c,10,Math.max(0,1-s.t/.5))}S.spor=S.spor.filter(s=>s.t<.5);if(S.streg)linje(S.streg.sk,'#ffe27a',10,1);
-      const fs=W_/1280;g.textAlign='center';g.textBaseline='middle';
-      for(const q of S.tekster){q.t+=dt;q.y+=2.3*dt;const[x,y]=tilSkaerm(q.x,q.y);g.globalAlpha=Math.max(0,1-q.t/1.25);g.font=FONT.arkade.replace('X',Math.round(q.size*fs*.8)+'px');g.lineWidth=6*fs;g.strokeStyle='#1a1238';g.strokeText(q.txt,x,y);g.fillStyle=q.c;g.fillText(q.txt,x,y)}g.globalAlpha=1;S.tekster=S.tekster.filter(q=>q.t<1.25);
-      if(S.msgT>0&&S.msg&&!S.kort){const[x,y]=tilSkaerm(0,S.boss&&S.boss.fase==='angreb'?16.4:31);g.globalAlpha=Math.min(1,S.msgT*3);g.font=FONT.arkade.replace('X',Math.round(60*fs)+'px');g.lineWidth=9*fs;g.strokeStyle='#1a1238';g.strokeText(S.msg,x,y,W_-24);g.fillStyle='#ffe9a0';g.fillText(S.msg,x,y,W_-24);
-        if(S.msg2){g.font=`700 ${Math.round(27*fs)}px "Alegreya Sans",sans-serif`;g.lineWidth=6*fs;g.strokeText(S.msg2,x,y+50*fs,W_-24);g.fillStyle='#f6f0e2';g.fillText(S.msg2,x,y+50*fs,W_-24)}g.globalAlpha=1}
-      /* bossen: hjerter, snakkeboble, opladning, rækken af tegn når den er svimmel, og tegnene på kæmpekuglen */
-      {const u1=Math.abs(tilSkaerm(1,0,5)[0]-tilSkaerm(0,0,5)[0]),glyf=(sym,x,y,r,lw,col)=>{g.lineWidth=lw;g.lineCap=g.lineJoin='round';g.strokeStyle=col;g.beginPath();TG[sym].p.forEach(([px,py],j)=>j?g.lineTo(x+px*r,y+py*r):g.moveTo(x+px*r,y+py*r));g.stroke()},
-          hjerte=(x,y,r)=>{g.beginPath();for(let i=0;i<=20;i++){const q=i/20*TAU,hx=x+r*16*Math.pow(Math.sin(q),3)/17,hy=y-r*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17;i?g.lineTo(hx,hy):g.moveTo(hx,hy)}g.closePath()},
-          flueben=(x,y,r)=>{g.strokeStyle='#ffffff';g.lineWidth=r*.2;g.lineCap='round';g.beginPath();g.moveTo(x-r*.4,y);g.lineTo(x-r*.1,y+r*.32);g.lineTo(x+r*.45,y-r*.35);g.stroke()};
-        for(const k of S.skud){if(k.t<0||k.plan)continue;const p=Math.min(1,k.t/k.T),[sx,sy]=tilSkaerm(k.x,k.y,7);if(p>.7){g.fillStyle=`rgba(255,80,80,${(p-.7)*1.2*(.5+.5*Math.sin(S.t*20))})`;g.beginPath();g.arc(sx,sy,u1*(k.stor?6:3.4),0,TAU);g.fill()}
-          if(k.stor){const n=k.syms.length,r=u1*1.05,gap=u1*2.6,y=sy-u1*6.4;k.syms.forEach((sym,i)=>{const x=sx+(i-(n-1)/2)*gap,ok=i<k.idx,nu=i===k.idx;if(nu){g.fillStyle='rgba(255,226,122,.4)';g.beginPath();g.arc(x,y,r*1.4,0,TAU);g.fill()}g.fillStyle=ok?'#3fa86a':TG[sym].c;g.strokeStyle='#1a1238';g.lineWidth=3*fs;g.beginPath();g.arc(x,y,nu?r*1.15:r,0,TAU);g.fill();g.stroke();if(ok)flueben(x,y,r*1.6);else glyf(sym,x,y,r*.5,5*fs,'#ffffff')})}}
-        if(S.boss){const B=S.boss,[bx,by]=tilSkaerm(B.x,B.y,3),c=SKUDFARVE[B.def.skud];
-          if(B.lad>0){const lq=1-B.lad/LAD,[hx,hy]=tilSkaerm(B.x+B.def.hand[0],B.y+B.def.hand[1],3),gr=g.createRadialGradient(hx,hy,u1,hx,hy,u1*9);gr.addColorStop(0,c+'cc');gr.addColorStop(1,c+'00');g.globalAlpha=.4+.4*lq*(.6+.4*Math.sin(S.t*18));g.fillStyle=gr;g.beginPath();g.arc(hx,hy,u1*9,0,TAU);g.fill();for(let i=0;i<3;i++){const q=(S.t*1.8+i/3)%1;g.globalAlpha=q*.8;g.strokeStyle=c;g.lineWidth=8*q*fs;g.beginPath();g.arc(hx,hy,u1*(10*(1-q)+1),0,TAU);g.stroke()}g.globalAlpha=1}
-          if(B.fase!=='besejret'&&B.fase!=='ind'){for(let i=0;i<B.hpMax;i++){const x=bx+(i-(B.hpMax-1)/2)*u1*1.7,y=by-u1*11.4;g.fillStyle=i<B.hp?'#e8324a':'rgba(26,18,56,.55)';g.strokeStyle='#fff6d0';g.lineWidth=2.5*fs;hjerte(x,y,u1*.62);g.fill();g.stroke()}}
-          if(B.snakT>0&&B.snak&&B.fase!=='besejret'){g.font=`700 ${Math.round(25*fs)}px "Alegreya Sans",sans-serif`;const tw=g.measureText(B.snak).width+34*fs,x=clamp(bx+u1*9,tw/2+10,W_-tw/2-10),y=by-u1*7.6,h=50*fs;g.globalAlpha=Math.min(1,B.snakT*3);g.fillStyle='#ffffff';g.strokeStyle='#1a1238';g.lineWidth=3.5*fs;g.beginPath();g.roundRect(x-tw/2,y-h/2,tw,h,20*fs);g.fill();g.stroke();g.fillStyle='#33204f';g.fillText(B.snak,x,y+1);g.globalAlpha=1}
-          if(B.fase==='saarbar'){const n=B.kombo.length,gap=u1*4.6,r0=u1*1.7,bw=Math.max(n*gap+u1*1.6,u1*32),cx=clamp(bx,bw/2+8,W_-bw/2-8),y=by+u1*13.4,x0=cx-(n-1)/2*gap;g.fillStyle='rgba(20,10,50,.72)';g.beginPath();g.roundRect(cx-bw/2,y-u1*5.2,bw,u1*8.6,22*fs);g.fill();
-            g.font=`700 ${Math.round(25*fs)}px "Alegreya Sans",sans-serif`;g.fillStyle='#ffe9a0';g.fillText('Den er svimmel! Tegn tegnene i rækkefølge',cx,y-u1*3.6,bw-16);
-            B.kombo.forEach((sym,i)=>{const x=x0+i*gap,ok=i<B.komboI,nu=i===B.komboI,r=nu?r0*1.16+Math.sin(S.t*8)*u1*.12:r0;if(nu){g.fillStyle='rgba(255,226,122,.35)';g.beginPath();g.arc(x,y,r+u1*.7,0,TAU);g.fill()}g.fillStyle=ok?'#3fa86a':TG[sym].c;g.strokeStyle='#1a1238';g.lineWidth=3.5*fs;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.stroke();if(ok)flueben(x,y,r*1.5);else glyf(sym,x,y,r*.5,6.5*fs,'#ffffff')});
-            const q=Math.max(0,B.saarT/B.saarMax),lw=bw-u1*2;g.fillStyle='rgba(255,255,255,.25)';g.beginPath();g.roundRect(cx-lw/2,y+u1*2.3,lw,u1*.55,u1*.27);g.fill();g.fillStyle=q>.3?'#ffe27a':'#ff6f6f';g.beginPath();g.roundRect(cx-lw/2,y+u1*2.3,lw*q,u1*.55,u1*.27);g.fill()}}}
-      if(S.kort){const K=S.kort,n=K.nyt.length,[cx,cy]=tilSkaerm(0,27),bw=(n*230+120)*fs,bh=330*fs,a=K.ud>0?K.ud/.35:Math.min(1,K.t*4);g.globalAlpha=a;g.fillStyle='rgba(26,18,56,.94)';g.strokeStyle='#ffd86b';g.lineWidth=5*fs;g.beginPath();g.roundRect(cx-bw/2,cy-bh/2,bw,bh,26*fs);g.fill();g.stroke();
-        g.fillStyle='#ffe9a0';g.font=FONT.arkade.replace('X',Math.round(40*fs)+'px');g.fillText(n>1?'Nye trylletegn':'Nyt trylletegn',cx,cy-bh/2+44*fs);g.font=`700 ${Math.round(24*fs)}px "Alegreya Sans",sans-serif`;g.fillStyle='#f6f0e2';g.fillText('Prøv at tegne '+(n>1?'dem':'det')+' med fingeren',cx,cy+bh/2-34*fs);
-        K.nyt.forEach((sym,i)=>{const x=cx+(i-(n-1)/2)*230*fs,y=cy+4*fs,r=74*fs,c=TG[sym].c;g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.lineWidth=4*fs;g.strokeStyle='#ffffff';g.stroke();g.lineWidth=13*fs;g.lineCap=g.lineJoin='round';g.strokeStyle='#ffffff';g.beginPath();TG[sym].p.forEach(([px,py],j)=>j?g.lineTo(x+px*r*.56,y+py*r*.56):g.moveTo(x+px*r*.56,y+py*r*.56));g.stroke();
-          g.font=`700 ${Math.round(26*fs)}px "Alegreya Sans",sans-serif`;g.fillStyle='#ffe9a0';g.fillText(TG[sym].navn,x,y+r+24*fs);if(K.ok[sym]){g.strokeStyle='#5fd070';g.lineWidth=12*fs;g.beginPath();g.moveTo(x+r*.3,y-r*.9);g.lineTo(x+r*.62,y-r*.6);g.lineTo(x+r*1.1,y-r*1.2);g.stroke()}});g.globalAlpha=1}}},Rm=makeRoom(ctx,OPT);
-  ctx.efter.push(()=>{if(lag){const g=lag.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,lag.width,lag.height)}});
-  ctx.test={begynd,frys:v=>{frys=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},S:()=>S,tegn:sym=>{/* tegner tegnet som en streg midt på skærmen, som en finger ville */const p=TG[sym].p.map(([x,y])=>[x*140,y*140-400]);const ud=[];for(let i=1;i<p.length;i++)for(let k=0;k<8;k++)ud.push([p[i-1][0]+(p[i][0]-p[i-1][0])*k/8,p[i-1][1]+(p[i][1]-p[i-1][1])*k/8]);ud.push(p[p.length-1]);tegnet(ud,ud.map(([x,y])=>tilSkaerm(x/U,-y/U)));return trylGenkend(ud,Object.keys(TG))},
+      /* ---- papirdelene: stjernerne fra stregen, beskeden i snore, kortet med nye tegn og bossens skilte ---- */
+      for(const st of S.spor){st.t+=dt;const m=st.m;if(st.sym){const k=Math.min(1,st.t/.12);m.scale.setScalar(.6+.5*k);if(st.t>.25){st.vy-=26*dt;m.position.y+=st.vy*dt;m.position.x+=st.vx*dt;m.rotation.z+=st.vx*2*dt}}else{st.vy-=26*dt;m.position.y+=st.vy*dt*.6;m.rotation.z+=2*dt}if(st.t>.85){Rm.live.remove(m);st.dod=true}}S.spor=S.spor.filter(st=>!st.dod);
+      if(S.msgT>0&&S.msg&&!S.kort&&(S.msgT>msgPrev+.01||S.msg+S.msg2!==msgSidst)){msgSidst=S.msg+S.msg2;ban.vis(S.msg,{txt2:S.msg2,sek:Math.min(S.msgT,4),col:'#7a3fa2',y:S.boss&&S.boss.fase==='angreb'?22:31})}msgPrev=S.msgT;
+      if(S.kort){const K=S.kort;if(!K.G){/* kortet med nye tegn hænger i snore: tegnene klippet i papir, og et flueben, når man har prøvet dem */
+          const n=K.nyt.length,W=Math.max(24,n*10+6),H=16,G=new THREE.Group();put(G,piece(box(-W/2,-H/2,W/2,H/2),{color:'#fbf2dc',kind:'card',t:.4,edge:'#a88a5a'}),0,0,0);
+          const tt=papirTekstMesh(n>1?'Nye trylletegn':'Nyt trylletegn','#7a3fa2',2.4,FONT.arkade,'rgba(0,0,0,0)');tt.position.set(0,H/2-2.3,.3);G.add(tt);
+          const ft=papirTekstMesh('Prøv at tegne '+(n>1?'dem':'det')+' med fingeren','#3a2208',2,FONT.pil,'rgba(0,0,0,0)');ft.scale.setScalar(Math.min(1,(W-2)/ft.userData.b));ft.position.set(0,-H/2+1.5,.3);G.add(ft);
+          K.chk={};K.nyt.forEach((sym,i)=>{const x=(i-(n-1)/2)*10,d=skive(sym,2.6);d.position.set(x,.5,.3);G.add(d);const nm=papirTekstMesh(TG[sym].navn,'#3a2208',2.2,FONT.arkade,'rgba(0,0,0,0)');nm.position.set(x,-4.1,.3);G.add(nm);const ck=faerdig(1);ck.position.set(x+2.8,3,.6);ck.visible=false;G.add(ck);K.chk[sym]=ck});
+          for(const sx of[-1,1])for(const q of thick([[[sx*(W/2-1.2),H/2-.8],[sx*(W/2-1.6),50]]],.09))put(G,piece(q,{color:'#ead9b5',kind:'water',t:.04}),0,0,-.1);
+          rydG(kortG);kortG=K.G=tilLive(G,0,75,12);G.userData.t=0}
+        const G=K.G;G.userData.t+=dt;const maal=K.ud>0?80:27;G.position.y+=(maal-G.position.y)*Math.min(1,dt*(K.ud>0?4:6));G.rotation.z=Math.sin(G.userData.t*5)*.12*Math.pow(.3,G.userData.t);
+        for(const sym in K.chk){const ck=K.chk[sym];if(K.ok[sym]&&!ck.visible){ck.visible=true;ck.userData.t=0}if(ck.visible){ck.userData.t=(ck.userData.t||0)+dt;ck.scale.setScalar(Math.min(1.2,ck.userData.t*8)-Math.max(0,Math.min(.2,(ck.userData.t-.15)*2)))}}}
+      for(const k of S.skud){if(k.t<0||k.plan){k.adv.visible=false;continue}const p=Math.min(1,k.t/k.T);k.adv.visible=p>.7;if(k.adv.visible)k.adv.scale.setScalar((k.stor?.9:1)*(1+.1*Math.sin(S.t*20)));
+        if(k.rad){k.rad.position.set(k.x,k.y+6.4,11);k.rd.forEach((d,i)=>d.scale.setScalar(i===k.idx?1.2+.06*Math.sin(S.t*8):1))}}
+      if(S.boss){const B=S.boss,u=B.ui,ok=B.fase!=='besejret'&&B.fase!=='ind';
+        if(u.hj){u.hj.visible=ok;u.hj.position.set(B.x,B.y+11.4,6);B.hj.forEach((h,i)=>{h.fuld.visible=i<B.hp;h.tom.visible=i>=B.hp})}
+        if(u.lad){u.lad.visible=B.lad>0;if(B.lad>0){u.lad.position.set(B.x+B.def.hand[0],B.y+B.def.hand[1],6);B.ringe.forEach((r,i)=>{const q=(S.t*1.8+i/3)%1;r.scale.setScalar(10*(1-q)+1)})}}
+        if(u.snak){u.snak.visible=B.snakT>0&&B.fase!=='besejret';u.snak.position.set(clamp(B.x+9,-30,30),B.y+7.6,7.5);u.snak.scale.setScalar(Math.min(1,(2.2-B.snakT)*8))}
+        if(u.svim){if(B.fase!=='saarbar'){rydG(u.svim);u.svim=null}else{u.svim.position.set(clamp(B.x,-28,28),B.y-13.4,9);B.bar.scale.x=Math.max(.001,B.saarT/B.saarMax);if(B.saarT/B.saarMax<.3)B.bar.children[0].material=STJ.roed.material;B.kd.forEach((d,i)=>d.scale.setScalar(i===B.komboI?1.15+.06*Math.sin(S.t*8):1))}}}
+      }},Rm=makeRoom(ctx,OPT);
+  ctx.efter.push(()=>{pt&&pt.ryd();ban&&ban.fjern();rydG(kortG)});
+  ctx.test={begynd,frys:v=>{frys=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},S:()=>S,tegn:sym=>{/* tegner tegnet som en streg midt på skærmen, som en finger ville */const p=TG[sym].p.map(([x,y])=>[x*140,y*140-400]);const ud=[];for(let i=1;i<p.length;i++)for(let k=0;k<8;k++)ud.push([p[i-1][0]+(p[i][0]-p[i-1][0])*k/8,p[i-1][1]+(p[i][1]-p[i-1][1])*k/8]);ud.push(p[p.length-1]);tegnet(ud,[]);return trylGenkend(ud,Object.keys(TG))},
     runde:w=>{S.runde=w-1;S.bossNr=Math.floor((w-1)/5);rydBoss();for(const f of S.foes)Rm.live.remove(f.G);S.foes=[];S.koe=[];naesteRunde()},frem:()=>{if(S.kort){S.faseT=0}},bid:()=>bid({x:0,y:10}),gave:()=>{S.gaveT=.01},tilstand:()=>S&&{fase:S.fase,runde:S.runde,score:S.score,liv:S.liv,foes:S.foes.map(f=>({k:f.k,st:f.st,y:+f.y.toFixed(1),bal:f.bal.filter(b=>!b.pop).map(b=>b.sym)})),tegn:S.cfg&&S.cfg.tegn,gave:!!S.gave,forvandlet:S.forvandlet,skud:S.skud.map(k=>({sym:k.sym,stor:!!k.stor,t:+k.t.toFixed(1)})),boss:S.boss&&{k:S.boss.def.k,fase:S.boss.fase,hp:S.boss.hp,lad:+S.boss.lad.toFixed(1),naeste:S.boss.fase==='saarbar'?S.boss.kombo[S.boss.komboI]:null}}}};

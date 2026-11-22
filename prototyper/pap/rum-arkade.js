@@ -43,19 +43,20 @@ ROOMS.arkade=function(ctx){
 ROOMS.gnom=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),ROWS=[{y:27,z:-6,xs:[-24,0,24]},{y:15.5,z:0,xs:[-33,-11,11,33]},{y:4,z:6,xs:[-24,0,24]}],G=[],TID=30,HVIL=[40,3,15];
   const rotP=(pts,cx,cy,a)=>pts.map(([x,y])=>[cx+(x-cx)*Math.cos(a)-(y-cy)*Math.sin(a),cy+(x-cx)*Math.sin(a)+(y-cy)*Math.cos(a)]);
-  let sc=0,left=TID,on=false,next=0,bc,bt,over=false,ham,slag=null,ryst=0,raekke=0;const bonk=[];
-  const tavle=()=>{const g=bc.getContext('2d');g.fillStyle='#160e2c';g.fillRect(0,0,768,128);g.fillStyle='#9be36a';g.textAlign='center';g.textBaseline='middle';g.font='400 64px "Rye",Georgia,serif';g.fillText(on?`Ramt ${sc}  ·  ${Math.ceil(left)} sek.`:over?`Du ramte ${sc}!  Tryk for at spille igen`:'Tryk for at begynde',384,68,740);bt.needsUpdate=true};
+  let sc=0,left=TID,on=false,next=0,tv,pt,ban,over=false,ham,slag=null,ryst=0,raekke=0;
+  /* tavlen af karton med papbrikker, og et kort i snore, når spillet ikke kører */
+  const tavle=()=>{tv.saet(0,sc);tv.saet(1,Math.ceil(Math.max(0,left)));if(on){if(ban.synlig)ban.skjul()}else if(!ban.synlig)ban.vis(over?`Du ramte ${sc}!`:'Tryk for at begynde',{sek:0,txt2:over?'Tryk for at spille igen':'',col:'#2f7a3a'})};
   const begynd=()=>{sc=0;left=TID;on=true;over=false;next=.5;raekke=0;tavle();LYD.valg()};
   /* hammeren svinges hen til det sted, man trykker */
   const slaa=(x,y,z,ramt)=>{slag={t:0,x,y,z:z+2.2,ramt};if(!ramt)raekke=0};
   const ramGnom=o=>{o.hit=1;o.want=0;o.svim=1.1;raekke++;sc++;tavle();ryst=.16;LYD.bonk();Rm.burst(o.x,o.ry+4,o.rz+3,10,'rgba(255,236,170,.95)',5);
-    const b=bonk.find(q=>q.t>1)||bonk[0];b.t=0;b.x=o.x+(Math.random()-.5)*3;b.y=o.ry+8.5;b.z=o.rz+4;b.s.material.map=raekke>=3&&raekke%3===0?b.fed:b.alm;b.s.material.needsUpdate=true};
+    const fed=raekke>=3&&raekke%3===0;pt.pop(o.x+(Math.random()-.5)*3,o.ry+8.5,o.rz+4,fed?'SUPER!':'BONK!',{col:fed?'#ff6fb0':'#ffc21e',h:fed?4.2:3.6})};
   /* kaninen må man ikke slå: to point fra, og rækken af træffere er brudt */
-  const ramKanin=o=>{o.hit=1;o.want=0;raekke=0;sc=Math.max(0,sc-2);tavle();ryst=.1;LYD.kanin();Rm.burst(o.x,o.ry+4,o.rz+3,8,'rgba(150,200,255,.95)',5);const b=bonk.find(q=>q.t>1)||bonk[0];b.t=0;b.x=o.x;b.y=o.ry+8.5;b.z=o.rz+4;b.s.material.map=b.av;b.s.material.needsUpdate=true};
+  const ramKanin=o=>{o.hit=1;o.want=0;raekke=0;sc=Math.max(0,sc-2);tavle();ryst=.1;LYD.kanin();Rm.burst(o.x,o.ry+4,o.rz+3,8,'rgba(150,200,255,.95)',5);pt.pop(o.x,o.ry+8.5,o.rz+4,'AV! −2',{col:'#4aa8ff',h:3.6})};
   const Rm=makeRoom(ctx,{bg:'#0c1410',fit:fitBox(90,50,0,22),sky:'#c8f0d0',ground:'#2a3a2a',amb:.55,key:{col:'#fff2d0',i:1.9,tgt:[0,16,0]},fast:true,
     miss:(e,Rm)=>{if(!on){begynd();return}const p=Rm.planeAt(e,6);if(p){slaa(p.x,Math.max(2,p.y),6,false);LYD.dunk();Rm.burst(p.x,Math.max(2,p.y),8,5,'rgba(190,200,170,.8)',2.5)}},
     build:Rm=>[()=>{const g=Rm.scene,W=box(-76,-2,76,66);P2(g,W,{t:.5,s:9,cap:1800,paint:P=>{P.wash('#2a4a5a',W,{top:'#16283a',edge:0,clouds:14});for(let i=0;i<60;i++)P.fill(starPts(R(-76,76),R(30,66),R(.25,.6),.2,R(1)),'#f6e7c0',R(.3,.8))}},-12);
-        P2(g,box(-17,38.9,17,45.5),{color:'#2a1c4a',kind:'water',t:.8},-10);for(const x of[-21,21]){P2(g,starPts(x,42.1,2.6,1.1),{t:.3,mat:paperMat('#ffffff','tissue',{glow:'#ffd86b',gi:1.7})},-10);Rm.glow(x,42.1,-8,'#ffd86b',11)}},
+        for(const x of[-21,21]){P2(g,starPts(x,42.1,2.6,1.1),{t:.3,mat:paperMat('#ffffff','tissue',{glow:'#ffd86b',gi:1.7})},-10);Rm.glow(x,42.1,-8,'#ffd86b',11)}},
       ()=>{const lv=Rm.live;/* tre græsvolde i det levende lag. Hver vold er to lag papir: bagest volden med de mørke huller, forrest en fold med en bue skåret ud for hvert hul.
            Gnomerne står imellem de to lag, så de kommer op AF hullet: forkanten af hullet dækker dem forneden */
         ROWS.forEach((r,ri)=>{const c=['#3f7a4a','#4a8a52','#57a05c'][ri],yc=r.y-2.6,RX=4.9,RY=2.5,graes=(P,sh,y0,y1,n)=>{P.wash(c,sh,{top:hexOf(shade(c,.22)),edge:.5,clouds:10});for(let i=0;i<n;i++){const x=R(-58,58),y=R(y0,y1);P.pen([[x,y],[x+R(-.3,.3),y+R(.6,1.2)]],hexOf(shade(c,-.25)),.08,.6)}};
@@ -74,12 +75,9 @@ ROOMS.gnom=function(ctx){
               P2(kn,toCCW([[-.5,6.3],[.5,6.3],[0,5.7]]),{color:'#ff7fa0',kind:'water',t:.1},.44);P2(kn,box(-.42,4.7,.42,5.5),{color:'#ffffff',kind:'water',t:.1},.44);for(const q of thick([[[0,5.7],[0,5.45]],[[-.9,5.4],[0,5.45],[.9,5.4]]],.07))P2(kn,q,{color:'#8a5a4a',t:.05},.5)}
             const o={g,gn,kn,x,ry:r.y,rz:r.z,y0:Y0,up:0,want:0,t:0,hit:0,svim:0,oj,kr,hg,kanin:false};G.push(o);const hb=new THREE.Mesh(new THREE.PlaneGeometry(10,15),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,8,1.4);g.add(hb);
             Rm.tap(hb,()=>{if(!on){begynd();return}if(o.up>.4&&!o.hit&&!o.svim){slaa(x,r.y+6.4,r.z,true);if(o.kanin)ramKanin(o);else ramGnom(o)}else{slaa(x,r.y-1,r.z,false);LYD.dunk()}})})});
-        bc=cv(768,128);bt=tx(bc,true);const bm=new THREE.Mesh(new THREE.PlaneGeometry(32,5.33),new THREE.MeshBasicMaterial({map:bt,toneMapped:false}));bm.position.set(0,42.2,-9.4);bm.userData.noShadow=true;lv.add(bm);tavle();
+        tv=papirTavle(lv,[{navn:'Ramt',cifre:2},{navn:'Sekunder',cifre:2}],{x:0,y:40.8,z:-9.4,s:1.6});pt=papirTekster(lv);ban=papirBanner(lv,{y:34,z:-4,w:40});tavle();
         /* hammeren: skaft og hoved af træ; den drejer om grebet */
         ham=new THREE.Group();lv.add(ham);put(ham,piece(box(-.55,-1,.55,8.4),{color:'#b5844a',kind:'balsa',t:.9}),0,0,0);put(ham,piece(sm([[-3.6,6.4],[3.6,6.4],[3.6,10.6],[-3.6,10.6]],3),{t:2.4,s:26,paint:P=>{P.wash('#8a5a2a',null,{edge:.5,top:'#a8743c'});for(const x of[-2.9,2.9])P.fill(box(x-.6,6.4,x+.6,10.6),'#d9b070',.95);P.pen([[-2.2,8.5],[2.2,8.5]],'#5c3a18',.1,.5)}}),0,0,-.8);put(ham,piece(box(-.75,-1.2,.75,.4),{color:'#7a2f3a',kind:'water',t:1.1}),0,0,-.1);ham.position.set(...HVIL);ham.rotation.z=.5;
-        /* BONK! der springer op, når man rammer */
-        const skilt=(txt,col)=>{const c=cv(448,128),q=c.getContext('2d');q.font='400 76px "Rye",Georgia,serif';q.textAlign='center';q.textBaseline='middle';q.lineJoin='round';q.lineWidth=14;q.strokeStyle='#2a1408';q.strokeText(txt,224,66,420);q.fillStyle=col;q.fillText(txt,224,66,420);return tx(c,true)},alm=skilt('BONK!','#ffd86b'),fed=skilt('SUPER!','#ff8fc7'),av=skilt('AV! −2','#8fd0ff');
-        for(let i=0;i<3;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:alm,transparent:true,depthWrite:false,depthTest:false}));s.visible=false;lv.add(s);bonk.push({s,t:9,alm,fed,av})}
         ctx.say('Slå gnomerne med hammeren, når de stikker hovedet op · men ikke kaninen!')}],
     tick:(t,dt)=>{if(on){left-=dt;if(Math.ceil(left)!==Math.ceil(left+dt)){tavle();if(left<5&&left>0)LYD.tryk()}next-=dt;if(next<=0){const fri=G.filter(o=>o.want===0&&o.up<.05&&!o.svim);if(fri.length){const o=fri[Math.floor(Math.random()*fri.length)];o.want=1;o.hit=0;o.kanin=Math.random()<.2;o.kn.visible=o.kanin;o.gn.visible=!o.kanin;o.t=(o.kanin?1.1:.75)+Math.random()*.9*(left/TID+.35);LYD.op()}next=.3+Math.random()*.5*(left/TID+.3)}
         if(left<=0){on=false;over=true;for(const o of G)o.want=0;const bil=Math.min(40,1+Math.floor(sc/2));SPIL.givBil(bil);if(sc>=8)LYD.fanfare();else LYD.slut();tavle();ctx.vent(`Du ramte ${sc} ${sc===1?'gnom':'gnomer'} og fik ${bil} ${bil===1?'billet':'billetter'}!`)}}
@@ -89,5 +87,6 @@ ROOMS.gnom=function(ctx){
       if(slag){slag.t+=dt;const k=slag.t,th=k<.07?-.25+(1.5+.25)*(k/.07):k<.2?1.5-.35*Math.sin((k-.07)/.13*Math.PI):1.5-(1.5-.5)*Math.min(1,(k-.2)/.25),e=Math.min(1,Math.max(0,(k-.2)/.25)),gx=slag.x+8.4,gy=slag.y-.6;
         ham.position.set(gx+(HVIL[0]-gx)*e,gy+(HVIL[1]-gy)*e,slag.z+(HVIL[2]-slag.z)*e);ham.rotation.z=th;if(k>.45){slag=null;ham.position.set(...HVIL);ham.rotation.z=.5}}
       ryst=Math.max(0,ryst-dt);Rm.live.position.set(ryst?Math.sin(t*90)*ryst*2.2:0,ryst?Math.cos(t*70)*ryst*2.8:0,0);
-      for(const b of bonk){b.t+=dt*1.5;if(b.t>1){b.s.visible=false;continue}b.s.visible=true;const p=Math.min(1,b.t*5),s=(1.1+.25*Math.sin(p*Math.PI))*11;b.s.position.set(b.x,b.y+b.t*5,b.z);b.s.scale.set(s*1.75,s/2,1);b.s.material.opacity=b.t<.6?1:1-(b.t-.6)/.4}}});
+      tv.tick(dt);pt.tick(dt);ban.tick(dt)}});
+  ctx.efter.push(()=>{pt&&pt.ryd();ban&&ban.fjern()});
   ctx.test={start:begynd,state:()=>({sc,left:Math.round(left),on,over}),hitAll:()=>{for(const o of G)if(o.up>.4&&!o.hit&&!o.svim&&!o.kanin){slaa(o.x,o.ry+6.4,o.rz,true);ramGnom(o)}},op:(n=4,kanin=-1)=>{G.slice(0,n).forEach((o,i)=>{o.want=1;o.t=9;o.kanin=i===kanin;o.kn.visible=o.kanin;o.gn.visible=!o.kanin})},ram:i=>{const o=G[i];slaa(o.x,o.ry+6.4,o.rz,true);if(o.kanin)ramKanin(o);else ramGnom(o)},G}};
