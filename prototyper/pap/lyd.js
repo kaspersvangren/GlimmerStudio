@@ -3,7 +3,12 @@
    2) små lyde lavet direkte i browseren, som bruges, når filerne ikke kan hentes (inde på Claude-siden må en side ikke hente lydfiler).
    Lyden starter først, når man har trykket én gang, som browseren kræver. */
 const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-pap.lyd')!=='fra'}catch(_){}
-  const A=()=>{if(!til)return null;if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(ac.state==='suspended')ac.resume().catch(()=>{});return ac};
+  /* når spillet ikke er i fokus (en anden app, en anden fane, skærmen låst), holder al lyd pause, og den fortsætter, når man kommer tilbage */
+  let vaek=document.hidden||!document.hasFocus();
+  const A=()=>{if(!til)return null;if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}if(vaek)ac.suspend().catch(()=>{})}if(ac.state==='suspended'&&!vaek)ac.resume().catch(()=>{});return ac};
+  const fokus=()=>{const v=document.hidden||!document.hasFocus();if(v===vaek)return;vaek=v;if(ac){if(v)ac.suspend().catch(()=>{});else ac.resume().catch(()=>{})}};
+  for(const[m,e]of[[document,'visibilitychange'],[window,'blur'],[window,'focus'],[window,'pagehide'],[window,'pageshow']])m.addEventListener(e,()=>setTimeout(fokus,0));
+  addEventListener('pointerdown',()=>{if(vaek&&!document.hidden){vaek=false;if(ac)ac.resume().catch(()=>{})}},true);
   const tone=(f0,f1,dur,type='sine',vol=.22,delay=0)=>{const a=A();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.03)};
   const stoej=(dur,vol=.2,freq=900,q=.8,delay=0)=>{const a=A();if(!a)return;const n=Math.max(1,Math.floor(a.sampleRate*dur)),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=freq;f.Q.value=q;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(a.destination);s.start(a.currentTime+delay)};
   /* ---- filerne ---- */

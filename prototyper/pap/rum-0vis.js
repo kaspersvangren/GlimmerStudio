@@ -9,6 +9,7 @@ function visVare(w,ctx,Rm,o={}){const[k,v]=w,px=o.px||640,sc=new THREE.Scene(),I
     if(slot==='vaeg')bx.set(new THREE.Vector3(-13,22,-20),new THREE.Vector3(13,48,0));/* af væggen vises et udsnit, så mønsteret kan ses */
     if(slot==='gulv')fra='oppefra';if(slot==='lampe')sc.background.set('#2b2552');
     if(slot==='lampe'){const s=bx.getSize(new THREE.Vector3());if(s.y>s.x*1.3)bx.max.y=bx.min.y+Math.max(s.x*1.3,11)}}
+  else if(k==='maleri'){const P=new THREE.Group();bygMaleri(ctx,P,v,10,9,'guld');I.add(P);glows.push();maal(P)}
   else if(k.startsWith('dyr')){const d=Object.assign({},ctx.dyr||SPIL.dyr);d[{dyr:'kind','dyrmønster':'moenster',dyrpynt:'pynt'}[k]]=v;const K=makePet(d);I.add(K.G);tick=t=>K.tick(t,{ph:0,amp:0});maal(K.G)}
   else{const F=makeFigure(Object.assign({},ctx.look,{[k]:v}));I.add(F.G);tick=t=>F.tick(t,{ph:0,amp:0});
     if(['mærke','pupil','mund'].includes(k)){maal(F.gFace);const c=bx.getCenter(new THREE.Vector3()),r=k==='pupil'?2.7:3.3;bx.set(new THREE.Vector3(c.x-r,c.y-r,-20),new THREE.Vector3(c.x+r,c.y+r,20))}

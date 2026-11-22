@@ -53,6 +53,8 @@ const { chromium } = require('playwright');
   await p.evaluate(() => __spil.enter('praemie')); await i('praemie');
   { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; __spil.givBil(40); const b0 = __spil.bil; T.tryk(0); const a = __spil.har.includes('tilbehør:hjertestav'); T.tryk(0); return [b0, a, __spil.har.includes('tilbehør:hjertestav'), __spil.bil] }); await p.waitForTimeout(900);
     tjek('Præmiebutikken: første tryk viser prisen, andet køber staven', !r[1] && r[2] && r[3] === r[0] - 30, r); const t = await p.evaluate(() => document.getElementById('toast').textContent); tjek('uglen siger tillykke, og beskeden bliver stående', /Hu-hu/.test(t) && !(await p.evaluate(() => document.getElementById('videre').hidden)), t); await p.screenshot({ path: __dirname + '/tur-praemie.png' }); await p.click('#videre') }
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; T.side('mal'); __spil.givBil(40); const b0 = __spil.bil; T.tryk(T.NS); T.tryk(T.NS); return [b0, __spil.bil, __spil.har.includes('maleri:blomster'), (__spil.data.vaeg || []).includes('blomster')] }); await p.waitForTimeout(900);
+    tjek('Præmiebutikken: et maleri kan byttes og hænger sig selv op i Værelset', r[1] === r[0] - 40 && r[2] && r[3], r); await p.click('#videre') }
   await p.click('#hjem'); await i('arkade');
   /* Trylletegning: et spil fra start til billetter */
   await p.evaluate(() => __spil.enter('tryl')); await i('tryl');
@@ -69,7 +71,8 @@ const { chromium } = require('playwright');
   { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; __spil.giv(12); const s0 = __spil.stj; let vandt = null, n = 0; for (; n < 10 && !vandt; n++) { T.spol(2.6); T.hold('h', true); T.saetGreb(.02); const x = T.sigtPaa(); for (let i = 0; i < 600 && T.S().tx < x - 55; i++)T.spol(.04); T.hold('h', false); T.spol(1.2); T.grib(); for (let i = 0; i < 400 && !T.S().vist; i++)T.spol(.1); vandt = T.tilstand().vandt; if (!vandt) { document.getElementById('videre').dispatchEvent(new PointerEvent('pointerdown')); T.nulstil() } } return [n, s0 - __spil.stj, vandt, (__spil.data.bamser || []).slice()] }); await p.waitForTimeout(900);
     tjek('Gribemaskinen: hvert forsøg koster 1 stjerne, og en bamse kan vindes', r[0] === r[1] && r[2] && r[3].includes(r[2]), r); await p.screenshot({ path: __dirname + '/tur-gribe.png' }); await p.click('#videre') }
   await p.click('#hjem'); await i('arkade'); await p.click('#hjem'); await ude();
-  await p.evaluate(() => __spil.enter('kollegie')); await i('vaerelse'); await p.waitForTimeout(600); await p.screenshot({ path: __dirname + '/tur-bamse.png' }); await p.click('#hjem'); await ude();
+  await p.evaluate(() => __spil.enter('kollegie')); await i('vaerelse'); await p.waitForTimeout(600); await p.screenshot({ path: __dirname + '/tur-bamse.png' });
+  { const r = await p.evaluate(() => (__spil.data.vaeg || [])[0]); tjek('maleriet hænger i Værelset', r === 'blomster', r) } await p.click('#hjem'); await ude();
   /* de nye effekter i Eliksirtimen kan startes og ryddes igen uden fejl */
   await p.evaluate(() => __spil.enter('gang')); await i('gang'); await p.evaluate(() => __spil.enter('eliksir')); await i('eliksir');
   for (const k of ['hjerter', 'bobler', 'blomster', 'regnbue', 'kilde', 'svaev']) { await p.evaluate(k => __spil.room.ctx.test.fx(k), k); await p.waitForTimeout(700) } tjek('effekterne kører', true);

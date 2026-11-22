@@ -1,7 +1,7 @@
 /* ============ Værelset på Kollegiet: heksens eget rum. Tryk på en ting, så kommer der en menu med alt det, den kan laves om til;
    skabet fører ind i Garderoben. Selve tingene ligger i rum-vaer-1..3.js, og listen over dem i spil0.js ============ */
 ROOMS.vaerelse=function(ctx){
-  const RV=SPIL.RUMVALG,SL=Object.keys(RV),V=SPIL.rum,C=SPIL.rumc,G={},GL={},HX=-3,HZ=4,bamser=[];let heks,kat,pop=0,hop=0,aaben=false,cur='vaeg';
+  const RV=SPIL.RUMVALG,SL=Object.keys(RV),V=SPIL.rum,C=SPIL.rumc,G={},GL={},HX=-3,HZ=4,bamser=[],malerier=[];let heks,kat,pop=0,hop=0,aaben=false,cur='vaeg';
   const T={Rm:null,glow:null};
   const fast=g=>{/* gulvet og skabet står fast */
     for(let i=0;i<112;i++)Rm.floor(box(-72,-10+i*1.05,72,-9+i*1.05),{color:shade('#7a4e2e',R(-.06,.06)),kind:'balsa',t:.3},0,g);
@@ -36,10 +36,17 @@ ROOMS.vaerelse=function(ctx){
       ()=>{Rm.tap(G.skab,()=>ctx.go('garderobe'));
         heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{LYD.tryk();pop=1;Rm.burst(HX,22,8,8)});
         kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.op();hop=1});
+        /* malerierne fra Præmiebutikken hænger på væggen. Tryk på et for at skifte til et andet, man har, eller tage det ned */
+        {const vaeg=SPIL.data.vaeg=(SPIL.data.vaeg||[]).concat(Array(VAEGPLADSER.length).fill(null)).slice(0,VAEGPLADSER.length),nogen=MALERIER.some(m=>maleriEjet(m[0]));
+          VAEGPLADSER.forEach((p,i)=>{const G=new THREE.Group();G.position.set(p.x,p.y,-8.8);Rm.live.add(G);malerier.push(G);
+            const tegn=()=>{for(const q of[...G.children])if(!q.userData.hb){G.remove(q);q.traverse(o=>{if(o.userData.ryd)o.userData.ryd()})}if(vaeg[i]&&maleriEjet(vaeg[i])){const P=new THREE.Group();bygMaleri(ctx,P,vaeg[i],p.w,p.h,p.r);G.add(P)}};tegn();
+            if(!nogen)return;const hb=new THREE.Mesh(new THREE.PlaneGeometry(p.w+1.6,p.h+1.6),new THREE.MeshBasicMaterial({visible:false}));hb.userData.hb=true;hb.position.z=1;G.add(hb);
+            Rm.tap(hb,()=>{const valg=MALERIER.map(m=>m[0]).filter(id=>maleriEjet(id)&&(!vaeg.includes(id)||vaeg[i]===id)),k=valg.indexOf(vaeg[i]);vaeg[i]=k+1<valg.length?valg[k+1]:null;SPIL.save();tegn();LYD.pip();
+              ctx.say(vaeg[i]?MALERIER.find(m=>m[0]===vaeg[i])[1]:'Her er der plads til et maleri. Tryk igen for at hænge et op.')})})}
         /* bamserne fra Gribemaskinen sidder på sengen: én af hver slags, man har vundet. Er der flere, end sengen kan bære, sidder resten på gulvet foran */
         [...new Set(SPIL.data.bamser||[])].forEach((k,i)=>{const s=i<7?.95:1.05,q=bamseStykke(ctx,k,s);let x,y,z;if(i<4){x=-24.4+i*2.7;y=12.1;z=-4.7}else if(i<7){x=-23+(i-4)*2.7;y=13.2;z=-4.95}else{x=-40.5+(i-7)*2.5;y=.3;z=3+((i-7)%2)*.9}
           y+=1.7*s;q.position.set(x,y,z);q.rotation.z=((i*37)%11-5)*.02;Rm.live.add(q);const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.2*s,3.4*s),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,.2,.05);q.add(hb);const b={q,y,hop:0};bamser.push(b);Rm.tap(hb,()=>{LYD.pip();b.hop=1})});
         ctx.say('Tryk på en ting for at lave den om · skabet fører ind i Garderoben')}],
     tick:t=>{pop=Math.max(0,pop-.035);hop=Math.max(0,hop-.04);const k=1+.06*Math.sin(pop*Math.PI)*pop;heks.G.scale.set(k,2-k,1);heks.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;heks.tick(t,{ph:0,amp:0});
       kat.G.position.y=1.1+Math.sin(hop*Math.PI)*2.2*hop;kat.tick(t,{ph:hop?t*14:0,amp:hop?1:0});for(const b of bamser)if(b.hop>0){b.hop=Math.max(0,b.hop-.05);b.q.position.y=b.y+Math.abs(Math.sin(b.hop*Math.PI*2))*1.2*b.hop}}});
-  ctx.efter.push(()=>{for(const b of bamser)b.q.userData.ryd();bamseRyd()})};
+  ctx.efter.push(()=>{for(const b of bamser)b.q.userData.ryd();bamseRyd();for(const G of malerier)G.traverse(o=>{if(o.userData.ryd)o.userData.ryd()})})};
