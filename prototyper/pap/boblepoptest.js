@@ -13,6 +13,8 @@ const { chromium } = require('playwright');
   const T = js => p.evaluate(js), tjek = (navn, ok, v) => { if (!ok) fejl++; console.log(ok ? 'ok  ' : 'FEJL', navn, v === undefined ? '' : JSON.stringify(v)) };
   const sk = (x, y, z = 1) => T(`(()=>{const c=__spil.room.ctx.room.cam,v=new __kort.THREE.Vector3(${x},${y},${z}).project(c),r=document.querySelector('#stage canvas').getBoundingClientRect();return [r.left+(v.x+1)/2*r.width,r.top+(1-v.y)/2*r.height]})()`);
   await T(`document.getElementById('toast').style.display='none';__spil.room.ctx.test.spol(1.5)`);
+  await p.screenshot({ path: __dirname + '/boble-intro.png' }); tjek('forklaringen hænger i snore, til man trykker', await T(`__spil.room.ctx.test.intro()`) && !(await T(`__spil.room.ctx.test.hint()`)));
+  { const q = await sk(3, 20); await p.mouse.click(q[0], q[1]); } await T(`__spil.room.ctx.test.spol(1)`); tjek('et tryk tager forklaringen væk og viser hånden ved kæledyret', !(await T(`__spil.room.ctx.test.intro()`)) && await T(`__spil.room.ctx.test.hint()`)); await p.waitForTimeout(400); await p.screenshot({ path: __dirname + '/boble-haand.png' });
   let s = await T(`__spil.room.ctx.test.tilstand()`); tjek('banen er lagt op', s.fase === 'sigt' && s.bobler > 40 && s.raekker === 5, s);
   /* sigt med musen: den stiplede linje, og slip for at skyde */
   const [bedst, n0] = await T(`__spil.room.ctx.test.bedst()`); const m1 = await sk(Math.cos(bedst) * 14, 4.6 + Math.sin(bedst) * 14), m0 = await sk(3, 20);
@@ -20,7 +22,8 @@ const { chromium } = require('playwright');
   s = await T(`__spil.room.ctx.test.tilstand()`); tjek('slip skyder boblen af sted', s.fase === 'flyv' || s.skud === 1, s.fase); await T(`__spil.room.ctx.test.spol(3.5)`); s = await T(`__spil.room.ctx.test.tilstand()`);
   tjek('skuddet lander' + (n0 >= 3 ? ', og en klynge på 3 eller flere springer' : ''), s.skud === 1 && (n0 >= 3 ? s.score > 0 : s.miss === 1), [n0, s.score, s.miss, s.bobler]); await p.screenshot({ path: __dirname + '/boble-skud.png' });
   /* et tryk på kæledyret bytter de to bobler */
-  const foer = [s.cur, s.next], kp = await sk(-11, 3, 7); await p.mouse.click(kp[0], kp[1]); await p.waitForTimeout(300); s = await T(`__spil.room.ctx.test.tilstand()`); tjek('kæledyret bytter boblerne, og der skydes ikke', s.cur === foer[1] && s.next === foer[0] && s.skud === 1, [foer, s.cur, s.next]);
+  if (typeof s.cur !== 'number') { await T(`(()=>{const G=__spil.room.ctx.test.G();G.cur.sp=null;})()`); s = await T(`__spil.room.ctx.test.tilstand()`); }
+  const foer = [s.cur, s.next], kp = await sk(-11, 3, 7); await p.mouse.click(kp[0], kp[1]); await p.waitForTimeout(300); s = await T(`__spil.room.ctx.test.tilstand()`); tjek('hånden er væk efter et bytte', !(await T(`__spil.room.ctx.test.hint()`)));tjek('kæledyret bytter boblerne, og der skydes ikke', s.cur === foer[1] && s.next === foer[0] && s.skud === 1, [foer, s.cur, s.next]);
   /* seks skud forbi giver en ny række */
   const r0 = s.raekker; await T(`(()=>{const T=__spil.room.ctx.test,G=T.G();G.miss=0;for(let i=0;i<40&&G.miss<G.missMax-1;i++){G.cur.t=5;G.cur.sp=null;T.skyd(1.57+(i%2?.02:-.02)*i);T.spol(1.3)}})()`); s = await T(`__spil.room.ctx.test.tilstand()`); const lamperFoer = s.miss;
   await T(`(()=>{const T=__spil.room.ctx.test,G=T.G();G.cur.t=5;T.skyd(1.2);T.spol(2)})()`); const s2 = await T(`__spil.room.ctx.test.tilstand()`); tjek('når lamperne er brugt, kommer en ny række', lamperFoer === s.missMax - 1 && s2.miss === 0 && s2.raekker >= s.raekker + 1, [r0, s.raekker, s2.raekker, lamperFoer, s2.miss]); await p.screenshot({ path: __dirname + '/boble-raekke.png' });

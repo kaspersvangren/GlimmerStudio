@@ -11,7 +11,7 @@ ROOMS.boblepop=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),R0=1.55,D=R0*2,RH=R0*Math.sqrt(3),COLS=11,TOPY=39,MAXR=11,X0=-(COLS-1)*R0,WL=-COLS*R0,WR=COLS*R0,KX=0,KY=4.6,NX=-8.2,NY=2.9,LINEY=TOPY-R0-(MAXR-1)*RH-R0-.4,V=75,XL=WL-.4,XR=WR+.4,YB=5.4,YT=TOPY+1.4,ZF=4,ZB=-5.5,KZ=5.6;
   const FARVER=['#ff6fa8','#4aa8ff','#ffc21e','#5fc86a','#a070ff','#ff8a3d'],KRAFT={bombe:'Bombe',regnbue:'Regnbue',lyn:'Lyn',sigte:'Sigte'},KFARVE={bombe:'#ff7a3a',regnbue:'#ff8fc7',lyn:'#ffd86b',sigte:'#3fc7b4'};
   const rnd=(a,b)=>a+Math.random()*(b-a),vaelg=a=>a[Math.floor(Math.random()*a.length)],v3=new THREE.Vector3();
-  let G=null,tv,pt,ban,prikker=[],PRIK={},maalRing=null,sigteTag=null,sigteN=-1,msgPrev=0,msgSidst='',heks,kat,kanon,sigt=Math.PI/2,sigter=false,hopH=0,hopK=0,lamper=[],hylde=[],geo,geoK;const TEX={},TPLB={};
+  let G=null,tv,pt,ban,prikker=[],PRIK={},maalRing=null,sigteTag=null,sigteN=-1,msgPrev=0,msgSidst='',heks,kat,kanon,sigt=Math.PI/2,sigter=false,hopH=0,hopK=0,lamper=[],hylde=[],geo,geoK,intro=false,byttet=false,hint=null;const TEX={},TPLB={};
   /* ---------- billederne: hver slags boble tegnes én gang i papir og bruges som ét stykke ---------- */
   const hjerte=(s,dy=0)=>{const h=[];for(let i=0;i<26;i++){const q=i/26*TAU;h.push([s*16*Math.pow(Math.sin(q),3)/17,s*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17+dy])}return h};
   const maane=()=>{const p=[];for(let i=0;i<=16;i++){const a=(60+i*15)*Math.PI/180;p.push([Math.cos(a)*.82,Math.sin(a)*.82])}for(let i=16;i>=0;i--){const a=(80+i*12.5)*Math.PI/180;p.push([.36+Math.cos(a)*.7,Math.sin(a)*.7])}return p};
@@ -50,7 +50,7 @@ ROOMS.boblepop=function(ctx){
   const visKoe=()=>{if(G.cur){G.cur.m.position.set(KX,KY,KZ+1.1);G.cur.m.scale.setScalar(1)}if(G.next){G.next.m.position.set(NX,NY+1.7,6.4);G.next.m.scale.setScalar(.86)}hylde.forEach((h,i)=>{h.visible=i<G.pw.length;if(h.visible)h.material=matMaerke(G.pw[i])})};
   /* en kraft fra hylden lægges i kanonen, hvis der ligger en almindelig boble i den */
   const brugKraft=()=>{if(!G.pw.length||G.cur.sp)return;const k=G.pw.shift();if(k==='sigte'){G.sigte=6;tekst(KX,KY+5,'Sigte i 6 skud!',KFARVE.sigte,40);brugKraft();visKoe();return}G.cur.sp=k;skift(G.cur);visKoe()};
-  const byt=()=>{if(G.fase!=='sigt'||G.cur.sp){LYD.doer();return}const a=G.cur;G.cur=G.next;G.next=a;hopK=1;LYD.plop();visKoe()};
+  const byt=()=>{if(G.fase!=='sigt'||G.cur.sp){LYD.doer();return}byttet=true;const a=G.cur;G.cur=G.next;G.next=a;hopK=1;LYD.plop();visKoe()};
   /* ---------- skuddet: vejen regnes ud på forhånd (den samme vej bruges til den stiplede linje) ---------- */
   const vej=(a,langt)=>{let x=KX+Math.cos(a)*2.4,y=KY+Math.sin(a)*2.4,dx=Math.cos(a),dy=Math.sin(a),hop=0;const pts=[[x,y]],ds=.35;
     for(let i=0;i<900;i++){x+=dx*ds;y+=dy*ds;if(x<WL+R0){x=2*(WL+R0)-x;dx=-dx;hop++;pts.push([WL+R0,y])}else if(x>WR-R0){x=2*(WR-R0)-x;dx=-dx;hop++;pts.push([WR-R0,y])}
@@ -88,7 +88,7 @@ ROOMS.boblepop=function(ctx){
   const visLamper=()=>lamper.forEach((l,i)=>{l.m.visible=i<G.missMax;l.lm.emissiveIntensity=i<G.missMax-G.miss?1.6:.05});
   const vinkel=e=>{const p=Rm.planeAt(e,1);if(!p)return null;return{p,a:clamp(Math.atan2(Math.max(.2,p.y-KY),p.x-KX),.16,Math.PI-.16)}};
   const OPT={bg:'#f4e8d8',fit:fitBox(88,50,0,20.5),sky:'#fff4e6',ground:'#c8a878',amb:.85,key:{col:'#fff6e6',i:1.8,tgt:[0,18,0]},
-    drag:(ph,e)=>{if(!G||G.fase==='vent')return;const q=vinkel(e);if(!q)return;
+    drag:(ph,e)=>{if(!G||G.fase==='vent')return;if(intro){if(ph==='start'){intro=false;ban.skjul();LYD.plop()}return}const q=vinkel(e);if(!q)return;
       if(ph==='start'){/* et tryk på kæledyret eller den næste boble bytter de to */if(Math.abs(q.p.x-(NX-2.5))<4.9&&q.p.y<NY+4.2&&q.p.y>-2){byt();sigter=false;return}sigter=q.p.y>KY-3;if(sigter)sigt=q.a}
       else if(sigter){sigt=q.a;if(ph==='end'){sigter=false;if(q.p.y>KY+1.2||Math.abs(q.p.x-KX)>4)skyd(sigt)}}},
     build:Rm=>[()=>{const g=Rm.scene;/* væggen: lyst tapet med striber og små hjerter og prikker */
@@ -135,10 +135,19 @@ ROOMS.boblepop=function(ctx){
         for(const[k,c]of[...FARVER.map((c,i)=>[i,c]),['hvid','#fffaf0']])PRIK[k]=piece(circ(0,0,.36,.36,12),{color:c,kind:'card',t:.1,edge:'#ffffff'});
         for(let i=0;i<140;i++){const m=PRIK.hvid.clone();m.visible=false;m.userData.noShadow=true;lv.add(m);prikker.push(m)}
         maalRing=new THREE.Group();for(const q of ring(circ(0,0,R0,R0,36),.2,false))put(maalRing,piece(q,{color:'#fffaf0',kind:'card',t:.06}),0,0,0);maalRing.visible=false;lv.add(maalRing);
-        nytSpil();
-        ctx.say('Sigt med fingeren, og slip for at skyde. 3 ens i en klynge springer.')}],
+        /* hjælpen til at bytte: en papirhånd, der prikker på kæledyret, og en pil mellem de to bobler. Den bliver, til man har byttet én gang */
+        {hint=new THREE.Group();lv.add(hint);const hand=new THREE.Group();hint.add(hand);hand.position.set(NX-4.4,6.3,7.6);hand.scale.setScalar(.95);hint.userData.hand=hand;
+          const form=clip([box(-.42,.45,.42,3.3),circ(0,.45,.42,.42,14),box(-1.55,3,1.55,4.9),circ(0,4.6,1.55,1.05,22),circ(.92,2.95,.5,.56,12),circ(1.52,3.2,.44,.5,12),circ(-1.62,3.9,.48,.95,14)],null,'union');
+          for(const f of form)P2(hand,f,{color:'#fff3e4',kind:'card',t:.3,edge:'#7a4a2a'},0);P2(hand,box(-1.85,5.3,1.85,6.5),{color:'#7a3fa2',kind:'card',t:.34,edge:'#4a2068'},-.02);P2(hand,box(-.22,.75,.22,1.25),{color:'#ffc4b0',kind:'water',t:.02},.2);
+          const pts=[];for(let i=0;i<=20;i++){const t=i/20;pts.push([NX+.5+(KX-NX-1)*t,KY+2.1+Math.sin(t*Math.PI)*2.8])}const pil=new THREE.Group();hint.add(pil);hint.userData.pil=pil;
+          for(const q of thick([pts.slice(2,19)],.22))P2(pil,q,{color:'#fffaf0',kind:'card',t:.06,edge:'#e2384e'},7.2);
+          for(const[a,b]of[[pts[0],pts[3]],[pts[20],pts[17]]]){const dx=a[0]-b[0],dy=a[1]-b[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;P2(pil,toCCW([[a[0],a[1]],[b[0]-uy*.6,b[1]+ux*.6],[b[0]+uy*.6,b[1]-ux*.6]]),{color:'#e2384e',kind:'card',t:.08},7.25)}
+          hint.traverse(o=>{if(o.isMesh)o.userData.noShadow=true});hint.visible=false}
+        nytSpil();intro=true;
+        ban.vis('Sigt, og slip for at skyde',{txt2:'3 ens i en klynge springer. Tryk for at begynde',sek:0,col:'#7a3fa2',y:23})}],
     tick:(t,dt)=>{heks.tick(t,{ph:0,amp:0});kat.tick(t+1,{ph:0,amp:0});hopH=Math.max(0,hopH-dt*2.4);hopK=Math.max(0,hopK-dt*2.4);heks.G.position.y=.35+Math.sin(hopH*Math.PI)*1.1*hopH;kat.G.position.y=.5+Math.sin(hopK*Math.PI)*1.3*hopK;
       tv.tick(dt);pt.tick(dt);ban.tick(dt);
+      if(hint){hint.visible=!intro&&!byttet&&!!G&&G.fase==='sigt'&&!(G.cur&&G.cur.sp);if(hint.visible){const k=(t*1.6)%1,d=k<.25?Math.sin(k/.25*Math.PI):0;hint.userData.hand.position.y=6.3-d*.9;hint.userData.hand.rotation.z=-.12+d*.08;hint.userData.pil.position.y=Math.sin(t*3)*.12}}
       if(!G)return;if(G.vent>0)G.vent-=dt;if(G.ryst>0)G.ryst-=dt;if(G.msgT>0)G.msgT-=dt;const rx=G.ryst>0?Math.sin(t*70)*.18:0;
       if(G.fase==='tabt'&&G.vent<=0){slut();return}if(G.fase==='klaret'&&G.vent<=0){G.pw=G.pw.slice(0,3);nyBane(G.lvl+1)}
       if(G.nyRk>0){G.nyRk-=dt;if(G.nyRk<=0&&G.fase!=='tabt')nyRaekke()}
@@ -166,7 +175,7 @@ ROOMS.boblepop=function(ctx){
       {const n=G.fase!=='vent'?G.sigte:0;if(n!==sigteN){sigteN=n;if(sigteTag){Rm.live.remove(sigteTag);sigteTag.userData.ryd();sigteTag=null}if(n>0){sigteTag=papirTekstMesh(`Sigte: ${n} skud`,'#0f8f80',2,FONT.pil);sigteTag.position.set(KX,KY-3.7,6);Rm.live.add(sigteTag)}}}
 }},Rm=makeRoom(ctx,OPT);
   ctx.efter.push(()=>{for(const k in TPLB)TPLB[k].traverse(q=>{if(q.geometry)q.geometry.dispose()});pt&&pt.ryd();ban&&ban.fjern();if(sigteTag)sigteTag.userData.ryd();for(const k in TEX){TEX[k].rt.dispose();TEX[k].mat.dispose()}if(geo){geo.dispose();geoK.dispose()}});
-  ctx.test={G:()=>G,skyd:a=>{sigt=a;return skyd(a)},byt,spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},vej,plads,nyRaekke,giv:k=>{G.pw.push(k);brugKraft();visKoe()},
+  ctx.test={intro:()=>intro,hint:()=>!!(hint&&hint.visible),G:()=>G,skyd:a=>{sigt=a;return skyd(a)},byt,spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},vej,plads,nyRaekke,giv:k=>{G.pw.push(k);brugKraft();visKoe()},
     /* den bedste vinkel: den, der får flest til at springe eller falde */
     bedst:()=>{let ba=Math.PI/2,bn=-1;for(let a=.2;a<Math.PI-.2;a+=.02){const p=vej(a,true),e=p[p.length-1],pl=plads(e[0],e[1]);if(!pl)continue;const[r,c]=pl;if(celle(r,c))continue;while(G.grid.length<=r)G.grid.push(Array(ncol(G.grid.length)).fill(null));const tmp={t:G.cur.t,r,c};G.grid[r][c]=tmp;const n=klynge(r,c,G.cur.t).length;G.grid[r][c]=null;trim();const v=n>=3?n:n*.1-r*.01;if(v>bn){bn=v;ba=a}}return[ba,bn]},
     tilstand:()=>G&&{fase:G.fase,bane:G.lvl,score:G.score,miss:G.miss,missMax:G.missMax,bobler:alle().length,raekker:G.grid.length,cur:G.cur&&(G.cur.sp||G.cur.t),next:G.next&&G.next.t,pw:G.pw.slice(),sigte:G.sigte,skud:G.skudN}}};

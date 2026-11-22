@@ -179,8 +179,36 @@ cvEl.addEventListener('pointerup',e=>{if(!down||e.pointerId!==down.id)return;con
      Kassen tæller kun, hvis den rammes før jorden, så et tryk på græsset foran et hus stadig er et tryk på græsset */
   {if(!HUSBOX)HUSBOX=HOUSEG.map(g=>({g,b:new THREE.Box3().setFromObject(g).expandByScalar(.6)}));const jord=ray.ray.intersectPlane(ground,hitP)?ray.ray.origin.distanceTo(hitP):1e9;let best=null,bd=jord;
     for(const h of HUSBOX)if(ray.ray.intersectBox(h.b,boxP)){const d=ray.ray.origin.distanceTo(boxP);if(d<bd){bd=d;best=h.g}}
-    if(best){let o=best;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){goTo(sp[0],sp[1]);doorWant=o.userData.house;hintEl.classList.add('gone');autoT=time+14;return}}}
-  if(ray.ray.intersectPlane(ground,hitP)){goTo(hitP.x,hitP.z);doorWant=null;hintEl.classList.add('gone');autoT=time+14}});
+    if(best){let o=best;while(o&&!o.userData.house)o=o.parent;const sp=o&&SPOTS[o.userData.house];if(sp){vil(e,sp[0],sp[1],o.userData.house);return}}}
+  if(ray.ray.intersectPlane(ground,hitP))vil(e,hitP.x,hitP.z,null)});
+/* et tryk: heksen går derhen. To hurtige tryk samme sted: hun snurrer af sted i en hvirvelvind (Kaspers ønske, 22. nov.) */
+let lastTap=null;
+function vil(e,x,z,house){if(TELE)return;const nu=performance.now()/1000,dbl=lastTap&&nu-lastTap.t<.42&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<60;lastTap=dbl?null:{t:nu,x:e.clientX,y:e.clientY};hintEl.classList.add('gone');autoT=time+14;
+  if(dbl)teleTil(x,z,house);else{goTo(x,z);doorWant=house}}
+/* ============ hvirvelvinden ============
+   Hun drejer rundt som en papirdukke, papirstjerner og strimler hvirvler op om hende, og hun bliver væk. Så dukker hvirvlen op, hvor man trykkede, og hun snurrer frem.
+   Var det en dør, lander hun et par skridt fra den og går selv det sidste stykke */
+let TELE=null,VIRV=null;
+const lyd=n=>{try{if(typeof LYD!=='undefined'&&LYD[n])LYD[n]()}catch(_){}};
+function virvel(){if(VIRV)return VIRV;const G=new THREE.Group();G.visible=false;live.add(G);const bits=[],cols=['#9a5cff','#ffc23a','#ff6fae','#3fc8ff','#fff1c0','#b07aff'];
+  const mats=cols.map(c=>paperMat(c,'tissue',{glow:c,gi:.7}));
+  {const ring=[];for(let i=0;i<=40;i++){const a=i/40*TAU;ring.push([Math.cos(a)*3.2,Math.sin(a)*3.2])}const gr=new THREE.Group();for(const q of thick([ring],.28))gr.add(piece(q,{mat:mats[0],t:.04}));gr.rotation.x=-Math.PI/2;gr.position.y=.15;G.add(gr);G.userData.ring=gr}
+  for(let i=0;i<64;i++){const st=i%2===0,sh=st?starPts(0,0,.85,.36,0):box(-.17,-.7,.17,.7),m=piece(sh,{mat:mats[i%mats.length],t:.05});m.traverse(o=>{if(o.isMesh){o.userData.noShadow=true;o.castShadow=false}});const p=new THREE.Group();p.add(m);G.add(p);
+    bits.push({p,a:Math.random()*TAU,h:Math.random(),r:.7+Math.random()*.7,sp:3+Math.random()*2.5,rot:Math.random()*TAU})}
+  VIRV={G,bits};return VIRV}
+function teleTil(x,z,house){if(TELE)return;let tx,tz;
+  if(house){const sp=SPOTS[house],r=[[W0.x,W0.z],...NET.route(W0.x,W0.z,sp[0],sp[1])];let acc=0,px=sp[0],pz=sp[1];tx=px;tz=pz;
+    for(let i=r.length-2;i>=0;i--){const d=Math.hypot(r[i][0]-px,r[i][1]-pz);if(acc+d>=6){const k=(6-acc)/d;tx=px+(r[i][0]-px)*k;tz=pz+(r[i][1]-pz)*k;break}acc+=d;px=r[i][0];pz=r[i][1];tx=px;tz=pz}}
+  else[tx,tz]=clampWalk(x,z);
+  if(Math.hypot(tx-W0.x,tz-W0.z)<7){if(house){goTo(...SPOTS[house]);doorWant=house}else goTo(tx,tz);return}
+  W0.q=[];W0.tx=W0.x;W0.tz=W0.z;doorWant=null;TELE={t:0,fx:W0.x,fz:W0.z,tx,tz,house,ang:0};lyd('pust')}
+function teleTick(dt){const T=TELE,V=virvel();T.t+=dt;const t=T.t,ude=t<.8,at=ude?[T.fx,T.fz]:[T.tx,T.tz];
+  if(!ude&&!T.flyttet){T.flyttet=true;W0.x=W0.tx=T.tx;W0.z=W0.tz=T.tz;W0.q=[];C0.x=C0.tx=T.tx-2.4;C0.z=C0.tz=T.tz+1.2;trail.length=0;trail.push([C0.x,C0.z],[W0.x,W0.z]);lyd('guld')}
+  const k=ude?Math.min(1,t/.3):Math.max(0,1-(t-1.15)/.45),s=ude?(t<.45?1:Math.max(0,1-(t-.45)/.35)):Math.min(1,Math.max(0,(t-.9)/.4));
+  V.G.visible=k>.01;V.G.userData.ring.scale.setScalar(.4+k*.8);V.G.userData.ring.rotation.z=T.t*3;V.G.position.set(at[0],TOP+bridgeY(at[0],at[1]),at[1]+.8);
+  for(const b of V.bits){b.a+=dt*b.sp*(1+k*1.8);const y=(.2+b.h*12)*(.35+k*.65),r=b.r*(1.2+b.h*3)*(.25+k*.85);b.p.position.set(Math.cos(b.a)*r,y,Math.sin(b.a)*r*.45);b.p.rotation.set(0,b.a,b.rot+b.a*1.5);b.p.scale.setScalar(.3+k*.9)}
+  T.ang+=dt*(5+22*(1-s)+10*k);const fl=Math.cos(T.ang);for(const w of[W0,C0]){w.root.scale.multiplyScalar(Math.max(.001,s));w.root.scale.x*=Math.sign(fl||1)*Math.max(.08,Math.abs(fl));w.root.position.y+=(1-s)*2.5;w.sh.scale.multiplyScalar(Math.max(.001,s))}
+  if(t>1.6){TELE=null;V.G.visible=false;if(T.house){goTo(...SPOTS[T.house]);doorWant=T.house}}}
 const within=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false};
 
 /* ============ løkken ============ */
@@ -217,6 +245,7 @@ function frame(now){
     let acc=0,px=W0.x,pz=W0.z;for(let i=trail.length-1;i>=0&&acc<5.5;i--){acc+=Math.hypot(trail[i][0]-px,trail[i][1]-pz);px=trail[i][0];pz=trail[i][1]}
     C0.tx=px;C0.tz=pz+1.2}
   stepWalker(C0,dt);
+  if(TELE)teleTick(dt);
   /* byens folk går ad stierne fra mål til mål og gør noget, når de når frem */
   for(const n of walkers){if(!n.root){n.root=n.o.root;n.sc=n.o.root.scale.x;n.sh=blob(2.8,1.4);n.face=1;n.ph=0;const p0=freePoi(n);n.poi=p0;[n.x,n.z]=p0.at;[n.tx,n.tz]=p0.at;n.q=[];n.until=time+R(2,6);n.acting=true;actPose(n,p0)}
     if(n.q.length&&Math.hypot(n.tx-n.x,n.tz-n.z)<1.2)[n.tx,n.tz]=n.q.shift();
@@ -273,6 +302,6 @@ function frame(now){
     HUSBOX=HOUSEG.map(g=>({g,b:new THREE.Box3().setFromObject(g).expandByScalar(.6)}));
     {const fc=[];live.traverse(o=>{if(o.frustumCulled){fc.push(o);o.frustumCulled=false}});const rt=new THREE.WebGLRenderTarget(8,8);renderer.setRenderTarget(rt);renderer.render(live,cam);renderer.setRenderTarget(null);rt.dispose();for(const o of fc)o.frustumCulled=true}TID.bagt=performance.now()-tb;TID.klarTil=performance.now()}
 
-  window.__kort={live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
+  window.__kort={teleTil,tele:()=>TELE,live,POIS,bridgeY,W0,C0,NET,goTo,scene,cam,HOUSE,HOUSEG,PATHS,PATHLINES,SPOTS,RIVER,PROPS,footprints,THREE,CD,liveObj:()=>({drage:dragon.root,enhjørning:unicorn.root,trold:troll.root}),
     center:(x,y,z)=>{const v=new THREE.Vector3(x,y,z);cam.clearViewOffset();v.project(cam);vx=(v.x+1)/2*FW-VW/2;vy=(1-v.y)/2*FH-VH/2;dragT=1e9;velX=velY=0;applyView()},view:()=>({vx,vy,FW,FH,VW,VH}),walkers,bake,time:()=>time,paintMs:performance.now()-t0};
   requestAnimationFrame(t=>{last=t;frame(t);requestAnimationFrame(()=>{readyAt=performance.now();TID.foerste=readyAt-TID.klarTil;msg.classList.add('gone');if(typeof LOG!=='undefined'){LOG.row('opstart',{dele:window.__bagdele||null,klar:Math.round(readyAt),foerste:Math.round(TID.foerste),hentet:Math.round(TID.hentet),skrifter:Math.round(TID.skrifter),malet:Math.round(TID.malet),bagt:Math.round(TID.bagt),trin:TID.trin.map(Math.round)});LOG.flush()}})})}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();
