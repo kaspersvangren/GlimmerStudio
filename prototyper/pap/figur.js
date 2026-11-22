@@ -31,7 +31,8 @@ function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,frec
     if(maerke==='hjerte'){for(const sx of[-1,1])P.fill(circ(mx+sx*r*.55,my+r*.3,r*.62,r*.62,10),'#e0457a',.9);P.fill([[mx-r*1.1,my+.12*r],[mx+r*1.1,my+.12*r],[mx,my-r*1.15]],'#e0457a',.9)}
     if(maerke==='stjerne'){const st=[];for(let i=0;i<10;i++){const a=Math.PI/2+i/10*TAU,q=i%2?r*.55:r*1.3;st.push([mx+Math.cos(a)*q,my+Math.sin(a)*q])}P.fill(st,'#f2c230',.95)}
     if(maerke==='måne'){P.fill(circ(mx,my,r*1.15,r*1.15,14),'#f2c230',.95);P.fill(circ(mx+r*.5,my+r*.25,r*.95,r*.95,14),skin,1)}
-    if(maerke==='glimmer')for(const sx of[-1,1])for(let k=0;k<9;k++){const gx=cx+sx*w*.29+R(-.5,.5)*w*.13,gy=cy-h*.14+R(-.3,.3)*w*.1,q=r*R(.18,.34);P.fill([[gx,gy+q*1.6],[gx+q*.5,gy],[gx,gy-q*1.6],[gx-q*.5,gy]],k%2?'#f2c230':'#ffffff',.95)}
+    /* glimmer: en lille bue af fem glimt hen over hvert kindben, ens i begge sider */
+    if(maerke==='glimmer')for(const sx of[-1,1])[[-.5,.06,.46],[-.25,-.03,.3],[0,.03,.56],[.25,-.04,.34],[.5,.05,.42]].forEach(([dx,dy,z],k)=>{const gx=cx+sx*(w*.29+dx*w*.15),gy=cy-h*.15+dy*w*.2-Math.abs(dx)*w*.05,q=r*z;P.fill([[gx,gy+q*1.7],[gx+q*.3,gy+q*.3],[gx+q,gy],[gx+q*.3,gy-q*.3],[gx,gy-q*1.7],[gx-q*.3,gy-q*.3],[gx-q,gy],[gx-q*.3,gy+q*.3]],k%2?'#ffffff':'#f2c230',.97)})
     if(maerke==='ar')P.pen([[cx-w*.34,cy-h*.1],[cx-w*.25,cy-h*.2]],'#c88a7a',r*.34,.9),P.pen([[cx-w*.325,cy-h*.17],[cx-w*.275,cy-h*.14]],'#c88a7a',r*.24,.9);
     if(maerke==='plaster'){const px=cx-w*.3,py=cy-h*.2;P.fill(toCCW([[px-r*1.7,py-r*.25],[px+r*1.4,py+r*1],[px+r*1.7,py+r*.25],[px-r*1.4,py-r*1]]),'#f6d2a8',1);P.fill(circ(px,py,r*.42,r*.42,8),'#e0a878',1)}
     if(maerke==='maling')for(const sx of[-1,1])for(const dy of[0,r*1])P.fill(box(cx+sx*w*.29-r*1.4,cy-h*.17+dy-r*.26,cx+sx*w*.29+r*1.4,cy-h*.17+dy+r*.26),dy?'#43a3d3':'#e0457a',.85);

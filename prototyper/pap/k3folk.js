@@ -15,7 +15,8 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(mo==='prikker')for(let i=0;i<n*2.2;i++){const[x,y]=p();P.fill(circ(x,y,.2,.2,8),cb,.95)}
     if(mo==='hjerter')for(let i=0;i<n;i++){const[x,y]=p(),r=.34;for(const sx of[-1,1])P.fill(circ(x+sx*r*.55,y+r*.3,r*.62,r*.62,10),cb,.95);P.fill([[x-r*1.1,y+.12*r],[x+r*1.1,y+.12*r],[x,y-r*1.15]],cb,.95)}
     if(mo==='stjerner')for(let i=0;i<n;i++){const[x,y]=p();P.fill(starPts(x,y,R(.4,.6),.2,R(1)),'#f2c230',.95)}
-    if(mo==='glimmer')for(let i=0;i<n*2;i++){const[x,y]=p(),q=R(.14,.26);P.fill([[x,y+q*1.7],[x+q*.5,y],[x,y-q*1.7],[x-q*.5,y]],i%2?'#f2c230':'#ffffff',.95)}
+    /* glimmer: glimtene ligger i et forskudt net, så de fordeler sig jævnt over pelsen og ikke klumper */
+    if(mo==='glimmer'){const N=Math.round(n*2),cols=Math.max(2,Math.round(Math.sqrt(N*(x1-x0)/(y1-y0)))),rows=Math.max(1,Math.ceil(N/cols));for(let i=0;i<cols*rows;i++){const rk=Math.floor(i/cols),x=x0+((i%cols)+.5+(rk%2?.25:-.25)+R(-.12,.12))*(x1-x0)/cols,y=y0+(rk+.5+R(-.15,.15))*(y1-y0)/rows,q=(i+rk)%3?.2:.31;P.fill([[x,y+q*1.7],[x+q*.3,y+q*.3],[x+q,y],[x+q*.3,y-q*.3],[x,y-q*1.7],[x-q*.3,y-q*.3],[x-q,y],[x-q*.3,y+q*.3]],(i+rk)%2?'#f2c230':'#ffffff',.97)}}
     if(mo==='plet')P.wash(cb,circ((x0+x1)/2-1,(y0+y1)/2+.4,(x1-x0)*.3,(y1-y0)*.34,18),{alpha:.96,edge:.25,mode:'source-over'})};
   const leg=(x,z,far)=>{const p=fpiv(G,x,4.2,z),col=fugl?'#e0a020':far?hexOf(shade(c0,-.25)):c0,sh=fugl?sm([[x-.3,4.4,1],[x+.3,4.4,1],[x+.3,.5],[x+1.3,.2],[x+1.2,0,1],[x-1,0,1],[x-1.1,.2],[x-.3,.5]],3):sm([[x-.72,4.6,1],[x+.72,4.6,1],[x+.66,1.2],[x+.95,.25],[x+.8,0,1],[x-.7,0,1],[x-.66,1.2]],4);
     fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});if(mo==='sokker'&&!fugl)P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(cb,-.2)):cb,1)}},0);return p.o};
@@ -36,7 +37,7 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(kind==='kat'||kind==='ræv'||kind==='kanin'){const ch=sm([[2.9,7.2],[4.3,6.5],[4.2,4.7],[3.4,3.9],[2.8,5.2]],6);fp(K.body,ch,{t:.08,s:50,ed:cb,paint:P=>{P.wash(cb,ch,{edge:.4});for(let i=0;i<5;i++)P.pen([[3.1+i*.2,6.6-i*.5],[3.4+i*.2,6-i*.5]],hexOf(shade(cb,-.15)),.05,.7)}},.2)}
     if(kind==='drage'||kind==='frø'||fugl||kind==='bjørn'){const be=circ(1,5.2,2.6,1.9,20);fp(K.body,be,{t:.06,s:40,ed:cb,paint:P=>{P.wash(cb,be,{edge:.5});if(kind==='drage')for(let x=-.8;x<3;x+=.8)P.pen([[x,3.7],[x+.2,6.7]],hexOf(shade(cb,-.25)),.07,.6)}},.18)}
     if(kind==='drage')for(const sx of[0,1]){const wg=toCCW(sm([[-1.6,7.6,1],[-3.2,10.4],[-5.6,11.6,1],[-5,9.6],[-4,8.6,1],[-3.4,9.2],[-2.6,7.4,1]],5));fp(K.body,wg,{color:sx?cc:hexOf(shade(cc,-.25)),kind:'water',t:.12,edge:hexOf(shade(cc,-.45))},sx?.22:-.3).position.x=sx?0:.9}
-    if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6));fp(K.body,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},.24)}
+    if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6)),wp=fpiv(K.body,1,7.7,.24);K.wing=wp.o;fp(wp.i,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},0)}
     /* feevinger: begge sidder på ryggen og drejer om deres rod, så ingen af dem havner ved kinden */
     if(pynt==='vinger')for(const sx of[0,1]){const a=sx?-.16:.42,bx=sx?.8:-.4,r=([x,y,k])=>[bx+x*Math.cos(a)-(y-8)*Math.sin(a),8+x*Math.sin(a)+(y-8)*Math.cos(a),k],wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]].map(r),6));fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34)}}
   if(fugl)K.legs.push(leg(-.6,.3,false),leg(1.8,.3,false));else K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
@@ -72,7 +73,15 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
   if(pynt==='blomst'){const fx=hx+2.5,fy=hy+2.2;for(let q=0;q<6;q++)HP2(circ(fx+Math.cos(q/6*TAU)*.62,fy+Math.sin(q/6*TAU)*.62,.44,.44,12),{color:q%2?hexOf(shade(cc,.3)):cc,kind:'water',t:.1},.22+q*.004);HP2(circ(fx,fy,.36,.36,12),{mat:gold(),t:.12},.28)}
   if(pynt==='stjerne')HP2(starPts(hx+2.5,hy+2.2,.95,.42,.2),{mat:gold(),t:.14},.24);
   if(pynt==='briller'){for(const sx of[-1,1])for(const q of ring(circ(hx+sx*ex,eyY,er*1.2,er*1.2,24),.16,false))HP2(q,{color:cc,kind:'water',t:.1},.24);HP2(box(hx-ex+er*1.2,eyY-.08,hx+ex-er*1.2,eyY+.08),{color:cc,kind:'water',t:.1},.24)}
-  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp});K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
+  /* alt i dyret ligger i en indre gruppe, så et hop kan løfte hele dyret, uden at den, der flytter dyret rundt, mærker det */
+  K.I=new THREE.Group();for(const c of[...G.children])K.I.add(c);G.add(K.I);const HOP={kanin:[2.2,.62,2],'frø':[3,.5,2.6],ugle:[1.1,.7,1]}[kind];
+  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);
+    if(HOP){/* kanin, frø og ugle går ikke: de hopper. Et hop er en bue i luften og en lille pause på jorden, hvor dyret dukker sig */
+      K.a=(K.a||0)+(amp-(K.a||0))*.22;const A=K.a,c=((ph/(TAU*HOP[2]))%1+1)%1,luft=c<HOP[1],u=luft?c/HOP[1]:0,bue=Math.sin(u*Math.PI),duk=luft?0:Math.sin((c-HOP[1])/(1-HOP[1])*Math.PI);
+      K.I.position.y=HOP[0]*bue*A;K.I.rotation.z=(luft?(.5-u)*.34:0)*A;K.I.scale.y=1-.09*duk*A;
+      if(fugl){K.legs.forEach(l=>{l.rotation.z=-.5*bue*A});if(K.wing)K.wing.rotation.z=-.75*bue*A}
+      else K.legs.forEach((l,i)=>{const bag=i%2===0;l.rotation.z=(bag?-.85*Math.sin(Math.min(1,u*1.6)*Math.PI*.5)*(1-u*.5):.6*bue)*(luft?1:0)*A+(bag?.25:-.2)*duk*A})}
+    else{K.I.position.y=0;K.I.rotation.z=0;K.I.scale.y=1;K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp})}K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
   FRES=1;return K}
 const makeCat=makePet;
 

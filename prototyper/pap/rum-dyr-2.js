@@ -3,7 +3,7 @@
    Heksen går hen til det, man trykker på; dyrene på gården kan man klappe. */
 ROOMS.dyrepark=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:0,tx:0,ph:0,amp:0,face:1,want:null},STEDER=[{id:'koek',navn:'Dyrekøkkenet',x:-27,rum:'dyrekoekken'},{id:'stald',navn:'Ungestalden',x:27,rum:'ungestald'}];
-  let heks,kat,aeg,vip=0,gaar=null;const DYR_=[],hj=[],roeg=[];
+  let heks,kat,aeg,vip=0,gaar=null,frys=null;const DYR_=[],hj=[],roeg=[];
   const hjerte=(x,y)=>{const q=hj.find(h=>h.t>1)||hj[0];q.t=0;q.x=x;q.y=y};
   const Rm=makeRoom(ctx,{bg:'#0e1418',fit:fitBox(90,50,0,20.5),sky:'#dff0ff',ground:'#5a7a48',amb:.7,key:{col:'#fff2d8',i:2.1,tgt:[0,14,0]},
     build:Rm=>[()=>{const g=Rm.scene,H=box(-80,-2,80,66);/* himmel, sol, skyer og bakker */
@@ -47,7 +47,7 @@ ROOMS.dyrepark=function(ctx){
         put(aeg,piece(toCCW(e),{t:.5,s:26,paint:P=>{P.wash('#fdf3dc',e,{top:'#ffffff',edge:.7,clouds:4});for(const[x,y,r,c]of[[-1.6,6.4,1,'#ff9fd0'],[1.5,3.6,.85,'#9fe7ff'],[1.2,7.8,.7,'#ffd54a'],[-1.9,2.6,.7,'#b9a0ff'],[-.2,4.9,.55,'#ff9fd0'],[2.5,5.8,.5,'#b9a0ff']])P.wash(c,circ(x,y,r,r,14),{alpha:.85,edge:.5,mode:'source-over'})}}),0,0,0);
         const hb=new THREE.Mesh(new THREE.PlaneGeometry(13,14),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,5,2);aeg.add(hb);Rm.tap(hb,()=>{W0.tx=-9;W0.want={aeg:1}});
         /* dyrene på gården */
-        [{kind:'kanin',x:-52,z:-2.6,v:5},{kind:'ræv',x:44,z:-1.2,v:-4,pynt:'tørklæde'},{kind:'bjørn',x:-8,z:3.4,v:3.2,pynt:'sløjfe'},{kind:'frø',x:16,z:11,v:-2.6,pynt:'krone'}].forEach((o,i)=>{const K=makePet(Object.assign({res:.8},o));K.G.scale.setScalar(.62);K.G.position.set(o.x,.5,o.z);lv.add(K.G);const d={K,x:o.x,z:o.z,v:o.v,hop:0,pause:R(1,4),i};DYR_.push(d);
+        [{kind:'kanin',x:-52,z:-2.6,v:5},{kind:'ræv',x:44,z:-1.2,v:-4,pynt:'tørklæde'},{kind:'bjørn',x:-8,z:3.4,v:3.2,pynt:'sløjfe'},{kind:'frø',x:16,z:11,v:-2.6,pynt:'krone'},{kind:'ugle',x:-40,z:9,v:2.2,pynt:'ingen'}].forEach((o,i)=>{const K=makePet(Object.assign({res:.8},o));K.G.scale.setScalar(.62);K.G.position.set(o.x,.5,o.z);lv.add(K.G);const d={K,x:o.x,z:o.z,v:o.v,hop:0,pause:R(1,4),i};DYR_.push(d);
           const hb2=new THREE.Mesh(new THREE.PlaneGeometry(16,18),new THREE.MeshBasicMaterial({visible:false}));hb2.position.set(1,8,1);K.G.add(hb2);Rm.tap(hb2,()=>{d.hop=1;d.pause=1.4;LYD.pip();hjerte(d.x,8)})});
         {const c=cv(96,96),q=c.getContext('2d');q.translate(48,48);q.fillStyle='#ff5a8a';q.strokeStyle='#a01848';q.lineWidth=4;q.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,x=34*16*Math.pow(Math.sin(a),3)/17,y=-34*(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))/17-4;i?q.lineTo(x,y):q.moveTo(x,y)}q.closePath();q.fill();q.stroke();const m=tx(c,true);
           for(let i=0;i<8;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:m,transparent:true,depthWrite:false}));s.visible=false;lv.add(s);hj.push({s,t:9,x:0,y:0})}}
@@ -60,6 +60,8 @@ ROOMS.dyrepark=function(ctx){
       const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km)kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});
       if(W0.want&&!mv&&!gaar){const s=W0.want;W0.want=null;if(s.aeg){vip=1;LYD.pip();ctx.say('Ægget ruger. Det er varmt, og det banker lidt indeni … en dag klækker det!')}else if(ROOMS[s.rum]){gaar=s;ctx.go(s.rum)}}
       vip=Math.max(0,vip-dt*.8);aeg.rotation.z=Math.sin(t*1.1)*.02+Math.sin(vip*Math.PI*5)*.16*vip;aeg.position.y=2.4+Math.abs(Math.sin(vip*Math.PI*5))*.5*vip;
-      for(const a of DYR_){a.pause-=dt;const gaa=a.pause<0;if(gaa){a.x+=a.v*dt;if(a.pause<-R(3,6))a.pause=R(1.5,4);if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}}a.hop=Math.max(0,a.hop-dt*1.6);a.K.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop+(gaa&&a.K.kind==='kanin'||gaa&&a.K.kind==='frø'?Math.abs(Math.sin(t*7+a.i))*1.4:0),a.z);a.K.G.scale.x=.62*Math.sign(a.v);a.K.tick(t+a.i,{ph:t*11+a.i,amp:gaa?1:0})}
+      if(frys!==null){DYR_.forEach((a,i)=>{a.K.G.position.set(-36+i*18,.5,12);a.K.G.scale.set(.62,.62,.62);a.K.tick(0,{ph:frys*TAU*({kanin:2,'frø':2.6,ugle:1}[a.K.kind]||1),amp:1})})}else
+      for(const a of DYR_){a.pause-=dt;const gaa=a.pause<0;if(gaa){a.x+=a.v*dt;if(a.pause<-R(3,6))a.pause=R(1.5,4);if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}}a.hop=Math.max(0,a.hop-dt*1.6);a.K.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop,a.z);a.K.G.scale.x=.62*Math.sign(a.v);a.K.tick(t+a.i,{ph:t*11+a.i,amp:gaa?1:0})}
       for(const q of hj){q.t+=dt*.9;if(q.t>1){q.s.visible=false;continue}q.s.visible=true;q.s.position.set(q.x+Math.sin(q.t*8)*.5,q.y+q.t*8,13);const z=2+q.t*1.6;q.s.scale.set(z,z,1);q.s.material.opacity=1-q.t*q.t}
-      for(const q of roeg){q.t=(q.t+dt*.16)%1;q.s.position.set(-20.6+Math.sin(q.t*5+t*.3)*1.2+q.t*3,34.6+q.t*11,-6.6);const z=3+q.t*5;q.s.scale.set(z,z,1);q.s.material.opacity=.55*(1-q.t)}}})};
+      for(const q of roeg){q.t=(q.t+dt*.16)%1;q.s.position.set(-20.6+Math.sin(q.t*5+t*.3)*1.2+q.t*3,34.6+q.t*11,-6.6);const z=3+q.t*5;q.s.scale.set(z,z,1);q.s.material.opacity=.55*(1-q.t)}}});
+  ctx.test={hop:u=>{frys=u}}};

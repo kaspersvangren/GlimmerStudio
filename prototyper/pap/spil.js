@@ -4,7 +4,7 @@
 const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs" role="tablist" aria-label="Hvad vil du lave om?"></div><div id="opts"></div></div>'},garderobe:{navn:'Garderoben',html:'<div id="panel"><div id="tabs" role="tablist" aria-label="Hvad vil du skifte?"></div><div id="opts"></div></div>'},
   koncert:{navn:'Koncertsalen',html:'<div id="songs" role="group" aria-label="Ønsk en sang"><span>Ønsk en sang</span></div>'},
   gang:{navn:'Skolen',mus:'kaelder'},eliksir:{navn:'Eliksirtimen',mus:'kaelder'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden',mus:'arkade',stem:'stemning',bil:1},gnom:{navn:'Bank en gnom',mus:'gnom',bil:1},
-  dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
+  dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="madvalg" class="valg" role="group" aria-label="Vælg foder" hidden></div><div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
 RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
@@ -72,5 +72,10 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
   fm.addEventListener('submit',e=>{e.preventDefault();SPIL.note(type,tx_.value);luk();toast(LOG.on?'Noten er gemt':'Noten kan ikke gemmes her')})}
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik('byen')},{once:true});
+/* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
+{let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;continue}
+      if(e.hvad==='mistet'){LYD.oev();toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else{LYD.pip();toast(`${navn} kalder på dig i Ungestalden!`)}}
+    if(sket.length||++n%10===0)SPIL.save();return sket};
+  setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
 SPIL.arrive=name=>{const id=DOORS[name];if(id&&ROOMS[id])enter(id);else if(HUSNAVN[name])toast(`${HUSNAVN[name]} åbner snart`)};
 SPIL.enter=n=>enter(DOORS[n]||n);window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;

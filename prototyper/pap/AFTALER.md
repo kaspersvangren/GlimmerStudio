@@ -46,5 +46,5 @@ Hentet fra det oprindelige spils kode (grenen main, mappen src) den 21. november
 | Hvad | Regler |
 |---|---|
 | Dyrekøkkenet | En vagt på 100 sekunder. 1 point pr. fodret dyr, 2 hvis det gik hurtigt (over halvdelen af tålmodigheden tilbage). 1 stjerne for hver 2 point, højst 12. 1 godbid til ungerne for hver 3 dyr |
-| Ungestalden | Tre behov pr. unge (mæt, ren, glad). Hver gang et behov fyldes helt op, eller ungen falder i søvn, er det et skridt; tre skridt giver et hjerte. Et hjerte giver 2 stjerner; ti hjerter giver 10 stjerner og "bedste ven". Højst ti hjerter pr. unge |
+| Ungestalden | Tre behov pr. unge (mæt, ren, glad), som falder i spilletid: fuld til tom på cirka 12 minutter et andet sted, fire gange så hurtigt i stalden. Et behov på nul koster et hjerte for hver 5 minutters spil (aldrig det sidste). Et skridt mod et hjerte får man kun ved at opfylde et ønske i tide (eller give en godbid). Et hjerte koster 3 skridt (de tre første), så 4, 5 og 6. Et hjerte giver 2 stjerner; ti hjerter giver 10 stjerner og "bedste ven". Kun livretten mætter helt |
 | Lange tekster | En tekst på 42 tegn eller mere bliver stående, til man trykker. Når noget er færdigt, står spillet stille, til man trykker videre |

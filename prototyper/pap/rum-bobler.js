@@ -22,7 +22,12 @@ ROOMS.bobler=function(ctx){
         const fr=box(-27,0,36,13.4);P2(g,fr,{t:1,s:14,paint:P=>{P.wash('#f6e7c0',fr,{edge:.4,clouds:5});for(let x=-27;x<36;x+=4.5)P.fill(box(x,0,x+2.25,13.4),'#e86a9a',.85);P.flat('#5a2f4a',box(-27,0,36,1.4),.8);P.fill(box(-27,11.6,36,12.2),'#c9a04a',1)}},3.4);
         P2(g,box(-28.4,13.2,37.4,14.8),{color:'#86593a',kind:'balsa',t:7},-2.4);
         JARX.forEach((x,i)=>{const jg=new THREE.Group();g.add(jg);const j=sm([[x-3.9,14.8],[x+3.9,14.8],[x+4.3,22.4],[x+2.4,25.2],[x-2.4,25.2],[x-4.3,22.4]],6),c=['#ff9ad0','#9fe7ff','#ffe27a'][i];
-          P2(jg,j,{t:2,mat:paperMat('#f4fcff','tissue',{glow:c,gi:.3})},1);P2(jg,box(x-2.9,25.2,x+2.9,26.4),{color:'#c8a070',kind:'balsa',t:2.4},.9);P2(jg,circ(x,19.4,2.5,2.5,28),{t:.06,mat:paperMat('#ffffff','tissue',{glow:c,gi:1.5})},3.2);for(const q of ring(circ(x,19.4,2.5,2.5,28),.22,false))P2(jg,q,{mat:gold(),t:.08},3.25);Rm.glow(x,19.4,4.4,c,9);
+          P2(jg,j,{t:2,mat:paperMat('#f4fcff','tissue',{glow:c,gi:.3})},1);P2(jg,box(x-2.9,25.2,x+2.9,26.4),{color:'#c8a070',kind:'balsa',t:2.4},.9);P2(jg,circ(x,19.4,2.5,2.5,28),{t:.06,mat:paperMat('#ffffff','tissue',{glow:c,gi:1.5})},3.2);for(const q of ring(circ(x,19.4,2.5,2.5,28),.22,false))P2(jg,q,{mat:gold(),t:.08},3.25);
+          /* et lille billede på krukken af det, der er i: en hat (tøj og hår), en pote (kæledyr) og en seng (værelset) */
+          {const y=19.4,I=(sh,col)=>P2(jg,toCCW(sh),{color:col,kind:'water',t:.07},4.7);
+            if(i===0){I([[x-1.1,y-.7],[x+1.1,y-.7],[x+.35,y+.55],[x+.8,y+1.65],[x-.3,y+1]],'#6a3fa2');I(circ(x,y-.85,1.95,.42,20),'#58328a');I(box(x-.92,y-.6,x+.92,y-.28),'#e0b040')}
+            if(i===1){I(circ(x,y-.55,1.05,.85,18),'#8a5a34');for(const[dx,dy]of[[-1.1,.4],[-.4,1.05],[.4,1.05],[1.1,.4]])I(circ(x+dx,y+dy,.4,.5,12),'#8a5a34')}
+            if(i===2){I(box(x-1.8,y-1.1,x-1.4,y+1.2),'#8a5a34');I(box(x+1.5,y-1.1,x+1.85,y+.3),'#8a5a34');I(box(x-1.4,y-.7,x+1.5,y-.05),'#6a3fa2');I(circ(x-.75,y+.25,.6,.32,12),'#ffffff');I(box(x-.1,y-.1,x+1.5,y+.25),'#e0457a')}}Rm.glow(x,19.4,4.4,c,9);
           const hb=new THREE.Mesh(new THREE.PlaneGeometry(10,13),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(x,20.4,3.6);jg.add(hb);Rm.tap(hb,koeb(i))});
         plate(g,'pris',`${PRIS} stjerner for en boble`,FONT.bobler,19,2.8,{bg:'#5a2f4a',frame:'gold',size:1.45,x:-14.6,y:7.2,z:4.1});KR.forEach((k,i)=>plate(g,'krukke'+i,k.navn,FONT.bobler,10.6,2.4,{bg:'#f6e7c0',fg:'#5a2f4a',frame:'gold',size:1.25,x:JARX[i],y:8.6,z:4.1}));
         /* klokken på disken */

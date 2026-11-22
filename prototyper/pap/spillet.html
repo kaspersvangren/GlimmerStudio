@@ -68,6 +68,7 @@ button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 .valg button{font:700 19px var(--font);padding:11px 18px;min-width:84px;border:0;border-radius:10px;background:#b88d5b;color:#2a1d12;box-shadow:inset 0 0 0 2px rgba(255,235,200,.25),0 4px 0 #76552f;cursor:pointer}
 .valg button[aria-pressed=true]{background:#2a1d12;color:#efe3c8;box-shadow:inset 0 0 0 2px #c9a04a}
 @media (max-height:520px){.valg button{font-size:14px;padding:6px 9px}.valg span{display:none}}
+#madvalg{bottom:calc(78px + env(safe-area-inset-bottom,0px));background:rgba(30,14,20,.86)}#madvalg img{display:block;width:46px;height:46px;margin:0 auto 2px}#madvalg button{min-width:104px;font-size:16px}
 .valg{width:max-content;flex-wrap:nowrap}.valg button:disabled{opacity:.45}
 @media (max-width:620px){.valg{flex-wrap:wrap;width:auto}}
 /* spillet: knappen tilbage til byen, døren man går igennem, og en lille besked når et hus ikke er åbent endnu */
@@ -1117,7 +1118,8 @@ function drawFace(P,{cx,cy,w,h,eyeW,eyeH,irisC=['#9be0a6','#2f7a44'],lash=1,frec
     if(maerke==='hjerte'){for(const sx of[-1,1])P.fill(circ(mx+sx*r*.55,my+r*.3,r*.62,r*.62,10),'#e0457a',.9);P.fill([[mx-r*1.1,my+.12*r],[mx+r*1.1,my+.12*r],[mx,my-r*1.15]],'#e0457a',.9)}
     if(maerke==='stjerne'){const st=[];for(let i=0;i<10;i++){const a=Math.PI/2+i/10*TAU,q=i%2?r*.55:r*1.3;st.push([mx+Math.cos(a)*q,my+Math.sin(a)*q])}P.fill(st,'#f2c230',.95)}
     if(maerke==='måne'){P.fill(circ(mx,my,r*1.15,r*1.15,14),'#f2c230',.95);P.fill(circ(mx+r*.5,my+r*.25,r*.95,r*.95,14),skin,1)}
-    if(maerke==='glimmer')for(const sx of[-1,1])for(let k=0;k<9;k++){const gx=cx+sx*w*.29+R(-.5,.5)*w*.13,gy=cy-h*.14+R(-.3,.3)*w*.1,q=r*R(.18,.34);P.fill([[gx,gy+q*1.6],[gx+q*.5,gy],[gx,gy-q*1.6],[gx-q*.5,gy]],k%2?'#f2c230':'#ffffff',.95)}
+    /* glimmer: en lille bue af fem glimt hen over hvert kindben, ens i begge sider */
+    if(maerke==='glimmer')for(const sx of[-1,1])[[-.5,.06,.46],[-.25,-.03,.3],[0,.03,.56],[.25,-.04,.34],[.5,.05,.42]].forEach(([dx,dy,z],k)=>{const gx=cx+sx*(w*.29+dx*w*.15),gy=cy-h*.15+dy*w*.2-Math.abs(dx)*w*.05,q=r*z;P.fill([[gx,gy+q*1.7],[gx+q*.3,gy+q*.3],[gx+q,gy],[gx+q*.3,gy-q*.3],[gx,gy-q*1.7],[gx-q*.3,gy-q*.3],[gx-q,gy],[gx-q*.3,gy+q*.3]],k%2?'#ffffff':'#f2c230',.97)})
     if(maerke==='ar')P.pen([[cx-w*.34,cy-h*.1],[cx-w*.25,cy-h*.2]],'#c88a7a',r*.34,.9),P.pen([[cx-w*.325,cy-h*.17],[cx-w*.275,cy-h*.14]],'#c88a7a',r*.24,.9);
     if(maerke==='plaster'){const px=cx-w*.3,py=cy-h*.2;P.fill(toCCW([[px-r*1.7,py-r*.25],[px+r*1.4,py+r*1],[px+r*1.7,py+r*.25],[px-r*1.4,py-r*1]]),'#f6d2a8',1);P.fill(circ(px,py,r*.42,r*.42,8),'#e0a878',1)}
     if(maerke==='maling')for(const sx of[-1,1])for(const dy of[0,r*1])P.fill(box(cx+sx*w*.29-r*1.4,cy-h*.17+dy-r*.26,cx+sx*w*.29+r*1.4,cy-h*.17+dy+r*.26),dy?'#43a3d3':'#e0457a',.85);
@@ -1438,7 +1440,8 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(mo==='prikker')for(let i=0;i<n*2.2;i++){const[x,y]=p();P.fill(circ(x,y,.2,.2,8),cb,.95)}
     if(mo==='hjerter')for(let i=0;i<n;i++){const[x,y]=p(),r=.34;for(const sx of[-1,1])P.fill(circ(x+sx*r*.55,y+r*.3,r*.62,r*.62,10),cb,.95);P.fill([[x-r*1.1,y+.12*r],[x+r*1.1,y+.12*r],[x,y-r*1.15]],cb,.95)}
     if(mo==='stjerner')for(let i=0;i<n;i++){const[x,y]=p();P.fill(starPts(x,y,R(.4,.6),.2,R(1)),'#f2c230',.95)}
-    if(mo==='glimmer')for(let i=0;i<n*2;i++){const[x,y]=p(),q=R(.14,.26);P.fill([[x,y+q*1.7],[x+q*.5,y],[x,y-q*1.7],[x-q*.5,y]],i%2?'#f2c230':'#ffffff',.95)}
+    /* glimmer: glimtene ligger i et forskudt net, så de fordeler sig jævnt over pelsen og ikke klumper */
+    if(mo==='glimmer'){const N=Math.round(n*2),cols=Math.max(2,Math.round(Math.sqrt(N*(x1-x0)/(y1-y0)))),rows=Math.max(1,Math.ceil(N/cols));for(let i=0;i<cols*rows;i++){const rk=Math.floor(i/cols),x=x0+((i%cols)+.5+(rk%2?.25:-.25)+R(-.12,.12))*(x1-x0)/cols,y=y0+(rk+.5+R(-.15,.15))*(y1-y0)/rows,q=(i+rk)%3?.2:.31;P.fill([[x,y+q*1.7],[x+q*.3,y+q*.3],[x+q,y],[x+q*.3,y-q*.3],[x,y-q*1.7],[x-q*.3,y-q*.3],[x-q,y],[x-q*.3,y+q*.3]],(i+rk)%2?'#f2c230':'#ffffff',.97)}}
     if(mo==='plet')P.wash(cb,circ((x0+x1)/2-1,(y0+y1)/2+.4,(x1-x0)*.3,(y1-y0)*.34,18),{alpha:.96,edge:.25,mode:'source-over'})};
   const leg=(x,z,far)=>{const p=fpiv(G,x,4.2,z),col=fugl?'#e0a020':far?hexOf(shade(c0,-.25)):c0,sh=fugl?sm([[x-.3,4.4,1],[x+.3,4.4,1],[x+.3,.5],[x+1.3,.2],[x+1.2,0,1],[x-1,0,1],[x-1.1,.2],[x-.3,.5]],3):sm([[x-.72,4.6,1],[x+.72,4.6,1],[x+.66,1.2],[x+.95,.25],[x+.8,0,1],[x-.7,0,1],[x-.66,1.2]],4);
     fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});if(mo==='sokker'&&!fugl)P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(cb,-.2)):cb,1)}},0);return p.o};
@@ -1459,7 +1462,7 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(kind==='kat'||kind==='ræv'||kind==='kanin'){const ch=sm([[2.9,7.2],[4.3,6.5],[4.2,4.7],[3.4,3.9],[2.8,5.2]],6);fp(K.body,ch,{t:.08,s:50,ed:cb,paint:P=>{P.wash(cb,ch,{edge:.4});for(let i=0;i<5;i++)P.pen([[3.1+i*.2,6.6-i*.5],[3.4+i*.2,6-i*.5]],hexOf(shade(cb,-.15)),.05,.7)}},.2)}
     if(kind==='drage'||kind==='frø'||fugl||kind==='bjørn'){const be=circ(1,5.2,2.6,1.9,20);fp(K.body,be,{t:.06,s:40,ed:cb,paint:P=>{P.wash(cb,be,{edge:.5});if(kind==='drage')for(let x=-.8;x<3;x+=.8)P.pen([[x,3.7],[x+.2,6.7]],hexOf(shade(cb,-.25)),.07,.6)}},.18)}
     if(kind==='drage')for(const sx of[0,1]){const wg=toCCW(sm([[-1.6,7.6,1],[-3.2,10.4],[-5.6,11.6,1],[-5,9.6],[-4,8.6,1],[-3.4,9.2],[-2.6,7.4,1]],5));fp(K.body,wg,{color:sx?cc:hexOf(shade(cc,-.25)),kind:'water',t:.12,edge:hexOf(shade(cc,-.45))},sx?.22:-.3).position.x=sx?0:.9}
-    if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6));fp(K.body,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},.24)}
+    if(fugl){const wg=toCCW(sm([[-2.6,8,1],[1.6,7.6],[2.2,5.4],[-.4,4],[-3,4.6]],6)),wp=fpiv(K.body,1,7.7,.24);K.wing=wp.o;fp(wp.i,wg,{t:.14,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.2)),wg,{edge:.5});for(let i=0;i<4;i++)P.pen(curve([[-2.4+i*1.1,7.4],[-2+i*1.1,5.6],[-1.2+i*1.1,4.8]],5),cd,.08,.6)}},0)}
     /* feevinger: begge sidder på ryggen og drejer om deres rod, så ingen af dem havner ved kinden */
     if(pynt==='vinger')for(const sx of[0,1]){const a=sx?-.16:.42,bx=sx?.8:-.4,r=([x,y,k])=>[bx+x*Math.cos(a)-(y-8)*Math.sin(a),8+x*Math.sin(a)+(y-8)*Math.cos(a),k],wg=toCCW(sm([[-.6,8,1],[-2.4,11.8],[-1,13.6],[.8,11.4],[.6,8.6,1]].map(r),6));fp(K.body,wg,{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:.9})},sx?-.2:-.34)}}
   if(fugl)K.legs.push(leg(-.6,.3,false),leg(1.8,.3,false));else K.legs.push(leg(-3.4,.3,false),leg(2.4,.3,false));
@@ -1495,7 +1498,15 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
   if(pynt==='blomst'){const fx=hx+2.5,fy=hy+2.2;for(let q=0;q<6;q++)HP2(circ(fx+Math.cos(q/6*TAU)*.62,fy+Math.sin(q/6*TAU)*.62,.44,.44,12),{color:q%2?hexOf(shade(cc,.3)):cc,kind:'water',t:.1},.22+q*.004);HP2(circ(fx,fy,.36,.36,12),{mat:gold(),t:.12},.28)}
   if(pynt==='stjerne')HP2(starPts(hx+2.5,hy+2.2,.95,.42,.2),{mat:gold(),t:.14},.24);
   if(pynt==='briller'){for(const sx of[-1,1])for(const q of ring(circ(hx+sx*ex,eyY,er*1.2,er*1.2,24),.16,false))HP2(q,{color:cc,kind:'water',t:.1},.24);HP2(box(hx-ex+er*1.2,eyY-.08,hx+ex-er*1.2,eyY+.08),{color:cc,kind:'water',t:.1},.24)}
-  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp});K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
+  /* alt i dyret ligger i en indre gruppe, så et hop kan løfte hele dyret, uden at den, der flytter dyret rundt, mærker det */
+  K.I=new THREE.Group();for(const c of[...G.children])K.I.add(c);G.add(K.I);const HOP={kanin:[2.2,.62,2],'frø':[3,.5,2.6],ugle:[1.1,.7,1]}[kind];
+  K.tick=(t,{ph=0,amp=0}={})=>{const s=Math.sin(ph);
+    if(HOP){/* kanin, frø og ugle går ikke: de hopper. Et hop er en bue i luften og en lille pause på jorden, hvor dyret dukker sig */
+      K.a=(K.a||0)+(amp-(K.a||0))*.22;const A=K.a,c=((ph/(TAU*HOP[2]))%1+1)%1,luft=c<HOP[1],u=luft?c/HOP[1]:0,bue=Math.sin(u*Math.PI),duk=luft?0:Math.sin((c-HOP[1])/(1-HOP[1])*Math.PI);
+      K.I.position.y=HOP[0]*bue*A;K.I.rotation.z=(luft?(.5-u)*.34:0)*A;K.I.scale.y=1-.09*duk*A;
+      if(fugl){K.legs.forEach(l=>{l.rotation.z=-.5*bue*A});if(K.wing)K.wing.rotation.z=-.75*bue*A}
+      else K.legs.forEach((l,i)=>{const bag=i%2===0;l.rotation.z=(bag?-.85*Math.sin(Math.min(1,u*1.6)*Math.PI*.5)*(1-u*.5):.6*bue)*(luft?1:0)*A+(bag?.25:-.2)*duk*A})}
+    else{K.I.position.y=0;K.I.rotation.z=0;K.I.scale.y=1;K.legs.forEach((l,i)=>{l.rotation.z=(i%3===0?-1:1)*.5*s*amp})}K.tail.rotation.z=(kind==='hund'?.3*Math.sin(t*7):.16*Math.sin(t*1.6))+.12*Math.sin(ph*2)*amp;K.head.rotation.z=.05*Math.sin(t*.85)+.04*s*amp;K.lids.visible=(t+1.3)%3.1<.13};
   FRES=1;return K}
 const makeCat=makePet;
 
@@ -1614,7 +1625,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.19';
+const PAPVER='pap-0.20';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 const SPIL={look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
 try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
@@ -2617,7 +2628,12 @@ ROOMS.bobler=function(ctx){
         const fr=box(-27,0,36,13.4);P2(g,fr,{t:1,s:14,paint:P=>{P.wash('#f6e7c0',fr,{edge:.4,clouds:5});for(let x=-27;x<36;x+=4.5)P.fill(box(x,0,x+2.25,13.4),'#e86a9a',.85);P.flat('#5a2f4a',box(-27,0,36,1.4),.8);P.fill(box(-27,11.6,36,12.2),'#c9a04a',1)}},3.4);
         P2(g,box(-28.4,13.2,37.4,14.8),{color:'#86593a',kind:'balsa',t:7},-2.4);
         JARX.forEach((x,i)=>{const jg=new THREE.Group();g.add(jg);const j=sm([[x-3.9,14.8],[x+3.9,14.8],[x+4.3,22.4],[x+2.4,25.2],[x-2.4,25.2],[x-4.3,22.4]],6),c=['#ff9ad0','#9fe7ff','#ffe27a'][i];
-          P2(jg,j,{t:2,mat:paperMat('#f4fcff','tissue',{glow:c,gi:.3})},1);P2(jg,box(x-2.9,25.2,x+2.9,26.4),{color:'#c8a070',kind:'balsa',t:2.4},.9);P2(jg,circ(x,19.4,2.5,2.5,28),{t:.06,mat:paperMat('#ffffff','tissue',{glow:c,gi:1.5})},3.2);for(const q of ring(circ(x,19.4,2.5,2.5,28),.22,false))P2(jg,q,{mat:gold(),t:.08},3.25);Rm.glow(x,19.4,4.4,c,9);
+          P2(jg,j,{t:2,mat:paperMat('#f4fcff','tissue',{glow:c,gi:.3})},1);P2(jg,box(x-2.9,25.2,x+2.9,26.4),{color:'#c8a070',kind:'balsa',t:2.4},.9);P2(jg,circ(x,19.4,2.5,2.5,28),{t:.06,mat:paperMat('#ffffff','tissue',{glow:c,gi:1.5})},3.2);for(const q of ring(circ(x,19.4,2.5,2.5,28),.22,false))P2(jg,q,{mat:gold(),t:.08},3.25);
+          /* et lille billede på krukken af det, der er i: en hat (tøj og hår), en pote (kæledyr) og en seng (værelset) */
+          {const y=19.4,I=(sh,col)=>P2(jg,toCCW(sh),{color:col,kind:'water',t:.07},4.7);
+            if(i===0){I([[x-1.1,y-.7],[x+1.1,y-.7],[x+.35,y+.55],[x+.8,y+1.65],[x-.3,y+1]],'#6a3fa2');I(circ(x,y-.85,1.95,.42,20),'#58328a');I(box(x-.92,y-.6,x+.92,y-.28),'#e0b040')}
+            if(i===1){I(circ(x,y-.55,1.05,.85,18),'#8a5a34');for(const[dx,dy]of[[-1.1,.4],[-.4,1.05],[.4,1.05],[1.1,.4]])I(circ(x+dx,y+dy,.4,.5,12),'#8a5a34')}
+            if(i===2){I(box(x-1.8,y-1.1,x-1.4,y+1.2),'#8a5a34');I(box(x+1.5,y-1.1,x+1.85,y+.3),'#8a5a34');I(box(x-1.4,y-.7,x+1.5,y-.05),'#6a3fa2');I(circ(x-.75,y+.25,.6,.32,12),'#ffffff');I(box(x-.1,y-.1,x+1.5,y+.25),'#e0457a')}}Rm.glow(x,19.4,4.4,c,9);
           const hb=new THREE.Mesh(new THREE.PlaneGeometry(10,13),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(x,20.4,3.6);jg.add(hb);Rm.tap(hb,koeb(i))});
         plate(g,'pris',`${PRIS} stjerner for en boble`,FONT.bobler,19,2.8,{bg:'#5a2f4a',frame:'gold',size:1.45,x:-14.6,y:7.2,z:4.1});KR.forEach((k,i)=>plate(g,'krukke'+i,k.navn,FONT.bobler,10.6,2.4,{bg:'#f6e7c0',fg:'#5a2f4a',frame:'gold',size:1.25,x:JARX[i],y:8.6,z:4.1}));
         /* klokken på disken */
@@ -2649,10 +2665,20 @@ ROOMS.bobler=function(ctx){
    makeUnge(slags) bygger en dyreunge i papir, set forfra og siddende: stort hoved, store blanke øjne, røde kinder.
    Fire slags: dragebarnet Gnist, enhjørningeføllet Glimmer, ugleungen Uhu og næbdyrungen Næbbe (næbdyret er Agnes' ønske).
    Ungen kan se glad ud (lukkede smileøjne), sove, gabe op for mad og være snavset. */
-const UNGER={drage:{navn:'Gnist',art:'Dragebarn',a:'#6fc86f',b:'#f6ecb0',c:'#f0604e',eye:'#f0a030',livret:'chili'},
-  enhjoerning:{navn:'Glimmer',art:'Enhjørningeføl',a:'#fbf1ec',b:'#ffffff',c:'#ff9fd0',eye:'#8a6ad8',livret:'sky'},
-  ugle:{navn:'Uhu',art:'Ugleunge',a:'#b98a62',b:'#f8ead0',c:'#e8a030',eye:'#f2b632',livret:'orm'},
-  naebdyr:{navn:'Næbbe',art:'Næbdyrunge',a:'#9c6c4c',b:'#e4c8a0',c:'#4c4a5c',eye:'#6a4a30',livret:'honning'}},UNGEID=Object.keys(UNGER);
+const UNGER={drage:{navn:'Gnist',art:'Dragebarn',a:'#6fc86f',b:'#f6ecb0',c:'#f0604e',eye:'#f0a030',livret:'chili',mad:['graes','chili','baer'],saer:'altid sulten · hader bad',m:1.5,vask:.55},
+  enhjoerning:{navn:'Glimmer',art:'Enhjørningeføl',a:'#fbf1ec',b:'#ffffff',c:'#ff9fd0',eye:'#8a6ad8',livret:'sky',mad:['sky','honning','orm'],saer:'bliver hurtigt snavset',r:2.2},
+  ugle:{navn:'Uhu',art:'Ugleunge',a:'#b98a62',b:'#f8ead0',c:'#e8a030',eye:'#f2b632',livret:'orm',mad:['baer','graes','orm'],saer:'vil kæles langsomt',langsom:1},
+  naebdyr:{navn:'Næbbe',art:'Næbdyrunge',a:'#9c6c4c',b:'#e4c8a0',c:'#4c4a5c',eye:'#6a4a30',livret:'honning',mad:['chili','honning','sky'],saer:'keder sig hurtigt · elsker vand',g:1.5,vask:1.7}},UNGEID=Object.keys(UNGER);
+/* ---- ungernes ur ----
+   Behovene falder i spilletid: kun mens spillet er åbent, men også når man er et andet sted end i stalden (dér går det fire gange så hurtigt, så der er noget at lave).
+   Fra fuld til tom tager cirka 12 minutter et andet sted. Står et behov på nul, visner et hjerte for hver 5 minutters spil; det sidste hjerte kan ikke mistes.
+   Hver unge har sit særpræg: Gnist bliver hurtigt sulten, Glimmer hurtigt snavset, Næbbe keder sig hurtigt. */
+const UNGEUR={m:1/900,r:1/1500,g:1/780,STALD:4,NUL:300},ungeSkridt=h=>h<3?3:h<6?4:h<8?5:6;
+function ungeTid(dt,iStald,sover){const S=SPIL.data.unger,sket=[];if(!S)return sket;for(const id of UNGEID){const s=S[id],D=UNGER[id];if(!s)continue;const k=(iStald?UNGEUR.STALD:1)*(sover&&sover[id]?.5:1);
+    s.m=clamp(s.m-dt*UNGEUR.m*(D.m||1)*k,0,1);s.r=clamp(s.r-dt*UNGEUR.r*(D.r||1)*k,0,1);s.g=clamp(s.g-dt*UNGEUR.g*(D.g||1)*k,0,1);const lav=Math.min(s.m,s.r,s.g);
+    if(lav<=.001){s.nul=(s.nul||0)+dt;if(s.nul>=UNGEUR.NUL){s.nul=0;if(s.h>1){s.h--;s.p=0;sket.push({id,hvad:'mistet'})}}}else s.nul=0;
+    if(lav<.2&&!s.adv){s.adv=1;sket.push({id,hvad:'kalder'})}else if(lav>.5)s.adv=0}
+  return sket}
 function makeUnge(kind){const D=UNGER[kind],U={G:new THREE.Group(),kind},G=U.G,{a,b,c}=D,a1=hexOf(shade(a,.22)),ad=hexOf(shade(a,-.32)),MORK='#1a1420',W=(col,o={})=>Object.assign({color:col,kind:'water',t:.16},o);
   const ugle=kind==='ugle',drage=kind==='drage',enh=kind==='enhjoerning',naeb=kind==='naebdyr',HY=9.2,RX=naeb?5.5:5.3,RY=naeb?4.25:4.5;
   /* halen, bag kroppen */
@@ -2703,9 +2729,11 @@ function makeUnge(kind){const D=UNGER[kind],U={G:new THREE.Group(),kind},G=U.G,{
   if(ugle){HP2(toCCW([[-.7,HY-.9],[.7,HY-.9],[0,HY-2.2]]),W(c,{t:.14,edge:hexOf(shade(c,-.4))}),.5);fp(U.gab,toCCW([[-.55,HY-2],[.55,HY-2],[0,HY-3]]),W(hexOf(shade(c,-.25)),{t:.1}),.02);fp(U.gab,toCCW([[-.4,HY-1.9],[.4,HY-1.9],[0,HY-2.5]]),W('#7a2a3a',{t:.03}),.1)}
   if(naeb){const nb=toCCW(sm([[-2.7,my+1],[2.7,my+1],[3.4,my],[2.6,my-1],[-2.6,my-1],[-3.4,my]],6));fp(U.gab,toCCW(sm([[-2.2,my-.4],[2.2,my-.4],[2.4,my-1.7],[-2.4,my-1.7]],5)),W(hexOf(shade(c,-.2)),{t:.1}),-.04);fp(U.gab,circ(0,my-.95,1.6,.55,16),W('#ff8fa8',{t:.03}),.02);
     HP2(nb,{t:.2,s:44,ed:c,paint:P=>{P.wash(c,nb,{top:hexOf(shade(c,.25)),edge:.5});for(const sx of[-1,1])P.fill(circ(sx*.6,my+.5,.16,.2,8),'#1a1420',.8)}},.52);streg(U.smil,[[-2.2,my-.75],[0,my-1.25],[2.2,my-.75]],.13,hexOf(shade(c,-.5)))}
+  /* øjenbryn, der kun ses, når ungen er ked af det (de hænger yderst) eller sur (de hænger inderst) */
+  U.bryn=[-1,1].map(sx=>{const p=fpiv(HI,sx*ex,ey+er*1.12+.5,.7);for(const q of thick([[[sx*ex-er*.7,ey+er*1.12+.5],[sx*ex+er*.7,ey+er*1.12+.5]]],.2))fp(p.i,q,W(MORK,{t:.05}),0);p.o.visible=false;return{o:p.o,sx}});
   U.gab.visible=false;U.lids.visible=U.glade.visible=U.sove.visible=false;
   /* udtrykket: øjne 'aaben' | 'glad' | 'sover', mund 'smil' | 'gab', og hvor mange snavspletter der ses */
-  let oje='aaben',mund='smil';U.set=o=>{if(o.oje){oje=o.oje;U.glade.visible=oje==='glad';U.sove.visible=oje==='sover';U.eyes.visible=oje==='aaben';if(oje!=='aaben')U.lids.visible=true}if(o.mund){mund=o.mund;U.gab.visible=mund==='gab';U.smil.visible=mund==='smil'}if(o.snavs!==undefined)U.snavs.forEach((m,i)=>{m.visible=i<o.snavs})};
+  let oje='aaben',mund='smil';U.set=o=>{if(o.oje){oje=o.oje;U.glade.visible=oje==='glad';U.sove.visible=oje==='sover';U.eyes.visible=oje==='aaben';if(oje!=='aaben')U.lids.visible=true}if(o.mund){mund=o.mund;U.gab.visible=mund==='gab';U.smil.visible=mund==='smil'}if(o.snavs!==undefined)U.snavs.forEach((m,i)=>{m.visible=i<o.snavs});if(o.bryn!==undefined)for(const q of U.bryn){q.o.visible=!!o.bryn;q.o.rotation.z=o.bryn==='ked'?-q.sx*.38:q.sx*.38}};
   const ph=R(TAU);
   /* liv: ånder, blinker, vipper med hovedet og halen. glad (0..1) får armene til at vinke og vingerne til at baske; hop løfter den */
   U.tick=(t,{glad=0,hop=0,spis=0}={})=>{const sov=oje==='sover';const aa=Math.sin(t*(sov?1.2:2.2)+ph);U.body.scale.set(1+.012*aa,1+.03*aa,1);
@@ -2740,7 +2768,7 @@ const foderMaerke=(id,px=128,bag=null)=>{const c=cv(px,px),g=c.getContext('2d');
    Heksen går hen til det, man trykker på; dyrene på gården kan man klappe. */
 ROOMS.dyrepark=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:0,tx:0,ph:0,amp:0,face:1,want:null},STEDER=[{id:'koek',navn:'Dyrekøkkenet',x:-27,rum:'dyrekoekken'},{id:'stald',navn:'Ungestalden',x:27,rum:'ungestald'}];
-  let heks,kat,aeg,vip=0,gaar=null;const DYR_=[],hj=[],roeg=[];
+  let heks,kat,aeg,vip=0,gaar=null,frys=null;const DYR_=[],hj=[],roeg=[];
   const hjerte=(x,y)=>{const q=hj.find(h=>h.t>1)||hj[0];q.t=0;q.x=x;q.y=y};
   const Rm=makeRoom(ctx,{bg:'#0e1418',fit:fitBox(90,50,0,20.5),sky:'#dff0ff',ground:'#5a7a48',amb:.7,key:{col:'#fff2d8',i:2.1,tgt:[0,14,0]},
     build:Rm=>[()=>{const g=Rm.scene,H=box(-80,-2,80,66);/* himmel, sol, skyer og bakker */
@@ -2784,7 +2812,7 @@ ROOMS.dyrepark=function(ctx){
         put(aeg,piece(toCCW(e),{t:.5,s:26,paint:P=>{P.wash('#fdf3dc',e,{top:'#ffffff',edge:.7,clouds:4});for(const[x,y,r,c]of[[-1.6,6.4,1,'#ff9fd0'],[1.5,3.6,.85,'#9fe7ff'],[1.2,7.8,.7,'#ffd54a'],[-1.9,2.6,.7,'#b9a0ff'],[-.2,4.9,.55,'#ff9fd0'],[2.5,5.8,.5,'#b9a0ff']])P.wash(c,circ(x,y,r,r,14),{alpha:.85,edge:.5,mode:'source-over'})}}),0,0,0);
         const hb=new THREE.Mesh(new THREE.PlaneGeometry(13,14),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,5,2);aeg.add(hb);Rm.tap(hb,()=>{W0.tx=-9;W0.want={aeg:1}});
         /* dyrene på gården */
-        [{kind:'kanin',x:-52,z:-2.6,v:5},{kind:'ræv',x:44,z:-1.2,v:-4,pynt:'tørklæde'},{kind:'bjørn',x:-8,z:3.4,v:3.2,pynt:'sløjfe'},{kind:'frø',x:16,z:11,v:-2.6,pynt:'krone'}].forEach((o,i)=>{const K=makePet(Object.assign({res:.8},o));K.G.scale.setScalar(.62);K.G.position.set(o.x,.5,o.z);lv.add(K.G);const d={K,x:o.x,z:o.z,v:o.v,hop:0,pause:R(1,4),i};DYR_.push(d);
+        [{kind:'kanin',x:-52,z:-2.6,v:5},{kind:'ræv',x:44,z:-1.2,v:-4,pynt:'tørklæde'},{kind:'bjørn',x:-8,z:3.4,v:3.2,pynt:'sløjfe'},{kind:'frø',x:16,z:11,v:-2.6,pynt:'krone'},{kind:'ugle',x:-40,z:9,v:2.2,pynt:'ingen'}].forEach((o,i)=>{const K=makePet(Object.assign({res:.8},o));K.G.scale.setScalar(.62);K.G.position.set(o.x,.5,o.z);lv.add(K.G);const d={K,x:o.x,z:o.z,v:o.v,hop:0,pause:R(1,4),i};DYR_.push(d);
           const hb2=new THREE.Mesh(new THREE.PlaneGeometry(16,18),new THREE.MeshBasicMaterial({visible:false}));hb2.position.set(1,8,1);K.G.add(hb2);Rm.tap(hb2,()=>{d.hop=1;d.pause=1.4;LYD.pip();hjerte(d.x,8)})});
         {const c=cv(96,96),q=c.getContext('2d');q.translate(48,48);q.fillStyle='#ff5a8a';q.strokeStyle='#a01848';q.lineWidth=4;q.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,x=34*16*Math.pow(Math.sin(a),3)/17,y=-34*(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))/17-4;i?q.lineTo(x,y):q.moveTo(x,y)}q.closePath();q.fill();q.stroke();const m=tx(c,true);
           for(let i=0;i<8;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:m,transparent:true,depthWrite:false}));s.visible=false;lv.add(s);hj.push({s,t:9,x:0,y:0})}}
@@ -2797,9 +2825,11 @@ ROOMS.dyrepark=function(ctx){
       const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km)kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});
       if(W0.want&&!mv&&!gaar){const s=W0.want;W0.want=null;if(s.aeg){vip=1;LYD.pip();ctx.say('Ægget ruger. Det er varmt, og det banker lidt indeni … en dag klækker det!')}else if(ROOMS[s.rum]){gaar=s;ctx.go(s.rum)}}
       vip=Math.max(0,vip-dt*.8);aeg.rotation.z=Math.sin(t*1.1)*.02+Math.sin(vip*Math.PI*5)*.16*vip;aeg.position.y=2.4+Math.abs(Math.sin(vip*Math.PI*5))*.5*vip;
-      for(const a of DYR_){a.pause-=dt;const gaa=a.pause<0;if(gaa){a.x+=a.v*dt;if(a.pause<-R(3,6))a.pause=R(1.5,4);if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}}a.hop=Math.max(0,a.hop-dt*1.6);a.K.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop+(gaa&&a.K.kind==='kanin'||gaa&&a.K.kind==='frø'?Math.abs(Math.sin(t*7+a.i))*1.4:0),a.z);a.K.G.scale.x=.62*Math.sign(a.v);a.K.tick(t+a.i,{ph:t*11+a.i,amp:gaa?1:0})}
+      if(frys!==null){DYR_.forEach((a,i)=>{a.K.G.position.set(-36+i*18,.5,12);a.K.G.scale.set(.62,.62,.62);a.K.tick(0,{ph:frys*TAU*({kanin:2,'frø':2.6,ugle:1}[a.K.kind]||1),amp:1})})}else
+      for(const a of DYR_){a.pause-=dt;const gaa=a.pause<0;if(gaa){a.x+=a.v*dt;if(a.pause<-R(3,6))a.pause=R(1.5,4);if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}}a.hop=Math.max(0,a.hop-dt*1.6);a.K.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop,a.z);a.K.G.scale.x=.62*Math.sign(a.v);a.K.tick(t+a.i,{ph:t*11+a.i,amp:gaa?1:0})}
       for(const q of hj){q.t+=dt*.9;if(q.t>1){q.s.visible=false;continue}q.s.visible=true;q.s.position.set(q.x+Math.sin(q.t*8)*.5,q.y+q.t*8,13);const z=2+q.t*1.6;q.s.scale.set(z,z,1);q.s.material.opacity=1-q.t*q.t}
-      for(const q of roeg){q.t=(q.t+dt*.16)%1;q.s.position.set(-20.6+Math.sin(q.t*5+t*.3)*1.2+q.t*3,34.6+q.t*11,-6.6);const z=3+q.t*5;q.s.scale.set(z,z,1);q.s.material.opacity=.55*(1-q.t)}}})};
+      for(const q of roeg){q.t=(q.t+dt*.16)%1;q.s.position.set(-20.6+Math.sin(q.t*5+t*.3)*1.2+q.t*3,34.6+q.t*11,-6.6);const z=3+q.t*5;q.s.scale.set(z,z,1);q.s.material.opacity=.55*(1-q.t)}}});
+  ctx.test={hop:u=>{frys=u}}};
 
 /* ============ Dyreparken, del 3: Dyrekøkkenet ============
    Dyrene stiller sig ved lugen og bestiller magisk foder. Bestillingen står i en taleboble: hvilke råvarer, hvor mange, og hvordan det skal gøres færdigt
@@ -2894,17 +2924,24 @@ ROOMS.dyrekoekken=function(ctx){
 
 /* ============ Dyreparken, del 4: Ungestalden ============
    Fire dyreunger, der skal passes: kæles (stryg med fingeren), have mad, vaskes (gnid) og leges med.
-   Hver unge har tre behov: mæt, ren og glad. De falder langsomt, også mens man er væk (ungen husker, hvornår man sidst var der).
-   Når et behov bliver fyldt helt op, kommer ungen et skridt nærmere et nyt hjerte; hvert hjerte giver to stjerner, og ved ti hjerter er man bedste venner. */
+   Hver unge har tre behov: mæt, ren og glad. De falder i spilletid, også mens man er et andet sted i spillet (uret ligger i rum-dyr-1.js).
+   Det udfordrende: en unge ØNSKER noget (tankeboblen med et lille ur). Opfylder man ønsket i tide, er det et skridt mod et hjerte; ellers ikke.
+   Hjerter koster flere skridt, jo flere man har (3, 4, 5, 6). Jo flere hjerter i alt, jo oftere kommer ønskerne, og jo kortere er uret.
+   Ungerne er forskellige: Gnist er altid sulten og hader bad, Glimmer bliver hurtigt snavset, Uhu vil kæles langsomt, Næbbe keder sig hurtigt og elsker vand.
+   Hver unge har en livret blandt tre slags foder; kun den mætter helt og opfylder et madønske. Står et behov på nul for længe, visner et hjerte. */
 ROOMS.ungestald=function(ctx){
-  const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),XS=[-31.5,-10.5,10.5,31.5],SC=1.12,PL=6.4,BY=PL+2.4,nu=()=>Date.now(),S=SPIL.data.unger=SPIL.data.unger||{};let vaekTimer=0;
-  const B=UNGEID.map((id,i)=>{const ny=!S[id],s=S[id]=Object.assign({m:.45,r:.55,g:.35,h:0,p:0,t:nu()},S[id]||{}),timer=clamp((nu()-s.t)/3.6e6,0,72);vaekTimer=Math.max(vaekTimer,ny?0:timer);
-    s.m=clamp(s.m-timer*.09,0,1);s.r=clamp(s.r-timer*.04,0,1);s.g=clamp(s.g-timer*.11,0,1);return{id,i,x:XS[i],s,D:UNGER[id],U:null,glad:0,hop:0,hopN:0,spis:0,sov:false,ro:0,fuld:{},dist:0}});
-  let tool='kael',gemT=0,sidst=null,flaske,bold,svamp,busyB=null;const hjerter=[],bobl=[],zzz=[],skilt=[],tanke=[];
-  /* ---- knapperne nederst ---- */
-  const bar=document.getElementById('pleje'),TOOLS=[['kael','Kæl'],['mad','Mad'],['vask','Vask'],['leg','Leg'],['godbid','Godbid']],knap={};
+  const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),XS=[-31.5,-10.5,10.5,31.5],SC=1.12,PL=6.4,BY=PL+2.4,S=SPIL.data.unger=SPIL.data.unger||{};
+  const B=UNGEID.map((id,i)=>{const s=S[id]=Object.assign({m:.45,r:.55,g:.35,h:0,p:0,nul:0},S[id]||{});return{id,i,x:XS[i],s,D:UNGER[id],U:null,glad:0,hop:0,hopN:0,spis:0,sov:false,ro:0,dist:0,oen:null,hum:0,humS:'ked',v:0}});
+  let tool='kael',gemT=0,sidst=null,sidstT=0,flaske,bold,svamp,busyB=null,oenT=4,madB=null,sagtLangsom=false;const hjerter=[],bobl=[],zzz=[],skilt=[],tanke=[],FM={};
+  const iAlt=()=>B.reduce((a,b)=>a+b.s.h,0);
+  /* ---- knapperne nederst, og valget af foder ---- */
+  const bar=document.getElementById('pleje'),mv=document.getElementById('madvalg'),TOOLS=[['kael','Kæl'],['mad','Mad'],['vask','Vask'],['leg','Leg'],['godbid','Godbid']],knap={};
   const visKnap=()=>{for(const[k]of TOOLS){knap[k].setAttribute('aria-pressed',String(tool===k))}const n=SPIL.data.godbid||0;knap.godbid.textContent=`Godbid (${n})`;knap.godbid.disabled=!n;if(!n&&tool==='godbid'){tool='kael';knap.kael.setAttribute('aria-pressed','true')}};
-  for(const[k,navn]of TOOLS){const b=document.createElement('button');b.type='button';b.textContent=navn;b.addEventListener('click',()=>{LYD.tryk();tool=k;visKnap();ctx.say({kael:'Stryg ungen med fingeren',mad:'Tryk på den unge, der er sulten',vask:'Gnid ungen ren med fingeren',leg:'Tryk på en unge, så leger I med bolden',godbid:'Tryk på den unge, der skal have en godbid'}[k])});bar.appendChild(b);knap[k]=b}
+  const lukMad=()=>{mv.hidden=true;madB=null};
+  for(const[k,navn]of TOOLS){const b=document.createElement('button');b.type='button';b.textContent=navn;b.addEventListener('click',()=>{LYD.tryk();tool=k;lukMad();visKnap();ctx.say({kael:'Stryg ungen med fingeren',mad:'Tryk på den unge, der skal have mad',vask:'Gnid ungen ren med fingeren',leg:'Tryk på en unge, så leger I med bolden',godbid:'Tryk på den unge, der skal have en godbid'}[k])});bar.appendChild(b);knap[k]=b}
+  const foderBillede=id=>{const c=cv(96,96),g=c.getContext('2d');g.translate(48,48);tegnFoder(g,id,34);return c.toDataURL()};
+  const aabnMad=b=>{madB=b;document.getElementById('toast').hidden=true;mv.textContent='';const t=document.createElement('span');t.textContent=`Hvad skal ${b.D.navn} have?`;mv.appendChild(t);const valg=b.D.mad.slice().sort(()=>Math.random()-.5);
+    for(const id of valg){const kn=document.createElement('button');kn.type='button';kn.dataset.id=id;const im=document.createElement('img');im.src=foderBillede(id);im.alt='';kn.appendChild(im);kn.appendChild(document.createTextNode(FODER[id].navn));kn.addEventListener('click',()=>{const q=madB;lukMad();if(q)mad(q,id)});mv.appendChild(kn)}mv.hidden=false};
   /* ---- små billeder: hjerte, boble, Z, flaske, bold, svamp og tegnene på skiltene ---- */
   const maerke=(px,tegn)=>{const c=cv(px,px),g=c.getContext('2d');g.translate(px/2,px/2);tegn(g,px/2);return tx(c,true)};
   const hjerteSti=(g,r)=>{g.beginPath();for(let i=0;i<=40;i++){const a=i/40*TAU,x=r*16*Math.pow(Math.sin(a),3)/17,y=-r*(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))/17-r*.1;i?g.lineTo(x,y):g.moveTo(x,y)}g.closePath()};
@@ -2916,33 +2953,48 @@ ROOMS.ungestald=function(ctx){
     svamp:(g,r)=>{g.fillStyle='#ffe07a';g.strokeStyle='#b8862a';g.lineWidth=r*.07;g.beginPath();g.roundRect(-r*.8,-r*.5,r*1.6,r,r*.3);g.fill();g.stroke();g.fillStyle='#e8b840';for(const[x,y]of[[-.4,-.1],[.2,.15],[.45,-.2],[-.1,.25]]){g.beginPath();g.arc(x*r,y*r,r*.1,0,TAU);g.fill()}},
     godbid:(g,r)=>{g.fillStyle='#ffd54a';g.strokeStyle='#b87a10';g.lineWidth=r*.07;g.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i/10*TAU,q=i%2?r*.45:r*.85;g[i?'lineTo':'moveTo'](Math.cos(a)*q,Math.sin(a)*q)}g.closePath();g.fill();g.stroke()}};
   const sprite=(map,size)=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthWrite:false}));s.scale.set(size,size,1);s.visible=false;return s};
-  /* ---- skiltet over hver unge: navn, hjerter og de tre behov ---- */
-  const tegnSkilt=b=>{const q=skilt[b.i],g=q.c.getContext('2d'),W=320,H=208,s=b.s;g.clearRect(0,0,W,H);g.fillStyle=s.h>=10?'#f6dc8a':'#f6e7c0';g.strokeStyle=s.h>=10?'#c9a04a':'#8a5a36';g.lineWidth=6;g.beginPath();g.roundRect(4,4,W-8,H-8,18);g.fill();g.stroke();
-    g.fillStyle='#4a2c18';g.textAlign='center';g.textBaseline='middle';g.font=FONT.dyr.replace('X','40px');g.fillText(b.D.navn,W/2,38);g.font='700 19px "Alegreya Sans",sans-serif';g.fillStyle='#7a5a3a';g.fillText(s.h>=10?'Din bedste ven':b.D.art,W/2,70);
-    for(let i=0;i<10;i++){g.save();g.translate(34+i*28,100);hjerteSti(g,11);g.fillStyle=i<s.h?'#ff5a8a':'rgba(120,80,50,.18)';g.fill();g.restore()}
-    [['m','Mæt','#f2a040'],['r','Ren','#5ab8e8'],['g','Glad','#ff6f9c']].forEach(([k,navn,col],i)=>{const y=132+i*23;g.textAlign='left';g.font='700 19px "Alegreya Sans",sans-serif';g.fillStyle='#4a2c18';g.fillText(navn,22,y+1);g.fillStyle='rgba(74,44,24,.18)';g.beginPath();g.roundRect(84,y-8,W-108,16,8);g.fill();const v=clamp(s[k],0,1);g.fillStyle=v<.3?'#e0503a':col;if(v>.02){g.beginPath();g.roundRect(84,y-8,Math.max(16,(W-108)*v),16,8);g.fill()}});
-    q.t.needsUpdate=true;q.v=[s.m,s.r,s.g,s.h].join()};
-  const fyld=(b,k,d)=>{const s=b.s,foer=s[k];s[k]=clamp(s[k]+d,0,1);if(foer<.8)b.fuld[k]=true;if(s[k]>=.995&&b.fuld[k]){b.fuld[k]=false;point(b)}};
-  /* et skridt nærmere et hjerte: tre skridt giver et hjerte */
-  const point=b=>{const s=b.s;if(s.h>=10)return;s.p++;if(s.p>=3){s.p=0;s.h++;LYD.gave();b.glad=1.6;for(let i=0;i<7;i++)hjerte(b.x+R(-5,5),BY+10+R(0,7),1.3);Rm.burst(b.x,BY+12,8,14,'rgba(255,170,200,.95)',8);
-      if(s.h>=10){SPIL.giv(10);ctx.vent(`${b.D.navn} og du er bedste venner! Ti hjerter. Du får 10 stjerner.`)}else{SPIL.giv(2);ctx.say(`${b.D.navn} holder mere af dig: ${s.h} ${s.h===1?'hjerte':'hjerter'}! +2 stjerner`)}}gem(true)};
-  const gem=nu_=>{if(!nu_&&gemT>0)return;gemT=4;for(const b of B)b.s.t=nu();SPIL.save()};
+  /* ---- skiltet over hver unge: navn, særpræg, hjerter, skridt mod det næste hjerte, og de tre behov ---- */
+  const tegnSkilt=b=>{const q=skilt[b.i],g=q.c.getContext('2d'),W=320,H=208,s=b.s,fare=(s.nul||0)>0;g.clearRect(0,0,W,H);g.fillStyle=s.h>=10?'#f6dc8a':'#f6e7c0';g.strokeStyle=fare?'#e0503a':s.h>=10?'#c9a04a':'#8a5a36';g.lineWidth=fare?10:6;g.beginPath();g.roundRect(5,5,W-10,H-10,18);g.fill();g.stroke();
+    g.fillStyle='#4a2c18';g.textAlign='center';g.textBaseline='middle';g.font=FONT.dyr.replace('X','38px');g.fillText(b.D.navn,W/2,34);g.font='700 18px "Alegreya Sans",sans-serif';g.fillStyle=fare?'#c0301c':'#7a5a3a';g.fillText(fare?'Mister snart et hjerte!':s.h>=10?'Din bedste ven':b.D.saer,W/2,63,W-24);
+    for(let i=0;i<10;i++){g.save();g.translate(34+i*28,90);hjerteSti(g,11);g.fillStyle=i<s.h?'#ff5a8a':'rgba(120,80,50,.18)';g.fill();g.restore()}
+    if(s.h<10){const n=ungeSkridt(s.h);g.font='700 16px "Alegreya Sans",sans-serif';g.textAlign='left';g.fillStyle='#7a5a3a';g.fillText('Næste hjerte',22,118);for(let i=0;i<n;i++){g.beginPath();g.arc(140+i*24,117,8,0,TAU);g.fillStyle=i<s.p?'#ff5a8a':'rgba(120,80,50,.2)';g.fill()}}
+    [['m','Mæt','#f2a040'],['r','Ren','#5ab8e8'],['g','Glad','#ff6f9c']].forEach(([k,navn,col],i)=>{const y=144+i*21;g.textAlign='left';g.font='700 18px "Alegreya Sans",sans-serif';g.fillStyle='#4a2c18';g.fillText(navn,22,y+1);g.fillStyle='rgba(74,44,24,.18)';g.beginPath();g.roundRect(84,y-7,W-108,14,7);g.fill();const v=clamp(s[k],0,1);g.fillStyle=v<.3?'#e0503a':col;if(v>.02){g.beginPath();g.roundRect(84,y-7,Math.max(14,(W-108)*v),14,7);g.fill()}});
+    q.t.needsUpdate=true};
+  /* tankeboblen: det, ungen ønsker, med et ur rundt om, der løber ud */
+  const TEGN={mad:T.flaske,vask:T.svamp,kael:T.hjerte,leg:T.bold};
+  const tegnTanke=b=>{const q=tanke[b.i],g=q.c.getContext('2d'),o=b.oen,r=64;g.clearRect(0,0,128,128);if(!o)return void(q.t.needsUpdate=true);g.save();g.translate(64,60);g.fillStyle='#fffaf0';g.strokeStyle='#8a6a4a';g.lineWidth=4;g.beginPath();g.arc(0,0,r*.72,0,TAU);g.fill();g.stroke();g.beginPath();g.arc(-r*.6,r*.78,r*.12,0,TAU);g.fill();g.stroke();
+    const k=o.ok?1:Math.max(0,1-o.t/o.T);g.strokeStyle=o.ok?'#3fae5a':k>.5?'#5fd070':k>.25?'#f2c230':'#e0503a';g.lineWidth=9;g.lineCap='round';g.beginPath();g.arc(0,0,r*.82,-Math.PI/2,-Math.PI/2+TAU*k);g.stroke();TEGN[o.k](g,r*.5);g.restore();q.t.needsUpdate=true};
+  const fyld=(b,k,d)=>{b.s[k]=clamp(b.s[k]+d,0,1)};
+  /* et skridt nærmere et hjerte */
+  const point=b=>{const s=b.s;if(s.h>=10){hjerte(b.x,BY+15);return}s.p++;LYD.guld();if(s.p>=ungeSkridt(s.h)){s.p=0;s.h++;LYD.gave();b.glad=1.6;for(let i=0;i<7;i++)hjerte(b.x+R(-5,5),BY+10+R(0,7),1.3);Rm.burst(b.x,BY+12,8,14,'rgba(255,170,200,.95)',8);
+      if(s.h>=10){SPIL.giv(10);ctx.vent(`${b.D.navn} og du er bedste venner! Ti hjerter. Du får 10 stjerner.`)}else{SPIL.giv(2);ctx.say(`${b.D.navn} holder mere af dig: ${s.h} ${s.h===1?'hjerte':'hjerter'}! +2 stjerner`)}}tegnSkilt(b);gem(true)};
+  const gem=nu_=>{if(!nu_&&gemT>0)return;gemT=4;SPIL.save()};
   const hjerte=(x,y,z=1)=>{const q=hjerter.find(h=>h.t>1)||hjerter[0];q.t=0;q.x=x;q.y=y;q.z=z;q.vx=R(-1.5,1.5)};
   const boble=(x,y)=>{const q=bobl.find(h=>h.t>1)||bobl[0];q.t=0;q.x=x+R(-1.5,1.5);q.y=y+R(-1,1);q.r=R(1.2,2.6)};
   const vaagn=b=>{if(b.sov){b.sov=false;b.U.set({oje:'aaben'});zzz[b.i].visible=false}};
+  const humoer=(b,slags,sek=1.4)=>{b.hum=sek;b.humS=slags};
+  /* ---- ønskerne ---- */
+  const BEHOV={mad:'m',vask:'r',kael:'g',leg:'g'};
+  const nytOenske=(b,k)=>{const s=b.s;if(!k){const mulige=[];if(s.m<.9)mulige.push('mad');if(s.r<.9)mulige.push('vask');if(s.g<.9)mulige.push('kael','leg');if(!mulige.length)return false;const lav=['m','r','g'].sort((p,q)=>s[p]-s[q])[0],helst=mulige.filter(q=>BEHOV[q]===lav),fra=helst.length&&Math.random()<.65?helst:mulige;k=fra[Math.floor(Math.random()*fra.length)]}
+    b.oen={k,t:0,T:Math.max(6,11-s.h*.5),n:0,ok:false};LYD.op();b.hop=0;b.hopN=Math.max(b.hopN,1);tegnTanke(b);return true};
+  const opfyldt=b=>{if(!b.oen)return;b.oen=null;tegnTanke(b);b.glad=1.4;point(b)};
+  const ramt=(b,k)=>!!(b.oen&&b.oen.k===k);
   /* ---- det man kan gøre ---- */
-  const mad=(b,godbid)=>{if(busyB)return;if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return}if(!godbid&&b.s.m>.97){ctx.say(`${b.D.navn} er helt mæt.`);b.glad=.5;return}
-    if(godbid){if(!(SPIL.data.godbid>0))return;SPIL.data.godbid--;visKnap()}busyB={b,slags:'mad',t:0,godbid};flaske.material.map=godbid?flaske.userData.god:flaske.userData.fl;flaske.visible=true;b.U.set({mund:'gab'})};
-  const leg=b=>{if(busyB)return;if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return}busyB={b,slags:'leg',t:0};bold.visible=true;b.hopN=3;LYD.pip()};
-  const klap=b=>{if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return}LYD.kys();b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.1);b.ro=0};
-  const trykUnge=b=>()=>{if(tool==='mad')mad(b,false);else if(tool==='godbid')mad(b,true);else if(tool==='leg')leg(b);else if(tool==='vask'){if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return}LYD.vask();for(let i=0;i<4;i++)boble(b.x,BY+8);fyld(b,'r',.12);b.ro=0}else klap(b)};
+  const sover=b=>{if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return true}return false};
+  function mad(b,id){if(busyB||b.sov)return;const godbid=id==='godbid',liv=godbid||id===b.D.livret;if(godbid){if(!(SPIL.data.godbid>0))return;SPIL.data.godbid--;visKnap()}
+    if(ramt(b,'mad')&&liv)b.oen.ok=true;busyB={b,slags:'mad',t:0,godbid,liv,id};if(!FM[id])FM[id]=godbid?maerke(128,T.godbid):foderMaerke(id,128);flaske.material.map=FM[id];flaske.visible=true;b.U.set({mund:'gab'})}
+  const leg=b=>{if(busyB||sover(b))return;if(ramt(b,'leg'))b.oen.ok=true;busyB={b,slags:'leg',t:0};bold.visible=true;b.hopN=3;LYD.pip()};
+  const klap=b=>{if(sover(b))return;LYD.kys();b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.06);b.ro=0};
+  const trykUnge=b=>()=>{lukMad();if(tool==='mad'){if(busyB||sover(b))return;if(b.s.m>.97&&!ramt(b,'mad')){ctx.say(`${b.D.navn} er helt mæt.`);b.glad=.5;return}LYD.tryk();aabnMad(b)}else if(tool==='godbid'){if(!sover(b))mad(b,'godbid')}else if(tool==='leg')leg(b);else if(tool==='vask'){if(sover(b))return;LYD.vask();for(let i=0;i<4;i++)boble(b.x,BY+8);fyld(b,'r',.08*(b.D.vask||1));b.ro=0}else klap(b)};
   const ungeVed=p=>p&&p.y>BY-1&&p.y<BY+19?B.find(b=>Math.abs(p.x-b.x)<8.5):null;
+  /* et strøg (kæl) eller et gnid (vask) har flyttet fingeren d hen over ungen med farten v (enheder i sekundet) */
+  const stroeg=(b,p,d,v)=>{b.dist+=d;b.ro=0;
+    if(tool==='kael'){if(b.D.langsom&&v>30){/* Uhu vil kæles langsomt */b.dist=0;humoer(b,'sur',.9);b.glad=0;if(!sagtLangsom){sagtLangsom=true;ctx.say(`${b.D.navn} vil kæles langsomt. Stryg helt roligt.`)}return}
+      b.glad=Math.max(b.glad,1);if(b.dist>5){b.dist=0;fyld(b,'g',.05);hjerte(p.x,p.y+2);if(Math.random()<.35)LYD.kys();if(ramt(b,'kael')&&++b.oen.n>=4)opfyldt(b)}}
+    else{const f=b.D.vask||1;if(f<1)humoer(b,'sur',.6);else if(f>1)b.glad=Math.max(b.glad,.8);if(b.dist>4){b.dist=0;fyld(b,'r',.06*f);if(f>1)fyld(b,'g',.02);boble(p.x,p.y);if(Math.random()<.3)LYD.vask();if(b.s.r>=.995)Rm.burst(b.x,BY+9,8,10,'rgba(200,240,255,.95)',7);if(ramt(b,'vask')&&++b.oen.n>=Math.round(4/f))opfyldt(b)}}};
   const Rm=makeRoom(ctx,{bg:'#140e0a',fit:fitBox(88,50,0,20.5),sky:'#ffe2b8',ground:'#4a3020',amb:.55,key:{col:'#ffe6c4',i:1.9,tgt:[0,14,0]},
-    /* stryg (kæl) og gnid (vask): det tæller, hvor langt fingeren har bevæget sig hen over ungen */
-    drag:(ph,e,Rm)=>{if(tool!=='kael'&&tool!=='vask'){sidst=null;return}const p=Rm.planeAt(e,3);if(ph==='end'||!p){sidst=null;svamp.visible=false;return}const b=ungeVed(p);if(tool==='vask'){svamp.visible=true;svamp.position.set(p.x,p.y,7)}
-      if(ph==='start'||!sidst){sidst=p;return}const d=Math.hypot(p.x-sidst.x,p.y-sidst.y);sidst=p;if(!b||b.sov||busyB&&busyB.b===b)return;b.dist+=d;b.ro=0;
-      if(tool==='kael'){b.glad=Math.max(b.glad,1);if(b.dist>5){b.dist=0;fyld(b,'g',.055);hjerte(p.x,p.y+2);if(Math.random()<.35)LYD.kys()}}
-      else{if(b.dist>4){b.dist=0;fyld(b,'r',.06);boble(p.x,p.y);if(Math.random()<.3)LYD.vask();if(b.s.r>=.995)Rm.burst(b.x,BY+9,8,10,'rgba(200,240,255,.95)',7)}}},
+    drag:(ph,e,Rm)=>{if(tool!=='kael'&&tool!=='vask'){sidst=null;return}const p=Rm.planeAt(e,3),nu_=performance.now();if(ph==='end'||!p){sidst=null;svamp.visible=false;return}const b=ungeVed(p);if(tool==='vask'){svamp.visible=true;svamp.position.set(p.x,p.y,7)}
+      if(ph==='start'||!sidst){sidst=p;sidstT=nu_;return}const d=Math.hypot(p.x-sidst.x,p.y-sidst.y),sek=Math.max(.004,(nu_-sidstT)/1000);sidst=p;sidstT=nu_;if(!b||b.sov||busyB&&busyB.b===b)return;b.v=b.v*.6+d/sek*.4;stroeg(b,p,d,b.v)},
     build:Rm=>[()=>{const g=Rm.scene,W=box(-76,-2,76,64);
         /* bagvæggen: varme brædder, med et lysere panel forneden */
         P2(g,W,{t:.5,s:9,cap:1800,paint:P=>{boards(P,null,'#9a6a40',{dir:'v',h:4.2,ink:.3});P.wash('#5a3a22',box(-77,-3,77,PL+3),{alpha:.55,edge:0,mode:'source-over'});P.wash('#2a1608',box(-77,40,77,65),{alpha:.45,edge:0,mode:'source-over'})}},-10);
@@ -2967,36 +3019,37 @@ ROOMS.ungestald=function(ctx){
         for(const b of B){const U=b.U=makeUnge(b.id);U.G.scale.setScalar(SC);U.G.position.set(b.x,BY,2.4);lv.add(U.G);
           const c=cv(320,208),t=tx(c,true),m=new THREE.Mesh(new THREE.PlaneGeometry(13.6,8.84),new THREE.MeshBasicMaterial({map:t,transparent:true,toneMapped:false}));m.position.set(b.x,38.6,-5.4);m.userData.noShadow=true;lv.add(m);skilt.push({c,t,v:''});tegnSkilt(b);
           const z=sprite(null,3.4);z.material.map=maerke(96,T.z);z.position.set(b.x+5.6,BY+15,8);lv.add(z);zzz.push(z);
-          const tk=sprite(null,5.4);tk.position.set(b.x+6.2,BY+16.6,8);lv.add(tk);tanke.push(tk)}
-        /* tankeboblen: et tegn for det, ungen mangler mest */
-        {const lav=tegn=>maerke(128,(g,r)=>{g.fillStyle='#fffaf0';g.strokeStyle='#8a6a4a';g.lineWidth=5;g.beginPath();g.arc(0,-r*.1,r*.74,0,TAU);g.fill();g.stroke();g.beginPath();g.arc(-r*.62,r*.72,r*.13,0,TAU);g.fill();g.stroke();g.save();g.translate(0,-r*.1);tegn(g,r*.56);g.restore()});
-          Rm.TK={m:lav(T.flaske),r:lav(T.svamp),g:lav(T.bold)}}
+          const tc=cv(128,128),tt=tx(tc,true),tk=sprite(tt,6.6);tk.position.set(b.x+5.2,BY+16.8,8);lv.add(tk);tanke.push({c:tc,t:tt,s:tk})}
         const hm=maerke(96,T.hjerte),bm=maerke(96,T.boble);for(let i=0;i<18;i++){const s=sprite(hm,2);lv.add(s);hjerter.push({s,t:9})}for(let i=0;i<22;i++){const s=sprite(bm,2);lv.add(s);bobl.push({s,t:9})}
-        flaske=sprite(null,6.5);flaske.userData.fl=maerke(128,T.flaske);flaske.userData.god=maerke(128,T.godbid);flaske.material.map=flaske.userData.fl;lv.add(flaske);bold=sprite(maerke(128,T.bold),4.6);lv.add(bold);svamp=sprite(maerke(128,T.svamp),5.4);lv.add(svamp);
+        flaske=sprite(maerke(128,T.flaske),6.5);lv.add(flaske);bold=sprite(maerke(128,T.bold),4.6);lv.add(bold);svamp=sprite(maerke(128,T.svamp),5.4);lv.add(svamp);
         for(const b of B)b.U.set({snavs:b.s.r<.25?3:b.s.r<.5?2:b.s.r<.75?1:0});visKnap();
-        ctx.say(vaekTimer>5?'Ungerne har savnet dig! Se på skiltene, hvad de mangler.':'Her bor ungerne. Vælg forneden, hvad du vil: kæle, give mad, vaske eller lege.')}],
+        ctx.say(B.some(b=>Math.min(b.s.m,b.s.r,b.s.g)<.2)?'Ungerne har savnet dig! Se på skiltene, hvad de mangler.':'Når en unge ønsker noget, viser den det i en tankeboble. Gør det, før uret løber ud, så kommer du nærmere et hjerte.')}],
     tick:(t,dt)=>{gemT-=dt;
-      for(const b of B){const s=b.s,U=b.U,k=b.sov?.5:1;s.m=clamp(s.m-dt/220*k,0,1);s.g=clamp(s.g-dt/160*k,0,1);s.r=clamp(s.r-dt/420*k,0,1);for(const q of['m','r','g'])if(s[q]<.8)b.fuld[q]=true;
-        b.glad=Math.max(0,b.glad-dt*1.3);b.ro+=dt;
+      {const sv={};for(const b of B)sv[b.id]=b.sov;for(const e of ungeTid(dt,true,sv))if(e.hvad==='mistet'){const b=B.find(q=>q.id===e.id);LYD.oev();humoer(b,'ked',3);Rm.burst(b.x,36,-4,10,'rgba(150,150,170,.9)',6);tegnSkilt(b);ctx.say(`${b.D.navn} har mistet et hjerte: den har manglet noget for længe.`);gem(true)}}
+      /* et nyt ønske: højst ét ad gangen i begyndelsen, senere to og tre, og med kortere pauser, jo flere hjerter man har i alt */
+      {const H=iAlt(),maks=H<8?1:H<20?2:3,aktive=B.filter(b=>b.oen).length;if(aktive<maks){oenT-=dt;if(oenT<=0){const fri=B.filter(b=>!b.oen&&!b.sov&&!(busyB&&busyB.b===b));if(fri.length)nytOenske(fri[Math.floor(Math.random()*fri.length)]);oenT=Math.max(2.5,7-H*.12)+Math.random()*3}}}
+      for(const b of B){const s=b.s,U=b.U;b.glad=Math.max(0,b.glad-dt*1.3);b.hum=Math.max(0,b.hum-dt);b.ro+=dt;
+        if(b.oen){const o=b.oen;if(!o.ok){o.t+=dt;if(o.t>=o.T){b.oen=null;tegnTanke(b);humoer(b,'ked',1.8);fyld(b,'g',-.08);LYD.dunk()}}if(b.oen&&Math.floor(t*6)!==Math.floor((t-dt)*6))tegnTanke(b)}
         /* falder i søvn, når alt er godt, og man har ladet den være lidt; vågner igen, når den mangler noget */
-        if(!b.sov&&s.m>.9&&s.r>.9&&s.g>.9&&b.ro>2.6&&!(busyB&&busyB.b===b)){b.sov=true;U.set({oje:'sover',mund:'smil'});zzz[b.i].visible=true;LYD.snor();if(b.fuld.sov!==false){b.fuld.sov=false;point(b)}}
-        if(b.sov&&(s.m<.55||s.g<.55||s.r<.55)){vaagn(b);b.fuld.sov=true}
-        if(!b.sov)U.set({oje:b.glad>.25?'glad':'aaben'});
-        if(b.hopN>0){b.hop+=dt*2.6;if(b.hop>=1){b.hop=0;b.hopN--;if(b.hopN>0)LYD.pip()}}
-        const hy=Math.sin(Math.min(1,b.hop)*Math.PI)*4.2;U.G.position.y=BY+hy;U.G.scale.set(SC,SC*(1-.08*Math.sin(Math.min(1,b.hop)*Math.PI*2)),SC);U.tick(t,{glad:Math.min(1,b.glad),hop:b.hop,spis:b.spis});U.set({snavs:s.r<.25?3:s.r<.5?2:s.r<.75?1:0});
+        if(!b.sov&&!b.oen&&s.m>.9&&s.r>.9&&s.g>.9&&b.ro>2.6&&!(busyB&&busyB.b===b)){b.sov=true;U.set({oje:'sover',mund:'smil',bryn:null});zzz[b.i].visible=true;LYD.snor()}
+        if(b.sov&&(s.m<.55||s.g<.55||s.r<.55))vaagn(b);
+        if(!b.sov){const ked=b.hum>0||Math.min(s.m,s.r,s.g)<.12;U.set({oje:b.glad>.25&&!ked?'glad':'aaben',bryn:b.hum>0?b.humS:ked?'ked':null})}
+        if(b.hopN>0){b.hop+=dt*2.6;if(b.hop>=1){b.hop=0;b.hopN--;if(b.hopN>0&&busyB&&busyB.b===b)LYD.pip()}}
+        const hy=Math.sin(Math.min(1,b.hop)*Math.PI)*4.2;U.G.position.y=BY+hy;U.G.scale.set(SC,SC*(1-.08*Math.sin(Math.min(1,b.hop)*Math.PI*2)),SC);U.G.rotation.z=b.hum>0&&b.humS==='sur'?Math.sin(t*24)*.04:0;U.tick(t,{glad:Math.min(1,b.glad),hop:b.hop,spis:b.spis});U.set({snavs:s.r<.25?3:s.r<.5?2:s.r<.75?1:0});
         if(zzz[b.i].visible){const u=(t*.5+b.i*.3)%1;zzz[b.i].position.set(b.x+5+u*2.4,BY+14+u*5,8);zzz[b.i].material.opacity=Math.sin(u*Math.PI);const z=2+u*2.4;zzz[b.i].scale.set(z,z,1)}
-        /* tankeboblen viser det behov, der er lavest, hvis det er under halvt */
-        {const lav=['m','r','g'].sort((p,q)=>s[p]-s[q])[0],tk=tanke[b.i],vis=!b.sov&&s[lav]<.45&&!(busyB&&busyB.b===b);tk.visible=vis;if(vis){tk.material.map=Rm.TK[lav];const w=5.4*(1+.05*Math.sin(t*3+b.i));tk.scale.set(w,w,1)}}
-        if(skilt[b.i].v!==[Math.round(s.m*40),Math.round(s.r*40),Math.round(s.g*40),s.h].join()){tegnSkilt(b);skilt[b.i].v=[Math.round(s.m*40),Math.round(s.r*40),Math.round(s.g*40),s.h].join()}}
-      /* flasken og bolden */
+        {const tk=tanke[b.i].s;tk.visible=!!b.oen;if(b.oen){const w=6.6*(1+.05*Math.sin(t*5+b.i)+(b.oen.T-b.oen.t<3&&!b.oen.ok?.06*Math.sin(t*16):0));tk.scale.set(w,w,1)}}
+        {const v=[Math.round(s.m*40),Math.round(s.r*40),Math.round(s.g*40),s.h,s.p,(s.nul||0)>0].join();if(skilt[b.i].v!==v){tegnSkilt(b);skilt[b.i].v=v}}}
+      /* maden og bolden */
       if(busyB){const q=busyB,b=q.b;q.t+=dt;if(q.slags==='mad'){const k=Math.min(1,q.t/.45),e=k*k*(3-2*k);flaske.position.set(b.x+3.2+(1-e)*9,BY+7.4+(1-e)*-9,8);b.spis=q.t>.45?1:0;if(q.t>.45&&Math.floor(q.t*3.2)!==Math.floor((q.t-dt)*3.2))LYD.nam();
-          if(q.t>1.7){flaske.visible=false;b.spis=0;b.U.set({mund:'smil'});b.glad=1;fyld(b,'m',q.godbid?1:.5);if(q.godbid){fyld(b,'g',.3);point(b)}hjerte(b.x,BY+15);busyB=null;b.ro=0}}
-        else{const u=q.t/1.25,bx=b.x-6.5+Math.sin(q.t*2.6)*1.2;bold.position.set(bx,BY+1.2+Math.abs(Math.sin(q.t*7.5))*7,8);bold.material.rotation=q.t*5;if(u>=1){bold.visible=false;b.glad=1.2;fyld(b,'g',.45);b.s.r=clamp(b.s.r-.2,0,1);b.s.m=clamp(b.s.m-.06,0,1);hjerte(b.x,BY+15);busyB=null;b.ro=0}}}
+          if(q.t>1.7){flaske.visible=false;b.spis=0;b.U.set({mund:'smil'});busyB=null;b.ro=0;
+            if(q.liv){b.glad=1.2;fyld(b,'m',1);fyld(b,'g',q.godbid?.3:.15);hjerte(b.x,BY+15);hjerte(b.x+3,BY+13);if(!q.godbid&&!b.s.kendt){b.s.kendt=1;ctx.say(`${FODER[q.id].navn} er ${b.D.navn}s livret! Husk det.`)}if(ramt(b,'mad'))opfyldt(b);else if(q.godbid)point(b)}
+            else{fyld(b,'m',.22);humoer(b,'ked',1.2);ctx.say(`${b.D.navn} spiser det, men det er ikke livretten.`)}}}
+        else{const u=q.t/1.25,bx=b.x-6.5+Math.sin(q.t*2.6)*1.2;bold.position.set(bx,BY+1.2+Math.abs(Math.sin(q.t*7.5))*7,8);bold.material.rotation=q.t*5;if(u>=1){bold.visible=false;b.glad=1.2;fyld(b,'g',.45);fyld(b,'r',-.2);fyld(b,'m',-.06);hjerte(b.x,BY+15);busyB=null;b.ro=0;if(ramt(b,'leg'))opfyldt(b)}}}
       for(const q of hjerter){q.t+=dt*.9;if(q.t>1){q.s.visible=false;continue}q.s.visible=true;q.s.position.set(q.x+q.vx*q.t+Math.sin(q.t*9)*.4,q.y+q.t*7,8.5);const z=(1.4+q.t*1.4)*q.z;q.s.scale.set(z,z,1);q.s.material.opacity=Math.min(1,q.t*8)*(1-q.t*q.t)}
       for(const q of bobl){q.t+=dt*1.1;if(q.t>1){q.s.visible=false;continue}q.s.visible=true;q.s.position.set(q.x+Math.sin(q.t*7+q.r)*.5,q.y+q.t*5,8.4);const z=q.r*(.6+q.t*.6);q.s.scale.set(z,z,1);q.s.material.opacity=q.t>.8?(1-q.t)/.2:1}
       gem(false)}});
   ctx.efter.push(()=>gem(true));
-  ctx.test={B,tool:k=>{tool=k;visKnap()},tryk:i=>trykUnge(B[i])(),saet:(i,o)=>{Object.assign(B[i].s,o)},fyld:(i,k,d)=>fyld(B[i],k,d),busy:()=>!!busyB}};
+  ctx.test={B,tool:k=>{tool=k;visKnap()},tryk:i=>trykUnge(B[i])(),saet:(i,o)=>{Object.assign(B[i].s,o)},fyld:(i,k,d)=>fyld(B[i],k,d),busy:()=>!!busyB,oenske:(i,k)=>nytOenske(B[i],k),oen:i=>B[i].oen&&{k:B[i].oen.k,t:B[i].oen.t,T:B[i].oen.T,ok:B[i].oen.ok},stop:()=>{oenT=1e9;for(const b of B){b.oen=null}},mad:(i,id)=>mad(B[i],id),stroeg:(i,d,v)=>stroeg(B[i],{x:B[i].x,y:BY+9},d,v),hum:i=>[B[i].hum>0,B[i].humS],udloeb:i=>{if(B[i].oen)B[i].oen.t=B[i].oen.T-.05}}};
 
 /* ============ Eliksirtimen: læs opskriften på tavlen, tryk på krukkerne, rør i gryden, og pust til ilden ============
    Hvor langt kan du komme? Femten eliksirer i træk, sværere og sværere, og flere og flere stjerner for hver.
@@ -3596,7 +3649,7 @@ ROOMS.vaerelse=function(ctx){
 const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs" role="tablist" aria-label="Hvad vil du lave om?"></div><div id="opts"></div></div>'},garderobe:{navn:'Garderoben',html:'<div id="panel"><div id="tabs" role="tablist" aria-label="Hvad vil du skifte?"></div><div id="opts"></div></div>'},
   koncert:{navn:'Koncertsalen',html:'<div id="songs" role="group" aria-label="Ønsk en sang"><span>Ønsk en sang</span></div>'},
   gang:{navn:'Skolen',mus:'kaelder'},eliksir:{navn:'Eliksirtimen',mus:'kaelder'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden',mus:'arkade',stem:'stemning',bil:1},gnom:{navn:'Bank en gnom',mus:'gnom',bil:1},
-  dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
+  dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="madvalg" class="valg" role="group" aria-label="Vælg foder" hidden></div><div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
 RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
@@ -3664,6 +3717,11 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
   fm.addEventListener('submit',e=>{e.preventDefault();SPIL.note(type,tx_.value);luk();toast(LOG.on?'Noten er gemt':'Noten kan ikke gemmes her')})}
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik('byen')},{once:true});
+/* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
+{let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;continue}
+      if(e.hvad==='mistet'){LYD.oev();toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else{LYD.pip();toast(`${navn} kalder på dig i Ungestalden!`)}}
+    if(sket.length||++n%10===0)SPIL.save();return sket};
+  setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
 SPIL.arrive=name=>{const id=DOORS[name];if(id&&ROOMS[id])enter(id);else if(HUSNAVN[name])toast(`${HUSNAVN[name]} åbner snart`)};
 SPIL.enter=n=>enter(DOORS[n]||n);window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;
 

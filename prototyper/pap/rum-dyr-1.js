@@ -2,10 +2,20 @@
    makeUnge(slags) bygger en dyreunge i papir, set forfra og siddende: stort hoved, store blanke øjne, røde kinder.
    Fire slags: dragebarnet Gnist, enhjørningeføllet Glimmer, ugleungen Uhu og næbdyrungen Næbbe (næbdyret er Agnes' ønske).
    Ungen kan se glad ud (lukkede smileøjne), sove, gabe op for mad og være snavset. */
-const UNGER={drage:{navn:'Gnist',art:'Dragebarn',a:'#6fc86f',b:'#f6ecb0',c:'#f0604e',eye:'#f0a030',livret:'chili'},
-  enhjoerning:{navn:'Glimmer',art:'Enhjørningeføl',a:'#fbf1ec',b:'#ffffff',c:'#ff9fd0',eye:'#8a6ad8',livret:'sky'},
-  ugle:{navn:'Uhu',art:'Ugleunge',a:'#b98a62',b:'#f8ead0',c:'#e8a030',eye:'#f2b632',livret:'orm'},
-  naebdyr:{navn:'Næbbe',art:'Næbdyrunge',a:'#9c6c4c',b:'#e4c8a0',c:'#4c4a5c',eye:'#6a4a30',livret:'honning'}},UNGEID=Object.keys(UNGER);
+const UNGER={drage:{navn:'Gnist',art:'Dragebarn',a:'#6fc86f',b:'#f6ecb0',c:'#f0604e',eye:'#f0a030',livret:'chili',mad:['graes','chili','baer'],saer:'altid sulten · hader bad',m:1.5,vask:.55},
+  enhjoerning:{navn:'Glimmer',art:'Enhjørningeføl',a:'#fbf1ec',b:'#ffffff',c:'#ff9fd0',eye:'#8a6ad8',livret:'sky',mad:['sky','honning','orm'],saer:'bliver hurtigt snavset',r:2.2},
+  ugle:{navn:'Uhu',art:'Ugleunge',a:'#b98a62',b:'#f8ead0',c:'#e8a030',eye:'#f2b632',livret:'orm',mad:['baer','graes','orm'],saer:'vil kæles langsomt',langsom:1},
+  naebdyr:{navn:'Næbbe',art:'Næbdyrunge',a:'#9c6c4c',b:'#e4c8a0',c:'#4c4a5c',eye:'#6a4a30',livret:'honning',mad:['chili','honning','sky'],saer:'keder sig hurtigt · elsker vand',g:1.5,vask:1.7}},UNGEID=Object.keys(UNGER);
+/* ---- ungernes ur ----
+   Behovene falder i spilletid: kun mens spillet er åbent, men også når man er et andet sted end i stalden (dér går det fire gange så hurtigt, så der er noget at lave).
+   Fra fuld til tom tager cirka 12 minutter et andet sted. Står et behov på nul, visner et hjerte for hver 5 minutters spil; det sidste hjerte kan ikke mistes.
+   Hver unge har sit særpræg: Gnist bliver hurtigt sulten, Glimmer hurtigt snavset, Næbbe keder sig hurtigt. */
+const UNGEUR={m:1/900,r:1/1500,g:1/780,STALD:4,NUL:300},ungeSkridt=h=>h<3?3:h<6?4:h<8?5:6;
+function ungeTid(dt,iStald,sover){const S=SPIL.data.unger,sket=[];if(!S)return sket;for(const id of UNGEID){const s=S[id],D=UNGER[id];if(!s)continue;const k=(iStald?UNGEUR.STALD:1)*(sover&&sover[id]?.5:1);
+    s.m=clamp(s.m-dt*UNGEUR.m*(D.m||1)*k,0,1);s.r=clamp(s.r-dt*UNGEUR.r*(D.r||1)*k,0,1);s.g=clamp(s.g-dt*UNGEUR.g*(D.g||1)*k,0,1);const lav=Math.min(s.m,s.r,s.g);
+    if(lav<=.001){s.nul=(s.nul||0)+dt;if(s.nul>=UNGEUR.NUL){s.nul=0;if(s.h>1){s.h--;s.p=0;sket.push({id,hvad:'mistet'})}}}else s.nul=0;
+    if(lav<.2&&!s.adv){s.adv=1;sket.push({id,hvad:'kalder'})}else if(lav>.5)s.adv=0}
+  return sket}
 function makeUnge(kind){const D=UNGER[kind],U={G:new THREE.Group(),kind},G=U.G,{a,b,c}=D,a1=hexOf(shade(a,.22)),ad=hexOf(shade(a,-.32)),MORK='#1a1420',W=(col,o={})=>Object.assign({color:col,kind:'water',t:.16},o);
   const ugle=kind==='ugle',drage=kind==='drage',enh=kind==='enhjoerning',naeb=kind==='naebdyr',HY=9.2,RX=naeb?5.5:5.3,RY=naeb?4.25:4.5;
   /* halen, bag kroppen */
@@ -56,9 +66,11 @@ function makeUnge(kind){const D=UNGER[kind],U={G:new THREE.Group(),kind},G=U.G,{
   if(ugle){HP2(toCCW([[-.7,HY-.9],[.7,HY-.9],[0,HY-2.2]]),W(c,{t:.14,edge:hexOf(shade(c,-.4))}),.5);fp(U.gab,toCCW([[-.55,HY-2],[.55,HY-2],[0,HY-3]]),W(hexOf(shade(c,-.25)),{t:.1}),.02);fp(U.gab,toCCW([[-.4,HY-1.9],[.4,HY-1.9],[0,HY-2.5]]),W('#7a2a3a',{t:.03}),.1)}
   if(naeb){const nb=toCCW(sm([[-2.7,my+1],[2.7,my+1],[3.4,my],[2.6,my-1],[-2.6,my-1],[-3.4,my]],6));fp(U.gab,toCCW(sm([[-2.2,my-.4],[2.2,my-.4],[2.4,my-1.7],[-2.4,my-1.7]],5)),W(hexOf(shade(c,-.2)),{t:.1}),-.04);fp(U.gab,circ(0,my-.95,1.6,.55,16),W('#ff8fa8',{t:.03}),.02);
     HP2(nb,{t:.2,s:44,ed:c,paint:P=>{P.wash(c,nb,{top:hexOf(shade(c,.25)),edge:.5});for(const sx of[-1,1])P.fill(circ(sx*.6,my+.5,.16,.2,8),'#1a1420',.8)}},.52);streg(U.smil,[[-2.2,my-.75],[0,my-1.25],[2.2,my-.75]],.13,hexOf(shade(c,-.5)))}
+  /* øjenbryn, der kun ses, når ungen er ked af det (de hænger yderst) eller sur (de hænger inderst) */
+  U.bryn=[-1,1].map(sx=>{const p=fpiv(HI,sx*ex,ey+er*1.12+.5,.7);for(const q of thick([[[sx*ex-er*.7,ey+er*1.12+.5],[sx*ex+er*.7,ey+er*1.12+.5]]],.2))fp(p.i,q,W(MORK,{t:.05}),0);p.o.visible=false;return{o:p.o,sx}});
   U.gab.visible=false;U.lids.visible=U.glade.visible=U.sove.visible=false;
   /* udtrykket: øjne 'aaben' | 'glad' | 'sover', mund 'smil' | 'gab', og hvor mange snavspletter der ses */
-  let oje='aaben',mund='smil';U.set=o=>{if(o.oje){oje=o.oje;U.glade.visible=oje==='glad';U.sove.visible=oje==='sover';U.eyes.visible=oje==='aaben';if(oje!=='aaben')U.lids.visible=true}if(o.mund){mund=o.mund;U.gab.visible=mund==='gab';U.smil.visible=mund==='smil'}if(o.snavs!==undefined)U.snavs.forEach((m,i)=>{m.visible=i<o.snavs})};
+  let oje='aaben',mund='smil';U.set=o=>{if(o.oje){oje=o.oje;U.glade.visible=oje==='glad';U.sove.visible=oje==='sover';U.eyes.visible=oje==='aaben';if(oje!=='aaben')U.lids.visible=true}if(o.mund){mund=o.mund;U.gab.visible=mund==='gab';U.smil.visible=mund==='smil'}if(o.snavs!==undefined)U.snavs.forEach((m,i)=>{m.visible=i<o.snavs});if(o.bryn!==undefined)for(const q of U.bryn){q.o.visible=!!o.bryn;q.o.rotation.z=o.bryn==='ked'?-q.sx*.38:q.sx*.38}};
   const ph=R(TAU);
   /* liv: ånder, blinker, vipper med hovedet og halen. glad (0..1) får armene til at vinke og vingerne til at baske; hop løfter den */
   U.tick=(t,{glad=0,hop=0,spis=0}={})=>{const sov=oje==='sover';const aa=Math.sin(t*(sov?1.2:2.2)+ph);U.body.scale.set(1+.012*aa,1+.03*aa,1);
