@@ -12,7 +12,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 
 | Nr. | Sted | Type | Hvad | Fra |
 |---|---|---|---|---|
-| 1 | Kæledyret | ønske | Et næbdyr som kæledyr | Agnes |
+| 1 | Kæledyret | ønske | Et næbdyr som kæledyr. Kasper (22. nov.): man får det fra ægget i Dyreparken (se IDEER.md) | Agnes |
 | 7 | Værelset | skal virke bedre | Tæppernes form (hjerte, stjerne, måne) er svær at se, fordi gulvet ses meget fladt | gennemgang |
 | 8 | Værelset | skal virke bedre | Hvert valg bager rummet om. Hvor lang tid det tager på tabletten, er ikke målt | gennemgang |
 | 9 | Kortet | skal virke bedre | Opstarten: bagningen af byen er ikke gjort hurtigere. Mangler tal fra tabletten på statistik-linket | Kasper |
