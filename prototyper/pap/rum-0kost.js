@@ -25,6 +25,10 @@ function bygRytter(look,{gear=false,moelle=true}={}){
   P2(B,toCCW(sm([[1.9,S+.3],[-1.8,S+.5],[-2.6,D.Wy-.2],[1.7,D.Wy-.4]],3)),o(kj,.35),.1);P2(B,box(-2.5,D.Wy-.5,1.8,D.Wy+.25),{color:'#5a3a28',kind:'kraft',t:.1},.46);
   const benN=ben(.7,'#3a2a40',0);
   const armN=new THREE.Group();armN.position.z=.8;B.add(armN);for(const q of thick([[[.6,S-.5],[3.4,S-3.8],[6.3,SY+.45]]],.55))P2(armN,q,o(kj,.3),0);P2(armN,circ(6.4,SY+.5,.62,.62,12),o(hud,.3),.06);
+  if(gear){/* hjelm med flyverbriller i stedet for hatten (Kasper 12. nov.: faldskærm på ryggen og hjelm) */F.hat.visible=false;const hI=F.gHairF.parent,w=D.w,cy=D.cy,hh=D.hh,dome=[];
+    for(let i=0;i<=24;i++){const a=i/24*Math.PI;dome.push([Math.cos(a)*w*.62,cy+hh*.02+Math.sin(a)*hh*.62])}dome.push([-w*.62,cy-hh*.06],[w*.62,cy-hh*.06]);
+    put(hI,piece(toCCW(dome),{color:'#e2384e',kind:'card',t:.3,edge:'#8a1a2a'}),0,0,.62);put(hI,piece(toCCW(dome.map(([x,y])=>[x*.7,cy+(y-cy)*.7+hh*.12])),{color:'#f0606e',kind:'card',t:.05}),0,0,.93);
+    put(hI,piece(box(-w*.62,cy+hh*.1,w*.62,cy+hh*.2),{color:'#3a2a20',kind:'card',t:.08}),0,0,.95);for(const sx of[-1,1]){put(hI,piece(circ(sx*w*.22,cy+hh*.17,w*.17,w*.15,18),{color:'#3a2a20',kind:'card',t:.1}),0,0,.99);put(hI,piece(circ(sx*w*.22,cy+hh*.17,w*.12,w*.1,16),{color:'#7fd8ff',kind:'card',t:.05}),0,0,1.06)}}
   if(gear){/* faldskærmen på ryggen og selerne */P2(B,box(-4.4,D.Wy+.2,-1.8,S-.2),{color:'#7a5a3a',kind:'kraft',t:.8,edge:'#4a321e'},-.25);for(const q of thick([[[-1.9,S-.4],[1.4,D.Wy+.4]]],.22))P2(B,q,{color:'#2a2a3a',kind:'card',t:.06},.5)}
   /* hovedet og håret: hovedet lidt frem, håret og hatten bagud */
   F.head.position.x+=.9;F.hairB.position.x+=.9;F.gNeck.position.x+=.5;

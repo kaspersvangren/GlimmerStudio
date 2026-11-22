@@ -156,5 +156,5 @@ function introCover(){
   /* ---------- start ---------- */
   function start(){menuKnap();if(window.SPRING_FORSIDE)return;let d=null;try{d=sessionStorage.getItem('magiske-mig-pap.direkte');sessionStorage.removeItem('magiske-mig-pap.direkte')}catch(_){}
     if(d==='by')return;if(d==='intro'){intro();return}if(d==='pladser'){pladser();return}forside()}
-  return{start,forside,pladser,intro,luk}})();
+  return{start,forside,pladser,intro,luk,kb:kbKobl}})();
 FORSIDE.start();

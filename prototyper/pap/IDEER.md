@@ -13,7 +13,7 @@ Når noget bliver lavet, flyttes det til LISTE.md med en rettelse (R-nummer).
 
 | Idé | Status |
 |---|---|
-| Ægget på gården klækker, og ud kommer næbdyret som nyt kæledyr. Det er Agnes' ønske. | **Besluttet** (Kasper 22. nov.): næbdyret får man fra ægget i Dyreparken |
+| Ægget på gården klækker, og ud kommer næbdyret som nyt kæledyr. Det er Agnes' ønske. | **Lavet** i 0.32 (R90) |
 | Dyrefrisøren: klip, børst og pynt et dyr | Venter |
 | Forhindringsbanen: tegn en rute, og dyret løber den på tid | Venter |
 | Dagens gave fra en unge, der er bedste ven | Venter |
@@ -26,13 +26,13 @@ Forslag 1–6 er lavet i 0.30 (R81).
 |---|---|
 | 7. To veje: et par steder deler banen sig. Højt oppe går den gennem skyerne med medvind og bobler, lavt nede gennem byen med flere ringe | Venter (foreslået til efter 1–6) |
 | 8. Skyer i stedet for at styrte: en sky bremser hende lidt med et pust, men hun styrter aldrig | Venter (foreslået til efter 1–6) |
-| Begivenhederne i baggrunden fra originalen: fyrværkeri, flagermus, stjerneskud, lanterner og en anden heks foran månen | Ikke lavet, mangler fra originalen |
+| Begivenhederne i baggrunden fra originalen: fyrværkeri, flagermus, stjerneskud, lanterner og en anden heks foran månen | **Lavet** i 0.32 (R91), undtagen heksen foran månen |
 
 ## Faldskærm
 
 | Idé | Status |
 |---|---|
-| Hjelm på turen op. Kasper bad om "faldskærm på ryggen og hjelm"; nu har hun sin egen hat på | Ikke lavet |
+| Hjelm på turen op. Kasper bad om "faldskærm på ryggen og hjelm" | **Lavet** i 0.32 (R92) |
 
 ## Stjerneskjoldet
 

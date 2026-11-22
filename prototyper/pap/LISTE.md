@@ -12,7 +12,6 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 
 | Nr. | Sted | Type | Hvad | Fra |
 |---|---|---|---|---|
-| 1 | Kæledyret | ønske | Et næbdyr som kæledyr. Kasper (22. nov.): man får det fra ægget i Dyreparken (se IDEER.md) | Agnes |
 | 7 | Værelset | skal virke bedre | Tæppernes form (hjerte, stjerne, måne) er svær at se, fordi gulvet ses meget fladt | gennemgang |
 | 8 | Værelset | skal virke bedre | Hvert valg bager rummet om. Hvor lang tid det tager på tabletten, er ikke målt | gennemgang |
 | 9 | Kortet | skal virke bedre | Opstarten: bagningen af byen er ikke gjort hurtigere. Mangler tal fra tabletten på statistik-linket | Kasper |
@@ -33,9 +32,7 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 |---|---|
 | M1 | En farve nummer to på tøjet |
 | M2 | Malerierne er lavet i 0.27 (R74). Åbent: originalen havde en editor til at vælge opstilling på billedvæggene; her hænger de på fem faste pladser, og man trykker for at skifte |
-| M3 | Navn til kæledyret |
 | M4 | Arkademaskinen Stjerneskjoldet. Trylletegning er lavet i 0.23 (R64, bosser i 0.24, R67), Gribemaskinen i 0.24 (R66) og BoblePop i 0.24 (R68). Stjerneskjoldet (og Kosteflyvning) skal løftes i gameplay; forslagene er sendt og venter på svar |
-| M5 | Kosteflyvning og Faldskærm er lavet i 0.29–0.30 (R80–R82). Tilbage: begivenhederne i baggrunden fra originalen (fyrværkeri, flagermus, stjerneskud, lanterner) |
 | M6 | Faget Dyrepasning i Skolen (døren er der, men lukket). Dyreparken selv er lavet i 0.19, se R48 |
 | M9 | Dragen med vittighederne, Øksebrønden, Støvlen og Klokketårnet (husene er på kortet, men lukkede) |
 | M10 | Malerier på væggene i Værelset |
@@ -133,6 +130,10 @@ Noter fra notesknappen ligger i `spil_log` med `kind = 'note'`; de føres ind he
 | R87 | Koncertsalen | ønske | Bandet skal bevæge sig i takt **Lavet:** Slagene i alle ni sange er målt ud fra lydfilerne, og bandet hopper, slår på trommerne og spiller på slagene, mens sangen spiller | Kaspers note | pap-0.31 |
 | R88 | Hele spillet | ønske | Svært at se, hvilken udgave man har **Lavet:** Udgaven står med lille skrift på indlæsningen, på forsiden og i notesvinduet | Kasper i chatten | pap-0.31 |
 | R89 | Start | mangler | Forsiden, tre gemte spil og bogen i starten manglede (M7) **Lavet:** Forsiden har spillets navn på et papskilt over byen og en rund play-knap. Hylden har tre bøger; en brugt bog viser navn, stjerner og en hat i heksens farve, og den kan slettes. En tom bog starter eventyrbogen fra originalen med navnet skrevet på spillets eget tastatur, og man blader med pilene. Til sidst lukkes bogen, og man laver sin heks i Garderoben. I byen fører en knap tilbage til forsiden. Plads 1 er det spil, der allerede er gemt | Kasper | pap-0.31 |
+| R90 | Dyreparken og kæledyret | ønske | Agnes ville have et næbdyr som kæledyr; Kasper: det skal komme fra ægget i Dyreparken **Lavet:** Ægget på gården bliver varmt af glade dyreunger. Ved 2 og 4 hjerter i Ungestalden (alle unger tilsammen) kommer der revner, og ved 6 lyser det og vipper af sig selv. Trykker man så, ryster det, toppen springer af, og et næbdyr klækker med hjerter og fanfare. Næbdyret (brun pels, fladt andenæb, bæverhale og svømmefødder) bor derefter på gården og kan vælges som kæledyr i Garderoben. Før det står det låst med en forklaring | Agnes og Kasper | pap-0.32 |
+| R91 | Kosteflyvning | mangler | Begivenhederne i baggrunden fra originalen **Lavet:** Fyrværkeri med stjerneregn, en flok flagermus, stjerneskud og lanterner, der stiger op, hvert 4.–9. sekund | originalen | pap-0.32 |
+| R92 | Faldskærm | ønske | Hjelm på turen op (Kasper 12. nov.) **Lavet:** Rød hjelm med flyverbriller i stedet for hatten, når hun flyver op med faldskærmen | Kasper | pap-0.32 |
+| R93 | Garderoben | mangler | Navn til kæledyret (M3) **Lavet:** Et navnefelt øverst under Kæledyret → Dyr, skrevet på spillets eget tastatur, og gemt | originalen | pap-0.32 |
 
 ## Set og lukket
 

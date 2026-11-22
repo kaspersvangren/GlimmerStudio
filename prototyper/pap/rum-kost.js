@@ -163,6 +163,28 @@ ROOMS.kost=function(ctx){
   /* kometen: bånd og stjerner bag hende, når det går stærkt */
   function komet(dt){const fart=S.boost>0?BOOST_V:S.v/V0;komT-=dt;if(S.run==='fly'&&(fart>1.15||S.boost>0)&&komT<=0){komT=S.boost>0?.025:.07;const q=kom.find(q=>!q.m.visible);if(q){q.m.visible=true;q.t=0;q.life=S.boost>0?.8:.45;q.m.position.set(X(S.x)-3.5+R(-.5,.5),Y(S.y)-.4+R(-.8,.8),R(-.3,.3));q.m.rotation.z=R(TAU);q.s=S.boost>0?R(1,1.6):R(.5,.9)}}
     for(const q of kom){if(!q.m.visible)continue;q.t+=dt;const k=q.t/q.life;if(k>=1){q.m.visible=false;continue}q.m.scale.setScalar(q.s*(1-k));q.m.rotation.z+=dt*3}}
+  /* ---------- begivenhederne i baggrunden, som i originalen: fyrværkeri, flagermus, stjerneskud og lanterner ----------
+     De sker i et lag mellem bakkerne og tagene (eller på himlen), der følger med kameraet, så de altid kan ses. */
+  let evG=null;const EV=[];
+  function bygEv(){evG=new THREE.Group();evG.position.z=-160;rod.add(evG);
+    const sort='#14102e';
+    for(let i=0;i<5;i++){const g=new THREE.Group();g.visible=false;evG.add(g);P2(g,circ(0,0,1.2,.9,12),{color:sort,kind:'card',t:.2},0);const vg=[];for(const sx of[-1,1]){const v=new THREE.Group();g.add(v);P2(v,toCCW([[0,0],[sx*1.4,1.2],[sx*3.6,1.1],[sx*3.2,0],[sx*2.6,-.5],[sx*2,.1],[sx*1.2,-.5]].map(([x,y])=>[x,y])),{color:sort,kind:'card',t:.1},0);vg.push(v)}EV.push({k:'bat',g,vg,t:9})}
+    for(let i=0;i<2;i++){const g=new THREE.Group();g.visible=false;evG.add(g);put(g,piece(box(-.12,-7,.12,0),{mat:paperMat('#fff6d0','tissue',{glow:'#fff0b0',gi:1.6}),t:.05}),0,0,0);put(g,piece(starPts(0,0,1.4,.6,0),{mat:paperMat('#ffffff','tissue',{glow:'#fff6d0',gi:2}),t:.05}),0,0,.05);EV.push({k:'skud',g,t:9})}
+    for(let i=0;i<4;i++){const g=new THREE.Group();g.visible=false;evG.add(g);const c=['#ffb347','#ff8fc7','#ffe27a'][i%3];put(g,piece(box(-1.2,-1.6,1.2,1.6),{mat:paperMat(c,'tissue',{glow:c,gi:1.4}),t:1}),0,0,0);P2(g,box(-1.3,1.5,1.3,1.9),{color:'#5a3a28',kind:'kraft',t:.3},.6);EV.push({k:'lanterne',g,t:9})}
+    for(let i=0;i<3;i++){const g=new THREE.Group();g.visible=false;evG.add(g);const raket=put(g,piece(circ(0,0,.5,.5,10),{mat:paperMat('#fff6d0','tissue',{glow:'#ffd890',gi:2}),t:.1}),0,0,0);const gn=[];for(let j=0;j<16;j++){const m=put(g,piece(starPts(0,0,.9,.38,0),{mat:paperMat('#ffffff','tissue',{glow:'#ffffff',gi:1.6}),t:.05}),0,0,.1);m.visible=false;gn.push(m)}EV.push({k:'fyr',g,raket,gn,t:9})}
+    evG.traverse(q=>{if(q.isMesh)q.userData.noShadow=true})}
+  function startEv(){const k=['fyr','fyr','bat','skud','lanterne'][Math.floor(R(5))],hh=Math.tan(baseFov*Math.PI/360)*(CD+160),hw=hh*Rm.cam.aspect;
+    if(k==='bat'){const y=R(hh*.25,hh*.7);EV.filter(e=>e.k==='bat').forEach((e,i)=>{e.t=-i*.15;e.dur=7;e.x0=hw+10+i*4;e.x1=-hw-20;e.y=y+(i%3)*3;e.g.visible=true})}
+    else{const q=EV.find(q=>q.k===k&&!q.g.visible);if(!q)return;q.t=0;q.g.visible=true;q.x=R(-hw*.7,hw*.7);
+      if(k==='skud'){q.dur=1.2;q.y=R(hh*.5,hh*.9)}if(k==='lanterne'){q.dur=9;q.y=-hh}if(k==='fyr'){q.dur=2.6;q.top=R(hh*.2,hh*.6);q.y=-hh;const c=['#ff5fa8','#ffe27a','#7fd8ff','#9be36a','#c79bff','#ff8a3d'][Math.floor(R(6))];q.gn.forEach((m,i)=>{m.material=paperMat(i%3?c:'#ffffff','tissue',{glow:i%3?c:'#ffffff',gi:1.6});m.visible=false});q.raket.visible=true;q.knald=false}}}
+  function tickEv(dt){if(!evG)return;const camX=X(S.cam+800);evG.position.x=camX;const hh=Math.tan(baseFov*Math.PI/360)*(CD+160);
+    if(S.run==='fly'&&S.t>S.evT){startEv();S.evT=S.t+4+Math.random()*5}
+    for(const e of EV){if(!e.g.visible)continue;e.t+=dt;if(e.t<0)continue;const u=e.t/(e.dur||1);if(u>=1){e.g.visible=false;continue}
+      if(e.k==='bat'){e.g.position.set(mix(e.x0,e.x1,u),e.y+Math.sin(e.t*6)*1.5,0);const f=Math.sin(e.t*22);e.vg.forEach((v,i)=>{v.scale.y=.3+.7*Math.abs(f);v.rotation.z=(i?-1:1)*.2*f})}
+      if(e.k==='skud'){e.g.position.set(e.x-u*60,e.y-u*20,0);e.g.rotation.z=1.25;e.g.scale.setScalar(Math.sin(u*Math.PI))}
+      if(e.k==='lanterne'){e.g.position.set(e.x+Math.sin(e.t*.8)*4,mix(-hh,hh*1.1,u),0);e.g.rotation.z=Math.sin(e.t*1.3)*.12}
+      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.puf()}
+        const k=(u-.35)/.65;e.gn.forEach((m,i)=>{const a=i/16*TAU,d=4+14*Math.sqrt(k);m.position.set(Math.cos(a)*d,Math.sin(a)*d-8*k*k,.1);m.scale.setScalar(1.2*(1-k))})}}}}
   /* ---------- styring ---------- */
   const el=renderer.domElement;let holdT=0;
   const pd=e=>{if(!S||!ctx.alive||!Rm||!Rm.ready)return;if(S.run==='kort'){begynd();return}flap();clearTimeout(holdT);holdT=setTimeout(()=>{holdT=0;tryLoop()},HOLD_MS)};
@@ -186,13 +208,13 @@ ROOMS.kost=function(ctx){
         for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(.75,18),new THREE.MeshBasicMaterial({color:i?'#ffffff':((ctx.look.col&&ctx.look.col['tøj'])||'#6a3fa2')}));m.position.z=.3+i*.01;stribe.add(m);prikker.push(m);
           const kant=new THREE.Mesh(new THREE.RingGeometry(.75,1,18),new THREE.MeshBasicMaterial({color:'#fffaf0'}));m.add(kant)}
         {const cols=['#ff8fc7','#ffd24a','#7fd8ff','#fff6d0'];for(let i=0;i<40;i++){const m=piece(i%3?starPts(0,0,.7,.3,0):box(-.15,-.9,.15,.9),{mat:paperMat(cols[i%4],'tissue',{glow:cols[i%4],gi:1.3}),t:.05});m.visible=false;rod.add(m);kom.push({m,t:0,life:.5,s:1})}}
-        rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
+        bygEv();rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
     tick:(t,dt)=>{if(!S)return;const hh=Math.tan(baseFov*Math.PI/360)*CD,hw=hh*Rm.cam.aspect,sz=(CD-20)/CD;
       tv.G.position.set((hw-13)*sz,(hh-4.5)*sz,20);lamper.forEach((l,i)=>l.m.position.set((hw-21+i*2.2)*sz,(hh-9.2)*sz,20));stribe.position.set(0,(hh-3)*sz,20);
       const n=window.KOST_WARP||(S.auto?4:1);for(let i=0;i<n;i++)step(dt);ryst=Math.max(0,ryst-dt);if(S.boost>0)ryst=Math.max(ryst,.12);
-      tegn();komet(dt);tv.tick(dt);ptW.tick(dt);ptH.tick(dt);ban.tick(dt)}};
+      tegn();komet(dt);tickEv(dt);tv.tick(dt);ptW.tick(dt);ptH.tick(dt);ban.tick(dt)}};
   Rm=makeRoom(ctx,OPT);
   ctx.efter.push(()=>{el.removeEventListener('pointerdown',pd);removeEventListener('pointerup',pu);removeEventListener('pointercancel',pu);removeEventListener('keydown',kd);clearTimeout(holdT);
     ptW&&ptW.ryd();ptH&&ptH.ryd();ban&&ban.fjern();for(const t of tekster)t.userData.ryd&&t.userData.ryd();S=null});
-  ctx.test={ban:()=>ban,hud:()=>hud,S:()=>S,begynd,flap,tryLoop,auto:v=>{if(S)S.auto=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},
+  ctx.test={ev:()=>{startEv();startEv();startEv();startEv()},ban:()=>ban,hud:()=>hud,S:()=>S,begynd,flap,tryLoop,auto:v=>{if(S)S.auto=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},
     tilstand:()=>S&&{fase:S.run,t:+S.t.toFixed(1),x:Math.round(S.x),y:Math.round(S.y),v:Math.round(S.v),ringe:S.rings,af:S.ringsAll,bobler:S.bubbles,boost:S.boost,loop:!!S.loop,res:S.result||null,riv:S.rivals.map(r=>Math.round(r.x))}}};

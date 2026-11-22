@@ -1,9 +1,13 @@
 /* ============ Dyreparken, del 2: gården ============
    Herfra går man ind i Dyrekøkkenet (til venstre) og Ungestalden (til højre). Midt på gården ligger et stort æg i en rede: det ruger og klækker en dag.
-   Heksen går hen til det, man trykker på; dyrene på gården kan man klappe. */
+   Heksen går hen til det, man trykker på; dyrene på gården kan man klappe.
+   Ægget (Kasper 22. nov.: næbdyret skal man få fra ægget): det bliver varmt af glade dyreunger. Hvert hjerte, ungerne i Ungestalden har på én gang,
+   er varme; ved 2 og 4 hjerter kommer der revner, og ved 6 lyser det og vipper af sig selv. Så kan man trykke på det, og et næbdyr klækker.
+   Næbdyret bor derefter på gården, og man kan vælge det som kæledyr i Garderoben. */
 ROOMS.dyrepark=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:0,tx:0,ph:0,amp:0,face:1,want:null},STEDER=[{id:'koek',navn:'Dyrekøkkenet',x:-27,rum:'dyrekoekken'},{id:'stald',navn:'Ungestalden',x:27,rum:'ungestald'}];
-  let heks,kat,aeg,vip=0,gaar=null,frys=null;const DYR_=[],hj=[],roeg=[];
+  let heks,kat,aeg,vip=0,gaar=null,frys=null,klaek=null,aegGlow=null,top_=null,bund_=null,naeb=null;const KLAR=6,ejerNaeb=()=>SPIL.har.includes('dyr:næbdyr');
+  const varme=()=>{const S=SPIL.data.unger||{};let n=0;for(const k in S)n+=S[k].h||0;SPIL.data.aegMax=Math.max(SPIL.data.aegMax||0,n);return SPIL.data.aegMax};const DYR_=[],hj=[],roeg=[];
   const hjerte=(x,y)=>{const q=hj.find(h=>h.t>1)||hj[0];q.t=0;q.x=x;q.y=y};
   const Rm=makeRoom(ctx,{bg:'#0e1418',fit:fitBox(90,50,0,20.5),sky:'#dff0ff',ground:'#5a7a48',amb:.7,key:{col:'#fff2d8',i:2.1,tgt:[0,14,0],box:[-64,64,56,-34]},
     build:Rm=>[()=>{const g=Rm.scene,H=box(-80,-2,80,66);/* himmel, sol, skyer og bakker */
@@ -46,6 +50,17 @@ ROOMS.dyrepark=function(ctx){
         aeg=new THREE.Group();aeg.position.set(0,2.4,-.4);lv.add(aeg);const e=[];for(let i=0;i<36;i++){const a=i/36*TAU,c=Math.cos(a),s=Math.sin(a);e.push([c*3.9*(1-.14*Math.max(0,s)),4.9+s*(s>0?5.4:4.9)])}
         put(aeg,piece(toCCW(e),{t:.5,s:26,paint:P=>{P.wash('#fdf3dc',e,{top:'#ffffff',edge:.7,clouds:4});for(const[x,y,r,c]of[[-1.6,6.4,1,'#ff9fd0'],[1.5,3.6,.85,'#9fe7ff'],[1.2,7.8,.7,'#ffd54a'],[-1.9,2.6,.7,'#b9a0ff'],[-.2,4.9,.55,'#ff9fd0'],[2.5,5.8,.5,'#b9a0ff']])P.wash(c,circ(x,y,r,r,14),{alpha:.85,edge:.5,mode:'source-over'})}}),0,0,0);
         const hb=new THREE.Mesh(new THREE.PlaneGeometry(13,14),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,5,2);aeg.add(hb);Rm.tap(hb,()=>{W0.tx=-9;W0.want={aeg:1}});
+        /* revner efter, hvor varmt ægget er */
+        {const v=varme(),REV=[[[-2.8,6.2],[-1.6,5.4],[-.8,6.3],[.2,5.2]],[[.6,7.6],[1.4,6.7],[2.4,7.4],[3.2,6.4]],[[-3.4,4.3],[-2.2,3.6],[-1,4.5],[.4,3.5],[1.6,4.4],[3,3.7]]];
+          REV.forEach((pts,i)=>{if(v>=2*(i+1))for(const q of thick([pts],.16))put(aeg,piece(q,{color:'#6a4a3a',kind:'water',t:.02}),0,0,.52)});
+          if(v>=KLAR&&!ejerNaeb())aegGlow=Rm.glow(0,7.5,-2,'rgba(255,224,140,.9)',20,true)}
+        /* er næbdyret klækket, ligger æggeskallen i reden, og næbdyret går rundt på gården */
+        const skaller=()=>{const nedre=clip([e],[toCCW([[-5,-1],[5,-1],[4.4,5.6],[3,4.6],[1.6,5.8],[0,4.6],[-1.6,5.8],[-3,4.6],[-4.4,5.6]])],'inter'),oevre=clip([e],[toCCW([[-5,11],[-4.4,5.6],[-3,4.6],[-1.6,5.8],[0,4.6],[1.6,5.8],[3,4.6],[4.4,5.6],[5,11]])],'inter');
+          const mal=P=>{P.wash('#fdf3dc',null,{top:'#ffffff',edge:.7,clouds:4})};bund_=new THREE.Group();top_=new THREE.Group();bund_.position.set(0,2.4,-.4);top_.position.set(0,2.4,-.4);lv.add(bund_,top_);
+          for(const f of nedre)put(bund_,piece(f,{t:.5,s:26,paint:mal}),0,0,0);for(const f of oevre)put(top_,piece(f,{t:.5,s:26,paint:mal}),0,0,0)};
+        const nytNaeb=(x,z)=>{const K=makePet({kind:'næbdyr',res:.8,pynt:'ingen'});K.G.scale.setScalar(.62);K.G.position.set(x,.5,z);lv.add(K.G);const d={K,x,z,v:2.4,hop:0,pause:R(1,3),i:9};DYR_.push(d);naeb=d;
+          const hb3=new THREE.Mesh(new THREE.PlaneGeometry(16,14),new THREE.MeshBasicMaterial({visible:false}));hb3.position.set(1,7,1);K.G.add(hb3);Rm.tap(hb3,()=>{d.hop=1;d.pause=1.4;LYD.pip();hjerte(d.x,8)});return d};
+        Rm.aeg={skaller,nytNaeb};if(ejerNaeb()){aeg.visible=false;skaller();top_.position.set(6.4,.9,1.2);top_.rotation.z=2.6;nytNaeb(14,4)}
         /* dyrene på gården */
         [{kind:'kanin',x:-52,z:-2.6,v:5},{kind:'ræv',x:44,z:-1.2,v:-4,pynt:'tørklæde'},{kind:'bjørn',x:-8,z:3.4,v:3.2,pynt:'sløjfe'},{kind:'frø',x:16,z:11,v:-2.6,pynt:'krone'},{kind:'ugle',x:-40,z:9,v:2.2,pynt:'ingen'}].forEach((o,i)=>{const K=makePet(Object.assign({res:.8},o));K.G.scale.setScalar(.62);K.G.position.set(o.x,.5,o.z);lv.add(K.G);const d={K,x:o.x,z:o.z,v:o.v,hop:0,pause:R(1,4),i};DYR_.push(d);
           const hb2=new THREE.Mesh(new THREE.PlaneGeometry(16,18),new THREE.MeshBasicMaterial({visible:false}));hb2.position.set(1,8,1);K.G.add(hb2);Rm.tap(hb2,()=>{d.hop=1;d.pause=1.4;LYD.pip();hjerte(d.x,8)})});
@@ -58,8 +73,14 @@ ROOMS.dyrepark=function(ctx){
     tick:(t,dt)=>{const d=W0.tx-W0.x,mv=Math.abs(d)>.3&&!gaar;if(mv){const st=Math.sign(d)*Math.min(Math.abs(d),24*dt);W0.x+=st;W0.face=Math.sign(d);W0.ph+=Math.abs(st)/3.4*Math.PI}
       W0.amp+=((mv?1:0)-W0.amp)*Math.min(1,dt*8);heks.G.position.x=W0.x;heks.G.scale.x=.8*W0.face;heks.G.position.y=.35+Math.abs(Math.sin(W0.ph))*.5*W0.amp;heks.tick(t,{ph:W0.ph,amp:W0.amp});W0.sh.position.x=W0.x;
       const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km&&(!kat.hopper||kat.luft))kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*(kat.hopper?1.7:1)*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});
-      if(W0.want&&!mv&&!gaar){const s=W0.want;W0.want=null;if(s.aeg){vip=1;LYD.pip();ctx.say('Ægget ruger. Det er varmt, og det banker lidt indeni … en dag klækker det!')}else if(ROOMS[s.rum]){gaar=s;ctx.go(s.rum)}}
-      vip=Math.max(0,vip-dt*.8);aeg.rotation.z=Math.sin(t*1.1)*.02+Math.sin(vip*Math.PI*5)*.16*vip;aeg.position.y=2.4+Math.abs(Math.sin(vip*Math.PI*5))*.5*vip;
+      if(W0.want&&!mv&&!gaar){const s=W0.want;W0.want=null;if(s.aeg){const v=varme();if(ejerNaeb())ctx.say('Æggeskallen, som næbdyret klækkede af. Næbdyret bor nu på gården, og du kan vælge det som kæledyr i Garderoben.');else if(v>=KLAR){if(!klaek){klaek={t:0};LYD.op()}}else{vip=1;LYD.pip();ctx.vent(`Ægget ruger. Det bliver varmt af glade dyreunger: giv ungerne i Ungestalden hjerter. Lige nu har de ${v} af ${KLAR} hjerter.`)}}else if(ROOMS[s.rum]){gaar=s;ctx.go(s.rum)}}
+      vip=Math.max(0,vip-dt*.8);if(aegGlow&&!klaek&&(t%3.2)<.05)vip=Math.max(vip,.6);aeg.rotation.z=Math.sin(t*1.1)*.02+Math.sin(vip*Math.PI*5)*.16*vip;aeg.position.y=2.4+Math.abs(Math.sin(vip*Math.PI*5))*.5*vip;
+      /* klækningen: ægget ryster mere og mere, toppen springer af, og næbdyret kommer frem */
+      if(klaek){klaek.t+=dt;const k=klaek.t;if(k<1.8){aeg.rotation.z=Math.sin(k*40)*.05*(1+k*2);aeg.position.y=2.4+Math.abs(Math.sin(k*20))*.25*k}
+        else if(!klaek.aaben){klaek.aaben=true;aeg.visible=false;Rm.aeg.skaller();Rm.burst(0,9,1,18,'rgba(255,236,170,.95)',6);LYD.pop();if(aegGlow){aegGlow.s.visible=false}
+          const d=Rm.aeg.nytNaeb(-3.6,1.5);d.pause=4;d.K.G.scale.setScalar(.01);klaek.d=d;SPIL.har.push('dyr:næbdyr');SPIL.save();LOG.row('naebdyr',{varme:varme()})}
+        else{const u=Math.min(1,(k-1.8)/.9);top_.position.set(6.4*u,2.4+9*Math.sin(u*Math.PI)*(1-u*.5)-1.5*u,-.4+1.6*u);top_.rotation.z=2.6*u;const s=.62*Math.min(1,(k-1.8)/.4);klaek.d.K.G.scale.set(s,s,s);if(k>2.2&&!klaek.hj){klaek.hj=true;klaek.d.hop=1;for(let i=0;i<4;i++)setTimeout(()=>hjerte(R(-6,4),9+R(0,3)),i*180);LYD.fanfare()}
+          if(k>3.4&&!klaek.slut){klaek.slut=true;ctx.vent('Et næbdyr! Det er klækket af ægget, og det vil gerne bo hos dig. Du kan vælge næbdyret som kæledyr i Garderoben under Dyr.')}}}
       if(frys!==null){DYR_.forEach((a,i)=>{a.K.G.position.set(-36+i*18,.5,12);a.K.G.scale.set(.62,.62,.62);a.K.tick(0,{ph:frys*TAU*(a.K.cyk||1),amp:1})})}else
       for(const a of DYR_){const K_=a.K;let gaa;
         if(K_.hopper){/* et par hop, og så en pause, hvor dyret sidder */
@@ -68,4 +89,4 @@ ROOMS.dyrepark=function(ctx){
         if(a.x>60||a.x<-60){a.v=-a.v;a.x=clamp(a.x,-60,60)}a.hop=Math.max(0,a.hop-dt*1.6);K_.G.position.set(a.x+(a.v<0?7.4:0),.5+Math.abs(Math.sin(a.hop*Math.PI*2))*3*a.hop,a.z);K_.G.scale.x=.62*Math.sign(a.v);K_.tick(t+a.i,{ph:a.ph,amp:gaa?1:0})}
       for(const q of hj){q.t+=dt*.9;if(q.t>1){q.s.visible=false;continue}q.s.visible=true;q.s.position.set(q.x+Math.sin(q.t*8)*.5,q.y+q.t*8,13);const z=2+q.t*1.6;q.s.scale.set(z,z,1);q.s.material.opacity=1-q.t*q.t}
       for(const q of roeg){q.t=(q.t+dt*.16)%1;q.s.position.set(-20.6+Math.sin(q.t*5+t*.3)*1.2+q.t*3,34.6+q.t*11,-6.6);const z=3+q.t*5;q.s.scale.set(z,z,1);q.s.material.opacity=.55*(1-q.t)}}});
-  ctx.test={hop:u=>{frys=u}}};
+  ctx.test={hop:u=>{frys=u},varme,klaek:()=>klaek,trykAeg:()=>{W0.x=W0.tx=-9;W0.want={aeg:1}}}};

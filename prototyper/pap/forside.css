@@ -124,3 +124,5 @@
 .fs-spkn{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
 #menuknap svg{stroke:currentColor}
 .sb-port svg{width:100%;height:100%;display:block}
+
+.dyrnavn{display:flex;align-items:center;gap:8px;margin:0 0 10px;font:700 17px var(--font)}.dyrnavn input{flex:1;min-width:0;font:700 17px var(--font);padding:8px 12px;border-radius:10px;border:2px solid #c9a25a;background:#fbf3dc;color:#2a1d12}

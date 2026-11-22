@@ -4,9 +4,9 @@ const fgrp=(p,x=0,y=0,z=0)=>{const q=new THREE.Group();q.position.set(x,y,z);p.a
 const eyeBig=(P,x,y,r,iris,dark)=>{P.fill(circ(x,y,r,r*1.08,20),'#fdfaf0',1);P.fill(circ(x,y-r*.05,r*.74,r*.84,18),iris,1);P.fill(circ(x,y-r*.05,r*.4,r*.52,14),dark||'#17121f',1);P.fill(circ(x+r*.28,y+r*.34,r*.22,r*.22,10),'#ffffff',1);P.fill(circ(x-r*.3,y-r*.4,r*.1,r*.1,8),'#ffffff',.9)};
 
 /* ---- kæledyret: krop fra siden, hovedet vendt mod os. Ni arter deler krop; ører, hale, snude, mønster og pynt skifter ---- */
-const DYR={kat:['#2d2738','#f3ecda','#6a3fa2'],hund:['#c8935a','#f6ead2','#c2452d'],kanin:['#f1ead8','#ffc8dc','#43a3d3'],'enhjørning':['#f6f1ff','#ffd86b','#ff9ad0'],'bjørn':['#8a5a34','#e8c8a0','#3e7a4a'],drage:['#5fa34a','#f2e2a8','#c2453a'],ugle:['#9c6a48','#f2e2c0','#e0a020'],'ræv':['#e07a2a','#fbf5e6','#7b4fd0'],'frø':['#5ab85a','#c8f0a0','#e0457a']};
+const DYR={kat:['#2d2738','#f3ecda','#6a3fa2'],hund:['#c8935a','#f6ead2','#c2452d'],kanin:['#f1ead8','#ffc8dc','#43a3d3'],'enhjørning':['#f6f1ff','#ffd86b','#ff9ad0'],'bjørn':['#8a5a34','#e8c8a0','#3e7a4a'],drage:['#5fa34a','#f2e2a8','#c2453a'],ugle:['#9c6a48','#f2e2c0','#e0a020'],'ræv':['#e07a2a','#fbf5e6','#7b4fd0'],'frø':['#5ab85a','#c8f0a0','#e0457a'],'næbdyr':['#8a5a3a','#d8b48a','#3e8aa8']};
 function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(),kind},G=K.G,STD=DYR[kind],c0=o.a||o.col||STD[0],cb=o.b||o.sock||STD[1],cc=o.c||o.band||STD[2],c1=hexOf(shade(c0,.3)),cd=hexOf(shade(c0,-.45)),
-    eyeC=o.eye||{kat:'#b7e26a','frø':'#f2c230',ugle:'#f0a030',drage:'#f0a030'}[kind]||'#6ac8e8',mo=o.moenster||(kind==='kat'&&!o.a?'sokker':'ingen'),pynt=o.pynt===undefined?'halsbånd':o.pynt,fugl=kind==='ugle',MORK='#17121f';FRES=o.res||1;
+    eyeC=o.eye||{kat:'#b7e26a','frø':'#f2c230',ugle:'#f0a030',drage:'#f0a030','næbdyr':'#6a4a3a'}[kind]||'#6ac8e8',mo=o.moenster||(kind==='kat'&&!o.a?'sokker':'ingen'),pynt=o.pynt===undefined?'halsbånd':o.pynt,fugl=kind==='ugle',MORK='#17121f';FRES=o.res||1;
   const hx=3.9,hy=10.9,HW=kind==='frø'?3.9:3.5,HH=kind==='frø'?2.6:2.95,eyY=hy+(kind==='frø'?1.5:.15),ex=kind==='frø'?1.7:1.42,er=fugl?1.12:.98;
   /* mønsteret males på krop og hoved */
   const moen=(P,x0,x1,y0,y1,n)=>{const p=()=>[R(x0,x1),R(y0,y1)];
@@ -19,12 +19,17 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
     if(mo==='glimmer'){const N=Math.round(n*2),cols=Math.max(2,Math.round(Math.sqrt(N*(x1-x0)/(y1-y0)))),rows=Math.max(1,Math.ceil(N/cols));for(let i=0;i<cols*rows;i++){const rk=Math.floor(i/cols),x=x0+((i%cols)+.5+(rk%2?.25:-.25)+R(-.12,.12))*(x1-x0)/cols,y=y0+(rk+.5+R(-.15,.15))*(y1-y0)/rows,q=(i+rk)%3?.2:.31;P.fill([[x,y+q*1.7],[x+q*.3,y+q*.3],[x+q,y],[x+q*.3,y-q*.3],[x,y-q*1.7],[x-q*.3,y-q*.3],[x-q,y],[x-q*.3,y+q*.3]],(i+rk)%2?'#f2c230':'#ffffff',.97)}}
     if(mo==='plet')P.wash(cb,circ((x0+x1)/2-1,(y0+y1)/2+.4,(x1-x0)*.3,(y1-y0)*.34,18),{alpha:.96,edge:.25,mode:'source-over'})};
   const leg=(x,z,far)=>{const p=fpiv(G,x,4.2,z),col=fugl?'#e0a020':far?hexOf(shade(c0,-.25)):c0,sh=fugl?sm([[x-.3,4.4,1],[x+.3,4.4,1],[x+.3,.5],[x+1.3,.2],[x+1.2,0,1],[x-1,0,1],[x-1.1,.2],[x-.3,.5]],3):kind==='bjørn'?sm([[x-1.05,4.8,1],[x+1.05,4.8,1],[x+1,1.1],[x+1.3,.3],[x+1.1,0,1],[x-1.05,0,1],[x-1,1.1]],4):sm([[x-.72,4.6,1],[x+.72,4.6,1],[x+.66,1.2],[x+.95,.25],[x+.8,0,1],[x-.7,0,1],[x-.66,1.2]],4);
-    fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});if(mo==='sokker'&&!fugl)P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(cb,-.2)):cb,1)}},0);return p.o};
+    fp(p.i,sh,{t:.16,s:50,ed:col,paint:P=>{P.wash(col,sh,{edge:.5});if(mo==='sokker'&&!fugl)P.fill(box(x-1.2,-.2,x+1.4,1.1),far?hexOf(shade(cb,-.2)):cb,1)}},0);
+    /* næbdyret har brede svømmefødder med hud mellem tæerne */
+    if(kind==='næbdyr'){const fod=toCCW(sm([[x-.8,.9],[x+.6,.9],[x+2.1,.5],[x+2.2,-.1,1],[x-1,-.1,1],[x-1,.4]],3));fp(p.i,fod,{t:.1,s:50,ed:'#2a2228',paint:P=>{P.wash(far?'#3a3036':'#4a4048',fod,{edge:.4});for(const dx of[.4,1,1.6])P.pen([[x+dx-.5,.6],[x+dx,0]],'#2a2228',.06,.7)}},.04)}
+    return p.o};
   const hopper=kind==='kanin'||kind==='frø';K.legs=fugl||hopper?[]:[leg(-2.5,-.3,true),leg(3.3,-.3,true)];
   /* halen */
   {const t=fugl?fpiv(G,.6,2.4,-.1):fpiv(G,-4.2,6.3,-.1);K.tail=t.o;const HP=(pts,col,w_,z=0)=>{for(const q of thick([curve(pts,10)],w_))fp(t.i,q,{color:col,kind:'water',t:.16,edge:hexOf(shade(col,-.4))},z)};
     if(kind==='kat'){HP([[-4.2,6.3],[-6.3,7.2],[-7.2,9.6],[-6.4,12],[-5,12.9]],c0,.62);fp(t.i,circ(-5.05,12.85,.78,.78,16),{color:cb,kind:'water',t:.18},.02)}
     if(kind==='hund')HP([[-4.2,6.6],[-5.7,8],[-5.9,9.8],[-5.2,10.8]],c0,.7);
+    /* næbdyret: en bred, flad hale som en bæver */
+    if(kind==='næbdyr'){const b=toCCW(sm([[-3.9,6.7],[-6.4,7.3],[-8.9,6.6],[-9.4,5],[-8.4,3.9],[-5.8,4],[-3.9,4.6]],6));fp(t.i,b,{t:.2,s:40,ed:cd,paint:P=>{P.wash(hexOf(shade(c0,-.15)),b,{top:c0,edge:.6});for(let x=-8.6;x<-4.4;x+=.7)P.pen([[x,4.2],[x+.6,7]],cd,.05,.5);for(let y=4.4;y<7;y+=.6)P.pen([[-9,y],[-4.2,y+.3]],cd,.05,.4)}},0)}
     if(kind==='kanin')fp(t.i,circ(-5,6.7,1.35,1.3,18),{color:cb,kind:'water',t:.3,edge:hexOf(shade(cb,-.2))},0);
     if(kind==='bjørn')fp(t.i,circ(-4.9,7,.85,.8,14),{color:c0,kind:'water',t:.3,edge:cd},0);
     if(kind==='ræv'){const b=toCCW(sm([[-3.9,5.8,1],[-6.6,6],[-9.3,9.2],[-8.8,12.6,1],[-6.2,11.2],[-4.4,8.6]],6));fp(t.i,b,{t:.2,s:40,ed:c0,paint:P=>{P.wash(c0,b,{top:c1,edge:.6});P.wash(cb,circ(-8.6,11.6,1.7,1.9,14),{alpha:.97,edge:.4,mode:'source-over'})}},0)}
@@ -68,7 +73,9 @@ function makePet(o={}){const kind=DYR[o.kind]?o.kind:'kat',K={G:new THREE.Group(
       if(kind==='hund'||kind==='bjørn'){P.fill(circ(hx,hy-.75,.52,.4,12),MORK,1);P.pen(curve([[hx-.8,hy-1.6],[hx-.3,hy-1.85],[hx,hy-1.2],[hx+.3,hy-1.85],[hx+.8,hy-1.6]],8),MORK,.08,.9);if(kind==='hund')P.fill(toCCW(sm([[hx-.3,hy-1.75],[hx+.3,hy-1.75],[hx+.34,hy-2.5],[hx,hy-2.75],[hx-.34,hy-2.5]],4)),'#f08aa0',1)}
       if(kind==='enhjørning'||kind==='drage'||kind==='frø'){for(const sx of[-1,1])P.fill(circ(hx+sx*.55,hy-(kind==='frø'?.5:.95),.14,.11,8),hexOf(shade(c0,-.5)),.9);P.pen(curve([[hx-(kind==='frø'?2.4:1.3),hy-1.5],[hx,hy-(kind==='frø'?2.2:2)],[hx+(kind==='frø'?2.4:1.3),hy-1.5]],8),hexOf(shade(c0,-.6)),.1,.9);if(kind==='drage')P.fill([[hx+.7,hy-1.72],[hx+.95,hy-2.3],[hx+1.2,hy-1.62]],'#fbf6ea',1);for(const sx of[-1,1])P.wash('#ff9ab8',circ(hx+sx*2.3,hy-.9,.7,.45,10),{alpha:.5,edge:0,mode:'source-over'})}
       if(fugl)P.fill([[hx-.5,hy-.6],[hx+.5,hy-.6],[hx,hy-1.6]],'#e0a020',1);
+      if(kind==='næbdyr')for(const sx of[-1,1])P.wash('#ff9ab8',circ(hx+sx*2.5,hy-.4,.6,.4,10),{alpha:.45,edge:0,mode:'source-over'});
       for(let i=0;i<3;i++)P.pen([[hx-.5+i*.5,hy+2.3],[hx-.4+i*.45,hy+2.85]],cd,.1,.7)}},0);
+    if(kind==='næbdyr'){const nb=toCCW(sm([[hx-1.5,hy-.55],[hx+1.5,hy-.55],[hx+2.5,hy-1.9],[hx+2.4,hy-3.3,1],[hx,hy-3.7,1],[hx-2.4,hy-3.3,1],[hx-2.5,hy-1.9]],5));HP2(nb,{t:.3,s:60,ed:'#1e1a22',paint:P=>{P.wash('#3a3440',nb,{top:'#5a5464',edge:.5});P.wash('#6a6474',circ(hx,hy-1.4,1.6,.55,16),{alpha:.6,edge:.6,mode:'source-over'});for(const sx of[-1,1])P.fill(circ(hx+sx*.5,hy-1.15,.17,.11,8),'#14101a',1);P.pen(curve([[hx-2.2,hy-2.8],[hx,hy-3.1],[hx+2.2,hy-2.8]],8),'#1e1a22',.06,.8)}},.2)}
     K.lids=fgrp(HI);for(const sx of[-1,1]){fp(K.lids,circ(hx+sx*ex,eyY+.05,er*1.08,er*1.16,20),{color:fugl?cb:c0,kind:'water',t:.04,edge:fugl?cb:c0},.14);fps(thick([curve([[hx+sx*ex-.8,eyY-.1],[hx+sx*ex,eyY-.45],[hx+sx*ex+.8,eyY-.1]],8)],.09),{color:'#0f0c16',t:.03},K.lids,.18)}K.lids.visible=false}
   /* pynt på hovedet */
   if(pynt==='krone'){const pts=[[hx-1.5,hy+HH-.3],[hx+1.5,hy+HH-.3]];for(let i=0;i<=6;i++)pts.push([hx+1.7-3.4*i/6,hy+HH+(i%2?.7:1.9)]);HP2(toCCW(pts),{mat:gold(),t:.2},.2);HP2(circ(hx,hy+HH+.3,.3,.3,10),{t:.06,mat:paperMat('#ffffff','tissue',{glow:cc,gi:1.2})},.3)}
