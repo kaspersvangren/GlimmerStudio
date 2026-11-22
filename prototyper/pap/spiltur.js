@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
   const p = await b.newPage({ viewport: { width: 1280, height: 800 } });
   let fejl = 0; p.on('pageerror', e => { fejl++; console.log('FEJL', e.message, (e.stack || '').split('\n').slice(1, 3).join(' | ')) }); p.on('console', m => { if (m.type() === 'error' && !/GL Driver/.test(m.text())) { fejl++; console.log('konsol', m.text().slice(0, 300)) } });
   await p.route(/fonts\.googleapis/, r => r.fulfill({ path: __dirname + '/fonts-local.css', contentType: 'text/css' })); await p.route(/fonts\.gstatic/, r => r.abort());
-  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
+  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : r.request().url().includes('matter') ? '/../npm3/node_modules/matter-js/build/matter.min.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
   await p.goto('file://' + __dirname + '/testspil.html');
   await p.waitForFunction(() => document.getElementById('msg').classList.contains('gone'), null, { timeout: 120000 });
   const i = id => p.waitForFunction(id => __spil.room && __spil.room.id === id && document.getElementById('door').classList.contains('gone') && !document.getElementById('hjem').hidden, id, { timeout: 120000 });
@@ -58,7 +58,18 @@ const { chromium } = require('playwright');
   await p.evaluate(() => __spil.enter('tryl')); await i('tryl');
   { const r = await p.evaluate(() => { const T = __spil.room.ctx.test, b0 = __spil.bil; T.begynd(); T.frem(); T.spol(4); const s1 = T.tilstand(); T.tegn(s1.foes[0].bal[0]); T.spol(.6); const s2 = T.tilstand(); T.bid(); T.bid(); T.bid(); T.spol(3); return [s1.foes.length, s2.score, s2.forvandlet, b0, __spil.bil, T.tilstand().fase] }); await p.waitForTimeout(600);
     tjek('Trylletegning: tegn sprænger balloner, og spillet slutter med billetter', r[0] > 0 && r[1] > 0 && r[2] >= 1 && r[4] > r[3] && r[5] === 'vent', r); await p.click('#videre') }
+  await p.click('#hjem'); await i('arkade');
+  /* BoblePop: de bedste skud får bobler til at springe, og et fyldt bræt slutter spillet med billetter */
+  await p.evaluate(() => __spil.enter('boblepop')); await i('boblepop');
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test, G = T.G(), b0 = __spil.bil; T.spol(1.5); const n0 = T.tilstand().bobler; for (let k = 0; k < 8; k++) { T.skyd(T.bedst()[0]); T.spol(3) } const s1 = T.tilstand(); for (let k = 0; k < 14 && G.fase !== 'tabt' && G.fase !== 'vent'; k++) { T.nyRaekke(); T.spol(.3) } T.spol(3); return [n0, s1.skud, s1.score, b0, __spil.bil, T.tilstand().fase] }); await p.waitForTimeout(700);
+    tjek('BoblePop: skud lander, klynger springer, og spillet slutter med billetter', r[0] > 40 && r[1] === 8 && r[2] > 0 && r[4] > r[3] && r[5] === 'vent', r); await p.click('#videre') }
+  await p.click('#hjem'); await i('arkade');
+  /* Gribemaskinen: et forsøg koster en stjerne, og med stram fjeder og godt sigte kan man vinde */
+  await p.evaluate(() => __spil.enter('gribe')); await i('gribe');
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test; __spil.giv(12); const s0 = __spil.stj; let vandt = null, n = 0; for (; n < 10 && !vandt; n++) { T.spol(2.6); T.hold('h', true); T.saetGreb(.02); const x = T.sigtPaa(); for (let i = 0; i < 600 && T.S().tx < x - 55; i++)T.spol(.04); T.hold('h', false); T.spol(1.2); T.grib(); for (let i = 0; i < 400 && !T.S().vist; i++)T.spol(.1); vandt = T.tilstand().vandt; if (!vandt) { document.getElementById('videre').dispatchEvent(new PointerEvent('pointerdown')); T.nulstil() } } return [n, s0 - __spil.stj, vandt, (__spil.data.bamser || []).slice()] }); await p.waitForTimeout(900);
+    tjek('Gribemaskinen: hvert forsøg koster 1 stjerne, og en bamse kan vindes', r[0] === r[1] && r[2] && r[3].includes(r[2]), r); await p.screenshot({ path: __dirname + '/tur-gribe.png' }); await p.click('#videre') }
   await p.click('#hjem'); await i('arkade'); await p.click('#hjem'); await ude();
+  await p.evaluate(() => __spil.enter('kollegie')); await i('vaerelse'); await p.waitForTimeout(600); await p.screenshot({ path: __dirname + '/tur-bamse.png' }); await p.click('#hjem'); await ude();
   /* de nye effekter i Eliksirtimen kan startes og ryddes igen uden fejl */
   await p.evaluate(() => __spil.enter('gang')); await i('gang'); await p.evaluate(() => __spil.enter('eliksir')); await i('eliksir');
   for (const k of ['hjerter', 'bobler', 'blomster', 'regnbue', 'kilde', 'svaev']) { await p.evaluate(k => __spil.room.ctx.test.fx(k), k); await p.waitForTimeout(700) } tjek('effekterne kører', true);

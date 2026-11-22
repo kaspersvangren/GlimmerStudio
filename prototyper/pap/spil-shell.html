@@ -111,7 +111,7 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 @keyframes blink{50%{opacity:.3}}
 /* i Eliksirtimen taler professoren oppe til højre, så teksten ikke ligger over ilden og gryden */
 body[data-rum=eliksir] #toast{left:auto;right:max(12px,env(safe-area-inset-right,0px));transform:none;bottom:auto;top:calc(12px + env(safe-area-inset-top,0px));max-width:min(21vw,280px);text-align:left;font-size:18px}
-body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
+body[data-rum=gribe] #toast:not(.vent),body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
 @media (prefers-reduced-motion:reduce){#toast.vent::after{animation:none}}
 @media (max-height:520px){#fs,#bar{transform:scale(.8);transform-origin:0 0}#fs{top:calc(8px + env(safe-area-inset-top,0px))}#bar{top:calc(8px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 46px)}#hjem{font-size:17px}#door{font-size:24px}#toast{font-size:17px;bottom:calc(48px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#door{transition:none}#stj.hop{animation:none}}
@@ -133,6 +133,7 @@ body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-t
 <div id="door" class="gone" aria-live="polite"><span id="doorT"></span></div>
 <div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>
 <script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
 const msgN=document.getElementById('msgN');

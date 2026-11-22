@@ -111,7 +111,7 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 @keyframes blink{50%{opacity:.3}}
 /* i Eliksirtimen taler professoren oppe til højre, så teksten ikke ligger over ilden og gryden */
 body[data-rum=eliksir] #toast{left:auto;right:max(12px,env(safe-area-inset-right,0px));transform:none;bottom:auto;top:calc(12px + env(safe-area-inset-top,0px));max-width:min(21vw,280px);text-align:left;font-size:18px}
-body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
+body[data-rum=gribe] #toast:not(.vent),body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-top,0px))}
 @media (prefers-reduced-motion:reduce){#toast.vent::after{animation:none}}
 @media (max-height:520px){#fs,#bar{transform:scale(.8);transform-origin:0 0}#fs{top:calc(8px + env(safe-area-inset-top,0px))}#bar{top:calc(8px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 46px)}#hjem{font-size:17px}#door{font-size:24px}#toast{font-size:17px;bottom:calc(48px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#door{transition:none}#stj.hop{animation:none}}
@@ -133,6 +133,7 @@ body[data-rum=dyrepark] #toast{bottom:auto;top:calc(70px + env(safe-area-inset-t
 <div id="door" class="gone" aria-live="polite"><span id="doorT"></span></div>
 <div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>
 <script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
 const msgN=document.getElementById('msgN');
@@ -1675,7 +1676,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.23';
+const PAPVER='pap-0.24';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 const SPIL={look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
 try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
@@ -1746,7 +1747,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   let kanFil=typeof location!=='undefined'&&/^https?:$/.test(location.protocol)&&!/claude|anthropic/.test(location.hostname);
   const liste=(n,navn,fra=1)=>Array.from({length:n},(_,i)=>`${navn}-${i+fra}.mp3`);
   const FILER={'gnom.slag':liste(3,'gnom-slag'),'gnom.av':liste(7,'gnom-av'),'gnom.forbi':liste(8,'gnom-forbi'),'gnom.guld':['gnom-guld.mp3'],'gnom.kanin':['gnom-kanin.mp3'],'boble.tryk':['boble-tryk.mp3'],'boble.pop':['boble-pop.mp3'],
-    'koncert.ud':['koncert-ud.mp3'],'koncert.taeppe':liste(2,'koncert-taeppe'),'koncert.klap':['koncert-klap.mp3'],'nam':['tryl-nam.mp3'],'gave':['tryl-gave.mp3'],'fuser':['tryl-fuser.mp3'],'nyt':['tryl-nyt.mp3'],'vandt':['gribe-vandt.mp3'],'oev':['gribe-oev.mp3'],'boelge':['invader-boelge.mp3'],'ugle':['invader-ugle.mp3']};
+    'koncert.ud':['koncert-ud.mp3'],'koncert.taeppe':liste(2,'koncert-taeppe'),'koncert.klap':['koncert-klap.mp3'],'nam':['tryl-nam.mp3'],'gave':['tryl-gave.mp3'],'fuser':['tryl-fuser.mp3'],'nyt':['tryl-nyt.mp3'],'vandt':['gribe-vandt.mp3'],'gribe.motor':['gribe-motor.wav'],'gribe.ned':['gribe-ned.wav'],'gribe.luk':['gribe-luk.mp3'],'oev':['gribe-oev.mp3'],'boelge':['invader-boelge.mp3'],'ugle':['invader-ugle.mp3']};
   /* musikken: løkke = [start, slut] i sekunder (Kaspers valg fra det oprindelige spil). xf = sekunders overtoning hen over hoppet */
   const MUSIK={byen:{src:'byen.mp3',loop:[73.57294,133.61413]},kaelder:{src:'wizard-crypt.mp3',loop:[65.4,101.49313]},arkade:{src:'arcade-drift.mp3',loop:[37.612,117.9774],xf:.5},gnom:{src:'mole-pop.mp3',loop:[11.28151,65.60459],xf:.01},
     kost:{src:'broomstick-dash.mp3',loop:[13.56734,40.2358],xf:.01},fald:{src:'cloud-glide.mp3',loop:[64,138.03796],xf:1},invader:{src:'pixel-star-chase.mp3',loop:[26.7,65.86335]},skjold:{src:'orbital-ashes.mp3',loop:[71.6,100.8465]},gribe:{src:'moonbyte-drift.mp3',loop:[31.27969,106.37303],xf:.01},
@@ -1760,6 +1761,9 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   /* en effekt fra en fil; er den ikke hentet endnu (eller kan den ikke hentes), spilles den indbyggede lyd i stedet, og filen hentes til næste gang */
   const fil=(key,ellers,vol=1,rate=1)=>{const l=FILER[key],a=A();if(!a)return;if(!l||!kanFil){if(ellers)ellers();return}let i=Math.floor(Math.random()*l.length);if(l.length>1&&i===sidst[key])i=(i+1)%l.length;sidst[key]=i;const b=BUF[l[i]];
     if(!b){hent(l[i]).catch(()=>{});if(ellers)ellers();return}const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(a.destination);n.start()};
+  /* en lyd, der kører i ring, så længe noget holdes nede (motoren i Gribemaskinen). Svarer false, hvis filen ikke kan spilles, så kalderen selv kan lave en lyd */
+  const HOLDT={};const hold=(key,on)=>{const h=HOLDT[key];if(!on){if(h){try{h.g.gain.setTargetAtTime(0,h.a.currentTime,.03);h.n.stop(h.a.currentTime+.15)}catch(_){}delete HOLDT[key]}return true}if(h)return true;const l=FILER[key],a=A();if(!a||!l||!kanFil)return false;const b=BUF[l[0]];if(!b){hent(l[0]).catch(()=>{});return false}
+    const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.loop=true;g.gain.value=.5;n.connect(g);g.connect(a.destination);n.start();HOLDT[key]={n,g,a};return true};
   const forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
   /* musikken: ét nummer ad gangen plus et lag stemning. Skifter blødt */
   const lag={musik:{id:null,n:null,g:null,gen:0},stemning:{id:null,n:null,g:null,gen:0}};let musikVil=null,stemVil=null,slutFn=null;
@@ -1772,7 +1776,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)tone(660,880,.12,'triangle',.15);opfrisk();return til},
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
     musik(id){musikVil=id||null;slutFn=null;opfrisk()},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
-    status:()=>({musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,
+    status:()=>({musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('gnom.guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
     ding(){tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
@@ -2543,6 +2547,150 @@ const idle=()=>BAND.every(o=>!o.q.length);
   {const box_=document.getElementById('songs');for(const k in STY){if(k==='hygge')continue;const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.dataset.k=k;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>wish(k));box_.appendChild(b)}}
 
 ctx.room={scenes:[scene,live],ST}};
+/* ============ bamserne fra Gribemaskinen ============
+   De tyve bamser fra det oprindelige spil, bygget i papir: siddende tøjdyr med hoved, mave og fødder, og hver sit kendetegn.
+   Målene er de samme som i originalens tegning (ca. 60 høje, bunden i y = 34, y vokser nedad) og regnes om til rummets mål (20 til 1).
+   En bamse er mange små stykker papir, og i maskinen ligger der en hel bunke, som fysikken flytter rundt på. Derfor tegnes hver slags bamse én gang
+   til sit eget lille billede, og hver bamse i bunken er bare ét stykke med det billede på. Værelset bruger de samme billeder til de bamser, man har vundet. */
+const BAMSER=[{k:'bjoern',navn:'bamsebjørn',c:'#b5743a',c2:'#e8c8a0'},{k:'kat',navn:'kattebamse',c:'#a8a4c0',c2:'#f2eeff'},{k:'kanin',navn:'kaninbamse',c:'#f7f4ff',c2:'#ffc8dc'},{k:'drage',navn:'dragebamse',c:'#7ac86a',c2:'#f2e2a0'},
+  {k:'enhjoerning',navn:'enhjørningebamse',c:'#ffffff',c2:'#ff9fd0'},{k:'ugle',navn:'uglebamse',c:'#9c6a48',c2:'#f2e2c0'},{k:'froe',navn:'frøbamse',c:'#5ab85a',c2:'#c8f0a0'},{k:'spoegelse',navn:'spøgelsesbamse',c:'#f2eeff',c2:'#c8c4e8'},
+  {k:'ork',navn:'orkebamse',c:'#7aaa4a',c2:'#c8d890'},{k:'kentaur',navn:'kentaurbamse',c:'#a8703a',c2:'#e8c8a0',ch:'#f2c8a0',hair:'#5a3a1a'},{k:'grif',navn:'griffenbamse',c:'#d8a84a',c2:'#f2e2b0',ch:'#f7f4ff'},{k:'trold',navn:'troldebamse',c:'#8a9a6a',c2:'#d8c8a0',hair:'#e07a2a'},
+  {k:'foeniks',navn:'føniksbamse',c:'#ff7a2a',c2:'#ffd27a'},{k:'havfrue',navn:'havfruebamse',c:'#3fc7b4',c2:'#a8f0e4',ch:'#f7d2b8',hair:'#b05ae0'},{k:'pegasus',navn:'pegasusbamse',c:'#ffffff',c2:'#c8e8ff',hair:'#7ab8f0'},{k:'yeti',navn:'yetibamse',c:'#f2f6ff',c2:'#9ab8e8'},
+  {k:'minotaur',navn:'minotaurbamse',c:'#8a5a3a',c2:'#d8b890'},{k:'kraken',navn:'krakenbamse',c:'#9a5ad8',c2:'#e0c0ff'},{k:'ilddrage',navn:'ilddragebamse',c:'#e0503a',c2:'#ffd27a',base:'drage',wing:'#b8302a'},{k:'isdrage',navn:'isdragebamse',c:'#7ac8f0',c2:'#e8f8ff',base:'drage',wing:'#4a98d0'}];
+function bygBamse(G,k0){const b=BAMSER.find(x=>x.k===k0)||BAMSER[0],k=b.base||b.k,c=b.c,c2=b.c2,ch=b.ch||c,MK='#1a1238',u=.05;let z=0;
+  const lag=(sh,col,o={})=>{z+=.02;return put(G,piece(toCCW(sh.map(([x,y])=>[x*u,-y*u])),Object.assign({color:col,kind:'water',t:.05,edge:hexOf(shade(col,-.45))},o)),0,0,z)};
+  const el=(cx,cy,rx,ry,col,o)=>lag(circ(cx,cy,rx,ry,Math.max(10,Math.round((rx+ry)*.7))),col,o);
+  const st=(pts,w,col)=>{z+=.02;for(const q of thick([pts.map(([x,y])=>[x*u,-y*u])],w*u))put(G,piece(q,{color:col,kind:'water',t:.03}),0,0,z)};
+  const spejl=(pts,col,o)=>{lag(pts,col,o);lag(pts.map(([x,y,s])=>[-x,y,s]),col,o)},sy=()=>{for(let y=9;y<30;y+=7)st([[0,y],[0,y+3]],.8,hexOf(shade(c2,-.22)))};
+  if(k==='spoegelse'){lag(sm([[-26,34,1],[-26,-6],[-20,-28],[0,-36],[20,-28],[26,-6],[26,34,1],[17,27],[9,34,1],[0,27],[-9,34,1],[-17,27]],6),c,{t:.08});for(const s of[-1,1]){el(s*9,-6,4,6,MK);el(s*16,4,4,4,'#ffb8d0')}el(0,8,5,4,MK);return G}
+  /* det, der sidder bag kroppen: vinger og haler */
+  if(k==='drage'){spejl([[20,6],[40,-8],[34,10]],b.wing||'#5aa84a');st([[20,24],[30,27],[35,22],[34,14]],4,c)}
+  if(k==='grif')spejl(sm([[18,4,1],[36,-2],[45,8],[40,18],[30,22,1],[34,14],[26,9],[18,12,1]],4),'#9a6a3a');
+  if(k==='pegasus')spejl(sm([[18,6,1],[32,-8],[44,-4],[46,8],[34,16,1],[36,8],[28,4],[18,12,1]],4),'#e8f4ff');
+  if(k==='foeniks'){spejl(sm([[18,6,1],[34,-6],[42,6],[28,18,1]],4),'#e0402a');lag(sm([[16,26,1],[32,29],[40,22],[38,10,1],[33,19],[22,20,1]],4),'#ffd27a')}
+  if(k==='kentaur')lag(sm([[20,20,1],[34,22],[38,32],[32,42,1],[28,32],[18,28,1]],4),b.hair);
+  if(k==='trold'){st([[20,26],[30,29],[33,36],[32,40]],2.4,c);el(33,40,4,4,b.hair)}
+  /* krop med mave og fødder (havfruen har en fiskehale, kraken arme) */
+  el(0,16,24,19,c,{t:.08});el(0,19,13,11,c2);
+  if(k==='havfrue'){lag(sm([[-6,30,1],[-22,34],[-25,43],[-20,46,1],[-12,40],[0,36,1],[12,40],[20,46,1],[25,43],[22,34],[6,30,1]],4),c);for(const[x,y]of[[-6,14],[6,14],[0,22]])st([[x-4,y],[x,y+2.4],[x+4,y]],1.1,hexOf(shade(c,-.3)))}
+  else if(k==='kraken'){for(const[x0,y0,x1,y1,x2,y2]of[[-20,26,-28,34,-22,41],[-8,32,-11,41,-5,44],[8,32,11,41,5,44],[20,26,28,34,22,41]])st([[x0,y0],[x1,y1],[x2,y2]],5,c);for(const[x,y]of[[-8,20],[0,24],[8,20]])el(x,y,2,2,c)}
+  else for(const s of[-1,1])el(s*14,32,9,5,c);
+  if(k==='yeti')for(const s of[-1,1])for(const y of[10,20])lag([[s*23,y-3],[s*29,y+1],[s*23,y+4]],c);
+  /* ører, horn og hår bag hovedet */
+  if(k==='bjoern')for(const s of[-1,1]){el(s*16,-30,8,8,c);el(s*16,-30,4,4,c2)}
+  if(k==='kat')spejl([[20,-22],[16,-42],[4,-30]],c);
+  if(k==='kanin')for(const s of[-1,1]){el(s*9,-44,6,17,c);el(s*9,-44,3,11,c2)}
+  if(k==='ugle')spejl([[20,-20],[18,-40],[6,-28]],c);
+  if(k==='drage')spejl([[10,-32],[14,-44],[6,-38]],c2);
+  if(k==='enhjoerning'){lag(sm([[-16,-30,1],[-25,-18],[-23,-6],[-20,0,1],[-13,-14],[-4,-30,1]],4),c2);lag([[-4,-34],[0,-54],[4,-34]],'#f2c14e');spejl([[14,-28],[18,-38],[10,-34]],c)}
+  if(k==='ork')spejl([[19,-18],[40,-26],[22,-6]],c);
+  if(k==='trold'){lag([[-10,-34],[-16,-46],[-8,-42],[-6,-54],[0,-44],[6,-54],[6,-42],[14,-46],[8,-34]],b.hair);for(const s of[-1,1])el(s*22,-14,6,6,c)}
+  if(k==='kentaur'||k==='pegasus')spejl([[18,-26],[16,-42],[6,-32]],k==='pegasus'?c:'#a8703a');
+  if(k==='havfrue')spejl(sm([[22,-18,1],[29,0],[27,14],[20,20,1],[17,4],[12,-12,1]],4),b.hair);
+  if(k==='yeti')spejl(sm([[14,-32,1],[19,-42],[16,-48,1],[13,-40],[6,-36,1]],3),'#f2e2c0');
+  if(k==='minotaur'){spejl(sm([[16,-28,1],[30,-31],[35,-42],[30,-50,1],[27,-42],[20,-38],[10,-36,1]],4),'#f2e8d0');for(const s of[-1,1])el(s*23,-18,8,4,c)}
+  if(k==='grif')spejl([[14,-30],[18,-42],[10,-36]],ch);
+  if(k==='foeniks'){lag(sm([[-8,-34,1],[-11,-45],[-4,-58,1],[1,-46],[0,-36,1],[5,-45],[10,-52,1],[11,-42],[6,-32,1]],3),'#ffb02e');lag([[-3,-36],[-1,-50],[1,-36]],'#fff0a0')}
+  /* hovedet */
+  if(k==='froe'){el(0,-12,25,17,c,{t:.08});for(const s of[-1,1]){el(s*11,-28,9,9,c);el(s*11,-28,4,4,MK);el(s*11+1.4,-29.4,1.3,1.3,'#ffffff');el(s*16,-10,4,4,'#ffb8d0')}st([[-14,-8],[-7,-3],[0,-1.5],[7,-3],[14,-8]],2.2,MK)}
+  else if(k==='yeti'){const p=[];for(let i=0;i<22;i++){const a=i/22*TAU,r=i%2?26:21;p.push([Math.cos(a)*r,-13+Math.sin(a)*r*.95])}lag(p,c,{t:.08});el(0,-12,13,11,c2)}
+  else el(0,-14,22,22,ch,{t:.08});
+  if(k==='kentaur')lag(sm([[-22,-12,1],[-23,-30],[-6,-39],[8,-36],[22,-26],[22,-12,1],[14,-24],[-4,-27],[-16,-21]],4),b.hair);
+  if(k==='havfrue'){lag(sm([[-22,-12,1],[-22,-32],[0,-38],[22,-32],[22,-12,1],[12,-25],[-4,-27]],4),b.hair);el(12,-30,4,4,'#ff8fc7')}
+  if(k==='pegasus')lag(sm([[-8,-34,1],[2,-41],[14,-32,1],[4,-33],[-2,-28,1]],3),b.hair);
+  if(k==='kraken')for(const[x,y,r]of[[-12,-26,3],[10,-30,2.4],[14,-22,2]])el(x,y,r,r,c2);
+  /* ansigtet */
+  if(k==='ugle'){for(const s of[-1,1]){el(s*9,-16,9,9,c2);el(s*9,-16,4,4,MK);el(s*9+1.2,-17.4,1.2,1.2,'#ffffff')}lag([[-4,-6],[4,-6],[0,2]],'#f2a040')}
+  else if(k!=='froe'){const naeb=k==='grif'||k==='foeniks',snude=k==='bjoern'||k==='drage'||k==='minotaur';
+    for(const s of[-1,1]){el(s*8,-16,3.4,3.4,MK);el(s*8+1,-17,1.1,1.1,'#ffffff');el(s*15,-8,4,4,'#ffb8d0')}
+    if(k==='ork'||k==='trold'||k==='minotaur')for(const s of[-1,1])st([[s*13,-23],[s*4,-20]],2.4,MK);
+    if(naeb)lag([[-6,-9],[6,-9],[0,2]],'#f2a040');
+    else if(k==='trold'){el(0,-7,7,6,c2);st([[-6,1],[0,3.4],[6,1]],1.6,MK)}
+    else{if(snude)el(0,-6,8,6,k==='drage'?hexOf(shade(c,.25)):c2);lag([[-3,-8],[3,-8],[0,-5]],k==='kanin'||k==='kat'?'#ff8fb0':MK);st([[-7,-4],[-3.5,-2.6],[0,-5],[3.5,-2.6],[7,-4]],1.6,MK)}
+    if(k==='ork')for(const x of[-5,5])lag([[x-2,-3],[x,-9],[x+2,-3]],'#fffff0');
+    if(k==='minotaur')st(Array.from({length:15},(_,i)=>[Math.cos(i/14*TAU)*4,-1+Math.sin(i/14*TAU)*4]),1.6,'#f2c14e')}
+  if(k==='kat')for(const s of[-1,1])for(const y of[-8,-4])st([[s*20,y],[s*30,y]],1.1,MK);
+  sy();return G}
+/* et stykke papir-tegning lavet om til ét billede: byg(G) bygger tegningen, og udsnittet x0..x1, y0..y1 kommer med. Bruges til ting, der er mange af (bamser, bobler) */
+function papBillede(ctx,byg,{px=256,x0=-1,x1=1,y0=-1,y1=1}={}){const sc=new THREE.Scene(),G=new THREE.Group();sc.add(G);sc.environment=ctx.env;sc.environmentIntensity=.35;sc.add(new THREE.HemisphereLight('#fff8ee','#8a7a6c',1.25));{const d=new THREE.DirectionalLight('#fff0dc',2);d.position.set(-30,50,90);sc.add(d)}
+  byg(G);const cam=new THREE.OrthographicCamera(x0,x1,y1,y0,1,100);cam.position.set(0,0,50);cam.lookAt(0,0,0);cam.updateProjectionMatrix();
+  const rt=new THREE.WebGLRenderTarget(px,px,{samples:4}),farve=new THREE.Color(),foer=renderer.getRenderTarget(),a=renderer.getClearAlpha(),ac=renderer.autoClear,tm=renderer.toneMapping;renderer.getClearColor(farve);renderer.autoClear=true;renderer.setClearColor('#000000',0);renderer.setRenderTarget(rt);renderer.render(sc,cam);renderer.setRenderTarget(foer);renderer.autoClear=ac;renderer.setClearColor(farve,a);renderer.toneMapping=tm;
+  sc.traverse(q=>{if(q.geometry)q.geometry.dispose()});sc.clear();return rt}
+const papBilledeMat=rt=>new THREE.MeshBasicMaterial({map:rt.texture,transparent:true,alphaTest:.35,premultipliedAlpha:true,toneMapped:false});
+/* billedet af en bamse: 5,8 × 5,8 i rummets mål, med bamsens midte (0, 0) lidt under billedets midte. Gemmes, så hver slags kun tegnes én gang */
+const BAMSEBILLEDER=new Map(),BAMSEMAAL={b:5.8,dy:.3};
+function bamseBillede(ctx,k){if(BAMSEBILLEDER.has(k))return BAMSEBILLEDER.get(k);const h=BAMSEMAAL.b/2,rt=papBillede(ctx,G=>bygBamse(G,k),{x0:-h,x1:h,y0:-h+BAMSEMAAL.dy,y1:h+BAMSEMAAL.dy});BAMSEBILLEDER.set(k,rt);return rt}
+const bamseRyd=()=>{for(const rt of BAMSEBILLEDER.values())rt.dispose();BAMSEBILLEDER.clear()};
+/* ét stykke med bamsens billede på. s er størrelsen (1 = som tegnet, ca. 3 høj) */
+function bamseStykke(ctx,k,s=1){const rt=bamseBillede(ctx,k),m=new THREE.Mesh(new THREE.PlaneGeometry(BAMSEMAAL.b*s,BAMSEMAAL.b*s),papBilledeMat(rt));m.position.y=BAMSEMAAL.dy*s;m.userData.noShadow=true;const G=new THREE.Group();G.add(m);G.userData.ryd=()=>{m.geometry.dispose();m.material.dispose()};return G}
+
+/* ============ bosserne i Trylletegning ============
+   Hver femte runde kommer et stort, mytisk væsen svævende ind over haven og kaster ting efter kagen: Kongetrolden, Ildfuglen, Isdragen og Kæmpeblæksprutten.
+   Her er kun tegningerne i papir (ca. 20 høje, midten i 0,0). Reglerne står i rum-tryl.js.
+   Hver boss har to ansigter: det almindelige, og det svimle (spiral-øjne og tungen ud), som den får, når man har tryllet alt det væk, den kastede. */
+const TRYLBOSS=(()=>{const MK='#1a1238';
+  const mk=G=>{let z=0;const W=(sh,col,o={})=>{z+=.06;return put(G,piece(toCCW(sh),Object.assign({color:col,kind:'water',t:.16,edge:hexOf(shade(col,-.4))},o)),0,0,z)},
+    Wp=(sh,col)=>{z+=.2;const s2=toCCW(sh),m=put(G,piece(s2,{t:.3,s:20,paint:P=>P.wash(col,s2,{top:hexOf(shade(col,.2)),edge:.7,clouds:4})}),0,0,z);z+=.12;return m},
+    S=(pts,w,col)=>{z+=.06;for(const q of thick([pts],w))put(G,piece(q,{color:col,kind:'water',t:.1}),0,0,z)},E=(x,y,rx,ry,col,o)=>W(circ(x,y,rx,ry,Math.max(12,Math.round((rx+ry)*5))),col,o);return{W,Wp,S,E,get z(){return z}}};
+  /* øjnene (vrede bryn) og det svimle ansigt (spiraler og tunge) i hver sin gruppe, så man kan skifte imellem dem */
+  const ansigt=(G,z,oj,[tx,ty,tw])=>{const nor=new THREE.Group(),svim=new THREE.Group();nor.position.z=svim.position.z=z+.1;G.add(nor,svim);svim.visible=false;const L=(par,sh,col,dz,t=.06)=>put(par,piece(toCCW(sh),{color:col,kind:'water',t}),0,0,dz);
+    for(const[x,y,r]of oj){const s=Math.sign(x)||1;L(nor,circ(x,y,r,r*1.05,18),'#ffffff',0);L(nor,circ(x-s*.1,y-.08,r*.55,r*.6,14),MK,.06);L(nor,circ(x-s*.1+r*.2,y+r*.2,r*.2,r*.2,8),'#ffffff',.12,.03);for(const q of thick([[[x-s*r*1.1,y+r*.75],[x+s*r*.5,y+r*1.5]]],r*.3))L(nor,q,MK,.14);
+      L(svim,circ(x,y,r*1.15,r*1.15,18),'#ffffff',0);const sp=[];for(let i=0;i<=24;i++){const a=i/24*Math.PI*4,rr=r*i/24;sp.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr])}for(const q of thick([sp],r*.16))L(svim,q,MK,.06)}
+    L(svim,sm([[tx-tw,ty,1],[tx+tw,ty,1],[tx+tw,ty-tw*1.3],[tx,ty-tw*1.9],[tx-tw,ty-tw*1.3]],4),'#ff6f9a',.02);for(const q of thick([[[tx,ty-.15],[tx,ty-tw*1.2]]],.1))L(svim,q,'#d84a78',.08);return{nor,svim}};
+  const B={
+    /* Kongetrolden: grøn trold med krone og vest, på en sky, med en sæk bomber under armen */
+    trold(G){const o=mk(G),{W,Wp,S,E}=o,g='#7ab84a',g2='#5a9a34',v='#8a5a9a';
+      Wp(puff(0,-6.8,8.6,2.5,12,.2),'#f7f4ff');
+      Wp(sm([[-9.5,-1,1],[-10.4,-3.6],[-9.4,-5.4],[-7,-5.6],[-4.6,-5],[-4.4,-2.6],[-5.2,-1,1]],5),'#b8864a');for(const[x,y]of[[-8.4,-.3],[-7,.1],[-5.9,-.4]]){E(x,y,.8,.8,'#2a2438');E(x-.25,y+.25,.2,.2,'#6a6280')}
+      S([[-4.6,-1.8],[-5.6,-2.5],[-6.6,-2.1]],1.2,g);S([[4.8,-.5],[6.5,1],[7.6,2.6]],1.3,g);E(8,3.5,1.05,1.05,g);
+      Wp(circ(0,-2,5.6,4.4,40),g);for(const s of[-1,1])W(sm([[s*5,0,1],[s*4.3,-3.6],[s*2,-5.9],[s*1.5,-6,1],[s*2,-.5,1]],4),v);E(0,-3,2.3,2,'#a8d878');for(const[x,y]of[[-3,-2.3],[-3.7,-3.8],[3,-2.3],[3.7,-3.8]])E(x,y,.26,.26,'#ffd23e');
+      for(const s of[-1,1]){W([[s*3.6,5.4],[s*8.4,6.8],[s*4.4,2.8]],g);W([[s*4.4,5],[s*7,5.9],[s*4.8,3.6]],g2)}
+      Wp(circ(0,4.2,4.7,4,40),g);W([[-2.6,7.4],[-3,9.6],[-1.5,8.6],[0,10],[1.5,8.6],[3,9.6],[2.6,7.4]],'#ffd23e');for(const x of[-1.5,0,1.5])E(x,8.1,.28,.28,'#e0304a');
+      S(curve([[-2.4,2.4],[0,1.5],[2.4,2.4]],8),.28,MK);for(const s of[-1,1])W([[s*1.5,2],[s*1.1,3.1],[s*.7,1.8]],'#fffff0');E(0,3.9,1.5,1.2,g2);
+      return ansigt(G,o.z,[[-1.9,5.5,.95],[1.9,5.5,.95]],[0,1.6,.7])},
+    /* Ildfuglen: orange og rød, med vinger og hale af flammer */
+    foenix(G){const o=mk(G),{W,Wp,S,E}=o,a='#ff7a2a',r='#e0402a',y='#ffd27a';
+      for(const s of[-1,1]){Wp(sm([[s*2,1.5,1],[s*6,5],[s*9.8,4.2],[s*8.6,2],[s*10,.2],[s*7.6,-.2],[s*8,-2.4],[s*5.2,-1.8],[s*2,-3,1]],5),r);W(sm([[s*2.4,.8,1],[s*5.6,3.2],[s*7.6,2.6],[s*6.6,.8],[s*7,-.8],[s*4.6,-.9],[s*2.4,-2,1]],5),'#ff9a3a')}
+      for(const[x,c,l]of[[-2.2,'#ffb02e',8.4],[2.2,'#ffb02e',8.4],[0,y,9.6]])W(sm([[x-.9,-4,1],[x+.9,-4,1],[x*1.5+.7,-(l-2)],[x*1.6,-l,1],[x*1.5-.7,-(l-2)]],4),c);
+      for(const s of[-1,1])S([[s*1.5,-5.4],[s*1.7,-6.5]],.4,'#f2a040');
+      Wp(circ(0,-1,4.2,5,40),a);E(0,-2,2.6,3.2,y);
+      for(const[x,h,c]of[[-1.3,8.6,'#ffb02e'],[1.3,8.6,'#ffb02e'],[0,10,'#fff0a0']])W(sm([[x-.7,6.6,1],[x+.7,6.6,1],[x+.3,h-.8],[x-.2,h,1],[x-.5,h-1.2]],3),c);
+      Wp(circ(0,4.6,3.4,3.4,36),a);for(const s of[-1,1])E(s*2.4,3.8,.7,.7,'#ffb8a0');W([[-1,4.2],[1,4.2],[0,2.3]],'#f2a040');
+      return ansigt(G,o.z,[[-1.4,5.5,.85],[1.4,5.5,.85]],[0,2.4,.5])},
+    /* Isdragen: lyseblå, med horn af is og vinger */
+    isdrage(G){const o=mk(G),{W,Wp,S,E}=o,b='#7ac8f0',b2='#4a98d0',h='#e8f8ff';
+      for(const s of[-1,1]){Wp(sm([[s*2.4,1,1],[s*5,6.4,1],[s*9.8,5.4],[s*8.8,3.2],[s*9.6,1],[s*7.4,1.2],[s*7.2,-1],[s*4.8,-.2],[s*2.4,-2.4,1]],4),b2);for(const[x,y]of[[7.6,3.6],[6.4,.8]])S([[s*3,1.2],[s*x,y]],.16,'#2a6aa0')}
+      S(curve([[2.6,-5],[6.4,-6.6],[8.6,-4.6],[7.6,-2.6]],10),1.5,b);W([[7,-2.8],[8.4,-1.2],[8.4,-3.2]],h);
+      for(const s of[-1,1])E(s*2.6,-6.5,1.5,.8,b);
+      Wp(circ(0,-2,4.6,4.8,40),b);E(0,-2.8,2.8,3.2,h);for(const y of[-1.4,-2.8,-4.2])S([[-1.8,y],[1.8,y]],.12,'#b8dcf0');
+      for(const s of[-1,1]){S([[s*4.2,-1.2],[s*5.6,-2.6]],1.1,b);E(s*5.8,-2.9,.75,.75,b)}
+      for(const s of[-1,1]){W([[s*1.6,7],[s*3.4,10.4],[s*3,6.4]],h);W([[s*3.6,5.6],[s*5.8,6.4],[s*3.9,4.2]],b)}
+      Wp(circ(0,4.4,4,3.6,38),b);E(0,3,2.4,1.7,'#a8dcf8');for(const s of[-1,1])E(s*.8,3.4,.22,.3,'#2a6aa0');
+      S(curve([[-1.6,2.3],[0,1.9],[1.6,2.3]],6),.22,MK);for(const s of[-1,1])W([[s*1.2,2.2],[s*.9,1.3],[s*.6,2.1]],'#ffffff');W([[-.5,7.7],[0,8.9],[.5,7.7]],h);
+      return ansigt(G,o.z,[[-1.6,5.4,.85],[1.6,5.4,.85]],[0,1.5,.55])},
+    /* Kæmpeblæksprutten: lilla, med tiara og seks arme */
+    kraken(G){const o=mk(G),{W,Wp,S,E}=o,p='#9a5ad8',p2='#e0c0ff';
+      for(const[x0,x1,x2,y2,cx]of[[-4.4,-7.4,-9.2,-3.4,-8],[-2.8,-4.4,-5.6,-8,-4.2],[-1,-1.4,-1.8,-9,-.6],[1,1.4,1.8,-9,.6],[2.8,4.4,5.6,-8,4.2],[4.4,7.4,9.2,-3.4,8]])S(curve([[x0,-1],[x1,-5],[x2,y2],[cx,y2+1.6]],12),1.15,p);
+      for(const[x,y]of[[-7.6,-4.2],[-4.8,-6.4],[-1.6,-7],[1.6,-7],[4.8,-6.4],[7.6,-4.2]])E(x,y,.28,.28,p2);
+      Wp(sm([[-5.6,-1,1],[-6.2,3],[-4.4,7.4],[0,9],[4.4,7.4],[6.2,3],[5.6,-1,1],[3,-2],[0,-1.6],[-3,-2]],6),p);for(const[x,y,r]of[[-3.6,6.2,.8],[3,7,.6],[4.4,4.6,.5],[-4.6,3.4,.45]])E(x,y,r,r,p2);
+      W([[1,8.4],[1.6,10.4],[2.6,9.2],[3.6,10.2],[4.2,7.8]],'#ffd23e');E(2.6,8.8,.3,.3,'#7fd8ff');
+      S(curve([[-1.8,1],[0,.2],[1.8,1]],8),.26,MK);for(const s of[-1,1])E(s*3.8,2,.8,.6,'#ff9fd0');
+      return ansigt(G,o.z,[[-2,3.6,1.1],[2,3.6,1.1]],[0,.2,.6])}};
+  /* det, de kaster: stinkbombe, flamme, isklump og blækklat */
+  const skud=(G,k)=>{const{W,Wp,S,E}=mk(G);
+    if(k==='bombe'){Wp(circ(0,0,1.9,1.9,28),'#2a2438');E(-.6,.6,.45,.45,'#6a6280');W(box(-.4,1.7,.4,2.3),'#6a6280');S(curve([[0,2.3],[.5,3],[1.1,3.1]],6),.16,'#c8a868')}
+    else if(k==='ild'){Wp(sm([[0,-2,1],[1.7,-1],[1.9,.6],[1,1.4],[1.3,2.6,1],[.2,2],[-.4,3,1],[-1.1,1.6],[-1.9,.6],[-1.7,-1]],5),'#ff7a2a');W(sm([[0,-1.4,1],[1,-.6],[1,.5],[.2,1.4,1],[-.9,.5],[-1,-.6]],4),'#ffd27a')}
+    else if(k==='is'){const p=[];for(let i=0;i<12;i++){const a=i/12*TAU,r=i%2?1.5:2.3;p.push([Math.cos(a)*r,Math.sin(a)*r])}Wp(p,'#bfe8ff');const q=[];for(let i=0;i<6;i++){const a=i/6*TAU+.5;q.push([Math.cos(a)*1.3,Math.sin(a)*1.3])}W(q,'#ffffff')}
+    else{Wp(puff(0,0,2,1.9,9,.24),'#6a3a9a');for(const[x,y,r]of[[1.7,-1.5,.5],[-1.9,-1,.4],[.4,-2.2,.35]])E(x,y,r,r,'#6a3a9a');E(-.6,.7,.45,.3,'#b07aff')}return G};
+  /* skiltet med tegnet, som sidder på det, der kastes */
+  const skilt=(G,sym)=>{const T=TRYL_TEGN[sym];put(G,piece(circ(0,0,1.3,1.3,22),{color:'#ffffff',kind:'water',t:.06,edge:MK}),0,0,0);for(const q of thick([T.p.map(([x,y])=>[x*.72,-y*.72])],.3))put(G,piece(q,{color:T.c,kind:'water',t:.05}),0,0,.08);return G};
+  /* pynten, bossen får på, hver gang den bliver ramt: sløjfe, hjerte eller blomst */
+  const pynt=(G,p)=>{const L=(sh,col,z)=>put(G,piece(toCCW(sh),{color:col,kind:'water',t:.1,edge:MK}),0,0,z);
+    if(p==='sloejfe'){for(const s of[-1,1])L([[0,0],[s*1.5,.9],[s*1.5,-.9]],'#ff5fa8',0);L(circ(0,0,.45,.45,10),'#ff9fc8',.1)}
+    else if(p==='hjerte'){const h=[];for(let i=0;i<24;i++){const q=i/24*TAU;h.push([.9*16*Math.pow(Math.sin(q),3)/17,.9*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17])}L(h,'#ff4f7b',0)}
+    else{for(let j=0;j<5;j++)L(circ(Math.cos(j*1.256)*.55,Math.sin(j*1.256)*.55,.45,.45,10),'#ffffff',j*.01);L(circ(0,0,.4,.4,10),'#ffd23e',.1)}return G};
+  return{byg:(G,k)=>B[k](G),skud,skilt,pynt}})();
+
 /* ============ et billede af en ting, man har fået: en rund medaljon med selve tingen i ============
    Tingen bygges af de samme papirdele som den rigtige (heksen med den nye hat på, kæledyret med sløjfen, sengen fra Værelset)
    og tegnes i sit eget lille billede, som sidder på en rund skive. Bruges i Boblebutikken, og kan bruges alle steder, hvor man får noget. */
@@ -2576,7 +2724,7 @@ function visVare(w,ctx,Rm,o={}){const[k,v]=w,px=o.px||640,sc=new THREE.Scene(),I
 
 /* ============ Arkaden: hallen med de fem maskiner. Bank en gnom kan spilles; de andre åbner senere ============ */
 ROOMS.arkade=function(ctx){
-  const M=[{id:'gnom',navn:'Bank en gnom',x:-35.6,rum:'gnom'},{id:'skjold',navn:'Stjerneskjoldet',x:-19.2,body:'#3a4aa8',trim:'#7fd8ff'},{id:'boblepop',navn:'BoblePop',x:-5.4,body:'#7a2a8a',trim:'#ff8fc7'},{id:'tryl',navn:'Trylletegning',x:8.4,body:'#2a1c78',trim:'#ffd86b',rum:'tryl'},{id:'gribe',navn:'Gribemaskinen',x:23,rum:'gribe'},{id:'praemie',navn:'Præmier',x:38.4,rum:'praemie'}];
+  const M=[{id:'gnom',navn:'Bank en gnom',x:-35.6,rum:'gnom'},{id:'skjold',navn:'Stjerneskjoldet',x:-19.2,body:'#3a4aa8',trim:'#7fd8ff'},{id:'boblepop',navn:'BoblePop',x:-5.4,body:'#7a2a8a',trim:'#ff8fc7',rum:'boblepop'},{id:'tryl',navn:'Trylletegning',x:8.4,body:'#2a1c78',trim:'#ffd86b',rum:'tryl'},{id:'gribe',navn:'Gribemaskinen',x:23,rum:'gribe'},{id:'praemie',navn:'Præmier',x:38.4,rum:'praemie'}];
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:-8,tx:-8,ph:0,amp:0,face:1,want:null};let heks,kat,gone=false;
   const hit=(g,m,w,h,y)=>{const hb=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(m.x,y,-2);g.add(hb);Rm.tap(hb,()=>{W0.tx=m.x+(m.x>0?-9:9)*(m.rum?0:0)+0;W0.want=m})};
   const Rm=makeRoom(ctx,{bg:'#0c0816',fit:fitBox(90,50,0,20.5),sky:'#b0a0ff',ground:'#2a2040',amb:.38,key:{col:'#e8d8ff',i:1.4,tgt:[0,16,0]},
@@ -2667,6 +2815,161 @@ ROOMS.gnom=function(ctx){
       ryst=Math.max(0,ryst-dt);Rm.live.position.set(ryst?Math.sin(t*90)*ryst*2.2:0,ryst?Math.cos(t*70)*ryst*2.8:0,0);
       for(const b of bonk){b.t+=dt*1.5;if(b.t>1){b.s.visible=false;continue}b.s.visible=true;const p=Math.min(1,b.t*5),s=(1.1+.25*Math.sin(p*Math.PI))*11;b.s.position.set(b.x,b.y+b.t*5,b.z);b.s.scale.set(s*1.75,s/2,1);b.s.material.opacity=b.t<.6?1:1-(b.t-.6)/.4}}});
   ctx.test={start:begynd,state:()=>({sc,left:Math.round(left),on,over}),hitAll:()=>{for(const o of G)if(o.up>.4&&!o.hit&&!o.svim&&!o.kanin){slaa(o.x,o.ry+6.4,o.rz,true);ramGnom(o)}},op:(n=4,kanin=-1)=>{G.slice(0,n).forEach((o,i)=>{o.want=1;o.t=9;o.kanin=i===kanin;o.kn.visible=o.kanin;o.gn.visible=!o.kanin})},ram:i=>{const o=G[i];slaa(o.x,o.ry+6.4,o.rz,true);if(o.kanin)ramKanin(o);else ramGnom(o)},G}};
+
+/* ============ BoblePop (Arkaden) ============
+   Kaspers ønske (22. nov.): en bubble shooter i stedet for Hekse-invaders, med 3 eller flere i en klynge, og kræfter, der falder ned.
+   Bobler i seks farver hænger i et net under loftet. Man sigter med fingeren (en stiplet linje viser vejen, også via væggen) og slipper for at skyde.
+   Rammer boblen en klynge, så der er 3 eller flere af samme farve, springer de. Bobler, der ikke længere hænger fast i loftet, falder ned og giver ekstra.
+   Skyder man forbi nogle gange i træk, kommer der en ny række ned fra loftet. Når en boble når den stiplede snor forneden, er spillet slut.
+   I nogle bobler sidder en kraft. Når boblen springer eller falder, falder kraften ned i kanonen:
+     bombe (sprænger alt omkring sig), regnbue (passer til alle farver), lyn (fjerner en hel række) og sigte (viser hele vejen i seks skud).
+   Kæledyret sidder med den næste boble; trykker man på det, bytter de to bobler plads. Er alle bobler væk, kommer næste bane med flere rækker og farver.
+   Billetter: 1 + point delt med 250, højst 40. */
+ROOMS.boblepop=function(ctx){
+  const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),R0=1.55,D=R0*2,RH=R0*Math.sqrt(3),COLS=11,TOPY=41.4,MAXR=11,X0=-(COLS-1)*R0,WL=-COLS*R0,WR=COLS*R0,KX=0,KY=4.6,NX=-8.2,NY=2.9,LINEY=TOPY-R0-(MAXR-1)*RH-R0-.4,V=75;
+  const FARVER=['#ff6fa8','#4aa8ff','#ffc21e','#5fc86a','#a070ff','#ff8a3d'],KRAFT={bombe:'Bombe',regnbue:'Regnbue',lyn:'Lyn',sigte:'Sigte'},KFARVE={bombe:'#ff7a3a',regnbue:'#ff8fc7',lyn:'#ffd86b',sigte:'#3fc7b4'};
+  const rnd=(a,b)=>a+Math.random()*(b-a),vaelg=a=>a[Math.floor(Math.random()*a.length)],v3=new THREE.Vector3();
+  let G=null,lag,lg,W_=1,H_=1,heks,kat,kanon,hud,ht,sigt=Math.PI/2,sigter=false,hopH=0,hopK=0,lamper=[],hylde=[],geo,geoK;const TEX={};
+  /* ---------- billederne: hver slags boble tegnes én gang i papir og bruges som ét stykke ---------- */
+  const hjerte=(s,dy=0)=>{const h=[];for(let i=0;i<26;i++){const q=i/26*TAU;h.push([s*16*Math.pow(Math.sin(q),3)/17,s*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17+dy])}return h};
+  const maane=()=>{const p=[];for(let i=0;i<=16;i++){const a=(60+i*15)*Math.PI/180;p.push([Math.cos(a)*.82,Math.sin(a)*.82])}for(let i=16;i>=0;i--){const a=(80+i*12.5)*Math.PI/180;p.push([.36+Math.cos(a)*.7,Math.sin(a)*.7])}return p};
+  const lyn=s=>[[.15*s,.75*s],[-.42*s,-.06*s],[-.02*s,-.06*s],[-.16*s,-.75*s],[.42*s,.1*s],[.02*s,.1*s]];
+  const tegnKraft=(g,k,s,z)=>{const L=(sh,col,dz=0)=>put(g,piece(toCCW(sh),{color:col,kind:'water',t:.05,edge:'#1a1238'}),0,0,z+dz),st=(pts,w,col,dz=0)=>{for(const q of thick([pts],w))put(g,piece(q,{color:col,kind:'water',t:.04}),0,0,z+dz)};
+    if(k==='bombe'){L(circ(-.05*s,-.12*s,.55*s,.55*s,18),'#2a2438');L(circ(-.22*s,.06*s,.14*s,.14*s,8),'#6a6280',.04);st([[.2*s,.36*s],[.42*s,.62*s]],.12*s,'#c8a868',.02);L(starPts(.5*s,.7*s,.26*s,.11*s),'#ffd86b',.06)}
+    else if(k==='regnbue'){['#e8324a','#ffc21e','#4aa8ff'].forEach((c,i)=>{const r=(.72-i*.2)*s,p=[];for(let j=0;j<=12;j++){const a=Math.PI-j/12*Math.PI;p.push([Math.cos(a)*r,Math.sin(a)*r-.3*s])}st(p,.17*s,c,i*.01)})}
+    else if(k==='lyn')L(lyn(s),'#ffd21e');
+    else{for(const q of ring(circ(0,0,.62*s,.62*s,20),.12*s,false))put(g,piece(q,{color:'#0f8f80',kind:'water',t:.04}),0,0,z);st([[-.85*s,0],[.85*s,0]],.1*s,'#0f8f80',.02);st([[0,-.85*s],[0,.85*s]],.1*s,'#0f8f80',.02);L(circ(0,0,.16*s,.16*s,8),'#e8324a',.04)}};
+  const byg={
+    farve:(g,i)=>{const c=FARVER[i],d=circ(0,0,1.5,1.5,36),lys=hexOf(shade(c,.42)),L=sh=>put(g,piece(toCCW(sh),{color:lys,kind:'water',t:.04,edge:hexOf(shade(c,-.3))}),0,0,.16);
+      put(g,piece(d,{t:.2,s:40,paint:P=>{P.wash(c,d,{top:hexOf(shade(c,.28)),edge:.75,clouds:3});P.wash('#ffffff',circ(-.6,.66,.3,.46,12),{alpha:.6,edge:.9,mode:'source-over'})}}),0,0,0);
+      if(i===0)L(hjerte(.74,.05));else if(i===1)L(sm([[0,.86,1],[.6,-.1],[.46,-.6],[0,-.8],[-.46,-.6],[-.6,-.1]],5));else if(i===2)L(starPts(0,0,.9,.4));else if(i===3){for(const a of[90,210,330])L(circ(Math.cos(a*Math.PI/180)*.42,Math.sin(a*Math.PI/180)*.42+.05,.4,.4,14))}else if(i===4)L(maane());else L([[0,.9],[.66,0],[0,-.9],[-.66,0]])},
+    bombe:g=>{const d=circ(0,0,1.5,1.5,36);put(g,piece(d,{t:.2,s:40,paint:P=>{P.wash('#3a3250',d,{top:'#5a5278',edge:.8,clouds:3});P.wash('#ffffff',circ(-.6,.66,.3,.46,12),{alpha:.45,edge:.9,mode:'source-over'})}}),0,0,0);tegnKraft(g,'bombe',1.25,.16)},
+    regnbue:g=>{const d=circ(0,0,1.5,1.5,36);put(g,piece(d,{t:.2,s:40,paint:P=>{['#e8324a','#ff8a3d','#ffc21e','#5fc86a','#4aa8ff','#a070ff'].forEach((c,i)=>P.fill(circ(0,0,1.5-i*.25,1.5-i*.25,30),c,1));P.wash('#ffffff',circ(-.6,.66,.3,.46,12),{alpha:.6,edge:.9,mode:'source-over'})}}),0,0,0)},
+    lyn:g=>{const d=circ(0,0,1.5,1.5,36);put(g,piece(d,{t:.2,s:40,paint:P=>{P.wash('#fff6c8',d,{top:'#ffffff',edge:.8,clouds:3})}}),0,0,0);tegnKraft(g,'lyn',1.5,.16)},
+    maerke:(g,k)=>{put(g,piece(circ(0,0,.95,.95,24),{color:'#fffaf0',kind:'water',t:.06,edge:'#1a1238'}),0,0,0);for(const q of ring(circ(0,0,.95,.95,24),.14,false))put(g,piece(q,{color:KFARVE[k],kind:'water',t:.05}),0,0,.06);tegnKraft(g,k,.82,.12)}};
+  const billede=(key,f,h)=>{if(!TEX[key]){const rt=papBillede(ctx,f,{px:192,x0:-h,x1:h,y0:-h,y1:h});TEX[key]={rt,mat:papBilledeMat(rt)}}return TEX[key].mat};
+  const matFor=b=>b.sp&&b.sp!=='sigte'?billede('sp'+b.sp,g=>byg[b.sp](g),1.75):billede('f'+b.t,g=>byg.farve(g,b.t),1.75),matMaerke=k=>billede('m'+k,g=>byg.maerke(g,k),1.1);
+  const nyM=b=>{const m=new THREE.Mesh(geo,matFor(b));m.userData.noShadow=true;if(b.pw){const q=new THREE.Mesh(geoK,matMaerke(b.pw));q.position.set(.75,-.75,.06);q.userData.noShadow=true;m.add(q)}Rm.live.add(m);b.m=m;return b};
+  /* ---------- nettet: lige rækker har 11 pladser, ulige har 10 og står en halv boble forskudt. G.off skifter, når en ny række kommer ind foroven ---------- */
+  const par=r=>(r+G.off)&1,ncol=r=>par(r)?COLS-1:COLS,cx=(r,c)=>X0+c*D+(par(r)?R0:0),cy=r=>TOPY-R0-r*RH,celle=(r,c)=>r>=0&&r<G.grid.length&&c>=0&&c<ncol(r)?G.grid[r][c]:null,ok=(r,c)=>r>=0&&c>=0&&c<ncol(r);
+  const naboer=(r,c)=>{const p=par(r),o=[[r,c-1],[r,c+1]];for(const dr of[-1,1])o.push(p?[r+dr,c]:[r+dr,c-1],p?[r+dr,c+1]:[r+dr,c]);return o.filter(([a,b])=>ok(a,b))};
+  const alle=()=>{const o=[];G.grid.forEach(rk=>rk.forEach(b=>{if(b)o.push(b)}));return o},paaBraet=()=>[...new Set(alle().map(b=>b.t))];
+  const nyBoble=(farver,kraft)=>({t:vaelg(farver),pw:kraft&&Math.random()<.075?vaelg(['bombe','bombe','regnbue','regnbue','lyn','sigte']):null});
+  const saet=(b,r,c,straks)=>{while(G.grid.length<=r)G.grid.push(Array(ncol(G.grid.length)).fill(null));G.grid[r][c]=b;b.r=r;b.c=c;b.tx=cx(r,c);b.ty=cy(r);if(straks)b.m.position.set(b.tx,b.ty,1)};
+  const baneFarver=l=>FARVER.map((_,i)=>i).slice(0,l<3?4:l<5?5:6);
+  const nyBane=l=>{for(const b of alle())Rm.live.remove(b.m);for(const b of[G.cur,G.next])if(b)Rm.live.remove(b.m);G.grid=[];G.off=0;G.lvl=l;G.miss=0;G.missMax=Math.max(3,6-Math.floor((l-1)/2));const farver=baneFarver(l),n=Math.min(4+l,8);
+    for(let r=0;r<n;r++)for(let c=0;c<ncol(r);c++){const b=nyBoble(farver,true);if(c>0&&Math.random()<.42)b.t=G.grid[r][c-1].t;nyM(b);saet(b,r,c);b.m.position.set(b.tx,b.ty+38+r*1.5,1)}
+    G.cur=lad();G.next=lad();G.fase='sigt';G.vent=.9;visKoe();tegnHud();visLamper()};
+  /* den næste boble: kun farver, der er på brættet, så banen altid kan ryddes */
+  const lad=()=>{const f=G.grid.length?paaBraet():baneFarver(G.lvl);return nyM({t:vaelg(f.length?f:baneFarver(G.lvl)),pw:null,sp:null})};
+  const visKoe=()=>{if(G.cur){G.cur.m.position.set(KX,KY,4.4);G.cur.m.scale.setScalar(1)}if(G.next){G.next.m.position.set(NX,NY+1.7,6.4);G.next.m.scale.setScalar(.86)}hylde.forEach((h,i)=>{h.visible=i<G.pw.length;if(h.visible)h.material=matMaerke(G.pw[i])})};
+  /* en kraft fra hylden lægges i kanonen, hvis der ligger en almindelig boble i den */
+  const brugKraft=()=>{if(!G.pw.length||G.cur.sp)return;const k=G.pw.shift();if(k==='sigte'){G.sigte=6;tekst(KX,KY+5,'Sigte i 6 skud!',KFARVE.sigte,40);brugKraft();visKoe();return}G.cur.sp=k;G.cur.m.material=matFor(G.cur);visKoe()};
+  const byt=()=>{if(G.fase!=='sigt'||G.cur.sp){LYD.doer();return}const a=G.cur;G.cur=G.next;G.next=a;hopK=1;LYD.plop();visKoe()};
+  /* ---------- skuddet: vejen regnes ud på forhånd (den samme vej bruges til den stiplede linje) ---------- */
+  const vej=(a,langt)=>{let x=KX+Math.cos(a)*2.4,y=KY+Math.sin(a)*2.4,dx=Math.cos(a),dy=Math.sin(a),hop=0;const pts=[[x,y]],ds=.35;
+    for(let i=0;i<900;i++){x+=dx*ds;y+=dy*ds;if(x<WL+R0){x=2*(WL+R0)-x;dx=-dx;hop++;pts.push([WL+R0,y])}else if(x>WR-R0){x=2*(WR-R0)-x;dx=-dx;hop++;pts.push([WR-R0,y])}
+      if(y>=TOPY-R0){y=TOPY-R0;break}const r0=Math.round((TOPY-R0-y)/RH);let ramt=false;for(let r=r0-1;r<=r0+1&&!ramt;r++){if(r<0||r>=G.grid.length)continue;for(const b of G.grid[r])if(b&&Math.hypot(b.tx-x,b.ty-y)<D*.86){ramt=true;break}}if(ramt)break;
+      if(!langt&&hop>=1&&pts.length>1&&Math.hypot(x-pts[pts.length-1][0],y-pts[pts.length-1][1])>7)break}pts.push([x,y]);return pts};
+  /* den nærmeste tomme plads, der hænger fast i noget */
+  const plads=(x,y)=>{const r0=Math.round((TOPY-R0-y)/RH);let best=null,bd=1e9;for(let r=Math.max(0,r0-2);r<=r0+2;r++)for(let c=0;c<ncol(r);c++){if(celle(r,c))continue;if(r>0&&!naboer(r,c).some(([a,b])=>celle(a,b)))continue;const d=Math.hypot(cx(r,c)-x,cy(r)-y);if(d<bd){bd=d;best=[r,c]}}return best};
+  const skyd=a=>{if(!G||G.fase!=='sigt'||G.vent>0)return false;const pts=vej(a,true);G.fase='flyv';G.skud={pts,i:0,d:0,b:G.cur};G.cur=null;if(G.sigte>0)G.sigte--;hopH=1;LYD.plop();kanon.rotation.z=a-Math.PI/2;return true};
+  const klynge=(r,c,t)=>{const set=new Set([r+','+c]),koe=[[r,c]];while(koe.length){const[a,b]=koe.pop();for(const[x,y]of naboer(a,b)){const q=celle(x,y);if(q&&q.t===t&&!set.has(x+','+y)){set.add(x+','+y);koe.push([x,y])}}}return[...set].map(k=>k.split(',').map(Number))};
+  const fjern=(b,hvordan,i=0)=>{if(G.grid[b.r]&&G.grid[b.r][b.c]===b)G.grid[b.r][b.c]=null;if(hvordan==='pop'){b.pop=.03+i*.045}else{b.fald={vx:rnd(-3,3),vy:rnd(2,7),t:-i*.02}}G.doede.push(b);if(b.pw){G.maerker.push({k:b.pw,x:b.tx,y:b.ty,t:-(hvordan==='pop'?b.pop:.25),x0:b.tx,y0:b.ty,m:null})}};
+  /* dem, der ikke længere hænger fast i loftet, falder */
+  const loese=()=>{const set=new Set(),koe=[];(G.grid[0]||[]).forEach((b,c)=>{if(b){set.add('0,'+c);koe.push([0,c])}});while(koe.length){const[a,b]=koe.pop();for(const[x,y]of naboer(a,b))if(celle(x,y)&&!set.has(x+','+y)){set.add(x+','+y);koe.push([x,y])}}return alle().filter(b=>!set.has(b.r+','+b.c))};
+  const trim=()=>{while(G.grid.length&&G.grid[G.grid.length-1].every(b=>!b))G.grid.pop()};
+  const land=()=>{const s=G.skud,b=s.b,[x,y]=s.pts[s.pts.length-1],pl=plads(x,y);G.skud=null;if(!pl){Rm.live.remove(b.m);G.cur=lad();G.fase='sigt';visKoe();return}const[r,c]=pl;let sprang=0,faldt=0;
+    if(b.sp==='bombe'||b.sp==='lyn'){const px=cx(r,c),py=cy(r),rk=alle().some(q=>q.r===r)?r:r-1,ofre=alle().filter(q=>b.sp==='bombe'?Math.hypot(q.tx-px,q.ty-py)<D*2.7:q.r===rk);ofre.sort((a,q)=>Math.hypot(a.tx-px,a.ty-py)-Math.hypot(q.tx-px,q.ty-py)).forEach((q,i)=>fjern(q,'pop',i*.4));sprang=ofre.length;Rm.live.remove(b.m);
+      Rm.burst(px,py,4,16,'rgba(255,236,170,.95)',b.sp==='bombe'?6:14);if(b.sp==='bombe')LYD.ild();else LYD.hak();G.ryst=.3;tekst(px,py+2,b.sp==='bombe'?'BUM!':'ZAP!',KFARVE[b.sp],54)}
+    else{if(b.sp==='regnbue'){/* regnbuen tager den farve, der giver den største klynge */let bedst=null,bn=0;for(const t of new Set(naboer(r,c).map(([a,q])=>celle(a,q)).filter(Boolean).map(q=>q.t))){saet(b,r,c);b.t=t;const n=klynge(r,c,t).length;G.grid[r][c]=null;if(n>bn){bn=n;bedst=t}}b.t=bedst==null?vaelg(paaBraet().length?paaBraet():[0]):bedst;b.sp=null;b.m.material=matFor(b)}
+      saet(b,r,c,true);b.dunk=.18;const kl=klynge(r,c,b.t);if(kl.length>=3){kl.map(([a,q])=>celle(a,q)).sort((a,q)=>Math.hypot(a.tx-b.tx,a.ty-b.ty)-Math.hypot(q.tx-b.tx,q.ty-b.ty)).forEach((q,i)=>fjern(q,'pop',i));sprang=kl.length}}
+    if(sprang){const ls=loese();ls.forEach((q,i)=>fjern(q,'fald',i));faldt=ls.length;const p=10*sprang+(sprang>3?(sprang-3)*10:0)+20*faldt;G.score+=p;hopH=1;tekst(cx(r,c),cy(r)+1.5,'+'+p,'#fff6d0',faldt?46:36);if(faldt>=3)tekst(cx(r,c),cy(r)+4,faldt>=8?'Kæmpe fald!':faldt>=5?'Flot fald!':'Fald!','#ffe27a',50);if(faldt)LYD.op()}
+    else{G.miss++;LYD.dunk();if(G.miss>=G.missMax){G.miss=0;G.nyRk=.35}}
+    trim();visLamper();tegnHud();
+    if(alle().some(q=>q.r>=MAXR)){tabt();return}
+    if(!alle().length){G.fase='klaret';G.vent=1.6;const bonus=100*G.lvl;G.score+=bonus;G.msg='Banen er ryddet!';G.msg2='+'+bonus;G.msgT=1.8;LYD.fanfare();hopH=1;hopK=1;tegnHud();return}
+    G.cur=G.next;G.next=lad();G.fase='sigt';G.vent=.12;brugKraft();visKoe()};
+  /* en ny række kommer ind foroven; resten rykker en række ned */
+  const nyRaekke=()=>{const farver=baneFarver(G.lvl);G.off^=1;G.grid.unshift(Array(ncol(0)).fill(null));G.grid.forEach((rk,r)=>rk.forEach((b,c)=>{if(b)saet(b,r,c)}));for(let c=0;c<ncol(0);c++){const b=nyM(nyBoble(farver,true));if(c>0&&Math.random()<.35)b.t=G.grid[0][c-1].t,b.m.material=matFor(b);saet(b,0,c);b.m.position.set(b.tx,b.ty+RH,1)}
+    LYD.doer();G.ryst=.2;tekst(0,TOPY-4,'Ny række!','#ff9f8a',44);if(alle().some(q=>q.r>=MAXR))tabt()};
+  const tabt=()=>{G.fase='tabt';G.vent=1.5;G.msg='Boblerne nåede snoren!';G.msg2='';G.msgT=9;LYD.oev();for(const b of alle())b.graa=true};
+  const slut=()=>{const n=G.score,l=G.lvl,bil=Math.min(40,1+Math.floor(n/250)),rek=Math.max(SPIL.data.bobleRek||0,n);SPIL.data.bobleRek=rek;SPIL.givBil(bil);if(n>=1500)LYD.fanfare();else LYD.slut();LOG.row('boblepop',{point:n,bane:l,skud:G.skudN,billetter:bil});G.fase='vent';G.msgT=0;
+    ctx.vent(`Du nåede bane ${l} og fik ${n} point. Det giver ${bil} ${bil===1?'billet':'billetter'}! Din rekord er ${rek} point.`,nytSpil)};
+  const nytSpil=()=>{if(G){for(const b of[...alle(),...G.doede])Rm.live.remove(b.m);for(const q of G.maerker)if(q.m)Rm.live.remove(q.m);if(G.cur)Rm.live.remove(G.cur.m);if(G.next)Rm.live.remove(G.next.m);if(G.skud)Rm.live.remove(G.skud.b.m)}
+    G={grid:[],off:0,lvl:1,score:0,skudN:0,miss:0,missMax:6,cur:null,next:null,pw:[],sigte:0,fase:'sigt',vent:0,skud:null,doede:[],maerker:[],tekster:[],msg:'',msg2:'',msgT:0,ryst:0,nyRk:0};nyBane(1)};
+  const tekst=(x,y,txt,c,size)=>G.tekster.push({x:clamp(x,-36,36),y:Math.min(43,y),txt,c,size,t:0});
+  const tilSkaerm=(x,y,z=1)=>{v3.set(x,y,z).project(Rm.cam);return[(v3.x+1)/2*W_,(1-v3.y)/2*H_]};
+  const tegnHud=()=>{const g=hud.getContext('2d');g.clearRect(0,0,640,72);g.fillStyle='#1a1238';g.beginPath();g.roundRect(2,2,636,68,20);g.fill();g.strokeStyle='#ffd86b';g.lineWidth=4;g.stroke();g.fillStyle='#ffe9a0';g.textAlign='center';g.textBaseline='middle';g.font=FONT.arkade.replace('X','34px');g.fillText(`Bane ${G?G.lvl:1}  ·  Point ${G?G.score:0}`,320,38,610);ht.needsUpdate=true};
+  const visLamper=()=>lamper.forEach((l,i)=>{l.m.visible=i<G.missMax;l.lm.emissiveIntensity=i<G.missMax-G.miss?1.6:.05});
+  const vinkel=e=>{const p=Rm.planeAt(e,1);if(!p)return null;return{p,a:clamp(Math.atan2(Math.max(.2,p.y-KY),p.x-KX),.16,Math.PI-.16)}};
+  const OPT={bg:'#0a0620',fit:fitBox(88,50,0,20.5),sky:'#c8b8ff',ground:'#2a2040',amb:.6,key:{col:'#f0e8ff',i:1.6,tgt:[0,18,0]},
+    drag:(ph,e)=>{if(!G||G.fase==='vent')return;const q=vinkel(e);if(!q)return;
+      if(ph==='start'){/* et tryk på kæledyret eller den næste boble bytter de to */if(Math.abs(q.p.x-(NX-2.5))<4.9&&q.p.y<NY+4.2&&q.p.y>-2){byt();sigter=false;return}sigter=q.p.y>KY-3;if(sigter)sigt=q.a}
+      else if(sigter){sigt=q.a;if(ph==='end'){sigter=false;if(q.p.y>KY+1.2||Math.abs(q.p.x-KX)>4)skyd(sigt)}}},
+    build:Rm=>[()=>{const g=Rm.scene;/* væggen bag maskinen: tapet med bobler */
+        {const W=box(-80,-8,80,56);P2(g,W,{t:.3,s:8,cap:1800,paint:P=>{P.wash('#2a1a52',W,{top:'#1a1238',edge:0,clouds:10});for(let i=0;i<70;i++){const r=R(.6,2.2),x=R(-78,78),y=R(-4,54);P.wash(FARVER[i%6],circ(x,y,r,r,16),{alpha:.16,edge:.9,mode:'source-over'});P.wash('#ffffff',circ(x-r*.35,y+r*.35,r*.2,r*.28,8),{alpha:.14,edge:.9,mode:'source-over'})}}},-14)}
+        /* spillefeltet: mørkt filt med stjerner, og en stiplet snor forneden */
+        {const B=box(WL-.2,6,WR+.2,TOPY+.2);P2(g,B,{t:.3,s:10,cap:1600,paint:P=>{P.wash('#140c36',B,{top:'#0c0626',edge:.4,clouds:8});for(let i=0;i<90;i++)P.fill(starPts(R(WL,WR),R(7,TOPY),R(.1,.3),.1,R(1)),i%3?'#f6f0e2':'#ffd86b',R(.2,.6))}},-3)}
+        for(let x=WL+.6;x<WR-.4;x+=1.9)P2(g,box(x,LINEY-.09,x+1.1,LINEY+.09),{color:'#ff9f8a',kind:'water',t:.05},-2.7);
+        /* rammen: mahogni med messing, og loftet med tandhjul */
+        for(const sx of[-1,1]){const p=box(sx>0?WR:WL-2.2,0,sx>0?WR+2.2:WL,TOPY+3.4);P2(g,p,{t:3,s:10,cap:1400,paint:P=>boards(P,null,'#6a3a20',{dir:'v',h:1.5,ink:.25})},.2);P2(g,box(sx*(WR+1.1)-.14,0,sx*(WR+1.1)+.14,TOPY+3.4),{mat:gold(),t:.3},1.8)}
+        {const p=box(WL-2.2,TOPY,WR+2.2,TOPY+3.4);P2(g,p,{t:3,s:10,cap:1400,paint:P=>boards(P,null,'#5a2e18',{dir:'h',h:1.5,ink:.25})},.2);P2(g,box(WL,TOPY-.16,WR,TOPY+.16),{mat:gold(),t:.4},1.8)}
+        for(const[x,r,n]of[[-14,1.1,9],[14,1.1,9]]){const tp=[];for(let i=0;i<n*2;i++){const a=i/(n*2)*TAU,rr=i%2?r:r*1.2;tp.push([x+Math.cos(a-.1)*rr,TOPY+1.9+Math.sin(a-.1)*rr],[x+Math.cos(a+.1)*rr,TOPY+1.9+Math.sin(a+.1)*rr])}P2(g,toCCW(tp),{mat:gold(),t:.3},1.9);P2(g,circ(x,TOPY+1.9,r*.4,r*.4,12),{color:'#3a1a0c',kind:'water',t:.34},1.92)}
+        /* gulvet og kanonens vogn */
+        for(let i=0;i<40;i++){const o={color:shade('#5a4684',R(-.06,.06)),kind:'balsa',t:.3};for(const x of[-66,0])Rm.floor(box(x,-10+i*1.05,x+66,-9+i*1.05),o,0)}
+        P2(g,sm([[KX-3.4,.2,1],[KX+3.4,.2,1],[KX+2.6,2.6],[KX-2.6,2.6]],3),{t:2.4,s:16,paint:P=>boards(P,null,'#7a4a2a',{dir:'h',h:.8,ink:.3})},2);for(const sx of[-1,1]){P2(g,circ(KX+sx*2.6,1.2,1.25,1.25,22),{color:'#4a2a16',kind:'balsa',t:.5},3.4);P2(g,circ(KX+sx*2.6,1.2,.45,.45,12),{mat:gold(),t:.56},3.4)}
+        /* fadet med den næste boble, og hylden til kræfterne */
+        P2(g,box(NX-.3,.2,NX+.3,NY-.4),{color:'#4a2a16',kind:'balsa',t:.6},6);P2(g,sm([[NX-2,NY+.2,1],[NX+2,NY+.2,1],[NX+1.3,NY-.5],[NX-1.3,NY-.5]],3),{mat:gold(),t:1.2},6);
+        P2(g,box(5.6,1.2,14.6,1.7),{color:'#6a3a20',kind:'balsa',t:1.6},5);for(const x of[6.4,13.8])P2(g,box(x-.2,.2,x+.2,1.2),{color:'#4a2a16',kind:'balsa',t:.8},5)},
+      ()=>{const g=Rm.scene;/* tavlen til højre: hvad kræfterne gør */
+        const T=box(21.4,10.4,42.6,39.4);P2(g,T,{t:.6,s:12,cap:1600,paint:P=>{P.wash('#241642',T,{top:'#32205a',edge:.5,clouds:6})}},-9);for(const s of ring(T,.7,false))P2(g,s,{mat:gold(),t:.7},-8.9);
+        plate(g,'boblepopnavn','BoblePop',FONT.arkade,15,3.2,{bg:'#160e2c',frame:'gold',size:2,fg:'#ffd86b',x:32,y:36,z:-8.4});plate(g,'boblepop3','3 ens i en klynge springer',FONT.pil,18,1.7,{bg:'#241642',fg:'#f6f0e2',size:1.05,x:32,y:32.6,z:-8.5});
+        [['bombe','Bombe: sprænger alt omkring'],['regnbue','Regnbue: passer til alle'],['lyn','Lyn: fjerner en hel række'],['sigte','Sigte: viser hele vejen']].forEach(([k,txt],i)=>{const y=28.6-i*4.3,q=new THREE.Group();byg.maerke(q,k);q.scale.setScalar(1.5);q.position.set(24.4,y,-8.3);g.add(q);plate(g,'boblepopk'+i,txt,FONT.pil,15.4,1.7,{bg:'#241642',fg:'#f6f0e2',size:1,x:34.2,y,z:-8.5})});
+        plate(g,'boblepopbyt','Tryk på kæledyret for at bytte boble',FONT.pil,19,1.6,{bg:'#241642',fg:'#ffd86b',size:.95,x:32,y:12.4,z:-8.5});
+        for(const x of[-32,41.5]){for(const s of thick([[[x,56],[x,44.6]]],.1))P2(g,s,{color:'#2a1c12',t:.06},-7);P2(g,sm([[x-1.6,44.6],[x+1.6,44.6],[x+2.2,42.8],[x-2.2,42.8]],4),{t:1,mat:paperMat('#fff0c0','tissue',{glow:'#ffc060',gi:1.5})},-7.4);Rm.glow(x,43,-5.6,'#ffc060',15);const L=new THREE.PointLight('#ffd090',70,60,2);put(g,L,x,38,8)}},
+      ()=>{const lv=Rm.live;geo=new THREE.PlaneGeometry(3.5,3.5);geoK=new THREE.PlaneGeometry(1.5,1.5);
+        /* kanonen: et messingrør, der drejer efter fingeren */
+        kanon=new THREE.Group();kanon.position.set(KX,KY,2.6);lv.add(kanon);{const rr=sm([[-1.15,-1.2,1],[1.15,-1.2,1],[.95,3.2,1],[-.95,3.2,1]],2);put(kanon,piece(rr,{t:1.2,s:24,paint:P=>{P.wash('#c9973e',rr,{top:'#f2d58a',edge:.6,clouds:3});P.pen([[-.5,-1],[-.4,3]],'#fff0c0',.2,.5)}}),0,0,0);P2(kanon,box(-1.25,2.9,1.25,3.5),{mat:gold(),t:1.4},.02);P2(kanon,circ(0,0,1.75,1.75,26),{color:'#6e4b17',kind:'water',t:1.3},-.04)}
+        /* lamperne i loftet: så mange skud forbi, før der kommer en ny række */
+        for(let i=0;i<6;i++){const lm=paperMat('#fff0c0','tissue',{glow:'#ffc060',gi:1.6}).clone(),m=put(lv,piece(circ((i-2.5)*2.2,TOPY+1.9,.55,.55,14),{t:.2,mat:lm}),0,0,1.9);lamper.push({m,lm})}
+        for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.PlaneGeometry(2.3,2.3),matMaerke('bombe'));m.position.set(7.4+i*2.7,2.9,5.9);m.userData.noShadow=true;m.visible=false;lv.add(m);hylde.push(m)}
+        heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.62);heks.G.position.set(-31,.35,6);lv.add(heks.G);Rm.blob(-31,6,10,4);kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.44);kat.G.position.set(NX-4.6,.5,7);lv.add(kat.G);
+        hud=cv(640,72);ht=tx(hud,true);{const m=new THREE.Mesh(new THREE.PlaneGeometry(22,2.47),new THREE.MeshBasicMaterial({map:ht,transparent:true,toneMapped:false}));m.position.set(32,42.7,-8.2);m.userData.noShadow=true;lv.add(m)}
+        lag=document.getElementById('tegnlag');lg=lag.getContext('2d');nytSpil();
+        ctx.say('Sigt med fingeren, og slip for at skyde. 3 ens i en klynge springer.')}],
+    tick:(t,dt)=>{heks.tick(t,{ph:0,amp:0});kat.tick(t+1,{ph:0,amp:0});hopH=Math.max(0,hopH-dt*2.4);hopK=Math.max(0,hopK-dt*2.4);heks.G.position.y=.35+Math.sin(hopH*Math.PI)*1.1*hopH;kat.G.position.y=.5+Math.sin(hopK*Math.PI)*1.3*hopK;
+      {const r=lag.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);W_=r.width;H_=r.height;if(lag.width!==Math.round(W_*d)||lag.height!==Math.round(H_*d)){lag.width=Math.round(W_*d);lag.height=Math.round(H_*d)}lg.setTransform(d,0,0,d,0,0);lg.clearRect(0,0,W_,H_)}
+      if(!G)return;if(G.vent>0)G.vent-=dt;if(G.ryst>0)G.ryst-=dt;if(G.msgT>0)G.msgT-=dt;const rx=G.ryst>0?Math.sin(t*70)*.18:0;
+      if(G.fase==='tabt'&&G.vent<=0){slut();return}if(G.fase==='klaret'&&G.vent<=0){G.pw=G.pw.slice(0,3);nyBane(G.lvl+1)}
+      if(G.nyRk>0){G.nyRk-=dt;if(G.nyRk<=0&&G.fase!=='tabt')nyRaekke()}
+      /* skuddet flyver langs sin vej */
+      if(G.skud){const s=G.skud;let rest=V*dt;while(rest>0&&s.i<s.pts.length-1){const a=s.pts[s.i],b=s.pts[s.i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(s.d+rest>=L){rest-=L-s.d;s.i++;s.d=0}else{s.d+=rest;rest=0}}
+        const a=s.pts[Math.min(s.i,s.pts.length-1)],b=s.pts[Math.min(s.i+1,s.pts.length-1)],L=Math.hypot(b[0]-a[0],b[1]-a[1])||1,k=s.d/L;s.b.m.position.set(a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,1.2);if(s.i>=s.pts.length-1){G.skudN++;land()}}
+      /* boblerne glider på plads */
+      for(const b of alle()){const m=b.m;m.position.x+=(b.tx+rx-m.position.x)*Math.min(1,dt*16);m.position.y+=(b.ty-m.position.y)*Math.min(1,dt*(G.fase==='sigt'&&G.vent<=0?16:9));if(b.dunk>0){b.dunk-=dt;m.scale.setScalar(1+Math.sin(b.dunk/.18*Math.PI)*.14)}else m.scale.setScalar(1);if(b.graa)m.rotation.z=Math.sin(t*20+b.c)*.06}
+      /* dem, der springer eller falder */
+      for(const b of G.doede){if(b.pop!=null){b.pop-=dt;if(b.pop<=0){const k=-b.pop/.14;if(!b.puf){b.puf=true;LYD.fil('boble.pop',()=>LYD.pop(),.7,rnd(.9,1.25));Rm.burst(b.tx,b.ty,2,5,'rgba(255,246,208,.95)',1.6);hopK=Math.max(hopK,.6)}b.m.scale.setScalar(Math.max(0,k<.45?1+k*.9:1.4*(1-(k-.45)/.55)));if(k>=1)b.vaek=true}}
+        else{const f=b.fald;f.t+=dt;if(f.t>0){f.vy-=42*dt;b.m.position.x+=f.vx*dt;b.m.position.y+=f.vy*dt;b.m.position.z=4;b.m.rotation.z+=f.vx*.3*dt;if(b.m.position.y<-6)b.vaek=true}}if(b.vaek)Rm.live.remove(b.m)}
+      G.doede=G.doede.filter(b=>!b.vaek);
+      /* kræfterne falder ned til kanonen */
+      for(const q of G.maerker){q.t+=dt;if(q.t<0)continue;if(!q.m){q.m=new THREE.Mesh(new THREE.PlaneGeometry(2.6,2.6),matMaerke(q.k));q.m.userData.noShadow=true;Rm.live.add(q.m)}const k=Math.min(1,q.t/.85),e=k*k;q.m.position.set(q.x0+(KX+4-q.x0)*k,q.y0+(KY-.5-q.y0)*e+Math.sin(k*Math.PI)*3,7);q.m.rotation.z=Math.sin(q.t*9)*.3;q.m.scale.setScalar(1+.25*Math.sin(k*Math.PI));
+        if(k>=1){q.vaek=true;Rm.live.remove(q.m);LYD.ding();Rm.burst(KX+4,KY,7,8,'rgba(255,236,170,.95)',2.4);if(G.pw.length>=3){G.score+=50;tekst(KX+6,KY+3,'+50','#fff6d0',36);tegnHud()}else{G.pw.push(q.k);tekst(KX+7,KY+4.4,KRAFT[q.k]+'!',KFARVE[q.k],44)}if(G.fase==='sigt'&&G.cur)brugKraft();visKoe()}}
+      G.maerker=G.maerker.filter(q=>!q.vaek);
+      /* kanonen følger sigtet */
+      if(G.fase==='sigt')kanon.rotation.z+=((sigt-Math.PI/2)-kanon.rotation.z)*Math.min(1,dt*18);if(G.cur){G.cur.m.rotation.z=Math.sin(t*3)*.05}if(G.next){G.next.m.position.y=NY+1.7+Math.sin(t*2.2)*.12+Math.sin(hopK*Math.PI)*.6*hopK}
+      /* ---- laget oven på: den stiplede linje, teksterne og beskeden ---- */
+      const g=lg,fs=W_/1280;g.textAlign='center';g.textBaseline='middle';
+      if(G.fase==='sigt'&&G.vent<=0&&sigter&&G.cur){const pts=vej(sigt,G.sigte>0),c=G.cur.sp?'#ffffff':FARVER[G.cur.t];let rest=0;g.fillStyle=c;for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);let d=rest;while(d<L){const[x,y]=tilSkaerm(a[0]+(b[0]-a[0])*d/L,a[1]+(b[1]-a[1])*d/L);g.globalAlpha=.9;g.beginPath();g.arc(x,y,5.2*fs,0,TAU);g.fill();g.globalAlpha=.9;g.lineWidth=1.6*fs;g.strokeStyle='#ffffff';g.stroke();d+=1.5}rest=d-L}
+        if(G.sigte>0){const e=pts[pts.length-1],pl=plads(e[0],e[1]);if(pl){const[x,y]=tilSkaerm(cx(pl[0],pl[1]),cy(pl[0])),u1=Math.abs(tilSkaerm(1,0)[0]-tilSkaerm(0,0)[0]);g.globalAlpha=.55;g.lineWidth=3*fs;g.strokeStyle=c;g.setLineDash([6*fs,5*fs]);g.beginPath();g.arc(x,y,R0*u1,0,TAU);g.stroke();g.setLineDash([])}}g.globalAlpha=1}
+      for(const q of G.tekster){q.t+=dt;q.y+=2.6*dt;const[x,y]=tilSkaerm(q.x,q.y,6);g.globalAlpha=Math.max(0,1-q.t/1.2);g.font=FONT.arkade.replace('X',Math.round(q.size*fs*.8)+'px');g.lineWidth=6*fs;g.strokeStyle='#1a1238';g.strokeText(q.txt,x,y);g.fillStyle=q.c;g.fillText(q.txt,x,y)}g.globalAlpha=1;G.tekster=G.tekster.filter(q=>q.t<1.2);
+      if(G.msgT>0&&G.msg){const[x,y]=tilSkaerm(0,25,6);g.globalAlpha=Math.min(1,G.msgT*3);g.font=FONT.arkade.replace('X',Math.round(58*fs)+'px');g.lineWidth=9*fs;g.strokeStyle='#1a1238';g.strokeText(G.msg,x,y);g.fillStyle='#ffe9a0';g.fillText(G.msg,x,y);if(G.msg2){g.font=FONT.arkade.replace('X',Math.round(44*fs)+'px');g.strokeText(G.msg2,x,y+58*fs);g.fillStyle='#fff6d0';g.fillText(G.msg2,x,y+58*fs)}g.globalAlpha=1}
+      if(G.sigte>0&&G.fase!=='vent'){const[x,y]=tilSkaerm(KX,KY-3.6,6);g.font=`700 ${Math.round(20*fs)}px "Alegreya Sans",sans-serif`;g.lineWidth=5*fs;g.strokeStyle='#1a1238';g.strokeText(`Sigte: ${G.sigte} skud`,x,y);g.fillStyle=KFARVE.sigte;g.fillText(`Sigte: ${G.sigte} skud`,x,y)}}},Rm=makeRoom(ctx,OPT);
+  ctx.efter.push(()=>{if(lag){const g=lag.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,lag.width,lag.height)}for(const k in TEX){TEX[k].rt.dispose();TEX[k].mat.dispose()}if(geo){geo.dispose();geoK.dispose()}});
+  ctx.test={G:()=>G,skyd:a=>{sigt=a;return skyd(a)},byt,spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},vej,plads,nyRaekke,giv:k=>{G.pw.push(k);brugKraft();visKoe()},
+    /* den bedste vinkel: den, der får flest til at springe eller falde */
+    bedst:()=>{let ba=Math.PI/2,bn=-1;for(let a=.2;a<Math.PI-.2;a+=.02){const p=vej(a,true),e=p[p.length-1],pl=plads(e[0],e[1]);if(!pl)continue;const[r,c]=pl;if(celle(r,c))continue;while(G.grid.length<=r)G.grid.push(Array(ncol(G.grid.length)).fill(null));const tmp={t:G.cur.t,r,c};G.grid[r][c]=tmp;const n=klynge(r,c,G.cur.t).length;G.grid[r][c]=null;trim();const v=n>=3?n:n*.1-r*.01;if(v>bn){bn=v;ba=a}}return[ba,bn]},
+    tilstand:()=>G&&{fase:G.fase,bane:G.lvl,score:G.score,miss:G.miss,missMax:G.missMax,bobler:alle().length,raekker:G.grid.length,cur:G.cur&&(G.cur.sp||G.cur.t),next:G.next&&G.next.t,pw:G.pw.slice(),sigte:G.sigte,skud:G.skudN}}};
 
 /* ============ Boblebutikken: alt nyt kommer i magiske sæbebobler. En boble koster stjerner, og i den ligger noget nyt til Garderoben ============ */
 ROOMS.bobler=function(ctx){
@@ -3298,6 +3601,153 @@ ROOMS.gang=function(ctx){
       if(W0.want&&!mv&&!opening){const f=W0.want;W0.want=null;if(f.rum&&ROOMS[f.rum]){opening={f,t:0}}else ctx.say(`${f.navn} åbner snart`)}
       if(opening){opening.t+=dt;const k=Math.min(1,opening.t/.7),e=k*k*(3-2*k);for(const l of opening.f.leaves)l.pv.rotation.y=l.s*e*1.25;if(opening.t>.95&&!opening.done){opening.done=true;ctx.go(opening.f.rum)}}}})};
 
+/* ============ Gribemaskinen (Arkaden) ============
+   Som i det oprindelige spil: man står helt tæt på maskinen. Bamserne ligger i en bunke på bunden, kloen hænger i en wire fra en vogn i skinnen foroven,
+   og præmieskakten er i venstre hjørne. Et forsøg koster 1 stjerne, og man har 20 sekunder til at stille kloen, så griber den af sig selv.
+   Alt er rigtig fysik (matter-js, samme tal som originalen): bamserne er bløde kroppe med hoved og mave, kloen hænger i en wire og svinger,
+   og de to forreste arme lukkes af en fjeder. Om man får fat, afhænger af hvor kloen lander, hvordan bamsen ligger, og hvor stram fjederen er i dag.
+   Det er aldrig bestemt på forhånd. Fysikken regner i originalens mål (1600 × 1000, y nedad); tegningen regner om til rummets mål (20 til 1).
+   Bunken bliver liggende mellem forsøgene, så længe man står ved maskinen. Vundne bamser gemmes (SPIL.data.bamser) og sidder på sengen i Værelset. */
+ROOMS.gribe=function(ctx){
+  if(typeof Matter==='undefined'){ctx.fail('Gribemaskinen kunne ikke hente sin mekanik. Prøv igen om lidt.');return}
+  const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),X=x=>(x-800)/20,Y=y=>45.5-y/20,BR='#c9973e',BRd='#6e4b17',BRl='#f2d58a';
+  const TOP=96,FLOOR=740,XMIN=312,XMAX=1316,LIMIT=20,WALL_L=212,WALL_R=1388,CHUTE_X=404,CHUTE_TOP=560,SC=1.25,CAT_WALL=1,CAT_PLUSH=2,CAT_CLAW=4,STEP=1/120;
+  const PIV=20,ARM=[[0,0],[22,54],[6,106],[-9,110]],OPEN=-.62,SHUT=.14,ANCHOR_Y=104,L0=90,LMAX=470,HW=62,HH=42;/* højre arm målt fra hængslet; venstre er spejlet */
+  const rot=(x,y,a)=>({x:x*Math.cos(a)-y*Math.sin(a),y:x*Math.sin(a)+y*Math.cos(a)});
+  const KN=[{id:'v',x:-12,r:3.5,glas:'#3fc7b4'},{id:'h',x:-2,r:3.5,glas:'#3fc7b4'},{id:'grib',x:19,r:5,glas:'#e0305a'}],KY=1.7;
+  let S=null,vogn,kabel,hovedG,bagarm,bagtip,armG=[],ur,urT,vundet=null,nede=null,puls=0;
+  /* ---------------- fysikken ---------------- */
+  function byg(){const{Engine,Bodies,Body,Composite,Constraint}=Matter,eng=Engine.create({positionIterations:10,velocityIterations:8,constraintIterations:4});eng.gravity.scale=.0018;
+    const wall=(x,y,w,h)=>Bodies.rectangle(x,y,w,h,{isStatic:true,friction:.6,collisionFilter:{category:CAT_WALL}});
+    const walls=[wall((CHUTE_X+WALL_R)/2,FLOOR+30,WALL_R-CHUTE_X,60),wall(WALL_L-30,300,60,1200),wall(WALL_R+30,300,60,1200),wall(CHUTE_X+3,(CHUTE_TOP+FLOOR+60)/2,10,FLOOR+60-CHUTE_TOP)];
+    /* bamserne: et hoved og en mave, så kloen kan få fat under hovedet. Dem, man ikke har endnu, ligger der dobbelt så mange af */
+    const mine=new Set(SPIL.data.bamser||[]),kinds=BAMSER.flatMap(b=>mine.has(b.k)?[b.k]:[b.k,b.k]),plushes=[];
+    /* en bunke: bred nederst, højest på midten */
+    [[676,15,470,1350],[596,9,590,1230],[516,4,720,1100]].forEach(([y0,n,x0,x1])=>{for(let i=0;i<n;i++){const x=x0+i*(x1-x0)/(n-1)+(Math.random()-.5)*36,y=y0+(Math.random()-.5)*20;
+      const b=Body.create({parts:[Bodies.circle(x,y-14*SC,22*SC,{},16),Bodies.circle(x,y+16*SC,21*SC,{},16)],friction:.9,frictionStatic:2,restitution:.05,frictionAir:.012,collisionFilter:{category:CAT_PLUSH}});
+      b.off={x:x-b.position.x,y:y-b.position.y};b.k=kinds[Math.floor(Math.random()*kinds.length)];Body.setAngle(b,(Math.random()-.5)*.7);plushes.push(b)}});
+    /* kloen: et hoved i en wire og to arme på hængsler. En fjeder (senen) trækker armene sammen */
+    const grp=Body.nextGroup(true),cf={group:grp,category:CAT_CLAW,mask:CAT_WALL|CAT_PLUSH},hx=XMIN,hy=ANCHOR_Y+L0+HH/2;
+    const head=Bodies.rectangle(hx,hy,HW,HH,{density:.005,frictionAir:.012,friction:.5,chamfer:{radius:6},collisionFilter:cf});
+    const cable=Constraint.create({pointA:{x:hx,y:ANCHOR_Y},bodyB:head,pointB:{x:0,y:-HH/2},length:L0,stiffness:.9,damping:.05});
+    const arms=[-1,1].map(d=>{const px=hx+d*PIV,py=hy+HH/2-2,parts=[];
+      for(let i=0;i<ARM.length-1;i++){const ax=px+d*ARM[i][0],ay=py+ARM[i][1],bx=px+d*ARM[i+1][0],by=py+ARM[i+1][1];parts.push(Bodies.rectangle((ax+bx)/2,(ay+by)/2,Math.hypot(bx-ax,by-ay)+10,11,{angle:Math.atan2(by-ay,bx-ax),chamfer:{radius:4},collisionFilter:cf}))}
+      const arm=Body.create({parts,friction:.35,frictionStatic:.6,frictionAir:.02,collisionFilter:cf});Body.setDensity(arm,.002);
+      arm.pts=ARM.map(([x,y])=>({x:px+d*x-arm.position.x,y:py+y-arm.position.y}));Body.rotate(arm,d*OPEN,{x:px,y:py});arm.a0=arm.angle-d*OPEN;arm.d=d;
+      const pivot=Constraint.create({bodyA:head,pointA:{x:d*PIV,y:HH/2-2},bodyB:arm,pointB:{x:px-arm.position.x,y:py-arm.position.y},length:0,stiffness:1}),e=rot(d*ARM[1][0],ARM[1][1],d*OPEN);
+      const tendon=Constraint.create({bodyA:head,pointA:{x:d*PIV+e.x,y:HH/2-2+e.y},bodyB:arm,pointB:{x:px+e.x-arm.position.x,y:py+e.y-arm.position.y},length:0,stiffness:.03,damping:.1});arm.tendon=tendon;arm.cons=[pivot,tendon];return arm});
+    Composite.add(eng.world,[...walls,...plushes,head,...arms,cable,...arms.flatMap(a=>a.cons)]);return{eng,plushes,head,arms,cable}}
+  /* sætter armenes fjeder mod vinklen th (højre arm; venstre spejlet) */
+  const sigt=th=>{S.arms.forEach(a=>{const e=rot(a.d*ARM[1][0],ARM[1][1],a.d*th),loc={x:a.d*PIV+e.x,y:HH/2-2+e.y};a.tendon.pointA=rot(loc.x,loc.y,S.head.angle);a.tendon.angleA=S.head.angle;a.tendon.stiffness=S.grip})};
+  const faeste=()=>{const p=rot(0,-HH/2,S.head.angle);return{x:S.head.position.x+p.x,y:S.head.position.y+p.y}};
+  const greb=()=>.001+Math.random()*.0018;/* fjederen er lidt forskellig fra gang til gang, ligesom på en rigtig maskine */
+  /* en ny bunke og en ny klo. Bruges når man kommer ind, og når bunken er ved at være tom */
+  function fyld(){if(S){for(const p of S.plushes)if(p.G){Rm.live.remove(p.G);p.G.userData.ryd()}for(const a of armG){Rm.live.remove(a);a.traverse(q=>{if(q.geometry)q.geometry.dispose()})}armG=[];try{Matter.Engine.clear(S.eng)}catch(e){}}
+    S=Object.assign(byg(),{tx:XMIN,vx:0,dir:0,close:0,phase:'klar',grip:greb(),acc:0,slack:0,tid:0,sec:LIMIT,pt:0,hum:0,uro:0,carried:false,wonP:null,ended:false,vist:false,endT:0});sigt(OPEN);
+    for(let i=0;i<420;i++)Matter.Engine.update(S.eng,STEP*1000);/* bunken falder på plads, før man ser den */
+    S.plushes=S.plushes.filter(p=>!(p.position.x<CHUTE_X&&p.position.y>CHUTE_TOP));
+    S.plushes.forEach((p,i)=>{p.G=new THREE.Group();const q=bamseStykke(ctx,p.k,SC);q.position.set(p.off.x/20,-p.off.y/20,0);p.G.add(q);p.G.userData.ryd=q.userData.ryd;p.G.position.z=-1.6+i*3.2/S.plushes.length;Rm.live.add(p.G)});
+    S.arms.forEach(a=>{const G=new THREE.Group(),pts=a.pts.map(p=>[p.x/20,-p.y/20]);for(const q of thick([pts],.55))put(G,piece(q,{color:'#c8c4d8',kind:'water',t:.3,edge:'#3a3458'}),0,0,0);G.position.z=2.5;Rm.live.add(G);armG.push(G)});tegnUr()}
+  const betal=()=>{if(SPIL.stj<1){ctx.say('Et forsøg koster 1 stjerne. Tjen stjerner i Skolen, og kom tilbage.');LYD.oev();return false}SPIL.giv(-1);S.phase='flyt';S.tid=0;S.sec=LIMIT;S.pt=0;if(vundet){Rm.live.remove(vundet);vundet.userData.ryd();vundet=null}tegnUr();return true};
+  const grib=()=>{if(!S||S.phase!=='flyt')return;S.phase='ned';S.dir=0;S.slack=0;LYD.hold('gribe.motor',false);if(!LYD.hold('gribe.ned',true))LYD.pust();tegnUr()};
+  const hold=(b,on)=>{if(!S)return;if(on&&S.phase==='klar'){if(!betal()||b==='grib')return}if(S.phase!=='flyt')return;if(b==='grib'){if(on)grib();return}S.dir=on?(b==='v'?-1:1):0};
+  /* ét fast fysik-skridt (1/120 s) */
+  function skridt(h){const ph=S.phase,c=S.cable;
+    /* vognen i skinnen kører med træghed; kloen hænger efter og svinger */
+    let want=0;if(ph==='flyt')want=S.dir*380;else if(ph==='hjem'||ph==='klar')want=Math.max(-360,Math.min(360,(XMIN-S.tx)*3));
+    const acc=1300*h;S.vx+=Math.max(-acc,Math.min(acc,want-S.vx));S.tx+=S.vx*h;if(S.tx<XMIN){S.tx=XMIN;S.vx=0}if(S.tx>XMAX){S.tx=XMAX;S.vx=0}c.pointA.x=S.tx;
+    /* wiren er et reb: den kan trække, men ikke skubbe */
+    const a=faeste(),dist=Math.hypot(a.x-S.tx,a.y-ANCHOR_Y);
+    if(ph==='ned'){c.length=Math.min(LMAX,c.length+260*h,dist+24);/* står kloen på bunken, bliver wiren slap */
+      if(dist<c.length-6&&S.head.velocity.y<.25)S.slack+=h;else S.slack=0;
+      if(S.slack>.1||c.length>=LMAX){c.length=Math.min(c.length,dist+2);S.phase='luk';S.pt=0;LYD.hold('gribe.ned',false);LYD.klo()}}
+    else if(ph==='op')c.length=Math.max(L0,c.length-200*h);
+    c.stiffness=dist>c.length-.5?.9:.000001;
+    if(ph==='luk')S.close=Math.min(1,S.close+h/.7);if(ph==='slip'||ph==='efter'||ph==='klar')S.close=Math.max(0,S.close-h/.3);
+    sigt(OPEN+(SHUT-OPEN)*S.close);Matter.Engine.update(S.eng,h*1000);
+    /* er en bamse røget ned i skakten? */
+    for(const p of S.plushes){if(p.gone)continue;if(p.position.x<CHUTE_X&&p.position.y>FLOOR+50){p.gone=true;Matter.Composite.remove(S.eng.world,p);Rm.live.remove(p.G);p.G.userData.ryd();if(!S.wonP){S.wonP=p;vandt(p)}}
+      if((ph==='op'||ph==='hjem')&&p.position.y<470)S.carried=true}}
+  const nulstil=()=>{if(!S)return;if(S.plushes.filter(p=>!p.gone).length<12)fyld();else Object.assign(S,{phase:'klar',ended:false,vist:false,carried:false,wonP:null,tid:0,sec:LIMIT,grip:greb(),uro:2.5,dir:0,endT:0});tegnUr()};
+  function tabt(){LYD.oev();LOG.row('gribe',{vandt:null,baaret:S.carried});S.endT=.4;S.slut=S.carried?'Næsten! Bamsen gled ud af kloen. Så tæt på!':'Øv! Kloen fik ikke ordentligt fat. Prøv at ramme midt over en bamse.'}
+  function vandt(p){const b=BAMSER.find(x=>x.k===p.k);(SPIL.data.bamser=SPIL.data.bamser||[]).push(p.k);SPIL.save();LOG.row('gribe',{vandt:p.k,antal:SPIL.data.bamser.length});LYD.fanfare();S.ended=true;S.endT=1.1;
+    vundet=bamseStykke(ctx,p.k,1.35);vundet.position.set(-24.6,.2,8.4);vundet.userData.t=0;Rm.live.add(vundet);Rm.burst(-24.6,1.4,9,14,'rgba(255,236,170,.95)',5);S.slut=`Du vandt en ${b.navn}! Den sidder nu på din seng i Værelset.`}
+  /* ---------------- tegningen ---------------- */
+  const tegnUr=()=>{const g=ur.getContext('2d'),f=S&&S.phase==='flyt'?Math.max(0,1-S.tid/LIMIT):S&&S.phase==='klar'?1:0;g.clearRect(0,0,160,160);g.fillStyle='#160e2c';g.beginPath();g.arc(80,80,78,0,TAU);g.fill();g.strokeStyle='#3a2e5a';g.lineWidth=10;g.beginPath();g.arc(80,80,64,0,TAU);g.stroke();
+    if(f>0){g.strokeStyle=f<.26?'#ff6a5a':'#ffd86b';g.beginPath();g.arc(80,80,64,-Math.PI/2,-Math.PI/2+TAU*f);g.stroke()}g.fillStyle='#ffe9a0';g.textAlign='center';g.textBaseline='middle';g.font=FONT.arkade.replace('X','62px');g.fillText(S&&S.phase==='flyt'?String(S.sec):S&&S.phase==='klar'?'20':'',80,86);urT.needsUpdate=true};
+  const tegn=()=>{for(const p of S.plushes){if(p.gone)continue;p.G.position.x=X(p.position.x);p.G.position.y=Y(p.position.y);p.G.rotation.z=-p.angle}
+    const H=S.head,a=faeste(),tx=X(S.tx),ty=Y(TOP);vogn.position.x=tx;hovedG.position.set(X(H.position.x),Y(H.position.y),2.2);hovedG.rotation.z=-H.angle;
+    const dx=X(a.x)-tx,dy=Y(a.y)-ty;kabel.position.set(tx,ty,2.1);kabel.scale.y=Math.max(.01,Math.hypot(dx,dy));kabel.rotation.z=Math.atan2(dy,dx)-Math.PI/2;
+    S.arms.forEach((arm,i)=>{const G=armG[i];G.position.x=X(arm.position.x);G.position.y=Y(arm.position.y);G.rotation.z=-(arm.angle-arm.a0)});
+    const bag=(72+30*S.close)/20;bagarm.scale.y=bag;bagtip.position.y=-.85-bag};
+  const knapVed=e=>{const p=Rm.planeAt(e,8.2);if(!p)return null;for(const k of KN){const rx=k.r+1,ry=k.r*.55+1.4;if(((p.x-k.x)/rx)**2+((p.y-KY)/ry)**2<1)return k.id}return null};
+  const OPT={bg:'#120810',fit:fitBox(88,50,0,20.5),sky:'#ffe8d0',ground:'#3a2030',amb:.6,key:{col:'#fff0dc',i:1.7,tgt:[0,20,0]},
+    drag:(ph,e)=>{if(ph==='start'){nede=knapVed(e);if(nede)hold(nede,true)}else if(ph==='end'){if(nede&&nede!=='grib')hold(nede,false);nede=null}},
+    build:Rm=>[()=>{const g=Rm.scene;/* tapetet bag maskinen */
+        {const W=box(-80,-8,80,52);P2(g,W,{t:.3,s:8,cap:1800,paint:P=>{P.wash('#34101a',W,{edge:0,clouds:8});for(let y=-6,r=0;y<52;y+=7,r++)for(let x=-78+(r%2?3:0);x<80;x+=6)P.fill(sm([[x,y+2.6],[x+1.6,y+.4],[x,y-2.2],[x-1.6,y+.4]],5),'#4a1a26',.9)}},-14)}
+        /* bagvæggen og bunden i glaskassen */
+        {const B=box(-29.9,8,29.9,43.9);P2(g,B,{t:.3,s:10,cap:1600,paint:P=>{P.wash('#4a2e58',B,{top:'#2a1a3a',edge:.5,clouds:6});for(let i=0;i<110;i++){const r=R(.1,.2);P.fill(circ(R(-29,29),R(9,43),r,r,8),'#5a3a68',.9)}}},-5)}
+        Rm.floor(box(-29.9,-4.8,29.9,3.6),{color:'#2a1a3a',kind:'water',t:.3},8.3);
+        /* skinnen foroven */
+        P2(g,box(-29.3,40.7,29.3,42),{color:'#8a8aa8',kind:'water',t:.8,edge:'#3a3458'},-2.6);P2(g,box(-29,41.25,29,41.45),{color:'#c8c4d8',kind:'water',t:.1},-2.1);
+        /* præmieskakten */
+        P2(g,box(-29.9,8.2,-19.9,17.5),{color:'#140c2a',kind:'water',t:.1},-4.8);plate(g,'gribepraemie','PRÆMIE',FONT.arkade,7.4,1.8,{bg:'#140c2a',fg:'#ffd36e',size:1.25,x:-24.8,y:13.4,z:-4.6});P2(g,toCCW([[-25.6,11.6],[-24,11.6],[-24.8,10.2]]),{color:'#ffd36e',kind:'water',t:.05},-4.6);
+        for(const x of[-27,27]){Rm.glow(x,42.6,-3,'#ffd9a0',9);const L=new THREE.PointLight('#ffe0b0',50,60,2);put(g,L,x,40,0)}},
+      ()=>{const g=Rm.scene;/* skabet: mahogni med messinglister, foran glasset */
+        for(const sx of[-1,1]){const p=box(sx>0?29.9:-33,6.8,sx>0?33:-29.9,52);P2(g,p,{t:2.4,s:10,cap:1400,paint:P=>boards(P,null,'#6a3a20',{dir:'v',h:1.6,ink:.25})},4);P2(g,box(sx*31.45-.16,6.8,sx*31.45+.16,52),{mat:gold(),t:.3},5.3)}
+        {const p=box(-33,43.9,33,52);P2(g,p,{t:2.4,s:10,cap:1400,paint:P=>boards(P,null,'#6a3a20',{dir:'h',h:1.6,ink:.25})},4);P2(g,box(-29.9,43.7,29.9,44.1),{mat:gold(),t:.3},5.3)}
+        /* kontrolpanelet: et gammelt panel i mahogni og messing */
+        {const p=box(-33,-9,33,7);P2(g,p,{t:4,s:10,cap:1600,paint:P=>{boards(P,null,'#7a3a22',{dir:'h',h:1.6,ink:.3});P.wash('#2e110a',box(-34,-9,34,-3),{alpha:.35,edge:0,mode:'source-over'})}},6)}
+        P2(g,box(-33,6,33,7),{mat:gold(),t:.4},8.1);for(let x=-31.5;x<33;x+=3.5)P2(g,circ(x,6.5,.2,.2,8),{color:BRl,kind:'water',t:.2},8.3);
+        /* tandhjul som pynt */
+        for(const[cx,cy,r,n,a0]of[[6.5,2.5,1.7,10,.2],[9.25,.25,1.1,8,.5],[30,-4,1.3,9,0]]){const tp=[];for(let i=0;i<n*2;i++){const a=i/(n*2)*TAU+a0,rr=i%2?r:r*1.18;tp.push([cx+Math.cos(a-.09)*rr,cy+Math.sin(a-.09)*rr],[cx+Math.cos(a+.09)*rr,cy+Math.sin(a+.09)*rr])}P2(g,toCCW(tp),{mat:gold(),t:.3},8.1);P2(g,circ(cx,cy,r*.45,r*.45,14),{color:'#3a1a0c',kind:'water',t:.34},8.12);P2(g,circ(cx,cy,r*.16,r*.16,8),{color:BRl,kind:'water',t:.38},8.14)}
+        /* lågen, hvor den vundne bamse kommer ud */
+        {const d=box(-29,-3.2,-20.2,5.2);P2(g,d,{color:'#140c2a',kind:'water',t:.1},8.05);for(const s of ring(d,.4,false))P2(g,s,{mat:gold(),t:.4},8.1);P2(g,box(-28.4,4.2,-20.8,4.4),{color:'#3a2e5a',kind:'water',t:.05},8.12)}
+        /* knapperne: en messingring om et hul; kuplen af farvet glas ligger i det levende lag, så den kan trykkes ned */
+        for(const k of KN){P2(g,circ(k.x,KY-.8,k.r+.8,(k.r+.8)*.55,30),{color:'#1a0804',kind:'water',t:.05},8.05);P2(g,circ(k.x,KY-.4,k.r+.7,(k.r+.7)*.55,30),{mat:gold(),t:.3},8.1);for(let i=0;i<8;i++){const a=i/8*TAU;P2(g,circ(k.x+Math.cos(a)*(k.r+.35),KY-.4+Math.sin(a)*(k.r+.35)*.55,.15,.15,8),{color:BRl,kind:'water',t:.34},8.12)}P2(g,circ(k.x,KY-.5,k.r,k.r*.55,28),{color:'#120604',kind:'water',t:.36},8.12)}
+        plate(g,'gribehold','Hold pilene nede',FONT.pil,13,1.9,{bg:'#d8b060',fg:'#3a2208',frame:'gold',size:1.15,x:-7,y:-2.45,z:8.3});
+        /* uret: en messingring; tallet står i det levende lag */
+        for(const s of ring(circ(28.3,KY,2.7,2.7,30),.5,false))P2(g,s,{mat:gold(),t:.4},8.1)},
+      ()=>{const lv=Rm.live;/* vognen, wiren og kloen */
+        vogn=new THREE.Group();vogn.position.set(X(XMIN),Y(TOP-15),2.2);lv.add(vogn);P2(vogn,box(-1.3,-.85,1.3,.85),{color:'#6a6480',kind:'water',t:.5,edge:'#2a2440'},0);for(const sx of[-1,1])P2(vogn,circ(sx*.8,.75,.3,.3,10),{color:'#c8c4d8',kind:'water',t:.56},0);
+        kabel=piece(box(-.1,0,.1,1),{color:'#c8c4d8',kind:'water',t:.05});lv.add(kabel);
+        hovedG=new THREE.Group();lv.add(hovedG);P2(hovedG,sm([[-1.55,-1.05],[1.55,-1.05],[1.55,1.05],[-1.55,1.05]],3),{color:'#8a8aa8',kind:'water',t:.5,edge:'#2a2440'},0);P2(hovedG,box(-1.25,.5,1.25,.8),{color:'#b8b6cc',kind:'water',t:.1},.3);
+        put(hovedG,piece(circ(0,-.1,.26,.26,10),{t:.1,mat:paperMat('#ffffff','tissue',{glow:'#e0457a',gi:1.6})}),0,0,.32);for(const sx of[-1,1])P2(hovedG,circ(sx*PIV/20,-.95,.28,.28,10),{color:'#6a6480',kind:'water',t:.1},.34);
+        /* den bagerste arm (den tredje) ses bag bamserne */
+        bagarm=piece(box(-.22,-1,.22,0),{color:'#8a84a0',kind:'water',t:.2});bagarm.position.set(0,-.85,-4.4);hovedG.add(bagarm);bagtip=new THREE.Group();bagtip.position.set(0,-4.5,-4.4);hovedG.add(bagtip);P2(bagtip,toCCW([[-.22,.1],[.22,.1],[.1,-.2],[-.5,-.45],[-.6,-.2]]),{color:'#8a84a0',kind:'water',t:.2},0);
+        /* glasset: genskin, og præmieskaktens plexiglas */
+        {const c=cv(1188,712),q=c.getContext('2d');q.fillStyle='rgba(255,255,255,.07)';for(const pts of[[[34,4],[174,4],[34,264]],[[854,4],[934,4],[654,708],[584,708]]]){q.beginPath();pts.forEach(([x,y],i)=>i?q.lineTo(x,y):q.moveTo(x,y));q.fill()}
+          q.strokeStyle='rgba(221,239,255,.75)';q.lineCap='round';q.lineWidth=7;q.beginPath();q.moveTo(198,524);q.lineTo(198,710);q.stroke();q.lineWidth=5;q.beginPath();q.moveTo(8,524);q.lineTo(198,524);q.stroke();q.fillStyle='rgba(180,220,255,.08)';q.fillRect(8,524,190,188);
+          const m=new THREE.Mesh(new THREE.PlaneGeometry(59.4,35.6),new THREE.MeshBasicMaterial({map:tx(c,true),transparent:true,depthWrite:false,toneMapped:false}));m.position.set(0,Y(36+356),3.4);m.userData.noShadow=true;lv.add(m)}
+        /* kuplerne på knapperne */
+        for(const k of KN){const G=new THREE.Group();G.position.set(k.x,KY,8.3);lv.add(G);k.G=G;P2(G,circ(0,-.35,k.r-.2,(k.r-.2)*.55,28),{color:BRd,kind:'water',t:.1},0);k.lys=paperMat(k.glas,'water',{glow:k.glas,gi:.5}).clone();put(G,piece(circ(0,0,k.r-.3,(k.r-.3)*.55,28),{t:.12,mat:k.lys}),0,0,.1);
+          P2(G,circ(-k.r*.3,k.r*.2,k.r*.28,k.r*.1,12),{color:'#ffffff',kind:'water',t:.02},.2);
+          if(k.id==='grib')P2(G,starPts(0,-.05,1.5,.68,0).map(([x,y])=>[x,y*.6]),{color:'#ffe9a8',kind:'water',t:.03},.22);else{const d=k.id==='v'?1:-1;P2(G,toCCW([[d*1.1,.55],[-d*1.3,0],[d*1.1,-.55]]),{color:'#06302c',kind:'water',t:.03},.22)}}
+        /* uret */
+        ur=cv(160,160);urT=tx(ur,true);{const m=new THREE.Mesh(new THREE.PlaneGeometry(4.6,4.6),new THREE.MeshBasicMaterial({map:urT,transparent:true,toneMapped:false}));m.position.set(28.3,KY,8.2);m.userData.noShadow=true;lv.add(m)}
+        fyld();tegn();
+        ctx.say(SPIL.stj<1?'Et forsøg koster 1 stjerne. Tjen stjerner i Skolen, og kom tilbage.':'Et forsøg koster 1 stjerne. Hold pilene nede for at køre kloen, og tryk på den røde knap for at gribe.')}],
+    tick:(t,dt)=>{if(!S)return;const ph=S.phase;
+      if(ph==='flyt'){S.tid+=dt;const sec=Math.ceil(Math.max(0,LIMIT-S.tid));if(sec!==S.sec){S.sec=sec;tegnUr()}if(S.tid>=LIMIT)grib();else if(!LYD.hold('gribe.motor',!!S.dir)&&S.dir){S.hum+=dt;if(S.hum>.16){S.hum=0;LYD.brum()}}}
+      S.pt+=dt;
+      if(ph==='luk'&&S.close>=1&&S.pt>1.05){S.phase='op';S.pt=0;LYD.hold('gribe.ned',true)}/* kablet ruller op igen: samme lyd som ned */
+      else if(ph==='op'&&S.cable.length<=L0+.5){S.phase='hjem';S.pt=0;LYD.hold('gribe.ned',false);LYD.hold('gribe.motor',true);if(S.carried)LYD.pip()}
+      else if(ph==='hjem'&&Math.abs(S.tx-XMIN)<1&&Math.abs(S.vx)<5&&S.pt>.3){S.phase='slip';S.pt=0;LYD.hold('gribe.motor',false);LYD.plop()}
+      else if(ph==='slip'&&S.pt>.4){S.phase='efter';S.pt=0}
+      else if(ph==='efter'&&(S.wonP||S.pt>(S.carried?2.2:.6))&&!S.ended){S.ended=true;if(!S.wonP)tabt()}
+      if(S.ended&&!S.vist){S.endT-=dt;if(S.endT<=0){S.vist=true;ctx.vent(S.slut,nulstil)}}
+      if(ph==='klar'){if(S.uro>0)S.uro-=dt}
+      if(ph!=='klar'||S.uro>0){S.acc+=dt;while(S.acc>=STEP){S.acc-=STEP;skridt(STEP)}}
+      tegn();puls+=dt;
+      for(const k of KN){const ned=nede===k.id||(k.id!=='grib'&&S.phase==='flyt'&&((k.id==='v'&&S.dir<0)||(k.id==='h'&&S.dir>0)));k.G.position.y+=((ned?KY-.3:KY)-k.G.position.y)*Math.min(1,dt*30);k.lys.emissiveIntensity=k.id==='grib'?(S.phase==='flyt'?.7+.35*Math.sin(puls*6):S.phase==='klar'?.5+.2*Math.sin(puls*2.4):.15):(S.phase==='flyt'||S.phase==='klar'?ned?.9:.45:.12)}
+      if(vundet){vundet.userData.t+=dt;const k=Math.min(1,vundet.userData.t/.4);vundet.position.y=.2-2*(1-k)*(1-k);vundet.rotation.z=.08*Math.sin(t*2)}}},Rm=makeRoom(ctx,OPT);
+  /* tastaturet, som i originalen: piletaster og mellemrum */
+  const kd=e=>{if(e.key==='ArrowLeft'){hold('v',true);e.preventDefault()}else if(e.key==='ArrowRight'){hold('h',true);e.preventDefault()}else if(e.key===' '||e.key==='Enter'){if(!e.repeat)hold('grib',true);e.preventDefault()}},ku=e=>{if(e.key==='ArrowLeft')hold('v',false);else if(e.key==='ArrowRight')hold('h',false)};
+  addEventListener('keydown',kd);addEventListener('keyup',ku);
+  ctx.efter.push(()=>{removeEventListener('keydown',kd);removeEventListener('keyup',ku);LYD.hold('gribe.motor',false);LYD.hold('gribe.ned',false);if(S){try{Matter.Engine.clear(S.eng)}catch(e){}}S=null;bamseRyd()});
+  ctx.test={S:()=>S,hold,grib,nulstil,spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},sigtPaa:()=>{const p=S.plushes.filter(q=>!q.gone).sort((a,b)=>a.position.y-b.position.y)[0];return p&&p.position.x},saetGreb:g=>{S.grip=g},
+    tilstand:()=>S&&{x:Math.round(S.tx),fase:S.phase,aaben:+(1-S.close).toFixed(2),greb:+S.grip.toFixed(4),baaret:S.carried,vandt:S.wonP&&S.wonP.k,len:Math.round(S.cable.length),bamser:S.plushes.filter(p=>!p.gone).length,tid:+S.tid.toFixed(1)}}};
+
 /* ============ Præmiebutikken i Arkaden ============
    En gammel mekanisk ugle i messing passer butikken. På væggen hænger de ni tryllestave, man kun kan få her: de byttes for billetter fra spillene
    og ligger aldrig i en boble. Priserne er de samme som i det oprindelige spil (30 til 100 billetter).
@@ -3400,23 +3850,77 @@ ROOMS.tryl=function(ctx){
   const BPOS={1:[[0,5.9]],2:[[-2.55,5.5],[2.55,5.5]],3:[[-4.2,4.9],[0,7.5],[4.2,4.9]],4:[[-5.2,4.3],[-1.9,7.5],[1.9,7.5],[5.2,4.3]]},SOEDT=['sommerfugl1','sommerfugl2','cupcake','and','hjertevinge'];
   const rundeplan=w=>{const tegn=['vand','lod'];if(w>=2)tegn.push('v');if(w>=3)tegn.push('hat');if(w>=4)tegn.push('ring');if(w>=7)tegn.push('lyn');const nyt=w===1?['vand','lod']:w===2?['v']:w===3?['hat']:w===4?['ring']:w===7?['lyn']:[];
     return{tegn,nyt,antal:Math.min(5+w*2,26),gab:Math.max(.5,2.85-w*.165),fart:Math.min(50+w*6,200)/U}};
-  let frys=false,S=null,lag,lg,heks,kat,kage=[],gaveG,hud,ht,skjul,W_=1,H_=1;const TPL={},BAL={},v3=new THREE.Vector3();
+  let frys=false,S=null,lag,lg,heks,kat,kage=[],gaveG,hud,ht,skjul,W_=1,H_=1;const TPL={},BAL={},SKT={},SKI={},v3=new THREE.Vector3();
   const tegnHud=()=>{const g=hud.getContext('2d');g.clearRect(0,0,640,72);g.fillStyle='#1a1238';g.beginPath();g.roundRect(2,2,636,68,20);g.fill();g.strokeStyle='#ffd86b';g.lineWidth=4;g.stroke();g.fillStyle='#ffe9a0';g.textAlign='center';g.textBaseline='middle';g.font=FONT.arkade.replace('X','34px');
-    g.fillText(S&&S.fase!=='vent'?`Runde ${S.runde}  ·  Point ${S.score}`:'Tryk for at begynde',320,38,610);ht.needsUpdate=true};
+    g.fillText(S&&S.fase!=='vent'?`${S.boss?S.boss.def.navn:'Runde '+S.runde}  ·  Point ${S.score}`:'Tryk for at begynde',320,38,610);ht.needsUpdate=true};
   /* fra rummets mål til skærmens punkter (til stregen, teksterne og kortet, som tegnes på et lag oven på rummet) */
   const tilSkaerm=(x,y,z=10)=>{v3.set(x,y,z).project(Rm.cam);return[(v3.x+1)/2*W_,(1-v3.y)/2*H_]};
   const gnist=(x,y,c,n,v)=>Rm.burst(x,y,12,Math.min(14,n),c,v/U*.5);
   const tekst=(x,y,txt,c,size)=>{if(txt)S.tekster.push({x:clamp(x,-34,34),y:Math.min(TOP-6,y),txt,c,size,t:0})};
   const aktive=()=>S.cfg?S.cfg.tegn.concat(S.gave?['hjerte']:[]):[];
   /* ---------- runderne ---------- */
-  const begynd=()=>{for(const f of S?S.foes:[])Rm.live.remove(f.G);for(const d of S?S.dyr:[])Rm.live.remove(d.G);for(const b of S?S.frie:[])Rm.live.remove(b.G);
-    S={t:0,score:0,runde:0,liv:3,forvandlet:0,cfg:null,foes:[],frie:[],dyr:[],tekster:[],spor:[],streg:null,koe:[],tving:[],spawnT:0,fase:'spil',faseT:0,kort:null,gave:null,gaveT:-1,hop:0,dyrHop:0,kageHop:0,ryst:0,msg:'',msgT:0};gaveG.visible=false;visKage();naesteRunde();tegnHud()};
-  const naesteRunde=()=>{S.runde++;const w=S.runde,cfg=S.cfg=rundeplan(w),kan=Object.keys(SLAGS).filter(k=>SLAGS[k].fra<=w),sum=kan.reduce((a,k)=>a+SLAGS[k].tit,0);
+  const rydBoss=()=>{if(!S)return;if(S.boss){Rm.live.remove(S.boss.G);S.boss=null}for(const k of S.skud)Rm.live.remove(k.G);S.skud=[]};
+  const begynd=()=>{rydBoss();for(const f of S?S.foes:[])Rm.live.remove(f.G);for(const d of S?S.dyr:[])Rm.live.remove(d.G);for(const b of S?S.frie:[])Rm.live.remove(b.G);
+    S={t:0,score:0,runde:0,liv:3,forvandlet:0,cfg:null,foes:[],frie:[],dyr:[],tekster:[],spor:[],streg:null,koe:[],tving:[],spawnT:0,fase:'spil',faseT:0,kort:null,gave:null,gaveT:-1,hop:0,dyrHop:0,kageHop:0,ryst:0,msg:'',msg2:'',msgT:0,boss:null,skud:[],bossNr:0,superSet:false};gaveG.visible=false;visKage();naesteRunde();tegnHud()};
+  const naesteRunde=()=>{S.runde++;const w=S.runde,cfg=S.cfg=rundeplan(w),kan=Object.keys(SLAGS).filter(k=>SLAGS[k].fra<=w),sum=kan.reduce((a,k)=>a+SLAGS[k].tit,0);S.msg2='';if(w%5===0)return bossStart(w);
     S.koe=Array.from({length:cfg.antal},()=>{let r=Math.random()*sum;for(const k of kan){r-=SLAGS[k].tit;if(r<=0)return k}return'gnom'});if(w===1)S.koe.fill('gnom');
     const ny=kan.find(k=>SLAGS[k].fra===w&&k!=='gnom');if(ny){S.koe[Math.min(2,S.koe.length-1)]=ny;S.koe[0]='gnom'}
     S.tving=cfg.nyt.slice();if(w===1)S.tving=['vand','lod','vand','lod'];S.spawnT=.6;S.gaveT=w>=3&&Math.random()<.65?rnd(4,cfg.antal*cfg.gab*.8):-1;
     if(cfg.nyt.length){S.fase='kort';S.faseT=w===1?14:9;S.kort={nyt:cfg.nyt,ok:{},t:0,ud:0}}else{S.fase='spil';S.kort=null;S.msg=`Runde ${w}`;S.msgT=1.6}
     if(w>1)LYD.nyt();tegnHud()};
+  /* ---------- bosserne: hver femte runde kommer en af dem, i denne rækkefølge, og så forfra, hver gang lidt sværere ----------
+     skud: hvad den kaster. bane: hvordan det flyver (bue, ret eller zigzag). hp: hvor mange gange den skal rammes.
+     kombo: hvor mange tegn, man skal tegne i træk, når den er svimmel. hand: hvor kastet starter, set fra midten af bossen.
+     Forløbet er som i originalen: den kaster enkeltskud og bølger på skift, og til sidst et superangreb (en kæmpekugle med flere tegn, der skal tegnes i rækkefølge).
+     Når alt er tryllet væk eller landet, bliver den svimmel, og så skal man tegne rækken af tegn under den for at ramme den. */
+  const BOSSER=[{k:'trold',navn:'Kongetrolden',skud:'bombe',bane:'bue',hp:3,kombo:3,antal:1,hand:[-7.5,-.5],sod:'en lille bamsetrold',bamse:'trold',snak:['Hø hø hø!','Den kage er MIN!','Stinkbombe på vej!','Hø hø, fang!'],av:['Av, min krone!','Hov hov hov!','Det kilder!'],grin:'Hø hø! For langsom!'},
+    {k:'foenix',navn:'Ildfuglen',skud:'ild',bane:'ret',hp:3,kombo:3,antal:1,hand:[0,-5.5],sod:'en lille føniksbamse',bamse:'foeniks',snak:['Kra-kraaa!','Varm kage, mums!','Ild og flammer!','Fjer-flammer!'],av:['Mine fjer!','Kraaa-av!','Puha, det svider!'],grin:'Kra-kra! Jeg vandt næsten!'},
+    {k:'isdrage',navn:'Isdragen',skud:'is',bane:'zigzag',hp:4,kombo:3,antal:1,hand:[0,0],sod:'en lille babydrage',bamse:'isdrage',snak:['Brrr! Is-kage!','Frys, kage!','Hihi, glat!','Snefnug-stjerner!'],av:['Atjuu!','Det er for varmt!','Mine horn!'],grin:'Brrr-ha-ha!'},
+    {k:'kraken',navn:'Kæmpeblæksprutten',skud:'blaek',bane:'bue',hp:4,kombo:4,antal:2,hand:[0,-6],sod:'en lille blæksprutte',bamse:'kraken',snak:['Blæk-blæk!','Otte arme til kagen!','Splat!','Blob-blob-blob!'],av:['Mine arme!','Blubb!','Av, min tiara!'],grin:'Blæk-hæ-hæ!'}];
+  /* bølger: hver boss har sit eget mønster. n: hvor mange. spred: hvor langt fra hinanden de lander. forsink: sekunder mellem hvert. fra: hvor de sendes fra */
+  const MOENSTER={trold:{n:3,spred:7.5,forsink:.12,navn:'Bombe-regn!'},foenix:{n:4,spred:4.5,forsink:.32,fra:[[-9,-1],[-3.5,-4.5],[3.5,-4.5],[9,-1]],navn:'Ildregn!'},isdrage:{n:3,spred:6.5,forsink:0,modfase:true,navn:'Isstorm!'},kraken:{n:4,spred:5.5,forsink:.22,fra:[[-8,-4.5],[-2.5,-7.5],[2.5,-7.5],[8,-4.5]],navn:'Blæksprøjt!'}};
+  const SUPER={trold:'KÆMPEBOMBE!',foenix:'FLAMMEKUGLE!',isdrage:'ISKÆMPE!',kraken:'BLÆKBOBLE!'},SKUDFARVE={bombe:'#ff7a3a',ild:'#ffb23e',is:'#7fd8ff',blaek:'#b07aff'},LAD=1.7,BY=28.5,BSPAN=22,PYNT=['sloejfe','hjerte','blomst','hjerte','sloejfe'];
+  const PYNT_AT={trold:[[-3.4,7.2],[-3.6,-1.4],[3.6,-1.4],[0,-3.2],[3.2,6.6]],foenix:[[0,7.4],[-2,-.2],[2,-.2],[0,-3.2],[-2.6,3.4]],isdrage:[[0,7.2],[-2.6,-.4],[2.6,-.4],[0,-4.4],[2.8,6]],kraken:[[-3,7.4],[-4.4,.6],[4.4,.6],[0,6.4],[-1,-.8]]};
+  const bossSig=txt=>{if(S.boss){S.boss.snak=txt;S.boss.snakT=2.2}};
+  /* en angrebsrunde: enkeltskud og bølger på skift, og til sidst et superangreb. Senere bosser kaster flere bølger */
+  const lavPlan=B=>{const n=4+Math.min(3,B.nr),p=[];for(let i=0;i<n-1;i++)p.push(B.nr>=5?(i%3===2?'enkelt':'boelge'):(i%2?'boelge':'enkelt'));p.push('super');return p};
+  const bossStart=w=>{const nr=++S.bossNr,def=BOSSER[(nr-1)%BOSSER.length],cyk=Math.floor((nr-1)/BOSSER.length),G=new THREE.Group(),A=TRYLBOSS.byg(G,def.k);G.position.set(0,TOP+14,3);Rm.live.add(G);
+    S.koe=[];S.tving=[];S.kort=null;S.spawnT=99;S.gaveT=Math.random()<.6?rnd(10,22):-1;
+    S.boss={def,nr,G,A,x:0,y:TOP+14,t:0,vt:0,fase:'ind',faseT:2.4,hp:def.hp+cyk,hpMax:def.hp+cyk,komboN:Math.min(5,def.kombo+cyk),flyv:Math.max(2.2,4.6-.3*(nr-1)),gab:Math.max(.8,2.1-.2*(nr-1)),plan:[],kastI:0,kastT:1.2,lad:0,kombo:[],komboI:0,saarT:0,saarMax:1,ramtT:0,pynt:0,snak:null,snakT:0,besejrT:0,glimt:0};
+    S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.boelge();tegnHud()};
+  /* tegnene: forskellige på skud, der flyver samtidig, når det kan lade sig gøre */
+  const nytTegn=()=>{const brugt=new Set(S.skud.map(k=>k.sym)),pulje=S.cfg.tegn.filter(t=>!brugt.has(t));return vaelg(pulje.length?pulje:S.cfg.tegn)};
+  const nytSkud=o=>{const G=new THREE.Group();G.add(SKT[o.k].clone(true));o.G=G;o.sk=SKI[o.sym].clone(true);o.sk.position.z=1.2;G.add(o.sk);G.visible=false;G.position.set(o.x0,o.y0,7+S.skud.length%4*.3);Rm.live.add(G);S.skud.push(o);return o};
+  const bossKast=m=>{const B=S.boss,d=B.def,M=MOENSTER[d.k],boelge=m==='boelge',n=boelge?M.n+(B.nr>8?1:0):d.antal+(B.nr>8?1:0);
+    for(let i=0;i<n;i++){const fra=boelge&&M.fra?M.fra[i%M.fra.length]:d.hand,x0=B.x+fra[0],y0=B.y+fra[1],tx=n>1?(i-(n-1)/2)*(boelge?M.spred:6):rnd(-3.5,3.5);
+      nytSkud({k:d.skud,bane:d.bane,sym:nytTegn(),x0,y0,tx,ty:7.5,x:x0,y:y0,T:B.flyv*(d.bane==='ret'?.9:1)*rnd(.95,1.08)*(boelge?1.12:1),t:-(boelge?i*M.forsink:i*.5),plan:0,rot:rnd(0,6),ph:boelge&&M.modfase?i*Math.PI:rnd(0,6)})}
+    B.glimt=.3;LYD.pust();if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
+  /* superangrebet: først lader bossen op, så sendes kæmpekuglen af sted */
+  const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.snor()};
+  const superKast=()=>{const B=S.boss,d=B.def,n=Math.min(5,3+Math.floor((B.nr-1)/2)),p=S.cfg.tegn.slice(),syms=[];for(let i=0;i<n;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===syms[i-1]);syms.push(t)}
+    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});B.glimt=.5;S.ryst=.35;LYD.ild();Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
+  /* et tegn rammer kæmpekuglen: den skubbes lidt tilbage og bliver mindre; sidste tegn sprænger den */
+  const superRamt=k=>{k.idx++;k.krymp=.25;k.t=Math.max(0,k.t-k.T*.1);gnist(k.x,k.y,SKUDFARVE[k.k],14,380);
+    if(k.idx>=k.syms.length){k.plan=S.t+.05;S.score+=60;tekst(k.x,k.y+2,'Super!','#ffe27a',60);tekst(k.x,k.y-.7,'+60','#fff6d0',40);S.hop=.5}
+    else{k.sym=k.syms[k.idx];k.G.remove(k.sk);k.sk=SKI[k.sym].clone(true);k.sk.position.z=1.2;k.G.add(k.sk);S.score+=10;tekst(k.x,k.y+6,'+10','#fff6d0',34);LYD.pop()}tegnHud()};
+  const ansigt=(B,svim)=>{B.A.nor.visible=!svim;B.A.svim.visible=svim};
+  const bossSaarbar=()=>{const B=S.boss,p=S.cfg.tegn.slice();B.fase='saarbar';B.komboI=0;B.kombo=[];for(let i=0;i<B.komboN;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===B.kombo[i-1]);B.kombo.push(t)}B.saarT=B.saarMax=3+2.1*B.komboN;ansigt(B,true);LYD.kys()};
+  const bossRamt=()=>{const B=S.boss,at=PYNT_AT[B.def.k][B.pynt%5],pg=TRYLBOSS.pynt(new THREE.Group(),PYNT[B.pynt%PYNT.length]);pg.position.set(at[0],at[1],4);pg.rotation.z=-.2;B.G.add(pg);B.pynt++;B.hp--;B.ramtT=1.1;B.fase='ramt';
+    S.score+=100;S.hop=.5;S.dyrHop=.5;S.ryst=.25;LYD.fanfare();Rm.burst(B.x,B.y+3,12,16,'rgba(255,226,122,.95)',10);Rm.burst(B.x,B.y+3,12,12,'rgba(255,79,123,.95)',9);tekst(B.x,B.y+1,'+100','#fff6d0',46);bossSig(vaelg(B.def.av));tegnHud()};
+  const bossBesejret=()=>{const B=S.boss,p=200+50*B.nr;B.fase='besejret';B.besejrT=1.6;B.lad=0;S.score+=p;S.forvandlet++;LYD.fanfare();Rm.burst(B.x,B.y,12,16,'rgba(255,255,255,.95)',12);Rm.burst(B.x,B.y,12,16,'rgba(255,143,199,.95)',14);
+    S.msg=`${B.def.navn} blev til ${B.def.sod}!`;S.msg2='';S.msgT=2.8;tekst(B.x,B.y-2,'+'+p,'#fff6d0',56);for(const k of S.skud)if(!k.plan)k.plan=S.t+rnd(.1,.4);tegnHud()};
+  const skudPos=k=>{const p=Math.min(1,k.t/k.T),lx=k.x0+(k.tx-k.x0)*p,ly=k.y0+(k.ty-k.y0)*p;if(k.bane==='bue')return[lx,ly+11*4*p*(1-p)];if(k.bane==='stor')return[lx+Math.sin(k.t*1.6+k.ph)*3*(1-p),ly+4.5*4*p*(1-p)];if(k.bane==='zigzag')return[lx+Math.sin(p*Math.PI*4+k.ph)*7.5*(1-p),ly];return[lx+Math.sin(p*Math.PI*3+k.ph)*2,ly]};
+  const bossFrem=dt=>{const B=S.boss;B.t+=dt;if(B.snakT>0)B.snakT-=dt;if(B.glimt>0)B.glimt-=dt;
+    if(B.fase==='ind'){B.faseT-=dt;const k=Math.min(1,1-B.faseT/2.4),e=1-Math.pow(1-k,3);B.y=TOP+14+(BY-TOP-14)*e;B.x=0;if(B.faseT<=0){B.fase='angreb';bossSig(B.def.snak[1])}}
+    else if(B.fase==='besejret'){B.besejrT-=dt;if(B.besejrT<=0){/* den bliver til en lille bamse, der svæver væk */const G=new THREE.Group(),q=new THREE.Group();bygBamse(q,B.def.bamse);q.scale.setScalar(1.5);G.add(q);G.position.set(B.x,B.y,8);Rm.live.add(G);S.dyr.push({G,x:B.x,y:B.y,t:0,vx:rnd(-2,2),vy:6,ph:0});Rm.live.remove(B.G);S.boss=null;tegnHud();return}}
+    else{/* den svæver frem og tilbage. Er den svimmel, eller lader den op, står den stille */const fart=B.fase==='saarbar'||B.lad>0?0:1;B.vt+=dt*fart;B.x=Math.sin(B.vt*.45)*BSPAN;B.y=BY+Math.sin(B.t*1.3)*.7;
+      if(B.fase==='angreb'){if(B.lad>0){B.lad-=dt;if(B.lad<=0){B.lad=0;superKast();B.kastT=B.gab}}
+        else{B.kastT-=dt;if(B.kastI<B.plan.length&&B.kastT<=0){const m=B.plan[B.kastI++];if(m==='super')superStart();else{bossKast(m);B.kastT=B.gab*(m==='boelge'?1.7:1)*rnd(.85,1.15)}}else if(B.kastI>=B.plan.length&&!S.skud.length)bossSaarbar()}}
+      else if(B.fase==='saarbar'){B.saarT-=dt;if(B.saarT<=0){B.fase='angreb';ansigt(B,false);B.plan=lavPlan(B);B.kastI=0;B.kastT=1;bossSig(B.def.grin);LYD.oev()}}
+      else if(B.fase==='ramt'){B.ramtT-=dt;if(B.ramtT<=0){if(B.hp<=0)bossBesejret();else{B.fase='angreb';ansigt(B,false);B.plan=lavPlan(B);B.kastI=0;B.kastT=1.2;B.gab=Math.max(.75,B.gab*.9)}}}}
+    const svim=B.fase==='saarbar'||B.fase==='ramt',ryst=B.fase==='ramt'?Math.sin(B.ramtT*40)*.5*B.ramtT:0,lq=B.lad>0?1-B.lad/LAD:0,lr=lq?Math.sin(S.t*60)*.25*lq:0;
+    if(B.fase==='besejret'){const q=Math.max(0,B.besejrT/1.6);B.G.scale.setScalar(.2+.8*q);B.G.rotation.z=(1-q)*9}else{B.G.rotation.z=svim?Math.sin(S.t*2.4)*.08:Math.sin(S.t*1.1)*.03;B.G.scale.set(1,B.glimt>0?1+B.glimt*.15:1,1)}
+    B.G.position.set(B.x+ryst+lr,B.y,3)};
   const ballon=(sym,dx,dy)=>{const G=BAL[sym].clone(true);for(const q of thick([[[0,-BR-.5],[-dx,-dy]]],.07))P2(G,q,{color:'#f6f0e2',t:.03},-.2);return G};
   const spawn=k=>{const def=SLAGS[k],n=def.bal,m=BR+.4+(n-1)*2.2+def.svaj,lo=-38+m,hi=Math.max(lo+.5,38-m);let x=0;for(let i=0;i<12;i++){x=rnd(lo,hi);if(!S.foes.some(f=>f.st==='ned'&&f.y>TOP-19&&Math.abs(f.x-x)<6.5+(n+f.bal.length)*1.7))break}
     const pulje=S.cfg.tegn.slice().sort(()=>Math.random()-.5),syms=Array.from({length:n},(_,i)=>pulje[i%pulje.length]);if(S.tving.length)syms[0]=S.tving.shift();
@@ -3429,8 +3933,12 @@ ROOMS.tryl=function(ctx){
     const c=TG[sym].c;S.spor.push({pts:skaerm,t:0,c});
     if(S.fase==='kort'&&S.kort.nyt.includes(sym)&&!S.kort.ok[sym]){S.kort.ok[sym]=true;S.hop=.4;LYD.ding();gnist(mx,my,c,14,260);if(S.kort.nyt.every(k=>S.kort.ok[k]))S.faseT=Math.min(S.faseT,.9);return}
     if(sym==='hjerte'&&S.gave){hjertebrag();return}
+    /* bossen: er den svimmel, og er det næste tegn i rækken, rykker man et skridt frem */
+    let bossOk=false;if(S.boss&&S.boss.fase==='saarbar'&&S.boss.kombo[S.boss.komboI]===sym){const B=S.boss;B.komboI++;bossOk=true;S.hop=.4;gnist(B.x,B.y+6,c,12,280);LYD.ding();if(B.komboI>=B.kombo.length)bossRamt()}
+    const store=S.skud.filter(k=>k.stor&&!k.plan&&k.t>=0&&k.sym===sym);store.forEach(superRamt);
+    const sk=S.skud.filter(k=>!k.stor&&!k.plan&&k.t>=0&&k.sym===sym);sk.forEach((k,i)=>{k.plan=S.t+.04+i*.06});if(sk.length){const q=10*sk.length;S.score+=q;S.hop=.42;tekst(mx,my+.5,'+'+q,'#fff6d0',34);tegnHud()}
     const ramt=[];for(const f of S.foes){if(f.st!=='ned')continue;for(const b of f.bal)if(!b.pop&&!b.plan&&b.sym===sym&&f.y+b.dy<TOP+BR*.4)ramt.push([f,b])}
-    if(!ramt.length){gnist(mx,my,c,6,160);LYD.tryk();return}
+    if(!ramt.length){if(!bossOk&&!sk.length&&!store.length){gnist(mx,my,c,6,160);LYD.tryk()}else gnist(mx,my,c,10,240);return}
     ramt.sort((a,b)=>Math.hypot(a[0].x+a[1].dx-mx,a[0].y+a[1].dy-my)-Math.hypot(b[0].x+b[1].dx-mx,b[0].y+b[1].dy-my));ramt.forEach(([f,b],i)=>{b.plan=S.t+.05+i*.075});
     const n=ramt.length,p=5*n*(n+1);S.score+=p;S.hop=.42;gnist(mx,my,c,10,240);tekst(mx,my+1.5,n>=4?'Kæmpe trylleri!':n===3?'Tredobbelt!':n===2?'Dobbelt!':'',c,46);tekst(mx,my-(n>1?.8:-.5),'+'+p,'#fff6d0',n>1?40:34);tegnHud()};
   const hjertebrag=()=>{const g=S.gave;S.gave=null;gaveG.visible=false;S.score+=100;S.hop=.5;S.dyrHop=.5;LYD.gave();Rm.burst(g.x,g.y,12,16,'rgba(255,120,170,.95)',12);Rm.burst(g.x,g.y,12,14,'rgba(255,216,107,.95)',10);
@@ -3441,9 +3949,9 @@ ROOMS.tryl=function(ctx){
   /* et væsen er landet: det slipper ballonerne og løber hen til kagen */
   const lande=f=>{for(const b of f.bal)if(!b.pop){f.G.remove(b.G);b.G.position.set(f.x+b.dx,f.y+b.dy,5);Rm.live.add(b.G);S.frie.push({G:b.G,x:f.x+b.dx,y:f.y+b.dy,vy:11,t:0,ph:b.ph})}f.bal=[];f.st='loeb';f.t=0;f.side=f.x<0?-1:1;LYD.dunk();Rm.burst(f.x,.6,8,5,'rgba(205,232,208,.9)',4)};
   const bid=(f,txt)=>{if(S.liv<=0||S.fase==='tabt')return;S.liv--;S.ryst=.3;S.kageHop=.35;LYD.nam();Rm.burst(0,7+S.liv*2,10,14,'rgba(246,217,168,.95)',8);Rm.burst(0,7+S.liv*2,10,8,'rgba(255,143,199,.95)',7);tekst(f.x,f.y+1,txt||'NAM!','#ff8fc7',54);visKage();
-    if(S.liv<=0){S.fase='tabt';S.faseT=2.1;S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msgT=9}};
+    if(S.liv<=0){S.fase='tabt';S.faseT=2.1;S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msg2='';S.msgT=9}};
   const visKage=()=>kage.forEach((k,i)=>{k.visible=!S||i<S.liv});
-  const slut=()=>{const n=S.score,w=S.runde,m=S.forvandlet,bil=Math.min(40,1+Math.floor(n/110)),rek=Math.max(SPIL.data.trylRek||0,n);SPIL.data.trylRek=rek;SPIL.givBil(bil);if(n>=300)LYD.fanfare();else LYD.slut();LOG.row('tryl',{point:n,runde:w,forvandlet:m,billetter:bil});S.fase='vent';for(const q of[...S.foes,...S.dyr,...S.frie])Rm.live.remove(q.G);S.foes=[];S.dyr=[];S.frie=[];tegnHud();
+  const slut=()=>{const n=S.score,w=S.runde,m=S.forvandlet,bil=Math.min(40,1+Math.floor(n/110)),rek=Math.max(SPIL.data.trylRek||0,n);SPIL.data.trylRek=rek;SPIL.givBil(bil);if(n>=300)LYD.fanfare();else LYD.slut();LOG.row('tryl',{point:n,runde:w,forvandlet:m,billetter:bil});S.fase='vent';rydBoss();for(const q of[...S.foes,...S.dyr,...S.frie])Rm.live.remove(q.G);S.foes=[];S.dyr=[];S.frie=[];tegnHud();
     ctx.vent(`Du nåede runde ${w}, forvandlede ${m} ${m===1?'væsen':'væsner'} og fik ${n} point. Det giver ${bil} ${bil===1?'billet':'billetter'}! Din rekord er ${rek} point.`)};
   /* ---------- tegninger i papir ---------- */
   const W=(g,sh,col,z,o={})=>P2(g,toCCW(sh),Object.assign({color:col,kind:'water',t:.16,edge:hexOf(shade(col,-.4))},o),z),MORK='#1a1420',streg=(g,pts,col,w,z)=>{for(const q of thick([pts],w))P2(g,q,{color:col,kind:'water',t:.06},z)};
@@ -3493,7 +4001,7 @@ ROOMS.tryl=function(ctx){
           const top=[[-r-.1,y0+h+.2,1],[r+.1,y0+h+.2,1],[r+.1,y0+h-.5]];for(let x=r;x>=-r;x-=r/3)top.push([x-r/6,y0+h-.9-(Math.round(x/r*3)%2?.3:0)],[x-r/3,y0+h-.5]);P2(G,sm(top,4),{color:gl,kind:'water',t:2.5,edge:hexOf(shade(gl,-.25))},.06);
           if(i===2){P2(G,circ(0,y0+h+.75,.6,.6,12),{color:'#e0344a',kind:'water',t:1.2},.1);Rm.glow(0,y0+h+.8,5,'#ffd86b',6,true,G)}G.position.z=3.4;lv.add(G);kage.push(G)});
         /* skabelonerne: ét af hvert væsen og én ballon pr. tegn. De ligger skjult, og hvert væsen i spillet er en kopi */
-        skjul=new THREE.Group();skjul.visible=false;lv.add(skjul);for(const k of[...Object.keys(SLAGS),...SOEDT]){const G=new THREE.Group();byg[k](G);skjul.add(G);TPL[k]=G}for(const sym of Object.keys(TG)){const G=new THREE.Group();bygBallon(G,sym);skjul.add(G);BAL[sym]=G}
+        skjul=new THREE.Group();skjul.visible=false;lv.add(skjul);for(const k of[...Object.keys(SLAGS),...SOEDT]){const G=new THREE.Group();byg[k](G);skjul.add(G);TPL[k]=G}for(const sym of Object.keys(TG)){const G=new THREE.Group();bygBallon(G,sym);skjul.add(G);BAL[sym]=G;const K=new THREE.Group();TRYLBOSS.skilt(K,sym);skjul.add(K);SKI[sym]=K}for(const k of['bombe','ild','is','blaek']){const G=new THREE.Group();TRYLBOSS.skud(G,k);skjul.add(G);SKT[k]=G}
         gaveG=new THREE.Group();{const b=BAL.hjerte.clone(true);b.scale.setScalar(1.25);gaveG.add(b);for(const q of thick([[[0,-3.8],[0,-6]]],.07))P2(gaveG,q,{color:'#f6f0e2',t:.03},-.1);P2(gaveG,box(-1.3,-8.2,1.3,-6),{color:'#e0457a',kind:'water',t:1.2},0);P2(gaveG,box(-.3,-8.2,.3,-6),{color:'#ffd86b',kind:'water',t:1.3},.02);P2(gaveG,box(-1.3,-7.3,1.3,-6.8),{color:'#ffd86b',kind:'water',t:1.3},.02)}gaveG.visible=false;lv.add(gaveG);
         heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.62);heks.G.position.set(HX,.35,5);lv.add(heks.G);Rm.blob(HX,5,10,4);kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.42);kat.G.position.set(DX+3,.6,6);kat.G.scale.x=-.42;lv.add(kat.G);
         hud=cv(640,72);ht=tx(hud,true);{const m=new THREE.Mesh(new THREE.PlaneGeometry(26,2.92),new THREE.MeshBasicMaterial({map:ht,transparent:true,toneMapped:false}));m.position.set(23,43.2,12);m.userData.noShadow=true;lv.add(m)}tegnHud();
@@ -3507,7 +4015,7 @@ ROOMS.tryl=function(ctx){
       if(S.fase==='kort'){S.kort.t+=dt;if(S.faseT<=0){S.fase='spil';S.kort.ud=.35}}if(S.kort&&S.kort.ud>0){S.kort.ud-=dt;if(S.kort.ud<=0)S.kort=null}
       if(S.fase==='spil'){S.spawnT-=dt;if(S.spawnT<=0&&S.koe.length){spawn(S.koe.shift());S.spawnT=S.cfg.gab*rnd(.75,1.25)}
         if(S.gaveT>0){S.gaveT-=dt;if(S.gaveT<=0&&!S.gave){const d=Math.random()<.5?1:-1;S.gave={x:d>0?-50:50,y:39,d,t:0};gaveG.visible=true}}
-        if(!S.koe.length&&!S.foes.some(f=>f.st!=='flygt')){S.fase='slut';S.faseT=1.7;S.score+=50;S.msg='Runde klaret!';S.msgT=1.5;tekst(0,26,'+50','#fff6d0',44);
+        if(!S.koe.length&&!S.foes.some(f=>f.st!=='flygt')&&!S.boss&&!S.skud.length){S.fase='slut';S.faseT=1.7;S.score+=50;S.msg='Runde klaret!';S.msg2='';S.msgT=1.5;tekst(0,26,'+50','#fff6d0',44);
           if(S.runde%3===0&&S.liv<3){S.liv++;S.kageHop=.5;S.msg='En ny etage på kagen!';visKage();Rm.burst(0,12,10,16,'rgba(255,226,122,.95)',10);LYD.nyt()}tegnHud()}}
       else if(S.fase==='slut'){if(S.faseT<=0)naesteRunde()}else if(S.fase==='tabt'){if(S.faseT<=0){slut();return}}
       if(S.gave){const g=S.gave;g.t+=dt;g.x+=g.d*6.75*dt;g.y=39+Math.sin(g.t*1.4)*1.1;gaveG.position.set(g.x,g.y,7);gaveG.rotation.z=.06*Math.sin(g.t*2);if((g.d>0&&g.x>52)||(g.d<0&&g.x<-52)){S.gave=null;gaveG.visible=false}}
@@ -3520,6 +4028,14 @@ ROOMS.tryl=function(ctx){
         else if(f.st==='jubel'){f.y=f.land+Math.abs(Math.sin(f.t*9))*1.6}
         f.G.position.x=f.x;f.G.position.y=f.y}
       S.foes=S.foes.filter(f=>f.st!=='vaek');
+      /* bossen og det, den kaster */
+      if(S.boss&&S.fase!=='tabt')bossFrem(dt);
+      for(const k of S.skud){k.t+=dt;if(k.krymp>0)k.krymp-=dt;if(k.t<0)continue;const[x,y]=skudPos(k);k.x=x;k.y=y;k.G.visible=true;k.G.position.x=x;k.G.position.y=y;
+        k.G.scale.setScalar((k.stor?2.1*(1-.1*k.idx)*(k.krymp>0?1-k.krymp*.5:1):1)*(k.plan?1.2:1));k.G.children[0].rotation.z=k.k==='bombe'?k.t*2.2+k.rot:k.k==='is'?k.t*3:k.k==='blaek'?Math.sin(k.t*9)*.1:Math.sin(k.t*8)*.12;
+        if(k.plan&&S.t>=k.plan){k.dod=true;LYD.pop();Rm.burst(x,y,12,k.stor?16:10,'rgba(255,255,255,.95)',k.stor?9:5);if(k.stor)LYD.fanfare()}
+        else if(!k.plan&&k.t>=k.T){k.dod=true;S.ryst=k.stor?.6:.3;Rm.burst(x,y,12,10,'rgba(255,200,160,.95)',6);if(S.fase!=='tabt')bid({x,y:y+2},(k.stor?'KÆMPE-':'')+(k.k==='bombe'?'BOM!':k.k==='is'?'FRYS!':k.k==='ild'?'AV, VARMT!':'SPLAT!'))}
+        if(k.dod)Rm.live.remove(k.G)}
+      S.skud=S.skud.filter(k=>!k.dod);
       for(const b of S.frie){b.t+=dt;b.vy+=8*dt;b.y+=b.vy*dt;b.x+=Math.sin(b.t*3+b.ph)*2*dt;b.G.position.set(b.x,b.y,5);if(b.y>TOP+8)Rm.live.remove(b.G)}S.frie=S.frie.filter(b=>b.y<=TOP+8);
       for(const d of S.dyr){d.t+=dt;d.x+=(d.vx+Math.sin(d.t*2.6+d.ph)*4.5)*dt;d.y+=d.vy*dt;d.vy+=2*dt;d.G.position.set(d.x,d.y,8);d.G.rotation.z=.2*Math.sin(d.t*5+d.ph);const z=Math.min(1,d.t*4);d.G.scale.set(z*(1+.12*Math.sin(d.t*16)),z,1);if(d.y>TOP+6)Rm.live.remove(d.G)}S.dyr=S.dyr.filter(d=>d.y<=TOP+6);
       /* ---- laget oven på: stregen, teksterne, beskeden og kortet med nye tegn ---- */
@@ -3527,14 +4043,29 @@ ROOMS.tryl=function(ctx){
       for(const s of S.spor){s.t+=dt;linje(s.pts,s.c,10,Math.max(0,1-s.t/.5))}S.spor=S.spor.filter(s=>s.t<.5);if(S.streg)linje(S.streg.sk,'#ffe27a',10,1);
       const fs=W_/1280;g.textAlign='center';g.textBaseline='middle';
       for(const q of S.tekster){q.t+=dt;q.y+=2.3*dt;const[x,y]=tilSkaerm(q.x,q.y);g.globalAlpha=Math.max(0,1-q.t/1.25);g.font=FONT.arkade.replace('X',Math.round(q.size*fs*.8)+'px');g.lineWidth=6*fs;g.strokeStyle='#1a1238';g.strokeText(q.txt,x,y);g.fillStyle=q.c;g.fillText(q.txt,x,y)}g.globalAlpha=1;S.tekster=S.tekster.filter(q=>q.t<1.25);
-      if(S.msgT>0&&S.msg&&!S.kort){const[x,y]=tilSkaerm(0,31);g.globalAlpha=Math.min(1,S.msgT*3);g.font=FONT.arkade.replace('X',Math.round(64*fs)+'px');g.lineWidth=9*fs;g.strokeStyle='#1a1238';g.strokeText(S.msg,x,y);g.fillStyle='#ffe9a0';g.fillText(S.msg,x,y);g.globalAlpha=1}
+      if(S.msgT>0&&S.msg&&!S.kort){const[x,y]=tilSkaerm(0,S.boss&&S.boss.fase==='angreb'?16.4:31);g.globalAlpha=Math.min(1,S.msgT*3);g.font=FONT.arkade.replace('X',Math.round(60*fs)+'px');g.lineWidth=9*fs;g.strokeStyle='#1a1238';g.strokeText(S.msg,x,y,W_-24);g.fillStyle='#ffe9a0';g.fillText(S.msg,x,y,W_-24);
+        if(S.msg2){g.font=`700 ${Math.round(27*fs)}px "Alegreya Sans",sans-serif`;g.lineWidth=6*fs;g.strokeText(S.msg2,x,y+50*fs,W_-24);g.fillStyle='#f6f0e2';g.fillText(S.msg2,x,y+50*fs,W_-24)}g.globalAlpha=1}
+      /* bossen: hjerter, snakkeboble, opladning, rækken af tegn når den er svimmel, og tegnene på kæmpekuglen */
+      {const u1=Math.abs(tilSkaerm(1,0,5)[0]-tilSkaerm(0,0,5)[0]),glyf=(sym,x,y,r,lw,col)=>{g.lineWidth=lw;g.lineCap=g.lineJoin='round';g.strokeStyle=col;g.beginPath();TG[sym].p.forEach(([px,py],j)=>j?g.lineTo(x+px*r,y+py*r):g.moveTo(x+px*r,y+py*r));g.stroke()},
+          hjerte=(x,y,r)=>{g.beginPath();for(let i=0;i<=20;i++){const q=i/20*TAU,hx=x+r*16*Math.pow(Math.sin(q),3)/17,hy=y-r*(13*Math.cos(q)-5*Math.cos(2*q)-2*Math.cos(3*q)-Math.cos(4*q))/17;i?g.lineTo(hx,hy):g.moveTo(hx,hy)}g.closePath()},
+          flueben=(x,y,r)=>{g.strokeStyle='#ffffff';g.lineWidth=r*.2;g.lineCap='round';g.beginPath();g.moveTo(x-r*.4,y);g.lineTo(x-r*.1,y+r*.32);g.lineTo(x+r*.45,y-r*.35);g.stroke()};
+        for(const k of S.skud){if(k.t<0||k.plan)continue;const p=Math.min(1,k.t/k.T),[sx,sy]=tilSkaerm(k.x,k.y,7);if(p>.7){g.fillStyle=`rgba(255,80,80,${(p-.7)*1.2*(.5+.5*Math.sin(S.t*20))})`;g.beginPath();g.arc(sx,sy,u1*(k.stor?6:3.4),0,TAU);g.fill()}
+          if(k.stor){const n=k.syms.length,r=u1*1.05,gap=u1*2.6,y=sy-u1*6.4;k.syms.forEach((sym,i)=>{const x=sx+(i-(n-1)/2)*gap,ok=i<k.idx,nu=i===k.idx;if(nu){g.fillStyle='rgba(255,226,122,.4)';g.beginPath();g.arc(x,y,r*1.4,0,TAU);g.fill()}g.fillStyle=ok?'#3fa86a':TG[sym].c;g.strokeStyle='#1a1238';g.lineWidth=3*fs;g.beginPath();g.arc(x,y,nu?r*1.15:r,0,TAU);g.fill();g.stroke();if(ok)flueben(x,y,r*1.6);else glyf(sym,x,y,r*.5,5*fs,'#ffffff')})}}
+        if(S.boss){const B=S.boss,[bx,by]=tilSkaerm(B.x,B.y,3),c=SKUDFARVE[B.def.skud];
+          if(B.lad>0){const lq=1-B.lad/LAD,[hx,hy]=tilSkaerm(B.x+B.def.hand[0],B.y+B.def.hand[1],3),gr=g.createRadialGradient(hx,hy,u1,hx,hy,u1*9);gr.addColorStop(0,c+'cc');gr.addColorStop(1,c+'00');g.globalAlpha=.4+.4*lq*(.6+.4*Math.sin(S.t*18));g.fillStyle=gr;g.beginPath();g.arc(hx,hy,u1*9,0,TAU);g.fill();for(let i=0;i<3;i++){const q=(S.t*1.8+i/3)%1;g.globalAlpha=q*.8;g.strokeStyle=c;g.lineWidth=8*q*fs;g.beginPath();g.arc(hx,hy,u1*(10*(1-q)+1),0,TAU);g.stroke()}g.globalAlpha=1}
+          if(B.fase!=='besejret'&&B.fase!=='ind'){for(let i=0;i<B.hpMax;i++){const x=bx+(i-(B.hpMax-1)/2)*u1*1.7,y=by-u1*11.4;g.fillStyle=i<B.hp?'#e8324a':'rgba(26,18,56,.55)';g.strokeStyle='#fff6d0';g.lineWidth=2.5*fs;hjerte(x,y,u1*.62);g.fill();g.stroke()}}
+          if(B.snakT>0&&B.snak&&B.fase!=='besejret'){g.font=`700 ${Math.round(25*fs)}px "Alegreya Sans",sans-serif`;const tw=g.measureText(B.snak).width+34*fs,x=clamp(bx+u1*9,tw/2+10,W_-tw/2-10),y=by-u1*7.6,h=50*fs;g.globalAlpha=Math.min(1,B.snakT*3);g.fillStyle='#ffffff';g.strokeStyle='#1a1238';g.lineWidth=3.5*fs;g.beginPath();g.roundRect(x-tw/2,y-h/2,tw,h,20*fs);g.fill();g.stroke();g.fillStyle='#33204f';g.fillText(B.snak,x,y+1);g.globalAlpha=1}
+          if(B.fase==='saarbar'){const n=B.kombo.length,gap=u1*4.6,r0=u1*1.7,bw=Math.max(n*gap+u1*1.6,u1*32),cx=clamp(bx,bw/2+8,W_-bw/2-8),y=by+u1*13.4,x0=cx-(n-1)/2*gap;g.fillStyle='rgba(20,10,50,.72)';g.beginPath();g.roundRect(cx-bw/2,y-u1*5.2,bw,u1*8.6,22*fs);g.fill();
+            g.font=`700 ${Math.round(25*fs)}px "Alegreya Sans",sans-serif`;g.fillStyle='#ffe9a0';g.fillText('Den er svimmel! Tegn tegnene i rækkefølge',cx,y-u1*3.6,bw-16);
+            B.kombo.forEach((sym,i)=>{const x=x0+i*gap,ok=i<B.komboI,nu=i===B.komboI,r=nu?r0*1.16+Math.sin(S.t*8)*u1*.12:r0;if(nu){g.fillStyle='rgba(255,226,122,.35)';g.beginPath();g.arc(x,y,r+u1*.7,0,TAU);g.fill()}g.fillStyle=ok?'#3fa86a':TG[sym].c;g.strokeStyle='#1a1238';g.lineWidth=3.5*fs;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.stroke();if(ok)flueben(x,y,r*1.5);else glyf(sym,x,y,r*.5,6.5*fs,'#ffffff')});
+            const q=Math.max(0,B.saarT/B.saarMax),lw=bw-u1*2;g.fillStyle='rgba(255,255,255,.25)';g.beginPath();g.roundRect(cx-lw/2,y+u1*2.3,lw,u1*.55,u1*.27);g.fill();g.fillStyle=q>.3?'#ffe27a':'#ff6f6f';g.beginPath();g.roundRect(cx-lw/2,y+u1*2.3,lw*q,u1*.55,u1*.27);g.fill()}}}
       if(S.kort){const K=S.kort,n=K.nyt.length,[cx,cy]=tilSkaerm(0,27),bw=(n*230+120)*fs,bh=330*fs,a=K.ud>0?K.ud/.35:Math.min(1,K.t*4);g.globalAlpha=a;g.fillStyle='rgba(26,18,56,.94)';g.strokeStyle='#ffd86b';g.lineWidth=5*fs;g.beginPath();g.roundRect(cx-bw/2,cy-bh/2,bw,bh,26*fs);g.fill();g.stroke();
         g.fillStyle='#ffe9a0';g.font=FONT.arkade.replace('X',Math.round(40*fs)+'px');g.fillText(n>1?'Nye trylletegn':'Nyt trylletegn',cx,cy-bh/2+44*fs);g.font=`700 ${Math.round(24*fs)}px "Alegreya Sans",sans-serif`;g.fillStyle='#f6f0e2';g.fillText('Prøv at tegne '+(n>1?'dem':'det')+' med fingeren',cx,cy+bh/2-34*fs);
         K.nyt.forEach((sym,i)=>{const x=cx+(i-(n-1)/2)*230*fs,y=cy+4*fs,r=74*fs,c=TG[sym].c;g.fillStyle=c;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.lineWidth=4*fs;g.strokeStyle='#ffffff';g.stroke();g.lineWidth=13*fs;g.lineCap=g.lineJoin='round';g.strokeStyle='#ffffff';g.beginPath();TG[sym].p.forEach(([px,py],j)=>j?g.lineTo(x+px*r*.56,y+py*r*.56):g.moveTo(x+px*r*.56,y+py*r*.56));g.stroke();
           g.font=`700 ${Math.round(26*fs)}px "Alegreya Sans",sans-serif`;g.fillStyle='#ffe9a0';g.fillText(TG[sym].navn,x,y+r+24*fs);if(K.ok[sym]){g.strokeStyle='#5fd070';g.lineWidth=12*fs;g.beginPath();g.moveTo(x+r*.3,y-r*.9);g.lineTo(x+r*.62,y-r*.6);g.lineTo(x+r*1.1,y-r*1.2);g.stroke()}});g.globalAlpha=1}}},Rm=makeRoom(ctx,OPT);
   ctx.efter.push(()=>{if(lag){const g=lag.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,lag.width,lag.height)}});
   ctx.test={begynd,frys:v=>{frys=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},S:()=>S,tegn:sym=>{/* tegner tegnet som en streg midt på skærmen, som en finger ville */const p=TG[sym].p.map(([x,y])=>[x*140,y*140-400]);const ud=[];for(let i=1;i<p.length;i++)for(let k=0;k<8;k++)ud.push([p[i-1][0]+(p[i][0]-p[i-1][0])*k/8,p[i-1][1]+(p[i][1]-p[i-1][1])*k/8]);ud.push(p[p.length-1]);tegnet(ud,ud.map(([x,y])=>tilSkaerm(x/U,-y/U)));return trylGenkend(ud,Object.keys(TG))},
-    runde:w=>{S.runde=w-1;for(const f of S.foes)Rm.live.remove(f.G);S.foes=[];S.koe=[];naesteRunde()},frem:()=>{if(S.kort){S.faseT=0}},bid:()=>bid({x:0,y:10}),gave:()=>{S.gaveT=.01},tilstand:()=>S&&{fase:S.fase,runde:S.runde,score:S.score,liv:S.liv,foes:S.foes.map(f=>({k:f.k,st:f.st,y:+f.y.toFixed(1),bal:f.bal.filter(b=>!b.pop).map(b=>b.sym)})),tegn:S.cfg&&S.cfg.tegn,gave:!!S.gave,forvandlet:S.forvandlet}}};
+    runde:w=>{S.runde=w-1;S.bossNr=Math.floor((w-1)/5);rydBoss();for(const f of S.foes)Rm.live.remove(f.G);S.foes=[];S.koe=[];naesteRunde()},frem:()=>{if(S.kort){S.faseT=0}},bid:()=>bid({x:0,y:10}),gave:()=>{S.gaveT=.01},tilstand:()=>S&&{fase:S.fase,runde:S.runde,score:S.score,liv:S.liv,foes:S.foes.map(f=>({k:f.k,st:f.st,y:+f.y.toFixed(1),bal:f.bal.filter(b=>!b.pop).map(b=>b.sym)})),tegn:S.cfg&&S.cfg.tegn,gave:!!S.gave,forvandlet:S.forvandlet,skud:S.skud.map(k=>({sym:k.sym,stor:!!k.stor,t:+k.t.toFixed(1)})),boss:S.boss&&{k:S.boss.def.k,fase:S.boss.fase,hp:S.boss.hp,lad:+S.boss.lad.toFixed(1),naeste:S.boss.fase==='saarbar'?S.boss.kombo[S.boss.komboI]:null}}}};
 
 /* ============ Værelsets ting, del 1: fælles værktøj, væggen, vinduet og sengen ============
    Hver ting bygges af VAER.<plads>(g, variant, farve, T): g er gruppen den skal ligge i, T giver rummet og lysskær. */
@@ -3910,7 +4441,7 @@ VAER.dyreseng=(g,v,c,T)=>{const bx=10,bz=11,zb=bz-2.3,zf=bz+2.3,F=(sh,o,y)=>T.Rm
 /* ============ Værelset på Kollegiet: heksens eget rum. Tryk på en ting, så kommer der en menu med alt det, den kan laves om til;
    skabet fører ind i Garderoben. Selve tingene ligger i rum-vaer-1..3.js, og listen over dem i spil0.js ============ */
 ROOMS.vaerelse=function(ctx){
-  const RV=SPIL.RUMVALG,SL=Object.keys(RV),V=SPIL.rum,C=SPIL.rumc,G={},GL={},HX=-3,HZ=4;let heks,kat,pop=0,hop=0,aaben=false,cur='vaeg';
+  const RV=SPIL.RUMVALG,SL=Object.keys(RV),V=SPIL.rum,C=SPIL.rumc,G={},GL={},HX=-3,HZ=4,bamser=[];let heks,kat,pop=0,hop=0,aaben=false,cur='vaeg';
   const T={Rm:null,glow:null};
   const fast=g=>{/* gulvet og skabet står fast */
     for(let i=0;i<112;i++)Rm.floor(box(-72,-10+i*1.05,72,-9+i*1.05),{color:shade('#7a4e2e',R(-.06,.06)),kind:'balsa',t:.3},0,g);
@@ -3945,16 +4476,20 @@ ROOMS.vaerelse=function(ctx){
       ()=>{Rm.tap(G.skab,()=>ctx.go('garderobe'));
         heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{LYD.tryk();pop=1;Rm.burst(HX,22,8,8)});
         kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.op();hop=1});
+        /* bamserne fra Gribemaskinen sidder på sengen: én af hver slags, man har vundet. Er der flere, end sengen kan bære, sidder resten på gulvet foran */
+        [...new Set(SPIL.data.bamser||[])].forEach((k,i)=>{const s=i<7?.95:1.05,q=bamseStykke(ctx,k,s);let x,y,z;if(i<4){x=-24.4+i*2.7;y=12.1;z=-4.7}else if(i<7){x=-23+(i-4)*2.7;y=13.2;z=-4.95}else{x=-40.5+(i-7)*2.5;y=.3;z=3+((i-7)%2)*.9}
+          y+=1.7*s;q.position.set(x,y,z);q.rotation.z=((i*37)%11-5)*.02;Rm.live.add(q);const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.2*s,3.4*s),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,.2,.05);q.add(hb);const b={q,y,hop:0};bamser.push(b);Rm.tap(hb,()=>{LYD.pip();b.hop=1})});
         ctx.say('Tryk på en ting for at lave den om · skabet fører ind i Garderoben')}],
     tick:t=>{pop=Math.max(0,pop-.035);hop=Math.max(0,hop-.04);const k=1+.06*Math.sin(pop*Math.PI)*pop;heks.G.scale.set(k,2-k,1);heks.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;heks.tick(t,{ph:0,amp:0});
-      kat.G.position.y=1.1+Math.sin(hop*Math.PI)*2.2*hop;kat.tick(t,{ph:hop?t*14:0,amp:hop?1:0})}})};
+      kat.G.position.y=1.1+Math.sin(hop*Math.PI)*2.2*hop;kat.tick(t,{ph:hop?t*14:0,amp:hop?1:0});for(const b of bamser)if(b.hop>0){b.hop=Math.max(0,b.hop-.05);b.q.position.y=b.y+Math.abs(Math.sin(b.hop*Math.PI*2))*1.2*b.hop}}});
+  ctx.efter.push(()=>{for(const b of bamser)b.q.userData.ryd();bamseRyd()})};
 
 /* ============ spillet: fra kortet ind ad dørene og ud igen ============
    Kortet bliver liggende bagt, mens man er inde i et rum. Rummet bygges når man går ind, og ryddes helt væk når man går ud,
    så der kun er ét rum i hukommelsen ad gangen. Det tøj man vælger i Garderoben, har heksen på ude i byen. */
 const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs" role="tablist" aria-label="Hvad vil du lave om?"></div><div id="opts"></div></div>'},garderobe:{navn:'Garderoben',html:'<div id="panel"><div id="tabs" role="tablist" aria-label="Hvad vil du skifte?"></div><div id="opts"></div></div>'},
   koncert:{navn:'Koncertsalen',html:'<div id="songs" role="group" aria-label="Ønsk en sang"><span>Ønsk en sang</span></div>'},
-  gang:{navn:'Skolen',mus:'kaelder'},eliksir:{navn:'Eliksirtimen',mus:'kaelder'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden',mus:'arkade',stem:'stemning',bil:1},gnom:{navn:'Bank en gnom',mus:'gnom',bil:1},praemie:{navn:'Præmiebutikken',mus:'arkade',stem:'stemning',bil:1},tryl:{navn:'Trylletegning',mus:'kost',bil:1,html:'<canvas id="tegnlag"></canvas>'},
+  gang:{navn:'Skolen',mus:'kaelder'},eliksir:{navn:'Eliksirtimen',mus:'kaelder'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden',mus:'arkade',stem:'stemning',bil:1},gnom:{navn:'Bank en gnom',mus:'gnom',bil:1},praemie:{navn:'Præmiebutikken',mus:'arkade',stem:'stemning',bil:1},boblepop:{navn:'BoblePop',mus:'invader',bil:1,html:'<canvas id="tegnlag"></canvas>',lyde:['boble.pop','vandt','oev']},gribe:{navn:'Gribemaskinen',mus:'gribe',lyde:['gribe.motor','gribe.ned','gribe.luk','vandt','oev']},tryl:{navn:'Trylletegning',mus:'kost',bil:1,html:'<canvas id="tegnlag"></canvas>'},
   dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="madvalg" class="valg" role="group" aria-label="Vælg foder" hidden></div><div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
 RUM.tryl.lyde=['nam','gave','fuser','nyt','boble.pop','vandt'];RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};

@@ -1,6 +1,6 @@
 /* ============ Arkaden: hallen med de fem maskiner. Bank en gnom kan spilles; de andre åbner senere ============ */
 ROOMS.arkade=function(ctx){
-  const M=[{id:'gnom',navn:'Bank en gnom',x:-35.6,rum:'gnom'},{id:'skjold',navn:'Stjerneskjoldet',x:-19.2,body:'#3a4aa8',trim:'#7fd8ff'},{id:'boblepop',navn:'BoblePop',x:-5.4,body:'#7a2a8a',trim:'#ff8fc7'},{id:'tryl',navn:'Trylletegning',x:8.4,body:'#2a1c78',trim:'#ffd86b',rum:'tryl'},{id:'gribe',navn:'Gribemaskinen',x:23,rum:'gribe'},{id:'praemie',navn:'Præmier',x:38.4,rum:'praemie'}];
+  const M=[{id:'gnom',navn:'Bank en gnom',x:-35.6,rum:'gnom'},{id:'skjold',navn:'Stjerneskjoldet',x:-19.2,body:'#3a4aa8',trim:'#7fd8ff'},{id:'boblepop',navn:'BoblePop',x:-5.4,body:'#7a2a8a',trim:'#ff8fc7',rum:'boblepop'},{id:'tryl',navn:'Trylletegning',x:8.4,body:'#2a1c78',trim:'#ffd86b',rum:'tryl'},{id:'gribe',navn:'Gribemaskinen',x:23,rum:'gribe'},{id:'praemie',navn:'Præmier',x:38.4,rum:'praemie'}];
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:-8,tx:-8,ph:0,amp:0,face:1,want:null};let heks,kat,gone=false;
   const hit=(g,m,w,h,y)=>{const hb=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(m.x,y,-2);g.add(hb);Rm.tap(hb,()=>{W0.tx=m.x+(m.x>0?-9:9)*(m.rum?0:0)+0;W0.want=m})};
   const Rm=makeRoom(ctx,{bg:'#0c0816',fit:fitBox(90,50,0,20.5),sky:'#b0a0ff',ground:'#2a2040',amb:.38,key:{col:'#e8d8ff',i:1.4,tgt:[0,16,0]},

@@ -23,7 +23,8 @@ Hentet fra det oprindelige spils kode (grenen main, mappen src) den 21. november
 
 | Aftale i det oprindelige spil | I pap-udgaven |
 |---|---|
-| Arkaden giver billetter, ikke stjerner: 1 + point delt med et tal pr. spil (Bank en gnom: 2, Stjerneskjoldet: 20, Hekse-invaders: 70, Trylletegning: 110), højst 40 | Bank en gnom og Trylletegning: det samme. Trylletegning har alt fra originalen undtagen bosserne hver femte runde. Hekse-invaders udgår (Kasper, 22. nov.) og erstattes af BoblePop. Stjerneskjoldet, BoblePop og Gribemaskinen er ikke lavet |
+| Arkaden giver billetter, ikke stjerner: 1 + point delt med et tal pr. spil (Bank en gnom: 2, Stjerneskjoldet: 20, Hekse-invaders: 70, Trylletegning: 110), højst 40 | Bank en gnom og Trylletegning: det samme. Trylletegning har alt fra originalen, også bosserne hver femte runde (0.24). Hekse-invaders udgår (Kasper, 22. nov.) og er erstattet af BoblePop (0.24): 1 + point delt med 250, højst 40. Stjerneskjoldet er ikke lavet |
+| Gribemaskinen: 1 stjerne pr. forsøg, 20 sekunder til at stille kloen, så griber den selv. Rigtig fysik; fjederens styrke er tilfældig fra gang til gang. De, man ikke har, ligger der dobbelt så mange af. Vundne bamser sidder på sengen | Det samme (0.24). Forskel: bunken bliver liggende mellem forsøgene, og der kommer først en ny, når der er under 12 bamser tilbage |
 | Præmiebutikken (uglen, "Hu-hu!"): ni tryllestave til 30–100 billetter (hjerte 30, regnbue 30, blomst 50, sommerfugl 50, slik 60, stjerne 70, måne 80, krystal 90, vinge 100) og malerier til 40–90, og et til 200 | Stavene: det samme (0.23). Første tryk viser prisen, andet tryk køber. Malerierne er ikke lavet |
 
 ## Kosteflyvning og Faldskærm
@@ -45,6 +46,7 @@ Hentet fra det oprindelige spils kode (grenen main, mappen src) den 21. november
 
 | Hvad | Regler |
 |---|---|
+| BoblePop | 10 point pr. boble, der springer (og 10 ekstra for hver ud over tre), 20 pr. boble, der falder, 100 × banens nummer for en ryddet bane, 50 for en kraft, når hylden er fuld. Bane 1 har 5 rækker og 4 farver; hver bane har en række mere (højst 8), 5 farver fra bane 3 og 6 fra bane 5. Seks skud forbi giver en ny række (fem fra bane 3, fire fra bane 5, mindst tre). Kræfter sidder i ca. hver 13. boble |
 | Dyrekøkkenet | En vagt på 100 sekunder. 1 point pr. fodret dyr, 2 hvis det gik hurtigt (over halvdelen af tålmodigheden tilbage). 1 stjerne for hver 2 point, højst 12. 1 godbid til ungerne for hver 3 dyr |
 | Ungestalden | Tre behov pr. unge (mæt, ren, glad), som falder i spilletid: fuld til tom på cirka 12 minutter et andet sted, fire gange så hurtigt i stalden. Et behov på nul koster et hjerte for hver 5 minutters spil (aldrig det sidste). Et skridt mod et hjerte får man kun ved at opfylde et ønske i tide (eller give en godbid). Et hjerte koster 3 skridt (de tre første), så 4, 5 og 6. Et hjerte giver 2 stjerner; ti hjerter giver 10 stjerner og "bedste ven". Kun livretten mætter helt |
 | Lange tekster | En tekst på 42 tegn eller mere bliver stående, til man trykker. Når noget er færdigt, står spillet stille, til man trykker videre |

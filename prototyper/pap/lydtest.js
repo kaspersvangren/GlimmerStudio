@@ -9,7 +9,7 @@ const { chromium } = require('playwright'); const http = require('http'), fs = r
   const p = await b.newPage({ viewport: { width: 1280, height: 800 } });
   p.on('pageerror', e => console.log('FEJL', e.message)); p.on('console', m => { if (m.type() === 'error' && !/GL Driver|supabase|ERR_/.test(m.text())) console.log('konsol', m.text().slice(0, 300)) });
   await p.route(/fonts\.googleapis/, r => r.fulfill({ path: __dirname + '/fonts-local.css', contentType: 'text/css' })); await p.route(/fonts\.gstatic/, r => r.abort()); await p.route(/supabase/, r => r.fulfill({ status: 201, body: '' }));
-  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
+  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : r.request().url().includes('matter') ? '/../npm3/node_modules/matter-js/build/matter.min.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
   await p.goto(`http://localhost:${port}/prototyper/pap/testspil.html`);
   await p.waitForFunction(() => document.getElementById('msg').classList.contains('gone'), null, { timeout: 120000 });
   const st = () => p.evaluate(() => { const s = LYDTEST(); return `${s.musik}${s.spiller ? ' (spiller)' : ' (venter)'} · stemning ${s.stemning}${s.stemSpiller ? ' (spiller)' : ''} · ${s.tilstand}` });

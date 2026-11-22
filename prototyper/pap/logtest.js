@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   p.on('pageerror', e => console.log('FEJL', e.message));
   await p.route(/proeve\.test/, r => r.fulfill({ body: fs.readFileSync(__dirname + '/testspil.html'), contentType: 'text/html' }));
   await p.route(/fonts\.googleapis/, r => r.fulfill({ path: __dirname + '/fonts-local.css', contentType: 'text/css' })); await p.route(/fonts\.gstatic/, r => r.abort());
-  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
+  await p.route(/cdn\.jsdelivr\.net/, r => r.fulfill({ path: __dirname + (r.request().url().includes('clipper') ? '/../npm3/node_modules/clipper-lib/clipper.js' : r.request().url().includes('matter') ? '/../npm3/node_modules/matter-js/build/matter.min.js' : '/../npm3/node_modules/three/build/three.module.min.js'), contentType: 'application/javascript' }));
   await p.route(/supabase\.co/, r => { try { sendt.push(...JSON.parse(r.request().postData())) } catch (e) { } r.fulfill({ status: 201, body: '' }) });
   await p.goto('http://proeve.test/');
   await p.waitForFunction(() => document.getElementById('msg').classList.contains('gone'), null, { timeout: 120000 });
