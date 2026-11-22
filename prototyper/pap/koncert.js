@@ -43,9 +43,9 @@ BUILD.push(()=>{const W=box(-95,-2,95,72),hole=sm([[OPEN.x0,OPEN.y0-.1,1],[OPEN.
 /* ---- ophængte kulisser (bagved) og den faste kappe med frynser foran ---- */
 BUILD.push(()=>{for(const s of[-1,1])for(const[z,w,c]of[[-4,4.2,'#3a0e1c'],[-10,4.6,'#2e0a16']]){const x=s*(OPEN.x1-w/2+1);pc(scene,sm([[x-w/2,OPEN.y0],[x+w/2,OPEN.y0],[x+w/2,OPEN.y1+2],[x-w/2,OPEN.y1+2]],2),{t:.2,s:10,paint:P=>{P.wash(c,null,{edge:0});for(let k=0;k<5;k++)P.wash(shade(c,.15),box(x-w/2+k*w/5,0,x-w/2+k*w/5+w/10,50),{alpha:.5,edge:.4})}},z)}
   const v=[[OPEN.x1+1,OPEN.y1+3],[OPEN.x0-1,OPEN.y1+3]];for(let k=0;k<=7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7);if(k===7)break;for(let i=0;i<=8;i++){const t=i/8;v.push([mix(x0,x1,t),OPEN.y1-2.2-Math.sin(t*Math.PI)*3.2])}}
-  const swag=toCCW(v);pc(scene,swag,{t:.25,s:16,paint:P=>{P.wash('#a0142a',swag,{top:'#c02838',edge:.6,clouds:6});for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7);for(const d of[.3,.6,.9])P.score(curve([[x0,OPEN.y1+1-d*2],[(x0+x1)/2,OPEN.y1-1-d*3.2],[x1,OPEN.y1+1-d*2]],8),{w:.1,ink:.4,dark:'#4a0610'})}}},5.2);
-  for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7),f=[];for(let i=0;i<=8;i++){const t=i/8;f.push([mix(x0,x1,t),OPEN.y1-2.2-Math.sin(t*Math.PI)*3.2])}pieces(thick([f],.35),{mat:gold(),t:.15},scene,0,0,5.45);
-    pc(scene,sm([[x1-.45,OPEN.y1-1.6],[x1+.45,OPEN.y1-1.6],[x1+.6,OPEN.y1-3.6],[x1,OPEN.y1-4.2],[x1-.6,OPEN.y1-3.6]],4),{mat:gold(),t:.4},5.6)}});
+  const swag=toCCW(v);pc(scene,swag,{t:.25,s:16,paint:P=>{P.wash('#a0142a',swag,{top:'#c02838',edge:.6,clouds:6});for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7);for(const d of[.3,.6,.9])P.score(curve([[x0,OPEN.y1+1-d*2],[(x0+x1)/2,OPEN.y1-1-d*3.2],[x1,OPEN.y1+1-d*2]],8),{w:.1,ink:.4,dark:'#4a0610'})}}},6.4);
+  for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7),f=[];for(let i=0;i<=8;i++){const t=i/8;f.push([mix(x0,x1,t),OPEN.y1-2.2-Math.sin(t*Math.PI)*3.2])}pieces(thick([f],.35),{mat:gold(),t:.15},scene,0,0,6.65);
+    pc(scene,sm([[x1-.45,OPEN.y1-1.6],[x1+.45,OPEN.y1-1.6],[x1+.6,OPEN.y1-3.6],[x1,OPEN.y1-4.2],[x1-.6,OPEN.y1-3.6]],4),{mat:gold(),t:.4},6.8)}});
 
 /* ---- logerne på siderne og lysekroner ---- */
 BUILD.push(()=>{for(const s of[-1,1]){const cx=s*58;
@@ -213,16 +213,20 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
   for(const gl of GL){if(gl.spr)continue;const s=glowSprite(gl.c,gl.s);s.position.copy(gl.p);live.add(s);gl.spr=s;gl.base=gl.s;gl.ph=R(TAU)}
   setStyle('hygge',true);
   ST.bake();msg.classList.add('gone');
-  let t=0,last=performance.now();
-  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
+  let t=0,last=performance.now(),spil=0;
+  /* takten: slagene i den sang, der spiller (målt på forhånd), så bandet bevæger sig i takt. Uden en sang står de stille */
+  const SLAG={};if(typeof KONCERT_SLAG!=='undefined')for(const k in KONCERT_SLAG){const v=KONCERT_SLAG[k],a=[v[0]];for(let i=1;i<v.length;i++)a.push(a[i-1]+v[i]/1000);SLAG[k]=a}
+  const slagFase=()=>{const L_=typeof LYD!=='undefined'?LYD:null,m=L_&&L_.musikTid&&L_.musikTid();if(!m||!m.id)return null;const key=m.id.replace('koncert.','').replace(/^lounge(\d)$/,'lounge-$1'),a=SLAG[key];
+    if(!a)return m.t*2.2;if(m.t<a[0])return null;let lo=0,hi=a.length-1;if(m.t>=a[hi])return hi+Math.min(1,(m.t-a[hi])/((a[hi]-a[hi-1])||.45));while(hi-lo>1){const md=(lo+hi)>>1;if(a[md]<=m.t)lo=md;else hi=md}return lo+(m.t-a[lo])/(a[hi]-a[lo])};
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const fase=slagFase();spil+=((fase==null?0:1)-spil)*Math.min(1,dt*(fase==null?6:3));const beat=(fase==null?0:fase)*Math.PI;
     for(const o of BAND){const walking=o.q.length>0;
       if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
       else o.dir+=(1-o.dir)*Math.min(1,dt*8);
-      const hop=walking?Math.abs(Math.sin((o.wp||0)*.55))*1.1:Math.abs(Math.sin(beat+o.i*.4))*.35;o.fy=(o.fy===undefined?floorY(o.x,o.z):o.fy+(floorY(o.x,o.z)-o.fy)*Math.min(1,dt*10));
+      const hop=walking?Math.abs(Math.sin((o.wp||0)*.55))*1.1:Math.abs(Math.sin(beat+o.i*.15))*.35*spil;o.fy=(o.fy===undefined?floorY(o.x,o.z):o.fy+(floorY(o.x,o.z)-o.fy)*Math.min(1,dt*10));
       o.G.position.set(o.x,OPEN.y0+.15+o.fy+hop,o.z);o.G.scale.set(o.sc*(o.dir<0?-1:1),o.sc,o.sc);o.G.rotation.z=walking?.06*Math.sin((o.wp||0)*.55)*o.dir:0;
       o.sh.position.set(o.x,OPEN.y0+.22+o.fy,o.z+.3);o.sh.material.opacity=1-hop*.25;
-      o.head.rotation.z=.08*Math.sin(beat*.5+o.i);o.hatG.rotation.z=.06*Math.sin(beat*.5+o.i+1);
-      if(!walking){const hv=o.hv;if(o.inst==='guitar'){o.armR.rotation.z=hv.r+.16*Math.sin(beat*2);o.armL.rotation.z=hv.l+.03*Math.sin(beat)}if(o.inst==='mic')o.armL.rotation.z=hv.l+.3*Math.sin(beat*.5);if(o.inst==='trommer'){o.armL.rotation.z=hv.l-.32*Math.max(0,Math.sin(beat*2));o.armR.rotation.z=hv.r+.32*Math.max(0,Math.sin(beat*2+Math.PI))}if(o.inst==='bas'){o.armR.rotation.z=hv.r+.1*Math.sin(beat*2);o.armL.rotation.z=hv.l+.03*Math.sin(beat*.5)}}
+      o.head.rotation.z=.08*Math.sin(beat*.5+o.i)*spil;o.hatG.rotation.z=.06*Math.sin(beat*.5+o.i+1)*spil;
+      if(!walking){const hv=o.hv,k=spil;if(o.inst==='guitar'){o.armR.rotation.z=hv.r+.16*Math.sin(beat*2)*k;o.armL.rotation.z=hv.l+.03*Math.sin(beat)*k}if(o.inst==='mic')o.armL.rotation.z=hv.l+.3*Math.sin(beat*.5)*k;if(o.inst==='trommer'){o.armL.rotation.z=hv.l-.32*Math.max(0,Math.sin(beat))*k;o.armR.rotation.z=hv.r+.32*Math.max(0,Math.sin(beat+Math.PI))*k}if(o.inst==='bas'){o.armR.rotation.z=hv.r+.1*Math.sin(beat*2)*k;o.armL.rotation.z=hv.l+.03*Math.sin(beat*.5)*k}}
       const m=MARK[o.i],on=Math.hypot(o.x-m.x,o.z-m.z)<1.5?1:0,sp=SPOT[o.i];sp.userData.a=(sp.userData.a??1)+(on-(sp.userData.a??1))*Math.min(1,dt*4);sp.material.opacity=.35*sp.userData.a}
     for(const gl of GL){if(gl.blink!==undefined){const k=.6+.4*Math.sin(t*2+gl.blink);gl.spr.scale.set(2.2*k,2.2*k,1)}else{const k=gl.f?(.92+.08*Math.sin(t*9+gl.ph)*Math.sin(t*5.3)):(.95+.05*Math.sin(t*3+gl.ph));gl.spr.scale.set(gl.base*k,gl.base*k,1)}}
     SPOT.forEach((sp,i)=>{sp.rotation.z=.08*Math.sin(t*.7+i*1.3)});
@@ -248,7 +252,7 @@ const idle=()=>BAND.every(o=>!o.q.length);
   const L_=typeof LYD!=='undefined'?LYD:null,levende=()=>(typeof ctx==='undefined')||ctx.alive,lounge=()=>{if(L_&&levende())L_.musik('koncert.lounge'+(1+Math.floor(Math.random()*4)))};if(L_)setTimeout(lounge,600);
   /* hygge er ikke noget, man ønsker: det er det, bandet spiller, når ingen har ønsket noget. Når en ønsket sang er slut, og der er klappet, går de selv ud og kommer tilbage i hyggetøjet */
   let oenskeNr=0;const visValg=k=>document.querySelectorAll('#songs button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===k)));
-  async function wish(k){if(busy||k===cur)return;busy=true;const nr=++oenskeNr;visValg(k);if(L_){L_.musik(null);L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false;
+  async function wish(k){if(busy||k===cur)return;busy=true;const nr=++oenskeNr;visValg(k);if(L_){L_.musik(null);await new Promise(r=>setTimeout(r,900));L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();if(L_&&k!=='hygge')L_.klap();await until(idle);busy=false;
     if(!levende())return;const hjem=ms=>setTimeout(()=>{if(levende()&&nr===oenskeNr&&cur===k)wish('hygge')},ms);if(k==='hygge'){lounge();return}
-    if(!(L_&&L_.sang('koncert.'+k,fejl=>{if(!levende()||nr!==oenskeNr)return;if(!fejl)L_.klap();hjem(fejl?0:4800)}))){lounge();hjem(typeof window!=='undefined'&&window.__koncertKort?1500:25000)}}
+    if(L_)L_.stemning(null);if(!(L_&&L_.sang('koncert.'+k,fejl=>{if(!levende()||nr!==oenskeNr)return;if(!fejl)L_.klap();L_.stemning('stemning.koncert');hjem(fejl?0:4800)}))){if(L_)L_.stemning('stemning.koncert');lounge();hjem(typeof window!=='undefined'&&window.__koncertKort?1500:25000)}}
   {const box_=document.getElementById('songs');for(const k in STY){if(k==='hygge')continue;const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.dataset.k=k;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>wish(k));box_.appendChild(b)}}

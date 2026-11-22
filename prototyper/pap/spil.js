@@ -55,6 +55,8 @@ function enter(id){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=tr
 function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1];cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else toMap()})}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */
+/* udgaven står med lille skrift på indlæsningen, så man kan se, om det er den nye (Kasper 22. nov.) */
+{const v=document.getElementById('msgV');if(v)v.textContent='Udgave '+PAPVER}
 /* ny udgave: browseren gemmer gerne en gammel side. Ved start hentes udgave.txt uden om det gemte; er den nyere end den side, der kører, kommer der en knap, som henter den nye */
 if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());return m?+m[1]*1000+ +m[2]:0},kn=document.getElementById('nyudg');
   fetch('udgave.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const ny=String(t).trim();if(tal(ny)>tal(PAPVER)){kn.hidden=false;kn.addEventListener('click',()=>{location.replace(location.pathname+'?v='+encodeURIComponent(ny))});LOG.row('udgave',{har:PAPVER,findes:ny})}}).catch(()=>{})}
@@ -67,7 +69,7 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
   SPIL.note=(t,tekst)=>{LOG.maerk('note gemmes');const d={type:t,tekst:String(tekst||'').slice(0,600),sted,rum:stack.slice(),skaerm:`${innerWidth}x${innerHeight}`,look:SPIL.look,farver:SPIL.farver,dyr:SPIL.dyr,indretning:SPIL.rum,indretningFarver:SPIL.rumc,stjerner:SPIL.stj,har:SPIL.har.length,billede};LOG.row('note',d,stack.length?stack[stack.length-1]:'by');LOG.flush();return d};
   kn.addEventListener('click',()=>{LOG.maerk('noteknap');sted=stack.length?stack[stack.length-1]:'by';const pn=document.getElementById('panel'),menu=document.querySelector('#tabs [aria-selected=true]');if(pn&&!pn.hidden&&menu)sted+=' · '+menu.textContent;
     /* billedet tages lige efter spillets næste tegning, før menuen her lægger sig over */
-    requestAnimationFrame(()=>{billede=tag();inf.textContent=`Gemmer også: hvor du står (${sted}), hvad heksen har på, og et lille billede af skærmen, som den så ud lige nu.`;tx_.value='';vis();window.__frys=true;bx.hidden=false})});
+    requestAnimationFrame(()=>{billede=tag();inf.textContent=`Gemmer også: hvor du står (${sted}), hvad heksen har på, og et lille billede af skærmen, som den så ud lige nu. Udgave: ${PAPVER}.`;tx_.value='';vis();window.__frys=true;bx.hidden=false})});
   tb.forEach(b=>b.addEventListener('click',()=>{type=b.dataset.t;vis()}));document.getElementById('noteNej').addEventListener('click',luk);bx.addEventListener('pointerdown',e=>{if(e.target===bx)luk()});
   fm.addEventListener('submit',e=>{e.preventDefault();SPIL.note(type,tx_.value);luk();toast(LOG.on?'Noten er gemt':'Noten kan ikke gemmes her')})}
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}

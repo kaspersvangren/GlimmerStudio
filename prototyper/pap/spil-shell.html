@@ -1,7 +1,7 @@
 <title>Magiske Mig i pap</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700&family=Alegreya+Sans:wght@500;700&family=Alfa+Slab+One&family=Berkshire+Swash&family=Cinzel+Decorative:wght@700&family=Fraunces:opsz,wght@9..144,700&family=Fredoka:wght@600&family=Limelight&family=MedievalSharp&family=Pirata+One&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+SC:wght@700&family=Uncial+Antiqua&family=Alegreya+Sans:wght@500;700&family=Alfa+Slab+One&family=Berkshire+Swash&family=Cinzel+Decorative:wght@700&family=Fraunces:opsz,wght@9..144,700&family=Fredoka:wght@600&family=Limelight&family=MedievalSharp&family=Pirata+One&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
 /* Layout: byen fylder hele skærmen; små papbrikker oven på til visning, måler og fuld skærm */
 :root{
@@ -35,7 +35,7 @@ button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 #hint{position:fixed;z-index:3;left:0;right:0;bottom:calc(52px + env(safe-area-inset-bottom,0px));text-align:center;font-size:19px;color:rgba(239,227,200,.88);text-shadow:0 1px 6px #000;pointer-events:none;transition:opacity .6s;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
 #hint.gone{opacity:0}
 #msg{position:fixed;z-index:9;inset:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:24px;background:var(--desk);transition:opacity .5s}
-#msg small{font-size:17px;opacity:.7}
+#msg small{font-size:17px;opacity:.7}#msgV{position:absolute;right:14px;bottom:10px;font:400 13px system-ui,sans-serif!important;opacity:.55!important}
 #msg.gone{opacity:0;pointer-events:none}
 @media (max-height:520px){#views button{font-size:17px;padding:6px 12px}#meter{font-size:13px}#hint{font-size:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#msg,#hint{transition:none}}
@@ -131,7 +131,7 @@ body[data-rum=gribe] #toast:not(.vent),body[data-rum=dyrepark] #toast{bottom:aut
 <div id="videre" hidden></div>
 <div id="toast" class="kraft" role="status" hidden></div>
 <div id="door" class="gone" aria-live="polite"><span id="doorT"></span></div>
-<div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>
+<div id="msg">Klipper, maler og bager byen …<small id="msgN"></small><small id="msgV"></small></div>
 <script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
 <script type="module">

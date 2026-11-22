@@ -100,7 +100,7 @@ ROOMS.kost=function(ctx){
     if(maal){for(let i=0;i<22;i++){const y=-21+i*2;P2(g,box(-.9,y,.9,y+2),{color:i%2?'#ffffff':'#2a2340',kind:'card',t:.1},.3)}for(const L of LANES)for(let i=0;i<14;i++){const y=(-21+i*3)*L.kk+L.dd;P2(g,box(-.9,y,.9,y+1.5),{color:i%2?'#ffffff':'#2a2340',kind:'card',t:.1},L.z+.3)}}}
   /* ---------- flyvningen ---------- */
   function begynd(){if(!S||S.run!=='kort')return;ban.skjul();S.run='count';S.ct=0;S.cn=-1}
-  function flap(){if(!S||S.run!=='fly'||S.loop||S.boost>0)return;S.vy=FLAP;LYD.fil('kost.flap',()=>LYD.pust(),.5,R(1,1.2))}
+  function flap(){if(!S||S.run!=='fly'||S.loop||S.boost>0)return;S.vy=FLAP;LYD.fil('kost.flap',()=>LYD.sus(),.3,R(1,1.2))}
   const pairAt=f=>S.course.rings.find(r=>r.dbl==='lo'&&!f.seen.has(r.pair)&&r.x-f.x<180&&r.x-f.x>-230&&Math.abs(r.y-f.y)<170);
   function startLoop(f){if(f.loop||f.boost>0)return false;const hit=pairAt(f)||null;
     f.loop=hit?{x0:hit.x,y0:hit.y,sx:f.x,sy:f.y,t:0,cam:hit.x-PX,hit,px:f.x}:{x0:f.x,y0:f.y,sx:f.x,sy:f.y,t:0,cam:f.x-PX,hit:null,px:f.x-.01};
@@ -169,6 +169,8 @@ ROOMS.kost=function(ctx){
   const pu=()=>{clearTimeout(holdT);holdT=0};
   const kd=e=>{if(!S)return;if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();if(S.run==='kort')begynd();else flap()}if(e.key==='l'||e.key==='L'||e.key==='ArrowRight')tryLoop()};
   el.addEventListener('pointerdown',pd);addEventListener('pointerup',pu);addEventListener('pointercancel',pu);addEventListener('keydown',kd);
+  /* hele banen lægges over på grafikchippen, før løbet starter: ellers sker det lidt ad gangen, efterhånden som tingene kommer frem, og det giver hak (Kasper 22. nov.) */
+  function forvarm(Rm){const slaaet=[];Rm.live.traverse(q=>{if(q.isMesh&&q.frustumCulled){q.frustumCulled=false;slaaet.push(q)}});try{renderer.compile(Rm.live,Rm.cam);const rt=new THREE.WebGLRenderTarget(64,64);renderer.setRenderTarget(rt);renderer.render(Rm.live,Rm.cam);renderer.setRenderTarget(null);rt.dispose()}catch(e){}for(const q of slaaet)q.frustumCulled=true}
   /* ---------- rummet ---------- */
   const OPT={bg:'#1c1838',fit:(c,w,h)=>{const asp=w/h,HH=Math.max(50,88/asp);baseFov=2*Math.atan(HH/2/CD)*180/Math.PI;c.fov=baseFov;c.position.set(c.position.x||0,0,CD);c.lookAt(c.position.x||0,0,0)},
     sky:'#c8c0ff',ground:'#3a3048',amb:1.1,key:{col:'#d8d8ff',i:1.3,pos:[-60,90,200],tgt:[0,0,-60],box:[-80,80,60,-60]},P_:{dof:[0,0],haze:[0,0,0]},
@@ -184,7 +186,7 @@ ROOMS.kost=function(ctx){
         for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(.75,18),new THREE.MeshBasicMaterial({color:i?'#ffffff':((ctx.look.col&&ctx.look.col['tøj'])||'#6a3fa2')}));m.position.z=.3+i*.01;stribe.add(m);prikker.push(m);
           const kant=new THREE.Mesh(new THREE.RingGeometry(.75,1,18),new THREE.MeshBasicMaterial({color:'#fffaf0'}));m.add(kant)}
         {const cols=['#ff8fc7','#ffd24a','#7fd8ff','#fff6d0'];for(let i=0;i<40;i++){const m=piece(i%3?starPts(0,0,.7,.3,0):box(-.15,-.9,.15,.9),{mat:paperMat(cols[i%4],'tissue',{glow:cols[i%4],gi:1.3}),t:.05});m.visible=false;rod.add(m);kom.push({m,t:0,life:.5,s:1})}}
-        rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt()}],
+        rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
     tick:(t,dt)=>{if(!S)return;const hh=Math.tan(baseFov*Math.PI/360)*CD,hw=hh*Rm.cam.aspect,sz=(CD-20)/CD;
       tv.G.position.set((hw-13)*sz,(hh-4.5)*sz,20);lamper.forEach((l,i)=>l.m.position.set((hw-21+i*2.2)*sz,(hh-9.2)*sz,20));stribe.position.set(0,(hh-3)*sz,20);
       const n=window.KOST_WARP||(S.auto?4:1);for(let i=0;i<n;i++)step(dt);ryst=Math.max(0,ryst-dt);if(S.boost>0)ryst=Math.max(ryst,.12);

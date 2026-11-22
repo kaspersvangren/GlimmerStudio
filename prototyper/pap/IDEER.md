@@ -88,7 +88,7 @@ Planen:
 
 ## Udgaver og links
 
-Status: **Venter**.
+Status: **Lavet** i 0.31 (R88). Commit-links gives med hver udgave.
 
 Problemet (Kasper 22. nov.): githack viser den gamle udgave i et stykke tid, selvom man skriver `?v=`, og det er svært at se, om det er den rigtige.
 
@@ -99,7 +99,7 @@ Forslaget:
 
 ## Lyden
 
-Status: **Venter**.
+Status: **Lavet** i 0.31 (R83). Mangler: at samle baggrundens dele i færre stykker, hvis det stadig hakker.
 
 Problemet (Kasper 22. nov.): musikken i Kosteflyvning hakker og knaser som en løs forbindelse, mest hen mod slutningen.
 

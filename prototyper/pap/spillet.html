@@ -1,7 +1,7 @@
 <!doctype html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Magiske Mig i pap</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700&family=Alegreya+Sans:wght@500;700&family=Alfa+Slab+One&family=Berkshire+Swash&family=Cinzel+Decorative:wght@700&family=Fraunces:opsz,wght@9..144,700&family=Fredoka:wght@600&family=Limelight&family=MedievalSharp&family=Pirata+One&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+SC:wght@700&family=Uncial+Antiqua&family=Alegreya+Sans:wght@500;700&family=Alfa+Slab+One&family=Berkshire+Swash&family=Cinzel+Decorative:wght@700&family=Fraunces:opsz,wght@9..144,700&family=Fredoka:wght@600&family=Limelight&family=MedievalSharp&family=Pirata+One&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
 <style>
 /* Layout: byen fylder hele skærmen; små papbrikker oven på til visning, måler og fuld skærm */
 :root{
@@ -35,7 +35,7 @@ button:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 #hint{position:fixed;z-index:3;left:0;right:0;bottom:calc(52px + env(safe-area-inset-bottom,0px));text-align:center;font-size:19px;color:rgba(239,227,200,.88);text-shadow:0 1px 6px #000;pointer-events:none;transition:opacity .6s;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
 #hint.gone{opacity:0}
 #msg{position:fixed;z-index:9;inset:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:24px;background:var(--desk);transition:opacity .5s}
-#msg small{font-size:17px;opacity:.7}
+#msg small{font-size:17px;opacity:.7}#msgV{position:absolute;right:14px;bottom:10px;font:400 13px system-ui,sans-serif!important;opacity:.55!important}
 #msg.gone{opacity:0;pointer-events:none}
 @media (max-height:520px){#views button{font-size:17px;padding:6px 12px}#meter{font-size:13px}#hint{font-size:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#msg,#hint{transition:none}}
@@ -115,6 +115,132 @@ body[data-rum=gribe] #toast:not(.vent),body[data-rum=dyrepark] #toast{bottom:aut
 @media (prefers-reduced-motion:reduce){#toast.vent::after{animation:none}}
 @media (max-height:520px){#fs,#bar{transform:scale(.8);transform-origin:0 0}#fs{top:calc(8px + env(safe-area-inset-top,0px))}#bar{top:calc(8px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 46px)}#hjem{font-size:17px}#door{font-size:24px}#toast{font-size:17px;bottom:calc(48px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){#door{transition:none}#stj.hop{animation:none}}
+/* ---------- tre gemte spil: tre bøger på en hylde ---------- */
+.fs-pladser{position:relative;overflow:hidden;background:#24160F;color:#FFFFFF}
+.fs-pladser .btn{color:var(--ink)}
+.sb-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 50% 30%,rgba(255,200,120,.22),transparent 60%),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 120px),
+  linear-gradient(180deg,#3B2418,#24160F 70%,#1A0F0A)}
+.sb-title{position:absolute;left:0;right:0;top:max(10px,3vh);margin:0;text-align:center;font-family:"Fredoka","Baloo 2",system-ui,sans-serif;font-weight:700;font-size:clamp(26px,8vh,52px);color:#FFE9B8;text-shadow:0 3px 0 #5A2A10,0 0 18px rgba(255,190,90,.5);pointer-events:none}
+.sb-shelf{position:absolute;left:50%;bottom:9vh;transform:translateX(-50%);display:flex;gap:clamp(16px,5vw,60px);align-items:flex-end;padding:0 4vw 0}
+.sb-shelf::after{content:"";position:absolute;left:-2vw;right:-2vw;bottom:-3.2vh;height:3.4vh;border-radius:4px;background:linear-gradient(180deg,#8A5A35,#5C3A24);box-shadow:0 8px 18px rgba(0,0,0,.5)}
+.sb-wrap{position:relative;display:flex;flex-direction:column;align-items:center}
+.sbook{position:relative;border:none;padding:0;background:none;cursor:pointer;height:min(62vh,420px);aspect-ratio:.74;transition:transform .2s ease}
+.sbook:active{transform:translateY(4px) scale(.98)}
+.sb-cover{position:absolute;inset:0;border-radius:6px 14px 14px 6px;background:linear-gradient(90deg,rgba(0,0,0,.35) 0 7%,rgba(255,255,255,.08) 8%,transparent 14%),linear-gradient(160deg,var(--c1),var(--c2));
+  box-shadow:inset 0 0 0 3px #E8C66A,inset 0 0 0 7px var(--c2),inset 0 0 0 8px rgba(232,198,106,.6),6px 8px 0 #E9DDBF,7px 10px 18px rgba(0,0,0,.55);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%;padding:10% 10% 8% 16%;box-sizing:border-box}
+.sbook.empty .sb-cover{filter:saturate(.55) brightness(.85)}
+.sb-port{width:62%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 40%,#FFF3D0,#E9D3A0);box-shadow:0 0 0 4px #E8C66A,0 0 0 6px rgba(0,0,0,.35)}
+.sb-port img{width:100%;height:100%;object-fit:cover;display:block}
+.sb-port.sb-new{background:rgba(0,0,0,.25);display:grid;place-items:center}
+.sb-port.sb-new svg{width:50%;height:50%}
+.sb-name{font-family:"Fredoka","Baloo 2",system-ui,sans-serif;font-weight:700;font-size:clamp(15px,4.8vh,28px);color:#F2D98A;text-shadow:0 2px 0 rgba(0,0,0,.5);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.sb-stars{display:flex;align-items:center;gap:6px;font-family:"Fredoka","Baloo 2",system-ui,sans-serif;font-weight:700;font-size:clamp(14px,4vh,22px);color:#FFE9B8}
+.sb-stars svg{width:1.1em;height:1.1em}
+.sb-del{position:absolute;right:-8px;top:-8px;width:40px;height:40px;border-radius:50%;border:none;background:#3B2418;color:#FFD9C2;box-shadow:0 0 0 2px #E8C66A;display:grid;place-items:center;padding:0;z-index:2}
+.sb-del svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+/* ---------- introen: en eventyrbog på et bord ---------- */
+.fs-intro{position:relative;overflow:hidden;background:#1A0F0A}
+.ib-table{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,#5A3520 0%,#3B2418 45%,#1A0F0A 100%)}
+.ib-candle{position:absolute;right:3vw;top:4vh;width:18vh;height:18vh;border-radius:50%;background:radial-gradient(circle,rgba(255,214,120,.55),rgba(255,180,80,.12) 50%,transparent 70%);animation:flick 2.6s ease-in-out infinite;pointer-events:none}
+.ibook{position:absolute;left:50%;top:50%;width:calc(var(--bh) * 1.8);height:var(--bh);transform:translate(-50%,-50%);perspective:calc(var(--bh) * 4);transition:transform 1s cubic-bezier(.4,0,.2,1)}
+.ib-leather{position:absolute;inset:-2.2% -1.4%;border-radius:10px;background:linear-gradient(160deg,#5B2E91,#3A1A63);box-shadow:0 18px 40px rgba(0,0,0,.6),inset 0 0 0 3px #E8C66A;transition:left 1s cubic-bezier(.4,0,.2,1)}
+.pg,.lf{position:absolute;top:0;width:50%;height:100%;box-sizing:border-box;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 50%,#FBF1DA 40%,#EEDDB6 100%);color:#3A2414}
+.pg.l,.lf.back{left:0;box-shadow:inset -18px 0 24px -14px rgba(90,50,20,.45)}
+.pg.r,.lf.front{left:50%;box-shadow:inset 18px 0 24px -14px rgba(90,50,20,.45)}
+.pg.l{border-radius:6px 0 0 6px}
+.pg.r{border-radius:0 6px 6px 0}
+.ib-spine{position:absolute;left:calc(50% - 1px);top:0;width:2px;height:100%;background:rgba(90,50,20,.35)}
+.pg-art{position:absolute;inset:5% 6%;display:grid;place-items:center}
+.pg-art svg{width:100%;height:100%;display:block}
+.pg-text{position:absolute;inset:9% 9% 12% 10%;display:flex;flex-direction:column;justify-content:center;gap:calc(var(--bh) * .035);font-family:Alegreya,Georgia,serif;font-weight:500;font-size:calc(var(--bh) * .062);line-height:1.3}
+.pg-line{margin:0}
+.pg-line.big{font-weight:700;font-size:calc(var(--bh) * .085);line-height:1.15;color:#4A2370}
+.pg-line.glow{color:#7B2FB0;text-shadow:0 0 12px rgba(255,214,120,.9)}
+.pg-text .pg-line:first-child::first-letter{font-family:"Uncial Antiqua",serif;font-size:1.5em;color:#8E2A3F}
+.pg-name{font:inherit;font-weight:700;color:#4A2370;width:7.2em;max-width:100%;border:none;border-bottom:3px dotted #8A5A35;background:transparent;padding:0 2px;outline:none}
+.pg-name:focus{outline:none;border-bottom:3px solid #7B2FB0}
+.pg-name::placeholder{color:rgba(90,58,36,.45);font-weight:500}
+.pg-num{position:absolute;bottom:-9%;left:0;right:0;text-align:center;font-size:.6em;color:rgba(90,58,36,.6)}
+.pg-next,.pg-prev{position:absolute;right:2%;bottom:3%;z-index:5;transition:opacity .3s ease;width:calc(var(--bh) * .15);height:calc(var(--bh) * .15);min-width:44px;min-height:44px;border-radius:50%;border:3px solid #FFFFFF;background:radial-gradient(circle at 35% 30%,#FF8FC7,#FF3D8F 55%,#C21D68);color:#FFFFFF;box-shadow:0 4px 0 #8A1550,0 0 18px rgba(255,140,220,.6);display:grid;place-items:center;padding:0;animation:pulse 1.6s ease-in-out infinite}
+.pg-next svg{width:55%;height:55%}
+.pg-next:disabled{filter:grayscale(1) brightness(.8);opacity:.5;animation:none}
+.ib-leaf{position:absolute;left:50%;top:0;width:50%;height:100%;transform-style:preserve-3d;transform-origin:0 50%;transition:transform .9s cubic-bezier(.45,.05,.3,1);z-index:4}
+.ib-leaf.turn{transform:rotateY(-180deg)}
+.ib-leaf.left{left:0;transform-origin:100% 50%;transition-duration:1s}
+.ib-leaf.left.turn{transform:rotateY(180deg)}
+.ib-leaf .lf{left:0;width:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.ib-leaf .lf.back{transform:rotateY(180deg)}
+.ib-leaf.left .lf.front{box-shadow:inset -18px 0 24px -14px rgba(90,50,20,.45);border-radius:6px 0 0 6px}
+.lf.cover{background:linear-gradient(160deg,#5B2E91,#3A1A63);box-shadow:inset 0 0 0 3px #E8C66A;border-radius:6px 10px 10px 6px}
+.lf.cover svg{width:100%;height:100%;display:block}
+.ibook.closed{transform:translate(-92%,-50%)}
+.ibook.closed .ib-leather{left:49%}
+.ibook.closed .pg,.ibook.closed .ib-spine{visibility:hidden}
+.ibook.closed .lf.cover{animation:covershine 2.4s ease-in-out .8s 2}
+.ib-after{position:absolute;left:calc(50% + var(--bh) * .24);right:3vw;top:50%;transform:translateY(-50%);max-width:420px;display:flex;flex-direction:column;gap:16px;align-items:flex-start;opacity:0;pointer-events:none;transition:opacity .7s ease;color:#FFE9B8;font-family:Alegreya,Georgia,serif;font-weight:700;font-size:clamp(17px,5vh,26px);line-height:1.3}
+.ib-after.on{opacity:1;pointer-events:auto}
+.ib-after p{margin:0;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.ib-go{font-size:clamp(16px,4.6vh,22px);padding:12px 24px}
+.pg-prev{right:auto;left:2%;background:radial-gradient(circle at 35% 30%,#C9A8FF,#8A5AD8 55%,#5B2E91);box-shadow:0 4px 0 #3A1A63;animation:none}
+.pg-prev.gone{opacity:0;pointer-events:none}
+.ibook.turning .pg-next,.ibook.turning .pg-prev{opacity:0;pointer-events:none}
+.ibook.closed .pg-next,.ibook.closed .pg-prev{opacity:0;pointer-events:none}
+.ib-leaf .lf.back.page{box-shadow:inset 18px 0 24px -14px rgba(90,50,20,.45);border-radius:0 6px 6px 0}
+.ib-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ib-again{font-size:clamp(14px,3.8vh,18px)}
+/* ---------- spillets eget tastatur: skrivemaskine-taster i messing på en træplade ---------- */
+.kb{position:fixed;left:0;right:0;bottom:0;z-index:9000;--k:min(calc((100vw - 48px) / 11.4),10.4vh,64px);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:calc(var(--k) * .12);
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 2px,transparent 2px 90px),linear-gradient(180deg,#7A4224,#4A2412);
+  border-top:4px solid #C9962E;box-shadow:0 -2px 0 #2A160C,0 -10px 30px rgba(0,0,0,.45);transform:translateY(105%);transition:transform .25s ease}
+.kb.on{transform:none}
+.kb-row{display:flex;gap:calc(var(--k) * .1);justify-content:center}
+.kb-k{width:var(--k);height:var(--k);border-radius:50%;padding:0;border:none;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(circle at 50% 38%,#FFFDF4 0 52%,#E9DCB8 70%,#C9962E 72% 82%,#8A6420 84%,#2A160C 88%);
+  color:#2A160C;font-family:Alegreya,Georgia,serif;font-weight:700;font-size:calc(var(--k) * .46);line-height:1;
+  box-shadow:0 calc(var(--k) * .08) 0 #2A160C,0 calc(var(--k) * .1) 6px rgba(0,0,0,.4);transition:transform .06s ease,box-shadow .06s ease;touch-action:manipulation}
+.kb-k.down,.kb-k:active{transform:translateY(calc(var(--k) * .07));box-shadow:0 calc(var(--k) * .01) 0 #2A160C}
+.kb-k.k-shift,.kb-k.k-del,.kb-k.k-space,.kb-k.k-enter{border-radius:calc(var(--k) * .5);
+  background:linear-gradient(180deg,#FFFDF4,#E9DCB8);box-shadow:inset 0 0 0 calc(var(--k) * .07) #C9962E,inset 0 0 0 calc(var(--k) * .1) #8A6420,0 calc(var(--k) * .08) 0 #2A160C}
+.kb-k.k-shift,.kb-k.k-del{width:calc(var(--k) * 1.45)}
+.kb-k.k-space{width:calc(var(--k) * 6.4);font-size:calc(var(--k) * .32);font-weight:500;color:#6A4A30}
+.kb-k.k-enter{width:calc(var(--k) * 2.6);font-size:calc(var(--k) * .34);background:linear-gradient(180deg,#7EE0A6,#3BAA6A);color:#FFFFFF}
+.kb.up .k-shift{background:linear-gradient(180deg,#FFE9A8,#F2C14E)}
+#msg{z-index:12}
+#forside{position:fixed;inset:0;z-index:10;overflow:hidden}
+#forside[hidden]{display:none}
+.fs-titel,.fs-pladser,.fs-intro{position:absolute;inset:0}
+.fs-intro{--bh:min(86vh,calc(92vw / 1.8))}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes flick{0%,100%{opacity:.85;transform:scale(1)}45%{opacity:1;transform:scale(1.06)}}
+@keyframes covershine{0%,100%{filter:none}50%{filter:drop-shadow(0 0 18px #FFE27A) brightness(1.12)}}
+@keyframes fsSving{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.fs-titel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5vh;background:radial-gradient(ellipse at 50% 45%,rgba(20,12,30,.05),rgba(10,6,16,.72) 75%)}
+.fs-skilt{position:relative;padding:3.2vh 6vh 2.6vh;border-radius:14px;text-align:center;transform-origin:50% -40vh;animation:fsSving 5s ease-in-out infinite;
+  background:repeating-linear-gradient(0deg,rgba(60,40,20,.07) 0 2px,transparent 2px 9px),#efe3c8;box-shadow:inset 0 0 0 4px #c9a25a,inset 0 0 0 7px #efe3c8,inset 0 0 0 8px rgba(120,80,30,.5),0 10px 0 #a8865a,0 16px 30px rgba(0,0,0,.6)}
+.fs-skilt::before,.fs-skilt::after{content:"";position:absolute;top:-40vh;width:2px;height:40vh;background:#e8d8b8;box-shadow:0 0 2px rgba(0,0,0,.4)}
+.fs-skilt::before{left:18%}.fs-skilt::after{right:18%}
+.fs-navn{font:400 clamp(44px,13vh,110px)/1 "Berkshire Swash",Georgia,serif;color:#6a2fa2;text-shadow:0 3px 0 #f2c14e,0 5px 0 #3a1a63}
+.fs-under{margin-top:1vh;font:700 clamp(16px,3.6vh,26px) "Alegreya SC",Georgia,serif;color:#5a3a24;letter-spacing:.08em}
+.fs-play{width:clamp(84px,20vh,140px);height:clamp(84px,20vh,140px);border-radius:50%;border:4px solid #fff4dc;padding:0;display:grid;place-items:center;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,#ff8fc7,#e0457a 55%,#a8204e);box-shadow:0 7px 0 #6a1030,0 12px 24px rgba(0,0,0,.55);animation:pulse 1.8s ease-in-out infinite}
+.fs-play svg{width:52%;height:52%;fill:#fff8ea;margin-left:8%}
+.fs-play:active{transform:translateY(4px)}
+.fs-udg{position:absolute;right:14px;bottom:10px;font:400 13px system-ui,sans-serif;color:rgba(255,240,220,.6)}
+.fs-tilbage{position:absolute;z-index:3;left:max(14px,env(safe-area-inset-left,0px));top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:6px;align-items:center;border:0;border-radius:12px;padding:8px 14px 8px 8px;font:700 18px var(--font);cursor:pointer}
+.fs-tilbage svg{width:22px;height:22px;fill:currentColor}
+.fs-knap{border:none;border-radius:999px;padding:12px 22px;font:700 clamp(16px,3.6vh,20px) var(--font);background:#efe3c8;color:#2a1d12;box-shadow:0 4px 0 #a8865a,inset 0 0 0 2px #c9a25a;cursor:pointer;min-height:44px}
+.fs-knap.hot{background:#e0457a;color:#fff;box-shadow:0 4px 0 #8a1550}
+.fs-spoerg{position:absolute;inset:0;z-index:5;display:grid;place-items:center;background:rgba(10,6,16,.55);padding:16px}
+.fs-spkort{max-width:440px;border-radius:16px;padding:20px 22px}
+.fs-spkort h2{margin:0 0 8px;font:700 24px var(--font)}.fs-spkort p{margin:0 0 16px;font:500 18px/1.35 var(--font)}
+.fs-spkn{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+#menuknap svg{stroke:currentColor}
+.sb-port svg{width:100%;height:100%;display:block}
 </style>
 <div id="stage"></div>
 <div id="vig" aria-hidden="true"></div>
@@ -131,7 +257,7 @@ body[data-rum=gribe] #toast:not(.vent),body[data-rum=dyrepark] #toast{bottom:aut
 <div id="videre" hidden></div>
 <div id="toast" class="kraft" role="status" hidden></div>
 <div id="door" class="gone" aria-live="polite"><span id="doorT"></span></div>
-<div id="msg">Klipper, maler og bager byen …<small id="msgN"></small></div>
+<div id="msg">Klipper, maler og bager byen …<small id="msgN"></small><small id="msgV"></small></div>
 <script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
 <script type="module">
@@ -1676,12 +1802,14 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.30';
+const PAPVER='pap-0.31';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
-const SPIL={look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
-try{const s=JSON.parse(localStorage.getItem('magiske-mig-pap')||'null');if(s){if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
+/* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
+const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
+const SPIL={plads:PLADS,navn:'',look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
+try{const s=JSON.parse(localStorage.getItem(PLADSNOEGLE(PLADS))||'null');if(s){if(typeof s.navn==='string')SPIL.navn=s.navn.slice(0,14);if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
   if(s.rum)for(const k in s.rum)if(typeof s.rum[k]==='string')SPIL.rum[k]=s.rum[k];if(s.rumc)for(const k in s.rumc)if(/^#[0-9a-f]{6}$/i.test(s.rumc[k]||''))SPIL.rumc[k]=s.rumc[k];if(Number.isFinite(s.stj))SPIL.stj=Math.max(0,Math.floor(s.stj));if(Number.isFinite(s.bil))SPIL.bil=Math.max(0,Math.floor(s.bil));if(s.data&&typeof s.data==='object'&&!Array.isArray(s.data)&&JSON.stringify(s.data).length<6000)SPIL.data=s.data;if(Array.isArray(s.har))SPIL.har=s.har.filter(x=>typeof x==='string').slice(0,400);if(Number.isInteger(s.eliksir))SPIL.eliksir=s.eliksir;if(s.dyr){for(const k of['kind','moenster','pynt'])if(typeof s.dyr[k]==='string')SPIL.dyr[k]=s.dyr[k];for(const k of['a','b','c','eye'])if(/^#[0-9a-f]{6}$/i.test(s.dyr[k]||''))SPIL.dyr[k]=s.dyr[k]}if(s.farver)for(const k of['tøj','hat','kappe','støvler','hår','hud','øjne'])if(/^#[0-9a-f]{6}$/i.test(s.farver[k]||''))SPIL.farver[k]=s.farver[k]}}catch(_){}
-SPIL.save=()=>{try{localStorage.setItem('magiske-mig-pap',JSON.stringify({look:SPIL.look,farver:SPIL.farver,dyr:SPIL.dyr,rum:SPIL.rum,rumc:SPIL.rumc,stj:SPIL.stj,bil:SPIL.bil,data:SPIL.data,har:SPIL.har,eliksir:SPIL.eliksir||0}))}catch(_){}};
+SPIL.save=()=>{try{localStorage.setItem(PLADSNOEGLE(PLADS),JSON.stringify({navn:SPIL.navn,look:SPIL.look,farver:SPIL.farver,dyr:SPIL.dyr,rum:SPIL.rum,rumc:SPIL.rumc,stj:SPIL.stj,bil:SPIL.bil,data:SPIL.data,har:SPIL.har,eliksir:SPIL.eliksir||0}))}catch(_){}};
 /* det man kan få i Boblebutikken; resten har heksen fra starten */
 SPIL.VARER=[['dyr','kanin','Kaninen'],['dyr','enhjørning','Enhjørningen'],['dyr','bjørn','Bjørnen'],['dyr','drage','Dragen'],['dyr','ugle','Uglen'],['dyr','ræv','Ræven'],['dyr','frø','Frøen'],
   ['dyrmønster','pletter','Pletterne til kæledyret'],['dyrmønster','øjeplet','Pletten om øjet'],['dyrmønster','hjerter','Hjerterne til kæledyret'],['dyrmønster','stjerner','Stjernerne til kæledyret'],['dyrmønster','prikker','Prikkerne til kæledyret'],['dyrmønster','plet','Den store plet'],['dyrmønster','glimmer','Glimmeret til kæledyret'],
@@ -1745,8 +1873,12 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   const fokus=()=>{const v=document.hidden||!document.hasFocus();if(v===vaek)return;vaek=v;if(ac){if(v)ac.suspend().catch(()=>{});else ac.resume().catch(()=>{})}};
   for(const[m,e]of[[document,'visibilitychange'],[window,'blur'],[window,'focus'],[window,'pagehide'],[window,'pageshow']])m.addEventListener(e,()=>setTimeout(fokus,0));
   addEventListener('pointerdown',()=>{if(vaek&&!document.hidden){vaek=false;if(ac)ac.resume().catch(()=>{})}},true);
-  const tone=(f0,f1,dur,type='sine',vol=.22,delay=0)=>{const a=A();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.03)};
-  const stoej=(dur,vol=.2,freq=900,q=.8,delay=0)=>{const a=A();if(!a)return;const n=Math.max(1,Math.floor(a.sampleRate*dur)),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=freq;f.Q.value=q;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(a.destination);s.start(a.currentTime+delay)};
+  /* al lyd går gennem en begrænser, før den når højttaleren: mange lyde oven i musikken må aldrig blive så høje, at de klipper og knaser (Kasper 22. nov.) */
+  const UD=a=>{if(!a._ud){const c=a.createDynamicsCompressor();c.threshold.value=-12;c.knee.value=10;c.ratio.value=14;c.attack.value=.002;c.release.value=.18;const g=a.createGain();g.gain.value=.92;c.connect(g);g.connect(a.destination);a._ud=c}return a._ud};
+  let STOEJ=null;const stoejBuf=a=>{if(!STOEJ||STOEJ.sampleRate!==a.sampleRate){const n=a.sampleRate*2;STOEJ=a.createBuffer(1,n,a.sampleRate);const d=STOEJ.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1}return STOEJ};
+  const tone=(f0,f1,dur,type='sine',vol=.22,delay=0)=>{const a=A();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(g);g.connect(UD(a));o.start(t);o.stop(t+dur+.03)};
+  /* støj: én fælles bid støj genbruges; lydstyrken falder til nul hen over varigheden */
+  const stoej=(dur,vol=.2,freq=900,q=.8,delay=0)=>{const a=A();if(!a)return;const t=a.currentTime+delay,s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=stoejBuf(a);f.type='bandpass';f.frequency.value=freq;f.Q.value=q;g.gain.setValueAtTime(vol,t);g.gain.linearRampToValueAtTime(0,t+dur);s.connect(f);f.connect(g);g.connect(UD(a));s.start(t,Math.random()*(2-dur-.01),dur+.02)};
   /* ---- filerne ---- */
   const MAPPE=(typeof window!=='undefined'&&window.__lydmappe)||'../../lyd/';
   let kanFil=typeof location!=='undefined'&&/^https?:$/.test(location.protocol)&&!/claude|anthropic/.test(location.hostname);
@@ -1765,10 +1897,10 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
       if(stor){if(!BRUGT.includes(src))BRUGT.push(src);const nu_=[src,musikVil&&MUSIK[musikVil]&&MUSIK[musikVil].src,stemVil&&MUSIK[stemVil]&&MUSIK[stemVil].src];for(const k of BRUGT.slice())if(!nu_.includes(k)){delete BUF[k];BRUGT.splice(BRUGT.indexOf(k),1)}}return b}).catch(e=>{delete VENT[src];throw e})};
   /* en effekt fra en fil; er den ikke hentet endnu (eller kan den ikke hentes), spilles den indbyggede lyd i stedet, og filen hentes til næste gang */
   const fil=(key,ellers,vol=1,rate=1)=>{const l=FILER[key],a=A();if(!a)return;if(!l||!kanFil){if(ellers)ellers();return}let i=Math.floor(Math.random()*l.length);if(l.length>1&&i===sidst[key])i=(i+1)%l.length;sidst[key]=i;const b=BUF[l[i]];
-    if(!b){hent(l[i]).catch(()=>{});if(ellers)ellers();return}const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(a.destination);n.start()};
+    if(!b){hent(l[i]).catch(()=>{});if(ellers)ellers();return}const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(UD(a));n.start()};
   /* en lyd, der kører i ring, så længe noget holdes nede (motoren i Gribemaskinen). Svarer false, hvis filen ikke kan spilles, så kalderen selv kan lave en lyd */
   const HOLDT={};const hold=(key,on)=>{const h=HOLDT[key];if(!on){if(h){try{h.g.gain.setTargetAtTime(0,h.a.currentTime,.03);h.n.stop(h.a.currentTime+.15)}catch(_){}delete HOLDT[key]}return true}if(h)return true;const l=FILER[key],a=A();if(!a||!l||!kanFil)return false;const b=BUF[l[0]];if(!b){hent(l[0]).catch(()=>{});return false}
-    const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.loop=true;g.gain.value=.5;n.connect(g);g.connect(a.destination);n.start();HOLDT[key]={n,g,a};return true};
+    const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.loop=true;g.gain.value=.5;n.connect(g);g.connect(UD(a));n.start();HOLDT[key]={n,g,a};return true};
   const forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
   /* musikken: ét nummer ad gangen plus et lag stemning. Skifter blødt */
   const lag={musik:{id:null,n:null,g:null,gen:0},stemning:{id:null,n:null,g:null,gen:0}};let musikVil=null,stemVil=null,slutFn=null;
@@ -1776,17 +1908,19 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
     if(f&&s-f>=0&&!buf._xf){for(let c=0;c<buf.numberOfChannels;c++){const d=buf.getChannelData(c);for(let i=0;i<f;i++){const t=i/f*Math.PI/2;d[e-f+i]=d[e-f+i]*Math.cos(t)+d[s-f+i]*Math.sin(t)}}buf._xf=1}
     n.loopStart=s/sr;n.loopEnd=e/sr;return n};
   const saet=(L,id,vol0,ind=.8,efter)=>{const vil=til?id:null;if(vil===L.id)return;L.gen++;const a=ac;if(L.n&&a){try{L.g.gain.setTargetAtTime(0,a.currentTime,.15);L.n.onended=null;L.n.stop(a.currentTime+.7)}catch(_){}}L.n=L.g=null;L.id=vil;const m=vil&&MUSIK[vil];if(!m||!kanFil)return;const a2=A();if(!a2)return;const my=L.gen;
-    hent(m.src,true).then(buf=>{if(my!==L.gen)return;const n=loopNode(a2,buf,m),g=a2.createGain();g.gain.setValueAtTime(0,a2.currentTime);g.gain.linearRampToValueAtTime((m.vol||.55)*vol0,a2.currentTime+ind);n.connect(g);g.connect(a2.destination);n.start(0);L.n=n;L.g=g;if(m.en)n.onended=()=>{if(my===L.gen){L.id=null;L.n=L.g=null;if(efter)efter()}}}).catch(()=>{if(my===L.gen){L.id=null;if(m.en&&efter)efter('fejl')}})};
+    hent(m.src,true).then(buf=>{if(my!==L.gen)return;const n=loopNode(a2,buf,m),g=a2.createGain();g.gain.setValueAtTime(0,a2.currentTime);g.gain.linearRampToValueAtTime((m.vol||.55)*vol0,a2.currentTime+ind);n.connect(g);g.connect(UD(a2));n.start(0);L.n=n;L.g=g;L.t0=a2.currentTime;L.m=m;if(m.en)n.onended=()=>{if(my===L.gen){L.id=null;L.n=L.g=null;if(efter)efter()}}}).catch(()=>{if(my===L.gen){L.id=null;if(m.en&&efter)efter('fejl')}})};
   const opfrisk=()=>{saet(lag.musik,musikVil,1,.8,slutFn);saet(lag.stemning,stemVil,1,1.2)};
   return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)tone(660,880,.12,'triangle',.15);opfrisk();return til},
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
     musik(id){musikVil=id||null;slutFn=null;opfrisk()},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
+    /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
+    musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0;if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
     status:()=>({musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('gnom.guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
     ding(){tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
     pop(){fil('boble.pop',()=>{stoej(.05,.35,2400,1.2);tone(950,280,.1,'triangle',.18)})},bobletryk(n=0){fil('boble.tryk',()=>tone(420+n*90,300+n*90,.12,'sine',.2),1,1+n*.12)},doer(){tone(150,95,.22,'triangle',.14);stoej(.1,.07,500,.6,.05)},valg(){tone(560,840,.1,'triangle',.13)},tryk(){tone(440,440,.05,'triangle',.08)},
-    roer(){tone(260,340,.12,'sine',.12);stoej(.1,.06,900,.8)},ild(){stoej(.35,.25,700,.4);tone(200,400,.3,'sawtooth',.05)},pust(){stoej(.5,.12,1300,.5);tone(300,700,.5,'sine',.06)},
+    roer(){tone(260,340,.12,'sine',.12);stoej(.1,.06,900,.8)},ild(){stoej(.35,.25,700,.4);tone(200,400,.3,'sawtooth',.05)},pust(){stoej(.5,.12,1300,.5);tone(300,700,.5,'sine',.06)},sus(){stoej(.16,.045,1800,.7)},
     nam(){fil('nam',()=>{tone(300,200,.09,'square',.12);tone(260,180,.09,'square',.12,.12)})},gave(){fil('gave',()=>{[784,988,1319].forEach((f,i)=>tone(f,f,.2,'sine',.14,i*.07))})},fuser(){fil('fuser',()=>{stoej(.3,.2,500,.5);tone(220,70,.3,'sawtooth',.1)})},nyt(){fil('nyt',()=>tone(500,760,.1,'triangle',.14))},
     oev(){fil('oev',()=>{tone(330,220,.25,'triangle',.15);tone(220,150,.35,'triangle',.15,.22)})},boelge(){fil('boelge',()=>{[392,494,587].forEach((f,i)=>tone(f,f,.14,'square',.09,i*.08))})},klap(){fil('koncert.klap',()=>{for(let i=0;i<14;i++)stoej(.05,.18,1800+Math.random()*900,.9,i*.09+Math.random()*.04)})},taeppe(){fil('koncert.taeppe',()=>stoej(.7,.1,500,.4))},
     kys(){tone(900,1500,.07,'sine',.14);tone(1400,1900,.09,'sine',.1,.06)},snor(){tone(180,120,.5,'sine',.07);stoej(.5,.04,300,.5)},pip(){tone(1500,2100,.07,'sine',.12);tone(1900,1600,.08,'sine',.1,.09)},hak(){stoej(.04,.3,1200,1.4);tone(240,180,.05,'square',.08)},vask(){stoej(.35,.14,2600,.6);tone(600,900,.3,'sine',.03)},
@@ -2370,9 +2504,9 @@ BUILD.push(()=>{const W=box(-95,-2,95,72),hole=sm([[OPEN.x0,OPEN.y0-.1,1],[OPEN.
 /* ---- ophængte kulisser (bagved) og den faste kappe med frynser foran ---- */
 BUILD.push(()=>{for(const s of[-1,1])for(const[z,w,c]of[[-4,4.2,'#3a0e1c'],[-10,4.6,'#2e0a16']]){const x=s*(OPEN.x1-w/2+1);pc(scene,sm([[x-w/2,OPEN.y0],[x+w/2,OPEN.y0],[x+w/2,OPEN.y1+2],[x-w/2,OPEN.y1+2]],2),{t:.2,s:10,paint:P=>{P.wash(c,null,{edge:0});for(let k=0;k<5;k++)P.wash(shade(c,.15),box(x-w/2+k*w/5,0,x-w/2+k*w/5+w/10,50),{alpha:.5,edge:.4})}},z)}
   const v=[[OPEN.x1+1,OPEN.y1+3],[OPEN.x0-1,OPEN.y1+3]];for(let k=0;k<=7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7);if(k===7)break;for(let i=0;i<=8;i++){const t=i/8;v.push([mix(x0,x1,t),OPEN.y1-2.2-Math.sin(t*Math.PI)*3.2])}}
-  const swag=toCCW(v);pc(scene,swag,{t:.25,s:16,paint:P=>{P.wash('#a0142a',swag,{top:'#c02838',edge:.6,clouds:6});for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7);for(const d of[.3,.6,.9])P.score(curve([[x0,OPEN.y1+1-d*2],[(x0+x1)/2,OPEN.y1-1-d*3.2],[x1,OPEN.y1+1-d*2]],8),{w:.1,ink:.4,dark:'#4a0610'})}}},5.2);
-  for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7),f=[];for(let i=0;i<=8;i++){const t=i/8;f.push([mix(x0,x1,t),OPEN.y1-2.2-Math.sin(t*Math.PI)*3.2])}pieces(thick([f],.35),{mat:gold(),t:.15},scene,0,0,5.45);
-    pc(scene,sm([[x1-.45,OPEN.y1-1.6],[x1+.45,OPEN.y1-1.6],[x1+.6,OPEN.y1-3.6],[x1,OPEN.y1-4.2],[x1-.6,OPEN.y1-3.6]],4),{mat:gold(),t:.4},5.6)}});
+  const swag=toCCW(v);pc(scene,swag,{t:.25,s:16,paint:P=>{P.wash('#a0142a',swag,{top:'#c02838',edge:.6,clouds:6});for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7);for(const d of[.3,.6,.9])P.score(curve([[x0,OPEN.y1+1-d*2],[(x0+x1)/2,OPEN.y1-1-d*3.2],[x1,OPEN.y1+1-d*2]],8),{w:.1,ink:.4,dark:'#4a0610'})}}},6.4);
+  for(let k=0;k<7;k++){const x0=mix(OPEN.x0-1,OPEN.x1+1,k/7),x1=mix(OPEN.x0-1,OPEN.x1+1,(k+1)/7),f=[];for(let i=0;i<=8;i++){const t=i/8;f.push([mix(x0,x1,t),OPEN.y1-2.2-Math.sin(t*Math.PI)*3.2])}pieces(thick([f],.35),{mat:gold(),t:.15},scene,0,0,6.65);
+    pc(scene,sm([[x1-.45,OPEN.y1-1.6],[x1+.45,OPEN.y1-1.6],[x1+.6,OPEN.y1-3.6],[x1,OPEN.y1-4.2],[x1-.6,OPEN.y1-3.6]],4),{mat:gold(),t:.4},6.8)}});
 
 /* ---- logerne på siderne og lysekroner ---- */
 BUILD.push(()=>{for(const s of[-1,1]){const cx=s*58;
@@ -2540,16 +2674,20 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
   for(const gl of GL){if(gl.spr)continue;const s=glowSprite(gl.c,gl.s);s.position.copy(gl.p);live.add(s);gl.spr=s;gl.base=gl.s;gl.ph=R(TAU)}
   setStyle('hygge',true);
   ST.bake();msg.classList.add('gone');
-  let t=0,last=performance.now();
-  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const beat=t*1.7*TAU/2;
+  let t=0,last=performance.now(),spil=0;
+  /* takten: slagene i den sang, der spiller (målt på forhånd), så bandet bevæger sig i takt. Uden en sang står de stille */
+  const SLAG={};if(typeof KONCERT_SLAG!=='undefined')for(const k in KONCERT_SLAG){const v=KONCERT_SLAG[k],a=[v[0]];for(let i=1;i<v.length;i++)a.push(a[i-1]+v[i]/1000);SLAG[k]=a}
+  const slagFase=()=>{const L_=typeof LYD!=='undefined'?LYD:null,m=L_&&L_.musikTid&&L_.musikTid();if(!m||!m.id)return null;const key=m.id.replace('koncert.','').replace(/^lounge(\d)$/,'lounge-$1'),a=SLAG[key];
+    if(!a)return m.t*2.2;if(m.t<a[0])return null;let lo=0,hi=a.length-1;if(m.t>=a[hi])return hi+Math.min(1,(m.t-a[hi])/((a[hi]-a[hi-1])||.45));while(hi-lo>1){const md=(lo+hi)>>1;if(a[md]<=m.t)lo=md;else hi=md}return lo+(m.t-a[lo])/(a[hi]-a[lo])};
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const fase=slagFase();spil+=((fase==null?0:1)-spil)*Math.min(1,dt*(fase==null?6:3));const beat=(fase==null?0:fase)*Math.PI;
     for(const o of BAND){const walking=o.q.length>0;
       if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
       else o.dir+=(1-o.dir)*Math.min(1,dt*8);
-      const hop=walking?Math.abs(Math.sin((o.wp||0)*.55))*1.1:Math.abs(Math.sin(beat+o.i*.4))*.35;o.fy=(o.fy===undefined?floorY(o.x,o.z):o.fy+(floorY(o.x,o.z)-o.fy)*Math.min(1,dt*10));
+      const hop=walking?Math.abs(Math.sin((o.wp||0)*.55))*1.1:Math.abs(Math.sin(beat+o.i*.15))*.35*spil;o.fy=(o.fy===undefined?floorY(o.x,o.z):o.fy+(floorY(o.x,o.z)-o.fy)*Math.min(1,dt*10));
       o.G.position.set(o.x,OPEN.y0+.15+o.fy+hop,o.z);o.G.scale.set(o.sc*(o.dir<0?-1:1),o.sc,o.sc);o.G.rotation.z=walking?.06*Math.sin((o.wp||0)*.55)*o.dir:0;
       o.sh.position.set(o.x,OPEN.y0+.22+o.fy,o.z+.3);o.sh.material.opacity=1-hop*.25;
-      o.head.rotation.z=.08*Math.sin(beat*.5+o.i);o.hatG.rotation.z=.06*Math.sin(beat*.5+o.i+1);
-      if(!walking){const hv=o.hv;if(o.inst==='guitar'){o.armR.rotation.z=hv.r+.16*Math.sin(beat*2);o.armL.rotation.z=hv.l+.03*Math.sin(beat)}if(o.inst==='mic')o.armL.rotation.z=hv.l+.3*Math.sin(beat*.5);if(o.inst==='trommer'){o.armL.rotation.z=hv.l-.32*Math.max(0,Math.sin(beat*2));o.armR.rotation.z=hv.r+.32*Math.max(0,Math.sin(beat*2+Math.PI))}if(o.inst==='bas'){o.armR.rotation.z=hv.r+.1*Math.sin(beat*2);o.armL.rotation.z=hv.l+.03*Math.sin(beat*.5)}}
+      o.head.rotation.z=.08*Math.sin(beat*.5+o.i)*spil;o.hatG.rotation.z=.06*Math.sin(beat*.5+o.i+1)*spil;
+      if(!walking){const hv=o.hv,k=spil;if(o.inst==='guitar'){o.armR.rotation.z=hv.r+.16*Math.sin(beat*2)*k;o.armL.rotation.z=hv.l+.03*Math.sin(beat)*k}if(o.inst==='mic')o.armL.rotation.z=hv.l+.3*Math.sin(beat*.5)*k;if(o.inst==='trommer'){o.armL.rotation.z=hv.l-.32*Math.max(0,Math.sin(beat))*k;o.armR.rotation.z=hv.r+.32*Math.max(0,Math.sin(beat+Math.PI))*k}if(o.inst==='bas'){o.armR.rotation.z=hv.r+.1*Math.sin(beat*2)*k;o.armL.rotation.z=hv.l+.03*Math.sin(beat*.5)*k}}
       const m=MARK[o.i],on=Math.hypot(o.x-m.x,o.z-m.z)<1.5?1:0,sp=SPOT[o.i];sp.userData.a=(sp.userData.a??1)+(on-(sp.userData.a??1))*Math.min(1,dt*4);sp.material.opacity=.35*sp.userData.a}
     for(const gl of GL){if(gl.blink!==undefined){const k=.6+.4*Math.sin(t*2+gl.blink);gl.spr.scale.set(2.2*k,2.2*k,1)}else{const k=gl.f?(.92+.08*Math.sin(t*9+gl.ph)*Math.sin(t*5.3)):(.95+.05*Math.sin(t*3+gl.ph));gl.spr.scale.set(gl.base*k,gl.base*k,1)}}
     SPOT.forEach((sp,i)=>{sp.rotation.z=.08*Math.sin(t*.7+i*1.3)});
@@ -2575,9 +2713,9 @@ const idle=()=>BAND.every(o=>!o.q.length);
   const L_=typeof LYD!=='undefined'?LYD:null,levende=()=>(typeof ctx==='undefined')||ctx.alive,lounge=()=>{if(L_&&levende())L_.musik('koncert.lounge'+(1+Math.floor(Math.random()*4)))};if(L_)setTimeout(lounge,600);
   /* hygge er ikke noget, man ønsker: det er det, bandet spiller, når ingen har ønsket noget. Når en ønsket sang er slut, og der er klappet, går de selv ud og kommer tilbage i hyggetøjet */
   let oenskeNr=0;const visValg=k=>document.querySelectorAll('#songs button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===k)));
-  async function wish(k){if(busy||k===cur)return;busy=true;const nr=++oenskeNr;visValg(k);if(L_){L_.musik(null);L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();await until(idle);busy=false;
+  async function wish(k){if(busy||k===cur)return;busy=true;const nr=++oenskeNr;visValg(k);if(L_){L_.musik(null);await new Promise(r=>setTimeout(r,900));L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();if(L_&&k!=='hygge')L_.klap();await until(idle);busy=false;
     if(!levende())return;const hjem=ms=>setTimeout(()=>{if(levende()&&nr===oenskeNr&&cur===k)wish('hygge')},ms);if(k==='hygge'){lounge();return}
-    if(!(L_&&L_.sang('koncert.'+k,fejl=>{if(!levende()||nr!==oenskeNr)return;if(!fejl)L_.klap();hjem(fejl?0:4800)}))){lounge();hjem(typeof window!=='undefined'&&window.__koncertKort?1500:25000)}}
+    if(L_)L_.stemning(null);if(!(L_&&L_.sang('koncert.'+k,fejl=>{if(!levende()||nr!==oenskeNr)return;if(!fejl)L_.klap();L_.stemning('stemning.koncert');hjem(fejl?0:4800)}))){if(L_)L_.stemning('stemning.koncert');lounge();hjem(typeof window!=='undefined'&&window.__koncertKort?1500:25000)}}
   {const box_=document.getElementById('songs');for(const k in STY){if(k==='hygge')continue;const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.dataset.k=k;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>wish(k));box_.appendChild(b)}}
 
 ctx.room={scenes:[scene,live],ST}};
@@ -2910,6 +3048,11 @@ function papirBanner(par,{y=28,z=9,w=36,farve='#fbf2dc',kant='#a88a5a'}={}){cons
     tick(dt){if(!G.visible)return;state.t+=dt;if(state.vis&&state.sek>0&&state.t>state.sek)state.vis=false;const maal=state.vis?state.y:state.y+40;G.position.y+=(maal-G.position.y)*Math.min(1,dt*(state.vis?7:4));
       state.sw*=Math.pow(.25,dt);G.rotation.z=Math.sin(state.t*5.2)*state.sw;if(!state.vis&&G.position.y>state.y+34)G.visible=false},
     fjern(){for(const f of ryd)f();par.remove(G)}}}
+
+/* ============ slagene i koncertsalens sange ============
+   Målt ud fra lydfilerne (22. nov.), så bandet kan bevæge sig i takt (Kaspers ønske): første slag i sekunder, derefter afstanden mellem slagene i millisekunder.
+   Bandet slår et slag for hvert tal her, mens sangen spiller. */
+const KONCERT_SLAG={"rock":[0.093,441,430,418,418,430,418,418,418,430,430,418,418,418,418,418,430,430,430,418,418,418,430,418,430,430,418,418,418,418,418,418,418,418,418,430,430,418,418,430,418,418,418,418,418,430,418,418,418,418,418,418,430,418,418,418,418,418,418,418,430,418,418,406,430,430,418,430,418,418,406,418,418,430,430,418,418,418,418,418,418,418,430,418,418,418,418,430,418,418,418,418,418,430,418,418,418,418,418,430,418,418,418,418,418,418,418,418,430,430,418,406,418,418,418,418,418,418,418,406,418,418,418,418,418,418,418,418,418,418,418,406,406,406,406,418,418,418,418,418,430,418,418,418,418,406,406,418,418,418,418,418,418,418,406,418,418,418,406,418,418,418,406,418,406,418,418,418,406,418,418,406,406,418,418,418,406,406,406,406,418,418,418,406,418,406,406,406,418,406,406,418,406,418,406,406,418,406,406,406,406,418,406,406,406,418,406,406,406,418,406,406,418,406,406,418,406,406,406,418,406,418,406,406,406,418,406,406,418,406,406,418,406,406,406,418,406,406,406,418,406,406,406,406,406,418,418,406,406,406,406,418,418,406,406,418,418,418,418,418,418,406,418,418,418,418,418,430,430,430,418,418,430,430,430,418,418,418,418,418,430,418,430,430,430,418,418,430,418,418,430,418,430,418,418,430,418,418,430,418,418,418,418,418,418,418,418,418,418,418,418,406,418,418,418,406,418,418,418,406,418,406,406,418,418,406,418,418,418,418,418,406,418,406,418,406,418,418,406,418,418,406,418,418,406,418,418,406,406,418,418,406,406,418,418,406,418,406,406,418,406,418,418,418,418,406,406,406,406,406,406,406,418,418,406,418,406,418,406,418,418,406,406,406,406,418,406,418,406,418,406,406,418,418,406,406,406,406,406,418,406,418,406,406,418,406,406,418,406,406,406,418,406,418,406,406,406,406,406,418,406,418,406,406,406,418,406,406,406,406,406,406,406,406,418,406,406,418,406,406,406,406,406,406,418,406,406,406,406,406,406,406,406,406,418,406,406,406,406,406,418,406,406,406,406,406,395,406,406,406,418,406,406,406,395,406,406,406,406,406,406,406,406,406,406,406,418,418,418,406,418,406,406,406,418,406,418,418],"country":[0.081,453,453,453,464,453,464,464,453,441,453,464,453,464,441,476,453,453,464,453,464,453,453,453,464,464,464,453,464,453,453,453,453,453,453,464,464,464,464,453,464,453,453,453,441,453,453,453,453,464,464,453,464,453,464,464,464,453,464,453,464,453,453,453,453,464,476,464,464,464,453,453,453,464,464,464,453,453,464,464,464,453,464,476,464,464,476,464,464,476,464,453,453,453,464,464,464,476,453,453,464,464,464,464,453,464,453,464,464,464,453,476,464,464,464,464,453,464,453,476,464,476,453,453,464,464,453,453,464,464,464,464,453,464,453,464,453,464,464,464,453,464,453,464,464,464,453,464,464,464,453,464,464,464,464,464,464,453,453,464,453,453,453,476,464,464,464,464,464,453,453,464,453,464,464,453,464,453,464,453,464,476,476,476,464,464,476,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,476,453,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,476,464,464,464,464,464,464,464,464,464,464,464,476,464,488,488,476,476,488,476,476,464,464,464,453,464,464,464,476,476,464,476,476,476,476,464,453,464,464,464,464,464,476,464,464,464,464,464,464,464,464,476,453,464,476,464,464,464,464,464,464,453,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,464,476,464,464,464,464,464,464,453,476,453,464,464,464,476,441,441,441,453,453,453,453,441,464,464,453,453,453,464,453,441,453,453,464,464,464,464,464,464,464,464,464,453,453,464,464,453,453,453,464,453,453,453,453,453,464,464,464,476,464,464,476,476,464,476,488,488,476,488,464,464,453,464,464,464,464,464,464,464,464,464,464,453,464,464,464,464,453,464],"disko":[0.197,488,476,476,476,488,476,476,476,476,464,476,476,488,476,476,476,464,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,488,464,476,476,488,476,476,464,476,476,476,488,476,476,476,464,476,476,488,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,488,476,464,476,476,488,464,476,476,476,476,476,476,476,476,476,476,476,464,488,476,476,476,476,476,476,476,476,476,476,464,488,476,476,464,488,476,476,476,476,476,476,476,476,476,488,476,464,476,488,476,464,476,476,476,476,476,488,464,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,464,476,476,488,464,476,464,488,476,476,488,476,476,464,476,476,476,476,476,476,476,476,476,476,476,476,488,476,476,464,476,476,488,476,476,476,476,464,476,476,476,476,488,464,488,464,488,476,476,464,476,488,476,476,476,476,476,464,488,476,488,464,476,464,488,476,476,464,476,476,488,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476],"hawaii":[0.348,476,476,488,476,476,464,476,476,464,464,488,476,476,464,476,488,488,476,476,476,488,476,476,476,488,476,476,476,476,464,488,476,476,476,476,476,476,476,476,488,476,476,476,476,488,476,476,476,488,488,476,476,476,476,476,476,476,488,488,476,476,476,476,476,488,476,476,476,476,476,464,488,476,464,464,488,476,476,476,488,488,476,464,476,476,476,476,476,476,476,476,476,476,476,476,488,476,476,476,476,488,476,476,476,464,476,488,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,476,488,464,476,476,488,476,476,476,464,488,464,464,488,488,453,488,476,464,488,488,476,476,476,476,476,476,476,476,464,476,476,488,476,476,476,488,476,464,476,476,476,476,476,476,476,476,476,476,488,476,476,476,476,476,476,488,476,476,476,476,488,476,476,488,464,476,476,488,476,488,476,476,476,476,476,476,488,488,476,488,488,488,488,488,488,476,476,464,488,476,464,499,488,476,476,476,476,476,464,499,476,476,476,476,488,476,476,476,476,488,476,476,476,476,476,476,476,476,476,488,488,476,476,476,488,476,476,476,488,476,476,476,476,476,476,476,488,476,476,476,488,476,476,476,476,476,488,476,476,488,476,488,476,476,476,476,476,476,488,476,476,488,476,476,476,488,476,488,476,476,476,476,476,476,476,476,488,476,476,476,488,476,488,476,476,476],"klassisk":[0.302,430,430,430,418,430,430,430,418,418,418,430,430,430,430,430,430,430,430,418,418,418,418,418,418,430,430,418,418,430,430,430,430,430,430,430,430,418,430,430,430,430,430,430,430,441,430,441,441,441,430,441,441,430,441,430,418,418,418,430,430,430,430,418,418,418,430,418,418,430,430,430,430,430,430,430,430,430,430,418,418,418,430,418,418,418,418,418,430,418,418,430,430,430,418,430,418,418,418,430,430,430,418,430,430,430,430,418,418,418,418,418,418,418,418,418,418,418,418,418,418,418,430,430,418,418,418,418,430,418,418,418,418,418,430,430,418,418,418,430,418,430,418,430,418,418,418,406,406,418,418,430,430,430,418,430,418,418,430,430,430,430,430,430,441,430,441,418,430,430,430,430,441,441,430,430,430,430,430,441,430,430,430,430,430,441,430,430,430,430,430,430,430,430,430,430,430,430,418,418,430,430,430,430,430,430,430,418,430,430,430,430,430,430,430,430,418,430,430,430,430,418,430,430,430,430,430,441,441,441,441,441,441,441,441,441,441,418,430,430,430,430,430,430,418,418,430,430,418,430,418,418,430,430,430,418,430,418,418,430,430,430,418,418,430,430,430,430,418,418,430,418,430,418,430,430,418,430,418,418,430,418,418,430,418,430,430,418,418,418,418,430,418,430,430,430,430,430,418,418,418,418,418,430,430,418,430,441,430,430,418,418,418,418,430,430,430,430,430,430,430,430,430,430,418,430,418,418,430,430,430,418,418,418,430,430,430,430,418,430,430,418,418,418,430,418,430,418,418,418,406,418,418,418,418,418,418,418,418,418,430,418,418,406,418,418,418,418,430,418,430,430,430,430,430,430,430,430,430,430],"lounge-1":[0.313,430,441,430,441,430,430,430,441,441,430,441,430,441,430,430,430,441,441,430,430,441,430,441,430,441,430,441,430,441,430,430,430,441,441,430,441,430,430,441,441,441,430,430,430,441,430,441,441,430,430,430,441,441,430,430,441,430,441,430,430,430,441,441,441,430,430,430,441,430,430,430,441,441,441,430,441,430,430,441,430,430,441,441,430,430,441,441,430,430,441,430,441,430,441,430,430,441,441,430,430,430,441,441,430,441,441,430,430,430,430,441,430,441,430,441,441,430,430,441,430,430,441,430,441,430,441,430,430,441,430,441,430,441,441,430,430,430,441,430,441,430,430,441,430,441,430,441,441,430,430,441,441,430,441,430,430,430,441,430,441,430,441,430,430,441,441,441,430,430,430,430,441,430,441,441,430,430,441,430,441,430,441,441,430,441,441,430,430,430,430,441,430,430,430,430,441,441,441,441,430,430,430,430,441,430,430,441,430,441,441,430,441,430,430,441,430,441,430,441,430,430,430,441,441,430,430,441,441,430,441,430,430,441,430,430,441,430,430,441,441,441,430,430,441,430,430,441,430,441,430,441,430,441,430,441,430,441,430,430,441,430,430,441,430,430,441,430,441,430,441,430,441,441,430,430,441,430,430,441,430,441,430,430,441,430,430,441,441,441,430,430,441,430,430,441,430,441,430,430,441,441,430,430,441,441,430,430,441,430,430,441,441,430,430,430,441,430,430,441,430,430,441,430,441,430,430,441,430,441,441,430,430,441,430,441,430,430,441,441,430,430,441,430,430,441,430,430,453,430,430,430,441,441,430,430,441,430,430,441,430,441,430,430,441,441,430,430,441,441,430,430,441,430,430,441,430,441,430,430,441,430,430,441,441,430,441,430,441,430,430,430,441,441,430,430,441,430,430,441,441,441,430,430,441,430,430,441,430,441,430,430,441,430,430,430,441,441,430,430,441,430,430,441,441,430,430,430,441,430,441,430,441,441,430,430,441,441,430,430,441,430,430,430,430,441,430,441,441,430,430,430,430,441,430,441,430,441,441,430,441,430,430,430,430,441,441,430,430,430,441,441,430,441,441,430,430,430,430,430,430,430,430,430,430,441,441,441,430,430,430,441,441,430,441,441,441,441,430],"lounge-2":[0.116,441,441,441,441,441,430,441,441,441,441,441,430,441,441,441,441,441,441,441,430,441,441,441,441,441,430,441,430,441,441,430,441,441,441,441,441,430,441,441,441,441,430,430,430,441,441,441,441,430,441,441,441,441,430,441,430,441,441,441,430,441,441,441,430,430,441,441,441,441,441,441,441,430,441,430,441,430,441,441,441,441,441,430,430,441,441,441,430,441,441,441,441,441,441,430,441,430,441,441,430,441,430,441,441,441,441,441,441,430,441,430,441,441,441,441,430,441,430,441,441,441,430,441,430,441,441,441,441,441,430,441,430,441,441,430,441,441,441,441,430,441,441,441,441,441,430,441,430,441,430,441,441,441,430,441,441,441,441,430,441,441,430,441,441,441,430,441,441,430,441,430,441,441,441,441,441,430,441,441,430,441,441,441,441,441,430,430,441,430,441,430,441,441,441,441,441,430,441,430,441,441,441,430,441,441,441,430,441,441,430,441,441,441,430,441,430,441,441,441,430,441,441,430,441,441,441,430,441,441,430,441,441,441,441,430,430,453,441,430,441,430,441,430,441,441,441,441,441,430,430,441,441,441,441,430,441,441,430,441,430,441,441,430,441,441,441,441,441,430,441,441,430,441,430,441,430,441,441,441,441,441,430,430,441,441,441,441,430,430,441,441,441,441,430,441,441,430,441,441,430,441,453,430,441,430,430,441,441,441,430,430,453,430,441,441,430,441,430,441,441,441,430,430,441,441,430,441,441,430,441,441,430,441,441,430,441,441,430,441,430,441,441,441,441,430,441,430,441,441,441,430,441,430,441,430,441,441,430,441,441,441,430,441,430,441,441,441,430,441,441,430,441,441,441,430,441,441,430,441,430,441,430,441,441,441,430,441,430,441,441,430,441,441,441,430,430,441,441,441,441,430,430,430,441,441,441,430,441,430,441,430,441,441,441,441,430,441,430,441,430,441,441,430,441,441,441,430,430,441,441,430,430,441,441,430,441,441,430,441,441,441,441,430,430,441,430,441,441,441,441,430,441,430,430,441,441,430,441,441,430,430,441,441,441,441,430,430,441,430,441,441,430,441,430,441,430,441,441,441,441,441,441,441,441,441,441,441],"lounge-3":[0.279,441,441,441,453,453,441,441,453,441,453,453,441,441,453,441,453,441,453,441,441,441,453,453,453,441,441,453,441,453,441,441,453,441,453,441,453,441,441,453,453,441,441,453,441,453,441,453,441,453,453,441,441,441,453,453,441,453,441,453,441,441,441,453,441,441,453,441,453,453,441,453,441,441,453,441,453,441,453,453,441,441,453,453,441,441,453,441,441,453,453,441,453,441,441,453,441,453,441,453,441,453,441,441,453,441,453,453,441,441,453,453,441,441,441,453,453,441,453,441,453,441,453,441,441,453,441,453,441,453,441,441,453,441,453,453,441,453,441,453,441,441,453,441,453,441,453,441,453,441,453,441,441,441,453,453,441,441,453,441,453,453,441,441,453,441,453,441,453,441,453,441,453,441,441,453,441,453,441,453,453,441,441,441,453,453,441,441,453,453,441,453,441,453,441,441,453,441,441,453,441,441,453,453,441,453,441,453,441,441,441,453,453,441,441,453,441,453,441,453,453,441,441,453,441,441,453,453,441,441,453,453,441,441,441,453,453,441,441,453,441,453,441,453,453,441,441,453,441,441,453,441,441,453,441,453,441,441,441,453,441,453,441,453,441,441,453,453,441,441,441,453,441,453,441,453,441,441,453,441,453,441,453,441,453,441,441,453,441,441,453,441,453,441,441,453,453,441,441,441,453,453,441,441,453,453,441,441,453,441,441,453,441,453,441,453,441,453,441,453,453,441,441,441,441,453,441,453,453,441,441,453,441,453,441,453,441,441,453,441,453,441,441,453,441,441,453,441,453,441,441,453,453,441,441,453,441,441,453,441,453,441,441,453,441,453,441,453,453,441,441,453,441,441,441,453,441,441,453,441,453,441,453,453,441,441,441,441,453,453,441,453,441,441,453,453,441,441,441,441,441,441,441,453,441,453,453,441,453,441,441,453,441,453,441,453,441,441,453,453,441,453,453,441,453,441,441,441,441,441,453,453,453,453,453,453,441,441,453,453,453,441,453,441,441,441,441,441,441,453,441,441],"lounge-4":[0.337,441,441,441,441,453,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,430,453,441,453,441,430,453,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,430,441,441,441,441,441,453,441,441,441,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,453,441,441,441,430,441,441,441,441,453,441,441,441,441,441,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,453,441,430,453,441,430,441,453,430,441,441,453,441,441,430,441,441,441,441,441,441,441,441,453,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,430,453,441,441,441,441,441,453,430,441,430,441,453,441,430,453,441,441,441,441,441,441,430,441,453,441,430,441,441,441,441,441,441,441,441,441,441,453,441,441,441,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,453,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,430,453,430,441,441,441,441,441,441,441,441,453,441,441,441,441,430,453,441,441,441,430,441,441,441,441,441,441,441,430,441,441,441,441,441,453,441,441,441,441,441,441,441,441,430,453,441,441,441,441,430,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,441,430,441,441,441,441,441,441,430,441,441,430,441,441,441,441,441,441,430,430,441,441,441,441,453,441,441,441,441,441,441,441,441,441,453,441,441,441]};
 
 /* ============ bosserne i Trylletegning ============
    Hver femte runde kommer et stort, mytisk væsen svævende ind over haven og kaster ting efter kagen: Kongetrolden, Ildfuglen, Isdragen og Kæmpeblæksprutten.
@@ -4477,7 +4620,7 @@ ROOMS.kost=function(ctx){
     if(maal){for(let i=0;i<22;i++){const y=-21+i*2;P2(g,box(-.9,y,.9,y+2),{color:i%2?'#ffffff':'#2a2340',kind:'card',t:.1},.3)}for(const L of LANES)for(let i=0;i<14;i++){const y=(-21+i*3)*L.kk+L.dd;P2(g,box(-.9,y,.9,y+1.5),{color:i%2?'#ffffff':'#2a2340',kind:'card',t:.1},L.z+.3)}}}
   /* ---------- flyvningen ---------- */
   function begynd(){if(!S||S.run!=='kort')return;ban.skjul();S.run='count';S.ct=0;S.cn=-1}
-  function flap(){if(!S||S.run!=='fly'||S.loop||S.boost>0)return;S.vy=FLAP;LYD.fil('kost.flap',()=>LYD.pust(),.5,R(1,1.2))}
+  function flap(){if(!S||S.run!=='fly'||S.loop||S.boost>0)return;S.vy=FLAP;LYD.fil('kost.flap',()=>LYD.sus(),.3,R(1,1.2))}
   const pairAt=f=>S.course.rings.find(r=>r.dbl==='lo'&&!f.seen.has(r.pair)&&r.x-f.x<180&&r.x-f.x>-230&&Math.abs(r.y-f.y)<170);
   function startLoop(f){if(f.loop||f.boost>0)return false;const hit=pairAt(f)||null;
     f.loop=hit?{x0:hit.x,y0:hit.y,sx:f.x,sy:f.y,t:0,cam:hit.x-PX,hit,px:f.x}:{x0:f.x,y0:f.y,sx:f.x,sy:f.y,t:0,cam:f.x-PX,hit:null,px:f.x-.01};
@@ -4546,6 +4689,8 @@ ROOMS.kost=function(ctx){
   const pu=()=>{clearTimeout(holdT);holdT=0};
   const kd=e=>{if(!S)return;if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();if(S.run==='kort')begynd();else flap()}if(e.key==='l'||e.key==='L'||e.key==='ArrowRight')tryLoop()};
   el.addEventListener('pointerdown',pd);addEventListener('pointerup',pu);addEventListener('pointercancel',pu);addEventListener('keydown',kd);
+  /* hele banen lægges over på grafikchippen, før løbet starter: ellers sker det lidt ad gangen, efterhånden som tingene kommer frem, og det giver hak (Kasper 22. nov.) */
+  function forvarm(Rm){const slaaet=[];Rm.live.traverse(q=>{if(q.isMesh&&q.frustumCulled){q.frustumCulled=false;slaaet.push(q)}});try{renderer.compile(Rm.live,Rm.cam);const rt=new THREE.WebGLRenderTarget(64,64);renderer.setRenderTarget(rt);renderer.render(Rm.live,Rm.cam);renderer.setRenderTarget(null);rt.dispose()}catch(e){}for(const q of slaaet)q.frustumCulled=true}
   /* ---------- rummet ---------- */
   const OPT={bg:'#1c1838',fit:(c,w,h)=>{const asp=w/h,HH=Math.max(50,88/asp);baseFov=2*Math.atan(HH/2/CD)*180/Math.PI;c.fov=baseFov;c.position.set(c.position.x||0,0,CD);c.lookAt(c.position.x||0,0,0)},
     sky:'#c8c0ff',ground:'#3a3048',amb:1.1,key:{col:'#d8d8ff',i:1.3,pos:[-60,90,200],tgt:[0,0,-60],box:[-80,80,60,-60]},P_:{dof:[0,0],haze:[0,0,0]},
@@ -4561,7 +4706,7 @@ ROOMS.kost=function(ctx){
         for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(.75,18),new THREE.MeshBasicMaterial({color:i?'#ffffff':((ctx.look.col&&ctx.look.col['tøj'])||'#6a3fa2')}));m.position.z=.3+i*.01;stribe.add(m);prikker.push(m);
           const kant=new THREE.Mesh(new THREE.RingGeometry(.75,1,18),new THREE.MeshBasicMaterial({color:'#fffaf0'}));m.add(kant)}
         {const cols=['#ff8fc7','#ffd24a','#7fd8ff','#fff6d0'];for(let i=0;i<40;i++){const m=piece(i%3?starPts(0,0,.7,.3,0):box(-.15,-.9,.15,.9),{mat:paperMat(cols[i%4],'tissue',{glow:cols[i%4],gi:1.3}),t:.05});m.visible=false;rod.add(m);kom.push({m,t:0,life:.5,s:1})}}
-        rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt()}],
+        rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
     tick:(t,dt)=>{if(!S)return;const hh=Math.tan(baseFov*Math.PI/360)*CD,hw=hh*Rm.cam.aspect,sz=(CD-20)/CD;
       tv.G.position.set((hw-13)*sz,(hh-4.5)*sz,20);lamper.forEach((l,i)=>l.m.position.set((hw-21+i*2.2)*sz,(hh-9.2)*sz,20));stribe.position.set(0,(hh-3)*sz,20);
       const n=window.KOST_WARP||(S.auto?4:1);for(let i=0;i<n;i++)step(dt);ryst=Math.max(0,ryst-dt);if(S.boost>0)ryst=Math.max(ryst,.12);
@@ -5404,6 +5549,8 @@ function enter(id){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=tr
 function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1];cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else toMap()})}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */
+/* udgaven står med lille skrift på indlæsningen, så man kan se, om det er den nye (Kasper 22. nov.) */
+{const v=document.getElementById('msgV');if(v)v.textContent='Udgave '+PAPVER}
 /* ny udgave: browseren gemmer gerne en gammel side. Ved start hentes udgave.txt uden om det gemte; er den nyere end den side, der kører, kommer der en knap, som henter den nye */
 if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());return m?+m[1]*1000+ +m[2]:0},kn=document.getElementById('nyudg');
   fetch('udgave.txt?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{const ny=String(t).trim();if(tal(ny)>tal(PAPVER)){kn.hidden=false;kn.addEventListener('click',()=>{location.replace(location.pathname+'?v='+encodeURIComponent(ny))});LOG.row('udgave',{har:PAPVER,findes:ny})}}).catch(()=>{})}
@@ -5416,7 +5563,7 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
   SPIL.note=(t,tekst)=>{LOG.maerk('note gemmes');const d={type:t,tekst:String(tekst||'').slice(0,600),sted,rum:stack.slice(),skaerm:`${innerWidth}x${innerHeight}`,look:SPIL.look,farver:SPIL.farver,dyr:SPIL.dyr,indretning:SPIL.rum,indretningFarver:SPIL.rumc,stjerner:SPIL.stj,har:SPIL.har.length,billede};LOG.row('note',d,stack.length?stack[stack.length-1]:'by');LOG.flush();return d};
   kn.addEventListener('click',()=>{LOG.maerk('noteknap');sted=stack.length?stack[stack.length-1]:'by';const pn=document.getElementById('panel'),menu=document.querySelector('#tabs [aria-selected=true]');if(pn&&!pn.hidden&&menu)sted+=' · '+menu.textContent;
     /* billedet tages lige efter spillets næste tegning, før menuen her lægger sig over */
-    requestAnimationFrame(()=>{billede=tag();inf.textContent=`Gemmer også: hvor du står (${sted}), hvad heksen har på, og et lille billede af skærmen, som den så ud lige nu.`;tx_.value='';vis();window.__frys=true;bx.hidden=false})});
+    requestAnimationFrame(()=>{billede=tag();inf.textContent=`Gemmer også: hvor du står (${sted}), hvad heksen har på, og et lille billede af skærmen, som den så ud lige nu. Udgave: ${PAPVER}.`;tx_.value='';vis();window.__frys=true;bx.hidden=false})});
   tb.forEach(b=>b.addEventListener('click',()=>{type=b.dataset.t;vis()}));document.getElementById('noteNej').addEventListener('click',luk);bx.addEventListener('pointerdown',e=>{if(e.target===bx)luk()});
   fm.addEventListener('submit',e=>{e.preventDefault();SPIL.note(type,tx_.value);luk();toast(LOG.on?'Noten er gemt':'Noten kan ikke gemmes her')})}
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
@@ -5428,6 +5575,167 @@ addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik('byen')},{once:tr
   setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
 SPIL.arrive=name=>{const id=DOORS[name];if(id&&ROOMS[id])enter(id);else if(HUSNAVN[name])toast(`${HUSNAVN[name]} åbner snart`)};
 SPIL.enter=n=>enter(DOORS[n]||n);window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;
+
+/* ============ forsiden, de tre gemte spil og bogen i starten (som i originalen) ============
+   Efter indlæsningen kommer forsiden: spillets navn på et papskilt over byen og en rund play-knap.
+   Så kommer hylden med tre bøger, én pr. gemt spil. En tom bog starter et nyt spil med eventyrbogen, hvor man skriver sit navn og
+   blader med pilene; til sidst lukkes bogen, og forsiden "Magiske Mig" kommer frem. Så laver man sin heks i Garderoben.
+   Skifter man til en anden bog end den, der er indlæst, genindlæses siden med den nye plads (det er den sikre vej, fordi byen og heksen
+   bygges ud fra det gemte, når siden starter). Teksterne og tegningerne i bogen er originalens. */
+const FORSIDE=(()=>{
+  const h=(tag,a={},kids=[])=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(a)){if(k==='on')for(const[ev,f]of Object.entries(v))e.addEventListener(ev,f);else if(k==='html')e.innerHTML=v;else if(k==='class')e.className=v;else if(v!==false&&v!=null)e.setAttribute(k,v===true?'':v)}for(const c of[].concat(kids))if(c!=null)e.append(c);return e};
+  const vent=ms=>new Promise(r=>setTimeout(r,ms)),stille=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lyd=n=>{try{if(typeof LYD!=='undefined'&&LYD[n])LYD[n]()}catch(_){}};
+  const STJ='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.6 2.8 6 6.6.8-4.9 4.5 1.3 6.5L12 17.2l-5.8 3.2 1.3-6.5L2.6 9.4l6.6-.8z" fill="#FFE27A" stroke="#A8740A" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+  let rod=null;
+  const vis=skaerm=>{if(!rod){rod=h('div',{id:'forside'});document.body.append(rod)}rod.hidden=false;rod.replaceChildren(skaerm);if(typeof LOG!=='undefined'&&LOG.skaerm)LOG.skaerm(skaerm.dataset.navn||'forside')};
+  const luk=()=>{if(rod){rod.hidden=true;rod.replaceChildren()}kbLuk();if(typeof LOG!=='undefined'&&LOG.skaerm)LOG.skaerm('by')};
+  const info=n=>{let s=null;try{s=JSON.parse(localStorage.getItem(PLADSNOEGLE(n))||'null')}catch(_){}const brugt=!!(s&&(s.navn||s.stj>0||(s.data&&s.data.intro)||(s.har&&s.har.length>3)));return{n,brugt,navn:(s&&s.navn)||'',stj:(s&&s.stj)||0,hat:(s&&s.farver&&(s.farver.hat||s.farver['tøj']))||'#6a3fa2'}};
+  /* ---------- forsiden ---------- */
+  function forside(){const play=h('button',{class:'fs-play',type:'button','aria-label':'Spil',html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',on:{click:()=>{lyd('valg');pladser()}}});
+    const s=h('div',{class:'fs-titel','data-navn':'forside'},[h('div',{class:'fs-skilt'},[h('div',{class:'fs-navn'},'Magiske Mig'),h('div',{class:'fs-under'},'en magisk skole')]),play,h('div',{class:'fs-udg'},'Udgave '+PAPVER)]);vis(s)}
+  /* ---------- hylden med tre bøger ---------- */
+  const FARVE=[['#5B2E91','#3A1A63'],['#1F6E6A','#10433F'],['#8E2A3F','#5A1426']];
+  const HATSVG=c=>`<svg viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="76" rx="40" ry="10" fill="${c}" stroke="#2a1440" stroke-width="3"/><path d="M22 74 C30 52 36 34 44 22 C50 12 62 8 72 12 C64 16 60 24 60 34 C60 50 66 64 76 74 Q50 82 22 74Z" fill="${c}" stroke="#2a1440" stroke-width="3" stroke-linejoin="round"/><path d="M26 68 Q50 76 72 68 L74 74 Q50 82 24 74Z" fill="#e8c66a" stroke="#2a1440" stroke-width="2"/><path d="M42 40l3 6 6 1-4 4 1 6-6-3-5 3 1-6-4-4 6-1z" fill="#ffe27a"/></svg>`;
+  function pladser(){const boeger=[1,2,3].map(n=>{const s=info(n),[c1,c2]=FARVE[n-1];
+      const front=s.brugt?[h('div',{class:'sb-port',html:HATSVG(s.hat)}),h('div',{class:'sb-name'},s.navn||'Uden navn'),h('div',{class:'sb-stars',html:STJ+'<span>'+s.stj+'</span>'})]
+        :[h('div',{class:'sb-port sb-new',html:'<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 22v56M22 50h56" stroke="#F2D27A" stroke-width="9" stroke-linecap="round"/></svg>'}),h('div',{class:'sb-name'},'Nyt spil')];
+      const bog=h('button',{class:'sbook'+(s.brugt?'':' empty'),type:'button',style:`--c1:${c1};--c2:${c2}`,'aria-label':s.brugt?`Spil som ${s.navn||'uden navn'}`:'Start et nyt spil',on:{click:()=>vaelg(n,s.brugt)}},[h('div',{class:'sb-cover'},front)]);
+      const slet=s.brugt?h('button',{class:'sb-del',type:'button','aria-label':'Slet dette spil',html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',on:{click:e=>{e.stopPropagation();lyd('valg');spoerg(`Slet ${s.navn||'dette spil'}?`,'Hele spillet bliver slettet: heksen, stjernerne og alt det, hun har samlet. Det kan ikke fortrydes.','Ja, slet',()=>{try{localStorage.removeItem(PLADSNOEGLE(n))}catch(_){}if(n===PLADS){sessionStorage.setItem('magiske-mig-pap.direkte','pladser');location.reload()}else pladser()})}}}):null;
+      return h('div',{class:'sb-wrap'},[bog,slet])});
+    vis(h('div',{class:'fs-pladser','data-navn':'pladser'},[h('div',{class:'sb-bg'}),h('button',{class:'fs-tilbage kraft',type:'button',on:{click:()=>{lyd('valg');forside()}},html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg><span>Forsiden</span>'}),h('h1',{class:'sb-title'},'Hvem skal spille?'),h('div',{class:'sb-shelf'},boeger)]))}
+  function spoerg(titel,tekst,ja,fn){const b=h('div',{class:'fs-spoerg'},[h('div',{class:'kraft fs-spkort'},[h('h2',{},titel),h('p',{},tekst),h('div',{class:'fs-spkn'},[h('button',{type:'button',class:'fs-knap',on:{click:()=>b.remove()}},'Nej'),h('button',{type:'button',class:'fs-knap hot',on:{click:()=>{b.remove();fn()}}},ja)])])]);rod.append(b)}
+  function vaelg(n,brugt){lyd('guld');if(n!==PLADS){try{localStorage.setItem('magiske-mig-pap.plads',String(n));sessionStorage.setItem('magiske-mig-pap.direkte',brugt?'by':'intro')}catch(_){}vis(h('div',{class:'fs-titel'},[h('div',{class:'fs-skilt'},[h('div',{class:'fs-under'},'Henter bogen …')])]));setTimeout(()=>location.reload(),250);return}
+    if(brugt)luk();else intro()}
+
+const INTRO_PAGES = [
+  { art:'portraet', lines:[ ['big', 'Hej med dig!'], ['name', 'Jeg hedder'], ['', 'og jeg vil gerne invitere dig ind i min verden.'] ] },
+  { art:'hat', lines:[ ['', 'Min verden er ikke helt almindelig.'], ['', 'For jeg er heller ikke helt almindelig …'], ['big glow', 'Jeg er nemlig en heks!'] ] },
+  { art:'slot', lines:[ ['', 'Jeg går i skole, ligesom dig.'], ['big', 'Men min skole er en magisk skole!'] ] },
+  { art:'kost', lines:[ ['', 'Vi flyver på koste, brygger eliksirer og springer i faldskærm fra skyerne.'], ['', 'Og nogle gange hygger vi os bare.'] ] },
+  { art:'doer', lines:[ ['', 'Kunne du tænke dig at tage med?'], ['', 'Så følg mig …'], ['big', 'eller skulle jeg sige …'] ] },
+];
+const INTRO_END = { text: 'Men hov … hvordan ser jeg egentlig ud? Det må du bestemme!', btn: 'Lav min heks' };
+
+/* tegningerne på venstresiderne: blæk og vandfarve på gammelt papir */
+function introArt(kind){
+  const INK = '#4A3020', W = (id, c, o = .55) => `<radialGradient id="${id}"><stop offset="0" stop-color="${c}" stop-opacity="${o}"/><stop offset=".7" stop-color="${c}" stop-opacity="${o * .45}"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+  const star = (x, y, r, c = '#E2A93B') => `<path d="M ${x} ${y - r} L ${x + r * .28} ${y - r * .28} L ${x + r} ${y} L ${x + r * .28} ${y + r * .28} L ${x} ${y + r} L ${x - r * .28} ${y + r * .28} L ${x - r} ${y} L ${x - r * .28} ${y - r * .28} Z" fill="${c}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  const dots = [[60, 70, 7], [330, 90, 9], [300, 360, 6], [80, 330, 8], [350, 230, 5], [50, 200, 5]].map(([x, y, r]) => star(x, y, r)).join('');
+  let d = `<defs>${W('wP', '#7B4FD0')}${W('wB', '#3D6FC2')}${W('wG', '#F2C14E', .7)}${W('wR', '#C2465E')}${W('wT', '#2E9C8A')}</defs>`;
+  if (kind === 'portraet'){
+    d += `<ellipse cx="200" cy="215" rx="150" ry="160" fill="url(#wG)"/>`
+      + `<ellipse cx="200" cy="215" rx="112" ry="140" fill="#F7EBD0" stroke="#B88A2E" stroke-width="10"/><ellipse cx="200" cy="215" rx="112" ry="140" fill="none" stroke="${INK}" stroke-width="2"/><ellipse cx="200" cy="215" rx="98" ry="126" fill="url(#wP)" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 116 330 C 124 280 160 262 200 262 C 240 262 276 280 284 330 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/><circle cx="200" cy="222" r="42" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/>`
+      + `<path d="M 134 196 Q 200 176 266 196 Q 200 206 134 196 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/><path d="M 160 192 C 172 150 190 116 236 90 C 222 120 226 156 240 190 Z" fill="#3A2A5A" stroke="${INK}" stroke-width="2"/>`
+      + `<text x="200" y="244" text-anchor="middle" font-family="Uncial Antiqua, serif" font-size="62" fill="#F2C14E" stroke="${INK}" stroke-width="1.5">?</text>`
+      + [[200, 68], [92, 215], [308, 215], [200, 362]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="#E2A93B" stroke="${INK}" stroke-width="1.5"/>`).join('') + dots;
+  } else if (kind === 'hat'){
+    d += `<ellipse cx="200" cy="250" rx="170" ry="130" fill="url(#wP)"/><ellipse cx="290" cy="120" rx="90" ry="70" fill="url(#wG)"/>`
+      + `<ellipse cx="190" cy="318" rx="150" ry="34" fill="#5B3FA8" stroke="${INK}" stroke-width="2.5"/><path d="M 72 316 Q 190 346 308 316" fill="none" stroke="#8B6FD8" stroke-width="5" opacity=".6"/>`
+      + `<path d="M 112 314 C 130 240 150 170 176 118 C 194 82 226 64 262 70 C 238 84 224 108 224 140 C 226 200 248 262 270 312 Q 190 330 112 314 Z" fill="#6B4FC0" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`
+      + `<path d="M 122 286 Q 196 304 266 286 L 272 306 Q 194 324 116 306 Z" fill="#C2465E" stroke="${INK}" stroke-width="2"/><rect x="176" y="284" width="34" height="28" rx="4" fill="#F2C14E" stroke="${INK}" stroke-width="2"/><rect x="185" y="292" width="16" height="12" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>`
+      + star(170, 200, 12, '#F2D27A') + star(206, 150, 9, '#F2D27A') + star(150, 250, 8, '#F2D27A')
+      + `<path d="M 300 330 L 360 206" stroke="#6A4128" stroke-width="10" stroke-linecap="round"/><path d="M 300 330 L 360 206" stroke="${INK}" stroke-width="2" fill="none"/>` + star(364, 196, 20, '#F2C14E')
+      + `<path d="M 340 170 q -20 -30 -60 -36 M 384 178 q 10 -36 -4 -70 M 352 160 q -6 -24 -2 -44" stroke="#E2A93B" stroke-width="3" fill="none" stroke-dasharray="4 8" stroke-linecap="round"/>` + dots;
+  } else if (kind === 'slot'){
+    d += `<ellipse cx="200" cy="170" rx="190" ry="150" fill="url(#wB)"/><circle cx="300" cy="96" r="40" fill="#F7E7B0" stroke="${INK}" stroke-width="2"/><circle cx="318" cy="84" r="36" fill="#E9D9F2"/>`
+      + `<path d="M 0 360 C 80 290 160 284 230 300 C 300 316 360 300 400 280 V 440 H 0 Z" fill="#5E8F5A" stroke="${INK}" stroke-width="2.5"/><path d="M 0 400 C 120 360 260 370 400 340 V 440 H 0 Z" fill="#46703F" opacity=".7"/>`
+      + `<rect x="120" y="190" width="160" height="112" fill="#8A7FB0" stroke="${INK}" stroke-width="2.5"/>`
+      + [[96, 150, 40, 156], [264, 140, 44, 166], [176, 120, 48, 76]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#9A8FC0" stroke="${INK}" stroke-width="2.5"/><path d="M ${x - 8} ${y} L ${x + w / 2} ${y - w * 1.3} L ${x + w + 8} ${y} Z" fill="#5B3FA8" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>`).join('')
+      + `<path d="M 180 302 V 262 a 20 20 0 0 1 40 0 V 302 Z" fill="#5A3A24" stroke="${INK}" stroke-width="2"/>`
+      + [[106, 180], [106, 230], [274, 176], [274, 226], [190, 150], [140, 230], [250, 230]].map(([x, y]) => `<rect x="${x}" y="${y}" width="18" height="24" rx="9" fill="#FFD86B" stroke="${INK}" stroke-width="1.5"/>`).join('')
+      + `<path d="M 200 44 V 20 L 226 28 L 200 36" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>` + dots;
+  } else if (kind === 'kost'){
+    d += `<circle cx="210" cy="160" r="120" fill="url(#wG)"/><circle cx="210" cy="160" r="86" fill="#F7E7B0" stroke="${INK}" stroke-width="2"/>`
+      + `<g transform="rotate(-12 200 170)">`
+      + `<path d="M 186 96 C 160 92 140 100 118 96 C 136 108 146 112 160 114 C 146 120 136 126 124 126 C 150 130 170 120 186 110 Z" fill="#E2A93B" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`
+      + `<path d="M 70 176 L 300 176" stroke="#8A5A35" stroke-width="9" stroke-linecap="round"/><path d="M 70 176 L 300 176" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 74 166 C 50 160 30 152 8 160 C 24 172 24 180 8 192 C 30 200 50 192 74 186 Z" fill="#E2A93B" stroke="${INK}" stroke-width="2"/><path d="M 74 170 L 20 166 M 74 176 L 14 176 M 74 182 L 20 188" stroke="${INK}" stroke-width="1.2"/>`
+      + `<path d="M 212 192 L 236 226" stroke="#3A2A5A" stroke-width="12" stroke-linecap="round"/><path d="M 228 222 L 252 224 Q 256 232 246 234 L 226 232 Z" fill="#6A4128" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/>`
+      + `<path d="M 188 110 C 170 128 160 160 154 196 Q 186 206 222 198 C 222 168 216 132 204 110 Z" fill="#6B4FC0" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`
+      + `<path d="M 202 122 C 220 138 236 156 248 170" stroke="#6B4FC0" stroke-width="13" stroke-linecap="round" fill="none"/><circle cx="250" cy="174" r="8" fill="#F2D2B8" stroke="${INK}" stroke-width="1.8"/>`
+      + `<circle cx="200" cy="92" r="20" fill="#F2D2B8" stroke="${INK}" stroke-width="2"/><circle cx="210" cy="90" r="2.6" fill="${INK}"/><path d="M 206 101 Q 212 105 217 100" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="204" cy="98" r="4" fill="#FF9AA8" opacity=".6"/>`
+      + `<path d="M 178 78 C 168 60 156 40 132 30 C 160 34 184 50 206 74 Z" fill="#5B3FA8" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><ellipse cx="196" cy="77" rx="32" ry="7" transform="rotate(-8 196 77)" fill="#5B3FA8" stroke="${INK}" stroke-width="2"/><path d="M 180 74 Q 194 70 208 70" stroke="#C2465E" stroke-width="4" fill="none"/>`
+      + `</g>`
+      + `<ellipse cx="300" cy="352" rx="64" ry="18" fill="#3A2A2A" stroke="${INK}" stroke-width="2"/><path d="M 240 316 Q 236 382 300 384 Q 364 382 360 316 Z" fill="#3A2A2A" stroke="${INK}" stroke-width="2.5"/><ellipse cx="300" cy="316" rx="62" ry="16" fill="#62E0A0" stroke="${INK}" stroke-width="2"/>`
+      + [[280, 290, 10], [312, 270, 7], [296, 246, 5], [330, 296, 6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#B8F5D0" stroke="${INK}" stroke-width="1.5"/>`).join('')
+      + `<path d="M 250 392 Q 270 410 300 404 Q 330 410 350 392" stroke="#E2672E" stroke-width="6" fill="none" stroke-linecap="round"/>` + dots;
+  } else if (kind === 'doer'){
+    d += `<ellipse cx="200" cy="230" rx="180" ry="170" fill="url(#wT)"/><ellipse cx="200" cy="250" rx="120" ry="130" fill="url(#wG)"/>`
+      + `<path d="M 110 360 V 170 a 90 90 0 0 1 180 0 V 360 Z" fill="#FFF0B8" stroke="${INK}" stroke-width="3"/>`
+      + `<path d="M 110 360 V 170 a 90 90 0 0 1 64 -86 L 150 110 Q 140 140 140 180 V 380 Z" fill="#7A4A2A" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="152" cy="250" r="6" fill="#F2C14E" stroke="${INK}" stroke-width="1.5"/>`
+      + `<path d="M 160 360 L 240 360 L 330 440 L 70 440 Z" fill="#F7E2A0" opacity=".8"/><path d="M 110 360 H 290" stroke="${INK}" stroke-width="2.5"/>`
+      + [[200, 220], [232, 180], [176, 160], [244, 270], [210, 300]].map(([x, y], i) => star(x, y, 8 + (i % 2) * 4, '#FFFFFF')).join('') + dots;
+  }
+  return `<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${d}</svg>`;
+}
+function introCover(){
+  const G = '#E8C66A', INK = '#2A1440';
+  const corner = `<path d="M 0 0 H 70 Q 40 10 30 30 Q 10 40 0 70 Z" fill="${G}" stroke="${INK}" stroke-width="1.5"/><circle cx="26" cy="26" r="8" fill="#C2465E" stroke="${INK}" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect x="22" y="22" width="356" height="396" rx="10" fill="none" stroke="${G}" stroke-width="5"/><rect x="34" y="34" width="332" height="372" rx="6" fill="none" stroke="${G}" stroke-width="1.5" stroke-dasharray="2 6"/>
+  <g transform="translate(22 22)">${corner}</g><g transform="translate(378 22) scale(-1 1)">${corner}</g><g transform="translate(22 418) scale(1 -1)">${corner}</g><g transform="translate(378 418) scale(-1 -1)">${corner}</g>
+  <path d="M 200 70 L 214 106 L 252 108 L 222 132 L 232 170 L 200 148 L 168 170 L 178 132 L 148 108 L 186 106 Z" fill="${G}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+  <defs><linearGradient id="icT" x1="0" y1="0" x2="0" y2="1"><stop offset=".1" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFE27A"/><stop offset="1" stop-color="#F2A93B"/></linearGradient></defs>
+  <g font-family="Fredoka, 'Baloo 2', sans-serif" font-weight="700" text-anchor="middle" letter-spacing="1">
+  <text x="200" y="256" font-size="70" fill="#1A0A30" stroke="#1A0A30" stroke-width="14" stroke-linejoin="round" transform="translate(0 5)">Magiske</text><text x="200" y="256" font-size="70" fill="url(#icT)" stroke="#2A1440" stroke-width="10" stroke-linejoin="round" paint-order="stroke">Magiske</text>
+  <text x="200" y="334" font-size="78" fill="#1A0A30" stroke="#1A0A30" stroke-width="14" stroke-linejoin="round" transform="translate(0 5)">Mig</text><text x="200" y="334" font-size="78" fill="url(#icT)" stroke="#2A1440" stroke-width="10" stroke-linejoin="round" paint-order="stroke">Mig</text></g>
+  <path d="M 110 362 Q 200 392 290 362" stroke="${G}" stroke-width="3" fill="none"/><circle cx="200" cy="378" r="6" fill="${G}"/></svg>`;
+}
+
+  /* ---------- bogen ---------- */
+  function side(i,s,navn){if(s==='l')return h('div',{class:'pg-art',html:introArt(INTRO_PAGES[i].art)});const box=h('div',{class:'pg-text'});
+    for(const[cls,txt]of INTRO_PAGES[i].lines){if(cls==='name'){const inp=h('input',{class:'pg-name',maxlength:'14',autocomplete:'off',spellcheck:'false',placeholder:'skriv dit navn','aria-label':'Dit navn',inputmode:'none'});inp.value=navn||'';box.append(h('p',{class:'pg-line'},[txt+' ',inp]))}else box.append(h('p',{class:'pg-line '+cls},txt))}
+    box.append(h('div',{class:'pg-num'},String(i+1)));return box}
+  function intro(){let i=0,navn=SPIL.navn||'',busy=false;const L=h('div',{class:'pg l'}),R=h('div',{class:'pg r'});
+    const pil=d=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    /* man blader kun med pilene, så man når at læse det hele (Kasper 16. nov.) */
+    const frem=h('button',{class:'pg-next',type:'button','aria-label':'Næste side',html:pil('M9 5l7 7-7 7')}),tilb=h('button',{class:'pg-prev',type:'button','aria-label':'Forrige side',html:pil('M15 5l-7 7 7 7')});
+    const bog=h('div',{class:'ibook'},[h('div',{class:'ib-leather'}),L,R,h('div',{class:'ib-spine'}),tilb,frem]);
+    const efter=h('div',{class:'ib-after'},[h('p',{},INTRO_END.text),h('div',{class:'ib-btns'},[h('button',{class:'fs-knap hot ib-go',type:'button',on:{click:()=>slut()}},INTRO_END.btn),h('button',{class:'fs-knap ib-again',type:'button',on:{click:()=>igen()}},'Læs igen')])]);
+    vis(h('div',{class:'fs-intro','data-navn':'intro'},[h('div',{class:'ib-table'}),h('div',{class:'ib-candle'}),bog,efter]));
+    const ok=()=>navn.trim().length>0,pile=()=>{tilb.classList.toggle('gone',i===0);frem.disabled=!!R.querySelector('.pg-name')&&!ok()},fade=on=>bog.classList.toggle('turning',on);
+    const navnFelt=()=>{pile();const inp=R.querySelector('.pg-name');if(!inp)return;inp.addEventListener('input',()=>{navn=inp.value.replace(/\s+/g,' ').replace(/^\s/,'');pile()});kbKobl(inp);if(!ok())setTimeout(()=>{if(inp.isConnected&&!busy)kbAaben(inp)},stille?0:700)};
+    const fyld=()=>{L.replaceChildren(side(i,'l'));R.replaceChildren(side(i,'r',navn));navnFelt()};
+    const pyt=()=>{navn=navn.trim();navn=navn.charAt(0).toLocaleUpperCase('da')+navn.slice(1)};fyld();
+    async function vend(){if(busy||!ok())return;busy=true;kbLuk();lyd('pust');pyt();if(i===INTRO_PAGES.length-1){fade(true);await lukBog();busy=false;return}
+      const blad=h('div',{class:'ib-leaf'},[h('div',{class:'lf front'},[side(i,'r',navn)]),h('div',{class:'lf back'},[side(i+1,'l')])]);fade(true);i++;R.replaceChildren(side(i,'r',navn));bog.append(blad);
+      if(!stille){void blad.offsetWidth;blad.classList.add('turn');await vent(900)}L.replaceChildren(side(i,'l'));blad.remove();navnFelt();fade(false);busy=false}
+    async function tilbage(){if(busy||i===0)return;busy=true;kbLuk();lyd('pust');pyt();
+      const blad=h('div',{class:'ib-leaf left'},[h('div',{class:'lf front'},[side(i,'l')]),h('div',{class:'lf back page'},[side(i-1,'r',navn)])]);fade(true);i--;L.replaceChildren(side(i,'l'));bog.append(blad);
+      if(!stille){void blad.offsetWidth;blad.classList.add('turn');await vent(900)}R.replaceChildren(side(i,'r',navn));blad.remove();navnFelt();fade(false);busy=false}
+    async function lukBog(){const blad=h('div',{class:'ib-leaf left closer'},[h('div',{class:'lf front'},[side(i,'l')]),h('div',{class:'lf back cover',html:introCover()})]);L.style.visibility='hidden';bog.append(blad);
+      if(!stille){void blad.offsetWidth;blad.classList.add('turn');await vent(1000)}bog.classList.add('closed');lyd('guld');SPIL.navn=navn;SPIL.data.intro=true;SPIL.save();await vent(stille?0:1300);efter.classList.add('on')}
+    async function igen(){if(busy)return;busy=true;lyd('pust');efter.classList.remove('on');bog.classList.remove('closed');const c=bog.querySelector('.ib-leaf.closer');if(c)c.remove();L.style.visibility='';i=0;fyld();await vent(stille?0:900);fade(false);busy=false}
+    function slut(){lyd('valg');pyt();SPIL.navn=navn;SPIL.data.intro=true;SPIL.save();if(typeof LOG!=='undefined')LOG.row('intro',{navn:navn.length});luk();enter('garderobe')}
+    frem.addEventListener('click',vend);tilb.addEventListener('click',tilbage)}
+  /* ---------- spillets eget tastatur: runde skrivemaskine-taster i messing på en træplade (Kasper 16. nov.) ---------- */
+  const KB_ROWS=[['q','w','e','r','t','y','u','i','o','p','å'],['a','s','d','f','g','h','j','k','l','æ','ø'],['shift','z','x','c','v','b','n','m','-','del'],['space','enter']],KB={el:null,inp:null,shift:true};
+  function kbByg(){const lab={shift:'⇧',del:'⌫',space:'mellemrum',enter:'Enter ↵'};
+    KB.el=h('div',{class:'kb',role:'group','aria-label':'Tastatur',hidden:true},KB_ROWS.map(r=>h('div',{class:'kb-row'},r.map(k=>h('button',{class:'kb-k k-'+(lab[k]?k:'ch'),type:'button','data-k':k,'aria-label':k==='space'?'Mellemrum':k==='del'?'Slet':k==='shift'?'Store bogstaver':k},[h('span',{},lab[k]||k)])))));
+    document.body.append(KB.el);
+    KB.el.addEventListener('pointerdown',e=>{const b=e.target.closest('.kb-k');e.preventDefault();if(!b)return;b.classList.add('down');setTimeout(()=>b.classList.remove('down'),120);kbTast(b.dataset.k)});
+    document.addEventListener('pointerdown',e=>{if(KB.el.hidden||e.target.closest('.kb')||e.target===KB.inp)return;kbLuk()},true)}
+  function kbTegn(){if(!KB.el)return;KB.el.classList.toggle('up',KB.shift);KB.el.querySelectorAll('.k-ch span').forEach(sp=>{const k=sp.parentNode.dataset.k;sp.textContent=KB.shift?k.toLocaleUpperCase('da'):k})}
+  function kbTast(k){const inp=KB.inp;if(!inp)return;lyd('valg');if(k==='enter'){kbLuk();return}if(k==='shift'){KB.shift=!KB.shift;kbTegn();return}
+    let v=inp.value;const max=+inp.getAttribute('maxlength')||20;if(k==='del')v=v.slice(0,-1);else if(v.length<max){const ch=k==='space'?' ':KB.shift?k.toLocaleUpperCase('da'):k;if(!(ch===' '&&(!v||v.endsWith(' '))))v+=ch}
+    inp.value=v;inp.dispatchEvent(new Event('input',{bubbles:true}));KB.shift=!v||v.endsWith(' ')||v.endsWith('-');kbTegn()}
+  function kbAaben(inp){if(!KB.el)kbByg();KB.inp=inp;KB.shift=!inp.value||/[\s-]$/.test(inp.value);kbTegn();KB.el.hidden=false;requestAnimationFrame(()=>KB.el.classList.add('on'));try{inp.focus({preventScroll:true})}catch(_){}
+    /* ligger feltet bag tastaturet, skubbes bogen op, så man kan se, hvad man skriver */
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{const kt=innerHeight-KB.el.offsetHeight,ib=inp.getBoundingClientRect().bottom+12;if(ib>kt&&rod){rod.style.transition='transform .3s ease';rod.style.transform=`translateY(${-(ib-kt)}px)`}}))}
+  function kbLuk(){if(!KB.el||KB.el.hidden)return;KB.el.classList.remove('on');setTimeout(()=>{if(!KB.el.classList.contains('on'))KB.el.hidden=true},250);if(KB.inp)KB.inp.blur();if(rod)rod.style.transform='';KB.inp=null}
+  function kbKobl(inp){if(inp._kb)return;inp._kb=true;inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();kbLuk()}});inp.addEventListener('pointerdown',()=>setTimeout(()=>kbAaben(inp),0));inp.addEventListener('focus',()=>{if(!KB.el||KB.el.hidden)kbAaben(inp)})}
+  /* ---------- knappen til forsiden, i byen ---------- */
+  function menuKnap(){const bar=document.getElementById('bar'),hjem=document.getElementById('hjem');if(!bar||document.getElementById('menuknap'))return;
+    const k=h('button',{id:'menuknap',class:'kraft',type:'button','aria-label':'Til forsiden',html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h16" fill="none" stroke-width="2.6" stroke-linecap="round"/></svg>',on:{click:()=>{lyd('valg');spoergUde()}}});bar.insertBefore(k,bar.firstChild);
+    const tjek=()=>{k.hidden=!hjem.hidden||!!(rod&&!rod.hidden)||!!SPIL.room;requestAnimationFrame(tjek)};tjek()}
+  function spoergUde(){if(!rod){rod=h('div',{id:'forside'});document.body.append(rod)}rod.hidden=false;rod.replaceChildren();spoerg('Til forsiden?','Dit spil er gemt.','Ja, til forsiden',forside);rod.querySelector('.fs-knap').addEventListener('click',()=>luk())}
+  /* ---------- start ---------- */
+  function start(){menuKnap();if(window.SPRING_FORSIDE)return;let d=null;try{d=sessionStorage.getItem('magiske-mig-pap.direkte');sessionStorage.removeItem('magiske-mig-pap.direkte')}catch(_){}
+    if(d==='by')return;if(d==='intro'){intro();return}if(d==='pladser'){pladser();return}forside()}
+  return{start,forside,pladser,intro,luk}})();
+FORSIDE.start();
 
 const fsBtn=document.getElementById('fs'),fsNote=document.getElementById('fsnote');
 fsBtn.addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();return}
