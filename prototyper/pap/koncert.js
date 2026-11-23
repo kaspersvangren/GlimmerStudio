@@ -142,11 +142,16 @@ function gnome(i,inst){const G=new THREE.Group(),SKIN='#f4c8a0';const o={G,i,ins
   if(inst==='mic'){/* mikrofonen i højre hånd, oppe ved munden; venstre arm slår ud i takt */
     const mk=new THREE.Group();put(o.armR,mk,0,-3.3,.3);mk.scale.y=1/.45;pc(mk,box(-.2,-1.1,.2,-.3),{color:'#2a2a32',t:.3},0);const kugle=new THREE.Mesh(new THREE.SphereGeometry(.46,14,10),paperMat('#c0c4d0','card'));put(mk,kugle,0,-1.45,.1);
     foran();stil(-2.5,-2.15,1,.45)}
-  if(inst==='trommer'){for(const a of[o.armL,o.armR]){const st=new THREE.Mesh(new THREE.BoxGeometry(.16,2.4,.16),paperMat('#e8d0a0','balsa'));st.rotation.z=.55*(a===o.armL?1:-1);put(a,st,(a===o.armL?.6:-.6),-4.2,.3)}
-    foran();stil(-.62,.62,.8,.8)}
+  if(inst==='trommer'){/* stikkerne peger skråt op og ind mod midten, klar til at slå, ikke ned langs armen (Kasper 23. nov.) */
+    foran();stil(-.62,.62,.8,.8);for(const a of[o.armL,o.armR]){const v=a===o.armL,h=new THREE.Group();h.position.set(0,-3.3,.35);h.scale.y=1/.8;a.add(h);
+      const ret=v?.62:Math.PI-.62,rot=ret-Math.PI/2-a.rotation.z,d=[Math.cos(ret-a.rotation.z),Math.sin(ret-a.rotation.z)];
+      const st=new THREE.Mesh(new THREE.BoxGeometry(.18,2.8,.18),paperMat('#e8d0a0','balsa'));st.rotation.z=rot;st.position.set(d[0]*1.1,d[1]*1.1,0);h.add(st);
+      const sp=new THREE.Mesh(new THREE.SphereGeometry(.17,8,6),paperMat('#f4e2c0','balsa'));sp.position.set(d[0]*2.5,d[1]*2.5,0);h.add(sp)}}
   if(inst==='bas'){/* kontrabassen står foran ham og læner sig ud til siden, så halsen går fri af ansigtet */
     const bg=new THREE.Group();put(G,bg,-1,0,.9);bg.rotation.z=.18;const B=sm([[0,0],[2.2,.6],[2.6,2.6],[1.6,4.2],[2.2,5.6],[1.4,7.2],[0,7.4],[-1.4,7.2],[-2.2,5.6],[-1.6,4.2],[-2.6,2.6],[-2.2,.6]],8);pc(bg,B,{t:.3,s:30,paint:P=>{P.wash('#9a4a1e',B,{top:'#c06a2a',edge:.6});for(const sx of[-1,1])P.pen(curve([[sx*.9,4],[sx*1.1,3],[sx*.8,2]],5),'#2a1408',.12,.9)}},0);pc(bg,box(-.28,7,.28,13.6),{color:'#3a2010',kind:'balsa',t:.2},.1);pc(bg,circ(0,14,.6,.6,16),{color:'#3a2010',t:.25},.1);for(const x of[-.35,-.12,.12,.35])pieces(thick([[[x,1.2],[x*.4,13.4]]],.03),{color:'#e8e0c8',t:.03},bg,0,0,.3);
-    foran();stil(-2.96,-1.1,1,1.08)}
+    foran();stil(-2.96,-1.1,1,1.08);
+    /* venstre arm går bag om halsen, og kun fingrene ligger foran på gribebrættet (Kasper 23. nov.: "armen ligger uden på gribebrættet") */
+    o.armL.position.z=.45;pc(o.armL,sm([[-.62,-3.0],[.62,-3.0],[.7,-3.5],[.3,-3.95],[-.3,-3.95],[-.7,-3.5]],3),{color:SKIN,kind:'water',t:.12},.95);for(const y of[-3.35,-3.7])pc(o.armL,box(-.5,y-.03,.5,y+.03),{color:'#c89a78',t:.02},1.02)}
   /* små ting til hver sang */
   o.acc={};
   o.acc.briller=new THREE.Group();put(H,o.acc.briller,0,0,.7);for(const sx of[-1,1])pc(o.acc.briller,sm([[sx*.25,1.98],[sx*1.55,1.98],[sx*1.45,2.62],[sx*.35,2.62]],3),{color:'#0a0a12',t:.06},0);pc(o.acc.briller,box(-.3,2.4,.3,2.55),{color:'#0a0a12',t:.05},0);

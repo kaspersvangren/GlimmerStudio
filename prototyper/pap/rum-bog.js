@@ -13,7 +13,7 @@ ROOMS.bog=function(ctx){
     {art:'kost',lines:[['','Vi flyver på koste, brygger eliksirer og springer i faldskærm fra skyerne.'],['','Og nogle gange hygger vi os bare.']]},
     {art:'doer',lines:[['','Kunne du tænke dig at tage med?'],['','Så følg mig …'],['big','eller skulle jeg sige …']]}];
   const PW=21,PH=28,PY=2.05,BLAEK='#3a2412';
-  let Rm=null,bog,venstre,hoejre,sideV,sideH,blad=null,pop=null,popNy=null,i=0,navn=SPIL.navn||'',travl=false,lukket=false,bogst=[],stoev=[],tiden=0,fase=null;
+  let Rm=null,aaben=false,bog,venstre,hoejre,sideV,sideH,blad=null,pop=null,popNy=null,i=0,navn=SPIL.navn||'',travl=false,lukket=false,bogst=[],stoev=[],tiden=0,fase=null;
   /* ---------- siderne: papir med tekst, tegnet på et lærred ---------- */
   const lag=new Map();
   function sideLaerred(n,s){const W=900,H=1200,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
@@ -36,9 +36,12 @@ ROOMS.bog=function(ctx){
   function sidePlan(t,x){const m=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),sideMat(t));m.rotation.x=-Math.PI/2;m.position.set(x,PY,0);m.receiveShadow=true;m.userData.noShadow=true;return m}
   function saetSide(m,t){if(m.material.map)m.material.map.dispose();m.material.map=t;m.material.needsUpdate=true}
   /* ---------- pop-up-scenerne: lag af pap, der står op fra venstresiden ---------- */
-  function popLag(par,zb,byg){const g=new THREE.Group();g.position.set(0,0,zb);par.add(g);byg(g);g.rotation.x=-Math.PI/2;g.userData.z=zb;return g}
+  /* en rigtig pop-up (Kasper 23. nov.): lagene folder sig op og ned i takt med, at siderne åbnes og lukkes, og foldet ned ligger alt inden for siden.
+     Lagene er hængslet forneden og lægger sig bagud med billedet opad; de forreste lag ligger øverst */
+  const GZ=6.6,GS=.8;
+  function popLag(par,zb,byg){const g=new THREE.Group();g.position.set(0,par.children.length*.07,zb);par.add(g);byg(g);g.rotation.x=-Math.PI/2;g.userData.z=zb;return g}
   const kort=(c,t=.25)=>({color:c,kind:'card',t,edge:hexOf(shade(c,-.4))}),INK='#2a1838';
-  function bygPop(art){const G=new THREE.Group();G.position.set(-PW/2-.4,PY+.4,3.5);G.scale.setScalar(.86);bog.add(G);const L=[];
+  function bygPop(art,par=venstre){const G=new THREE.Group();G.position.set(-PW/2-.4,PY+.4,GZ);G.scale.setScalar(GS);par.add(G);const L=[];
     if(art==='portraet'){L.push(popLag(G,-6,g=>{put(g,piece({outer:toCCW(circ(0,8,6.2,7.6,40)),holes:[toCCW(circ(0,8,5,6.4,40))]},{mat:gold(),t:.5}),0,0,.3);P2(g,circ(0,8,5.05,6.45,40),kort('#6b4fc0',.2),0);
         P2(g,toCCW(sm([[-3.4,2.2],[3.4,2.2],[2.4,4.4],[1.2,5.2],[-1.2,5.2],[-2.4,4.4]],3)),kort('#3a2a5a',.1),.22);P2(g,circ(0,6.9,1.7,1.9,22),kort('#3a2a5a',.1),.23);P2(g,toCCW([[-3,8.1],[3,8.1],[0,8.9]]),kort('#3a2a5a',.1),.24);P2(g,toCCW(sm([[-1.6,8.4],[1.6,8.4],[.5,12.2],[-.2,12.8],[-.1,11.5]],3)),kort('#3a2a5a',.1),.25);
         const q=papirTekstMesh('?','#f2c14e',3.2,FONT.stoevle,'#3a2a5a');q.position.set(0,7.1,.5);g.add(q)}));
@@ -54,8 +57,8 @@ ROOMS.bog=function(ctx){
       L.push(popLag(G,0,g=>{P2(g,toCCW(sm([[-9.5,0],[9.5,0],[9.5,2],[5,3.2],[0,2.2],[-5,3.4],[-9.5,2.4]],4)),kort('#5e8f5a',.3),0)}));
       L.push(popLag(G,5,g=>{for(const x of[-6,6.5]){P2(g,box(x-.2,0,x+.2,1.6),kort('#5a3a24',.1),0);P2(g,puff(x,2.8,1.5,1.6,8,.2),kort('#3a6a40',.3),.1)}}))}
     if(art==='kost'){L.push(popLag(G,-8,g=>{P2(g,circ(0,9,5,5,40),{mat:paperMat('#fff0b8','tissue',{glow:'#ffe08a',gi:1.3}),t:.25},0);P2(g,circ(1.6,10.2,.9,.8,14),kort('#e8d494',.04),.26);P2(g,circ(-1.8,7.6,.6,.5,12),kort('#e8d494',.04),.26);for(const[x,y]of[[-7,12],[7,13],[-6,6],[6.5,7]])P2(g,starPts(x,y,.6,.26,0),kort('#f2d27a',.05),0)}));
-      L.push(popLag(G,-3,g=>{const r=new THREE.Group();r.position.set(0,9,0);r.rotation.z=.12;g.add(r);for(const q of thick([[[-5,0],[4.6,.2]]],.18))P2(r,q,kort(INK,.1),0);P2(r,toCCW(sm([[-4.6,.5],[-7,1.2],[-7.4,0],[-7,-1.2],[-4.6,-.5]],2)),kort(INK,.1),0);
-        P2(r,toCCW(sm([[-1.6,.2],[1.4,.2],[.8,2.8],[-1,3.2]],2)),kort(INK,.1),.05);P2(r,circ(.1,4,.8,.8,14),kort(INK,.1),.06);P2(r,toCCW([[-1.4,4.4],[1.6,4.4],[-.8,7]]),kort(INK,.1),.07);P2(r,toCCW(sm([[-1.6,.6],[-4,2.6],[-4.4,1.4],[-2.4,.2]],2)),kort(INK,.1),.04);P2(G,box(-.06,0,.06,9),kort('#8a6a3a',.05),-3.1)}));
+      L.push(popLag(G,-3,g=>{const r=new THREE.Group();r.position.set(0,8,0);r.rotation.z=.12;g.add(r);for(const q of thick([[[-5,0],[4.6,.2]]],.18))P2(r,q,kort(INK,.1),0);P2(r,toCCW(sm([[-4.6,.5],[-7,1.2],[-7.4,0],[-7,-1.2],[-4.6,-.5]],2)),kort(INK,.1),0);
+        P2(r,toCCW(sm([[-1.6,.2],[1.4,.2],[.8,2.8],[-1,3.2]],2)),kort(INK,.1),.05);P2(r,circ(.1,4,.8,.8,14),kort(INK,.1),.06);P2(r,toCCW([[-1.4,4.4],[1.6,4.4],[-.8,7]]),kort(INK,.1),.07);P2(r,toCCW(sm([[-1.6,.6],[-4,2.6],[-4.4,1.4],[-2.4,.2]],2)),kort(INK,.1),.04);P2(g,box(-.06,0,.06,8),kort('#8a6a3a',.05),-.1)}));
       L.push(popLag(G,3,g=>{for(const[x,y,r]of[[-5.5,2.4,2.4],[5,2,2]])P2(g,puff(x,y,r*1.4,r*.8,9,.2),kort('#fbf6ee',.3),0)}))}
     if(art==='doer'){L.push(popLag(G,-5,g=>{const fr=toCCW([[-5,0],[5,0],[5,8],[3.6,10.6],[0,11.6],[-3.6,10.6],[-5,8]]),hul=toCCW([[-3,0],[3,0],[3,7.4],[2,9],[0,9.6],[-2,9],[-3,7.4]]);
         put(g,piece({outer:fr,holes:[hul]},{t:.5,s:30,paint:P=>{P.wash('#9a94b0',fr,{top:'#b0aac4',edge:.4});P.ashlar(null,'#8a84a0',{rowH:[1.2,1.5],bw:[1.6,2.2],tint:.06,ink:.25})}}),0,0,.2);
@@ -63,7 +66,7 @@ ROOMS.bog=function(ctx){
         const d=new THREE.Group();d.position.set(-3,0,.1);d.rotation.y=-.75;g.add(d);P2(d,toCCW([[0,0],[6,0],[6,7.4],[5,9],[3,9.6],[1,9],[0,7.4]]),kort('#7a4a2a',.25),0);for(const x of[1.5,3,4.5])P2(d,box(x-.05,.3,x+.05,8.4),kort('#5a3420',.02),.26);P2(d,circ(5,4.4,.35,.35,10),{mat:gold(),t:.1},.3);
         for(const[x,y]of[[-6.5,11],[6.6,10],[0,13.2]])P2(g,starPts(x,y,.7,.3,0),kort('#f2d27a',.05),0)}));
       L.push(popLag(G,1,g=>{P2(g,box(-4,0,4,.8),kort('#8a84a0',.3),0);P2(g,box(-3.2,.8,3.2,1.5),kort('#9a94b0',.3),.1);const l=new THREE.Group();l.position.set(6,0,0);g.add(l);P2(l,box(-.1,0,.1,4),kort('#2a2238',.1),0);put(l,piece(box(-.6,4,.6,5.4),{mat:paperMat('#ffe2a0','tissue',{glow:'#ffc860',gi:1.8}),t:.4}),0,0,0)}))}
-    G.traverse(q=>{if(q.isMesh){q.castShadow=true;q.receiveShadow=true}});return{G,L,op:0,maal:0}}
+    G.traverse(q=>{if(q.isMesh){q.castShadow=true;q.receiveShadow=true}});return{G,L,op:0}}
   /* ---------- bogen ---------- */
   function bygBog(){bog=new THREE.Group();Rm.live.add(bog);
     const lae='#4a2a62',laeK='#2a1440';venstre=new THREE.Group();hoejre=new THREE.Group();bog.add(venstre,hoejre);
@@ -91,32 +94,36 @@ ROOMS.bog=function(ctx){
   inp.addEventListener('input',()=>{navn=inp.value.replace(/\s+/g,' ').replace(/^\s/,'');saetSide(sideH,sideLaerred(i,'r'));pile()});
   function skriv(){try{inp.focus({preventScroll:true})}catch(_){}if(typeof FORSIDE!=='undefined'&&FORSIDE.kbAaben)FORSIDE.kbAaben(inp)}
   const ok=()=>navn.trim().length>0;
-  function pile(){tilb.hidden=i===0||lukket;frem.hidden=lukket;frem.disabled=(i===0&&!ok())||travl}
+  function pile(){tilb.hidden=i===0||lukket||!aaben;frem.hidden=lukket;frem.disabled=(aaben&&i===0&&!ok())||travl;frem.setAttribute('aria-label',aaben?'Næste side':'Åbn bogen')}
   const pyt=()=>{navn=navn.trim();navn=navn.charAt(0).toLocaleUpperCase('da')+navn.slice(1);inp.value=navn};
   /* ---------- at vende en side ---------- */
-  function vend(d){if(travl||lukket)return;if(d>0&&i===0&&!ok()){skriv();return}if(d<0&&i===0)return;if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();pyt();
-    if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.pust();
-    const ny=i+d;pop.maal=0;fase={t:0,d,ny,trin:'fold'}}
+  const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,fjern=p=>{if(!p)return;p.G.parent&&p.G.parent.remove(p.G);emptyGroup(p.G)};
+  function vend(d){if(travl||lukket)return;if(!aaben){aabn();return}if(d>0&&i===0&&!ok()){skriv();return}if(d<0&&i===0)return;if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();pyt();
+    if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.pust();const ny=i+d;
+    /* bladet drejer om ryggen. Frem: den nye pop-up sidder på bladets bagside og folder sig op, mens bladet lægger sig. Tilbage: den gamle sidder på bladet og folder sig ned */
+    if(d>0){blad=bygBlad(sideLaerred(i,'r'),sideLaerred(ny,'l'),1);saetSide(sideH,sideLaerred(ny,'r'));popNy=bygPop(SIDER[ny].art,blad);popNy.G.position.set(PW/2+.4,-.05,GZ);popNy.G.rotation.z=Math.PI}
+    else{blad=bygBlad(sideLaerred(i,'l'),sideLaerred(ny,'r'),-1);saetSide(sideV,sideLaerred(ny,'l'));blad.add(pop.G);pop.G.position.set(-PW/2-.4,.05,GZ);popNy=bygPop(SIDER[ny].art,venstre)}
+    LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,d,ny,trin:'vend'}}
   function bygBlad(fraT,tilT,d){/* bladet: forside = siden, der vendes, bagside = den nye side på den anden side; det drejer om ryggen */
     const g=new THREE.Group();g.position.set(0,PY+.35,0);bog.add(g);const f=sidePlan(fraT,(d>0?1:-1)*(PW/2+.4));f.position.y=0;g.add(f);const b=sidePlan(tilT,(d>0?1:-1)*(PW/2+.4));b.position.y=-.02;b.rotation.order='ZYX';b.rotation.set(-Math.PI/2,0,Math.PI);g.add(b);return g}
   function tickFase(dt){if(!fase)return;fase.t+=dt;const F=fase;
-    if(F.trin==='fold'){if(pop.op<.04||F.t>.6){bog.remove(pop.G);emptyGroup(pop.G);pop=null;
-        const d=F.d;if(d>0){blad=bygBlad(sideLaerred(i,'r'),sideLaerred(F.ny,'l'),1);saetSide(sideH,sideLaerred(F.ny,'r'))}else{blad=bygBlad(sideLaerred(i,'l'),sideLaerred(F.ny,'r'),-1);saetSide(sideV,sideLaerred(F.ny,'l'))}
-        F.trin='vend';F.t=0}}
-    else if(F.trin==='vend'){const u=Math.min(1,F.t/.95),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;blad.rotation.z=F.d*e*Math.PI;blad.position.y=PY+.35+Math.sin(u*Math.PI)*.6;
-      if(u>=1){if(F.d>0)saetSide(sideV,sideLaerred(F.ny,'l'));else saetSide(sideH,sideLaerred(F.ny,'r'));bog.remove(blad);blad.traverse(q=>{if(q.isMesh){q.geometry.dispose();q.material.map&&q.material.map.dispose();q.material.dispose()}});blad=null;
-        i=F.ny;pop=bygPop(SIDER[i].art);pop.maal=1;LYD.fil('bog.pop',()=>LYD.plop(),.5);F.trin='rejs';F.t=0}}
-    else if(F.trin==='rejs'){if(F.t>.5){fase=null;travl=false;pile();if(i===0&&!ok())skriv()}}}
-  function tickPop(p,dt){if(!p)return;p.op+=(p.maal-p.op)*Math.min(1,dt*(p.maal>p.op?5:8));p.L.forEach((g,k)=>{const u=clamp(p.op*1.4-k*.14,0,1),s=1.70158,e=u<1?1+(s+1)*Math.pow(u-1,3)+s*Math.pow(u-1,2):1;g.rotation.x=-Math.PI/2*(1-e)})}
-  /* ---------- lukningen og titlen ---------- */
+    if(F.trin==='aabn'){const u=Math.min(1,F.t/1.4),e=ease(u);venstre.rotation.z=-(1-e)*Math.PI;venstre.position.y=(1-e)*LUKY+Math.sin(u*Math.PI)*1.5;bog.position.x=(1-e)*F.x0;pop.op=clamp((e-.2)/.8,0,1);
+      if(u>=1){venstre.rotation.z=0;venstre.position.y=0;bog.position.x=0;fase=null;travl=false;aaben=true;pile();if(!ok())setTimeout(()=>{if(ctx.alive&&i===0&&!travl)skriv()},300)}}
+    else if(F.trin==='vend'){const u=Math.min(1,F.t/1.15),e=ease(u);blad.rotation.z=F.d*e*Math.PI;blad.position.y=PY+.35+Math.sin(u*Math.PI)*.6;pop.op=1-clamp(e/.85,0,1);popNy.op=clamp((e-.15)/.85,0,1);
+      if(u>=1){if(F.d>0){saetSide(sideV,sideLaerred(F.ny,'l'));venstre.add(popNy.G);popNy.G.position.set(-PW/2-.4,PY+.4,GZ);popNy.G.rotation.z=0}else saetSide(sideH,sideLaerred(F.ny,'r'));
+        fjern(pop);pop=popNy;popNy=null;pop.op=1;bog.remove(blad);blad.traverse(q=>{if(q.isMesh){q.geometry.dispose();q.material.map&&q.material.map.dispose();q.material.dispose()}});blad=null;
+        i=F.ny;fase=null;travl=false;pile();if(i===0&&!ok())skriv()}}}
+  function tickPop(p){if(!p)return;const n=p.L.length;p.L.forEach((g,k)=>{const u=clamp(p.op*(1+.12*n)-k*.12,0,1),s=1.70158,e=u<1?1+(s+1)*Math.pow(u-1,3)+s*Math.pow(u-1,2):1;g.rotation.x=-Math.PI/2*(1-e)})}
+  /* ---------- åbningen, lukningen og titlen ---------- */
   const TITEL=['Magiske','Mig'],LUKY=4.72,BX=-13;
-  function luk(){travl=true;lukket=true;pile();pop.maal=0;fase={t:0,trin:'lukfold'};LYD.pust()}
+  function lukketStart(x0){venstre.rotation.z=-Math.PI;venstre.position.y=LUKY;bog.position.x=x0;aaben=false;if(pop)pop.op=0}
+  function aabn(){if(travl||aaben||lukket)return;travl=true;pile();LYD.pust();LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,trin:'aabn',x0:bog.position.x}}
+  function luk(){travl=true;lukket=true;pile();fase={t:0,trin:'lukvend'};LYD.pust()}
   function tickLuk(dt){if(!fase||!lukket)return false;const F=fase;F.t+=dt;
-    if(F.trin==='lukfold'){if(pop.op<.04||F.t>.6){bog.remove(pop.G);emptyGroup(pop.G);pop=null;F.trin='lukvend';F.t=0}}
-    else if(F.trin==='lukvend'){const u=Math.min(1,F.t/1.2),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;venstre.rotation.z=-e*Math.PI;venstre.position.y=Math.sin(u*Math.PI)*1.5+e*LUKY;bog.position.x=e*(BX-(PW/2+.8));
-      if(u>=1){LYD.dunk();F.trin='titel';F.t=0;startTitel()}}
-    else if(F.trin==='titel'){if(tickTitel(dt)){F.trin='glans';F.t=0;LYD.guld();const g=Rm.glow(BX,PY+6,0,'rgba(255,224,140,.9)',34);F.glow=g}}
-    else if(F.trin==='glans'){if(F.glow)F.glow.s.material.opacity=Math.max(0,1-F.t/1.4);if(F.t>1.2&&!F.vist){F.vist=true;efter.hidden=false;requestAnimationFrame(()=>efter.classList.add('on'))}}
+    if(F.trin==='lukvend'){const u=Math.min(1,F.t/1.3),e=ease(u);venstre.rotation.z=-e*Math.PI;venstre.position.y=Math.sin(u*Math.PI)*1.5+e*LUKY;bog.position.x=e*(BX-(PW/2+.8));if(pop)pop.op=1-clamp(e/.8,0,1);
+      if(u>=1){fjern(pop);pop=null;LYD.dunk();F.trin='titel';F.t=0;startTitel()}}
+    else if(F.trin==='titel'){if(tickTitel(dt)){F.trin='glans';F.t=0;LYD.guld();const top=LUKY+.95;F.glow=[Rm.glow(BX,top+1.5,-3.2,'rgba(255,224,140,.9)',22),Rm.glow(BX,top+1.5,4.6,'rgba(255,224,140,.9)',22)];for(const g of F.glow){g.s.material.depthTest=false;g.s.renderOrder=5}for(const q of bogst)Rm.burst(q.m.position.x,q.m.position.y,q.m.position.z,3,'rgba(255,236,170,.95)',1.6)}}
+    else if(F.trin==='glans'){if(F.glow)for(const g of F.glow)g.s.material.opacity=Math.max(0,1-F.t/1.4);if(F.t>1.2&&!F.vist){F.vist=true;efter.hidden=false;requestAnimationFrame(()=>efter.classList.add('on'))}}
     return true}
   /* bogstaverne: hvert sit stykke guldpapir, der kommer i en spiral udefra, drejer rundt og lander med et lille hop i stjernestøv */
   function startTitel(){const top=LUKY+.95,lin=TITEL.map((w,li)=>{const hgt=li?6.6:5.2,ms=[...w].map(ch=>{const m=papirTekstMesh(ch,'#f2c14e',hgt,FONT.stoevle,'#5a2a8a');m.rotation.x=-Math.PI/2;return m});
@@ -133,12 +140,12 @@ ROOMS.bog=function(ctx){
     for(const s of stoev){if(!s.m.visible)continue;s.t+=dt;if(s.t>=s.liv){s.m.visible=false;continue}s.m.position.addScaledVector(s.v,dt);s.m.scale.setScalar(1-s.t/s.liv);s.m.rotation.z+=dt*4}
     return faerdig}
   function igen(){efter.classList.remove('on');efter.hidden=true;for(const q of bogst){Rm.live.remove(q.m);q.m.userData.ryd&&q.m.userData.ryd()}bogst=[];
-    venstre.rotation.z=0;venstre.position.y=0;bog.position.x=0;lukket=false;fase=null;i=0;saetSide(sideV,sideLaerred(0,'l'));saetSide(sideH,sideLaerred(0,'r'));pop=bygPop(SIDER[0].art);pop.maal=1;travl=false;pile()}
+    lukket=false;fase=null;i=0;saetSide(sideV,sideLaerred(0,'l'));saetSide(sideH,sideLaerred(0,'r'));pop=bygPop(SIDER[0].art);lukketStart(bog.position.x);travl=false;aabn()}
   function slut(){LYD.valg&&LYD.valg();pyt();SPIL.navn=navn;SPIL.data.intro=true;SPIL.save();LOG.row('intro',{navn:navn.length});enter('garderobe',{skift:true})}
   /* ligger navnelinjen bag spillets tastatur, skubbes hele billedet op, så man kan se, hvad man skriver */
   let skubbet=0;const nv=new THREE.Vector3();
   function skub(dt){const kb=document.querySelector('.kb'),cv=renderer.domElement;let maal=0;
-    if(kb&&!kb.hidden&&kb.classList.contains('on')&&i===0&&!lukket){const kt=innerHeight-kb.offsetHeight,r=cv.getBoundingClientRect();hoejre.updateWorldMatrix(true,false);nv.set(PW/2,PY,-PH/2+PH*(470/1200)).applyMatrix4(hoejre.matrixWorld).project(Rm.cam);
+    if(kb&&!kb.hidden&&kb.classList.contains('on')&&i===0&&aaben&&!lukket){const kt=innerHeight-kb.offsetHeight,r=cv.getBoundingClientRect();hoejre.updateWorldMatrix(true,false);nv.set(PW/2,PY,-PH/2+PH*(470/1200)).applyMatrix4(hoejre.matrixWorld).project(Rm.cam);
       const y=r.top+(1-nv.y)/2*r.height+skubbet;maal=Math.max(0,y+24-kt)}
     skubbet+=(maal-skubbet)*Math.min(1,dt*8);if(Math.abs(skubbet)<.5&&maal===0)skubbet=0;cv.style.transform=skubbet?`translateY(${-skubbet}px)`:''}
   /* ---------- rummet: skrivebordet i stearinlysets skær ---------- */
@@ -152,9 +159,9 @@ ROOMS.bog=function(ctx){
         /* blækhus og fjerpen til højre */const bh=new THREE.Group();bh.position.set(36,0,-16);S.add(bh);P2(bh,box(-2.2,0,2.2,3.4),{color:'#2a2a3a',kind:'card',t:4,edge:'#10101a'},-2);P2(bh,box(-1,3.4,1,4.4),{color:'#3a3a4a',kind:'card',t:2,edge:'#10101a'},-1);
         const fj=new THREE.Group();fj.position.set(35,4,-16);fj.rotation.z=-.5;S.add(fj);P2(fj,toCCW(sm([[0,0],[1.4,4],[1.6,10],[.6,13],[-.6,9],[-.8,4]],4)),{color:'#f4f0f8',kind:'card',t:.1,edge:'#b8b0c8'},0);
         /* tørrede blomster og et par løse stjerner på bordet */for(const[x,z,c]of[[30,14,'#c79bff'],[33,17,'#ff9fc8'],[-31,15,'#ffd86b']])Rm.floor(starPts(x,-z,1.3,.55,R(TAU)),{color:c,kind:'card',t:.08},.62,S)},
-      ()=>{bygBog();pop=bygPop(SIDER[0].art);pop.maal=1;pile();document.fonts&&document.fonts.ready.then(()=>{if(!ctx.alive)return;saetSide(sideV,sideLaerred(i,'l'));saetSide(sideH,sideLaerred(i,'r'))});
-        if(!ok())setTimeout(()=>{if(ctx.alive&&i===0)skriv()},1400)}],
-    tick:(t,dt)=>{tiden+=dt;skub(dt);tickPop(pop,dt);if(!tickLuk(dt))tickFase(dt)}};
+      ()=>{bygBog();pop=bygPop(SIDER[0].art);lukketStart(-(PW/2+.8));pile();document.fonts&&document.fonts.ready.then(()=>{if(!ctx.alive)return;saetSide(sideV,sideLaerred(i,'l'));saetSide(sideH,sideLaerred(i,'r'))});
+        /* bogen ligger lukket, til man trykker på den (Kasper 23. nov.) */Rm.tap(bog,()=>{if(!aaben&&!lukket)aabn()});setTimeout(()=>{if(ctx.alive&&!aaben&&!travl)ctx.say('Tryk på bogen for at åbne den')},1600)}],
+    tick:(t,dt)=>{tiden+=dt;skub(dt);tickPop(pop);tickPop(popNy);if(!tickLuk(dt))tickFase(dt)}};
   makeRoom(ctx,OPT);
   ctx.efter.push(()=>{renderer.domElement.style.transform='';for(const d of DOM)d.remove();if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();for(const q of bogst)q.m.userData.ryd&&q.m.userData.ryd()});
-  ctx.test={side:()=>i,navn:v=>{inp.value=v;inp.dispatchEvent(new Event('input'))},vend,lukket:()=>lukket,fase:()=>fase&&fase.trin,efter:()=>!efter.hidden,spol:sek=>{for(let k=0;k<sek*25;k++)OPT.tick(0,.04)},bogst:()=>bogst.map(q=>[q.m.visible,q.m.position.toArray().map(v=>+v.toFixed(1)),+q.t.toFixed(2)])}};
+  ctx.test={aabn,aaben:()=>aaben,side:()=>i,navn:v=>{inp.value=v;inp.dispatchEvent(new Event('input'))},vend,lukket:()=>lukket,fase:()=>fase&&fase.trin,efter:()=>!efter.hidden,spol:sek=>{for(let k=0;k<sek*25;k++)OPT.tick(0,.04)},bogst:()=>bogst.map(q=>[q.m.visible,q.m.position.toArray().map(v=>+v.toFixed(1)),+q.t.toFixed(2)])}};

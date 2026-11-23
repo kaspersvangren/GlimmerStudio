@@ -93,7 +93,7 @@ ROOMS.fald=function(ctx){
     /* skuret med koste, tæppet med kurven, nissehuset med røg og svampene i en ring */
     {const g=new THREE.Group();g.position.set(38,34,.8);g.rotation.z=.21;J.add(g);P2(g,box(-4.6,-3.4,4.4,3),{color:'#8a4a2a',kind:'kraft',t:2.4,edge:'#4a2a1a'},0);P2(g,box(-4.6,-.15,4.4,.15),{color:'#5a2e1a',kind:'kraft',t:.1},2.45);
       for(let i=0;i<3;i++){const y=-4.6-i*1.1;for(const q of thick([[[-3,y],[2.6,y]]],.11))P2(g,q,{color:'#8a5a3c',kind:'kraft',t:.15},.2);P2(g,toCCW([[2.4,y-.4],[4.4,y-.55],[4.4,y+.55],[2.4,y+.4]]),{color:'#e9c46a',kind:'card',t:.2},.2)}}
-    {const g=new THREE.Group();g.position.set(-34,-30,.75);g.rotation.z=-.31;J.add(g);P2(g,box(-3,-2.2,3,2.2),{color:'#ffffff',kind:'card',t:.06},0);for(let i=0;i<6;i++)P2(g,box(-3+(i%3)*2,-2.2+Math.floor(i/3)*2.2,-2+(i%3)*2,-1.1+Math.floor(i/3)*2.2),{color:'#e0457a',kind:'card',t:.02},.07);
+    {const g=new THREE.Group();g.position.set(-36,-32,.75);g.rotation.z=-.31;g.scale.setScalar(2.3);J.add(g);P2(g,box(-3,-2.2,3,2.2),{color:'#ffffff',kind:'card',t:.06},0);for(let i=0;i<6;i++)P2(g,box(-3+(i%3)*2,-2.2+Math.floor(i/3)*2.2,-2+(i%3)*2,-1.1+Math.floor(i/3)*2.2),{color:'#e0457a',kind:'card',t:.02},.07);
       P2(g,box(1.2,-.2,2.8,1),{color:'#b9763f',kind:'kraft',t:.9,edge:'#7e4307'},.1);P2(g,circ(-1.6,-.8,.35,.35,8),{color:'#ff5a5a',kind:'card',t:.3},.1);P2(g,circ(-.8,-1.2,.3,.3,8),{color:'#9be36a',kind:'card',t:.3},.1)}
     {const g=new THREE.Group();g.position.set(-58,-6,.75);J.add(g);P2(g,circ(0,0,3.2,3.2,20),{color:'#b5432a',kind:'card',t:2.6,edge:'#6a2a1a'},0);for(let i=0;i<8;i++)P2(g,circ(Math.cos(i*.8)*2,Math.sin(i*.8)*2,.8,.8,10),{color:'#6a9a4a',kind:'card',t:.3},2.6);
       P2(g,box(1.4,1.6,2.4,2.6),{color:'#6a6488',kind:'card',t:3.4},0);const rg=new THREE.Group();g.add(rg);g.userData.rog=rg;for(let i=0;i<3;i++)P2(rg,circ(2+i*.9,3.4+i*1.1,.5+i*.25,.5+i*.25,10),{color:'#f2eefa',kind:'card',t:.1},4+i);tal.push(rg)}
@@ -243,7 +243,13 @@ ROOMS.fald=function(ctx){
     haandVis(false);vindPil.visible=false;mpil.visible=false;skygge.visible=false;skaerm.visible=false;for(const f of S.floaters)f.m.visible=false;
     /* hun står på jorden, og skærmen ligger sammenfaldet bag hende */
     landet=new THREE.Group();landet.position.set(S.x,-S.y,1.7);landet.rotation.z=-S.th*Math.PI/180;jord.add(landet);
-    {const sk=bygSkaerm();sk.userData.fod.visible=false;sk.userData.celler.forEach((c,i)=>{c.rotation.z=R(-.25,.25);c.position.y+=R(-1.2,1.2);c.scale.y=R(.55,.8)});sk.scale.set(.62,.5,.25);sk.position.set(0,-6.5,0);landet.add(sk)}
+    /* skærmen er faldet sammen og ligger bredt ud bag hende som et stykke stof med folder, med snorene hen til hende (Kasper 23. nov.: "hun ser ret underlig ud") */
+    {const n=7,A=[0,-2.4],kant=[];for(let i=0;i<=n;i++){const a=(-.95+1.9*i/n),r=R(9.5,11.5);kant.push([Math.sin(a)*r*1.15,A[1]-Math.cos(a)*r*.72])}
+      /* ét stykke stof: kanten bølger, og de lyse baner og folderne er malet på */
+      const ud=toCCW(sm([[-2.6,-1.2],...kant.map(([x,y],i)=>[x+R(-.4,.4),y+(i%2?R(.6,1.2):0)]),[2.6,-1.2],[0,-.4]],5));
+      P2(landet,ud,{t:.14,s:16,paint:P=>{P.wash(kjole,ud,{top:hexOf(shade(kjole,.15)),edge:.5,clouds:4});for(let i=0;i<n;i+=2){const p0=kant[i],p1=kant[i+1];P.fill(toCCW([[A[0]+(p0[0]-A[0])*.15,A[1]+(p0[1]-A[1])*.15],[p0[0]*1.2,p0[1]*1.2],[p1[0]*1.2,p1[1]*1.2],[A[0]+(p1[0]-A[0])*.15,A[1]+(p1[1]-A[1])*.15]]),'#fff3e0',.92)}
+        for(let k=0;k<9;k++){const a=R(-.9,.9),r0=R(2,4),r1=R(6,10);P.pen([[Math.sin(a)*r0,A[1]-Math.cos(a)*r0*.7],[Math.sin(a+R(-.1,.1))*r1*1.1,A[1]-Math.cos(a)*r1*.7]],hexOf(shade(kjole,-.45)),.12,.35)}P.pen([...ud,ud[0]],hexOf(shade(kjole,-.5)),.22,.9)}},-.3);{const sk=put(landet,piece(ud,{color:'#1a2a10',kind:'water',t:.02}),.5,-.6,-.42);sk.material=sk.material.map?sk.material:sk.material;sk.traverse(o=>{if(o.material){const m=(Array.isArray(o.material)?o.material:[o.material]).map(q=>{q=q.clone();q.transparent=true;q.opacity=.28;return q});o.material=Array.isArray(o.material)?m:m[0]}})}
+      for(const k of kant)for(const q of thick([[[0,-.6],[k[0]*.3,A[1]+(k[1]-A[1])*.2]]],.05))P2(landet,q,{color:'#e8e4f0',kind:'water',t:.02},-.1)}
     landet.add(oppefra(0,0,kjole,hair,0,{wave:1,cape:kappe}));if(pond){Rm.burst(0,0,2,14,'rgba(190,232,255,.95)',6);LYD.boelge()}else{LYD.dunk();if(zi===0)LYD.guld()}
     S.l0={ppm:S.ppm,x:S.x,y:S.y};pt.pop(0,8,8,msg,{col:pond?'#2e6aa8':'#e2384e',h:4.2,tilt:0});
     setTimeout(()=>{if(!S||!S.result||!ctx.alive)return;LYD.fanfare();const r=S.result;

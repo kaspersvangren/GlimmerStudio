@@ -14,14 +14,16 @@ const { chromium } = require('playwright');
   const T = js => p.evaluate(js), tjek = (navn, ok, v) => { if (!ok) fejl++; console.log(ok ? 'ok  ' : 'FEJL', navn, v === undefined ? '' : JSON.stringify(v)) }, F = 'const f=__spil.room.ctx.test;';
   const skud = n => p.screenshot({ path: __dirname + `/bog-${n}.png` }), vent = ms => p.waitForTimeout(ms);
   const roligt = async () => { for (let k = 0; k < 80; k++) { if (!(await T(F + 'f.fase()'))) return; await vent(250) } };
-  await vent(2500); await skud('1-start');
+  await vent(2500); await skud('0-lukket'); tjek('bogen ligger lukket', !(await T(F + 'f.aaben()')));
+  await p.click('.bog-frem', { force: true }); await T(F + 'f.spol(.6)'); await vent(300); await skud('0b-aabner'); await T(F + 'f.spol(1.2)'); await vent(1500);
+  tjek('bogen er åbnet', await T(F + 'f.aaben()')); await skud('1-start');
   tjek('tastaturet kommer frem til navnet', await T("!document.querySelector('.kb').hidden"));
   tjek('pilen er låst uden navn', await T("document.querySelector('.bog-frem').disabled"));
   for (const k of ['a', 'g', 'n', 'e', 's']) await p.click(`.kb-k[data-k="${k}"]`, { force: true });
   await vent(400); await skud('2-navn');
   await p.click('.kb-k[data-k="enter"]', { force: true }); await vent(600);
   tjek('navnet står i feltet', await T("document.querySelector('.bog-inp').value"), await T("document.querySelector('.bog-inp').value"));
-  await p.click('.bog-frem', { force: true }); await vent(900); await skud('3-vend'); await roligt(); await vent(600); await skud('4-side2');
+  await p.click('.bog-frem', { force: true }); await T(F + 'f.spol(.45)'); await vent(300); await skud('3-vend'); await T(F + 'f.spol(.3)'); await vent(300); await skud('3b-vend'); await roligt(); await vent(600); await skud('4-side2');
   tjek('side 2', (await T(F + 'f.side()')) === 1);
   for (let k = 0; k < 3; k++) { await p.click('.bog-frem', { force: true }); await vent(300); await roligt(); await vent(500); await skud('5-side' + (k + 3)) }
   await p.click('.bog-tilb', { force: true }); await vent(300); await roligt(); await vent(500); tjek('tilbage virker', (await T(F + 'f.side()')) === 3);

@@ -17,6 +17,7 @@ const { chromium } = require('playwright');
   await p.waitForFunction(() => __spil.room && __spil.room.id === 'bog' && document.getElementById('door').classList.contains('gone'), null, { timeout: 120000 }); await p.waitForTimeout(2500);
   tjek('plads 2 er valgt', (await T(`localStorage.getItem('magiske-mig-pap.plads')`)) === '2'); tjek('bogen i pap er åben', await T(`__spil.room.id==='bog'`)); await skud('bog1');
   tjek('fuldskærmsknappen var på forsiden', true);
+  tjek('bogen ligger lukket', !(await T(`__spil.room.ctx.test.aaben()`))); await p.click('.bog-frem', { force: true }); await T(`__spil.room.ctx.test.spol(2)`); await p.waitForTimeout(1200);
   tjek('næste-pilen er låst, til der står et navn', await T(`document.querySelector('.bog-frem').disabled`));
   for (const k of ['a', 'g', 'n', 'e', 's']) { await p.click(`.kb-k[data-k="${k}"]`, { force: true }); await p.waitForTimeout(60) }
   await skud('navn'); tjek('navnet skrives med spillets tastatur', (await T(`document.querySelector('.bog-inp').value`)) === 'Agnes');
