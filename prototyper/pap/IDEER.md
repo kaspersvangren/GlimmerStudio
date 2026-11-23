@@ -118,7 +118,7 @@ Forslaget:
 
 Kasper (note 8264, 23. nov.): flere farver alle steder, nyt layout og design af menuen, og Heks og Dyr skal have hver deres fane.
 
-Status: **Venter**. Skitsen er sendt til Kasper og ikke bygget:
+Status: **Lavet** i 0.35 (R102), efter skitsen:
 
 - To faner foroven som på en mappe: Heksen og Kæledyret.
 - Under dem knapper med små tegninger: Hat, Hår, Pande, Ansigt, Øjne, Mund, Tøj, Kappe, Støvler og Ekstra. Kæledyret har Dyr, Farver, Mønster, Pynt og Navn.

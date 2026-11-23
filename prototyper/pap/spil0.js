@@ -1,4 +1,4 @@
-const PAPVER='pap-0.34';
+const PAPVER='pap-0.35';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 /* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
 const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
