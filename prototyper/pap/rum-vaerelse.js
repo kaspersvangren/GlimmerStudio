@@ -44,7 +44,7 @@ ROOMS.vaerelse=function(ctx){
             Rm.tap(hb,()=>{const valg=MALERIER.map(m=>m[0]).filter(id=>maleriEjet(id)&&(!vaeg.includes(id)||vaeg[i]===id)),k=valg.indexOf(vaeg[i]);vaeg[i]=k+1<valg.length?valg[k+1]:null;SPIL.save();tegn();LYD.pip();
               ctx.say(vaeg[i]?MALERIER.find(m=>m[0]===vaeg[i])[1]:'Her er der plads til et maleri. Tryk igen for at hænge et op.')})})}
         /* bamserne fra Gribemaskinen sidder på sengen: én af hver slags, man har vundet. Er der flere, end sengen kan bære, sidder resten på gulvet foran */
-        [...new Set(SPIL.data.bamser||[])].forEach((k,i)=>{const s=i<7?.95:1.05,q=bamseStykke(ctx,k,s);let x,y,z;if(i<4){x=-24.4+i*2.7;y=12.1;z=-4.7}else if(i<7){x=-23+(i-4)*2.7;y=13.2;z=-4.95}else{x=-40.5+(i-7)*2.5;y=.3;z=3+((i-7)%2)*.9}
+        [...new Set(SPIL.data.bamser||[])].forEach((k,i)=>{const s=i<7?.95:1.05,q=bamseStykke(ctx,k,s);let x,y,z;if(i<4){x=-30.4+i*2.6;y=8.9;z=-2.6}else if(i<7){x=-29.1+(i-4)*2.6;y=9.9;z=-4.4}else{x=-40.5+(i-7)*2.5;y=.3;z=3+((i-7)%2)*.9}
           y+=1.7*s;q.position.set(x,y,z);q.rotation.z=((i*37)%11-5)*.02;Rm.live.add(q);const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.2*s,3.4*s),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,.2,.05);q.add(hb);const b={q,y,hop:0};bamser.push(b);Rm.tap(hb,()=>{LYD.pip();b.hop=1})});
         ctx.say('Tryk på en ting for at lave den om · skabet fører ind i Garderoben')}],
     tick:t=>{pop=Math.max(0,pop-.035);hop=Math.max(0,hop-.04);const k=1+.06*Math.sin(pop*Math.PI)*pop;heks.G.scale.set(k,2-k,1);heks.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;heks.tick(t,{ph:0,amp:0});

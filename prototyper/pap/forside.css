@@ -142,3 +142,4 @@
 .bog-efter.on{opacity:1;pointer-events:auto}
 .bog-efter p{margin:0;text-shadow:0 2px 0 rgba(0,0,0,.6)}
 .bog-ek{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.bog-k.bog-pen{width:46px;height:46px;margin:0;transform:translate(-50%,-50%);top:0;left:0}.bog-pen svg{width:24px;height:24px}

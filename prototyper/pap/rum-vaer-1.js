@@ -98,18 +98,31 @@ const QUILT={
   waves:(P,xa,xb,ql)=>{for(let y=4.6;y<12;y+=1.9){const w=[];for(let x=xa;x<=xb+.5;x+=.9)w.push([x,y+.38*Math.sin((x-xa)*1.5+y)]);P.pen(w,ql,.16,.75)}},
   hearts:(P,xa,xb)=>{for(let i=0;i<8;i++)P.fill(heart(xa+1.4+i*1.65,i%2?9.4:5.6,.75,16),i%3?'#ffd0e4':'#ff8fb0',.85)},
   plain:(P,xa,xb,ql)=>{P.fill(box(xa-1,9.6,xb+1,10.6),ql,.6);P.fill(box(xa-1,5,xb+1,5.6),ql,.45)}};
-const bed=(g,c,o)=>{const x0=-41,x1=-12,wood=o.wood||'#86593a',wl=lt(wood,.18),wd=dk(wood,-.35),ql=lt(c,.25),qd=dk(c,-.3);
-  if(o.hb)o.hb(x0,wood,wl,wd);else{const hb=toCCW(sm([[x0,0,1],[x0+8.4,0,1],[x0+8.4,16.4],[x0+7,20.2],[x0+4.2,21.8],[x0+1.4,20.2],[x0,16.4]],6));
-    P2(g,hb,{t:1,s:22,paint:P=>{P.wash(wood,hb,{top:wl,edge:.6,clouds:4});P.score(sm([[x0+1.2,6],[x0+7.2,6],[x0+7.2,16],[x0+4.2,19.8],[x0+1.2,16],[x0+1.2,6]],5),{w:.14,ink:.4,dark:wd});o.hbp&&o.hbp(P,x0+4.2,14)}},-7.4)}
-  for(const x of[x0+8.6,x1-7.4])P2(g,box(x,0,x+1.2,6.4),{color:wd,kind:'balsa',t:1},-6.8);
-  P2(g,box(x0+7,5.6,x1-4,7.4),{color:wood,kind:'balsa',t:1.4},-6.9);
-  const ma=box(x0+7.4,7.2,x1-4.4,10.8);P2(g,ma,{t:1.2,s:20,paint:P=>{P.wash('#f3ecdc',ma,{edge:.5});for(let x=x0+8;x<x1-5;x+=1.6)P.pen([[x,7.3],[x,10.7]],'#d8c8e8',.1,.5)}},-6.5);
-  const pil=circ(x0+13.4,12.5,4.4,2,28);P2(g,pil,{t:.8,s:30,paint:P=>{P.wash(o.pil||'#fbf6ec',pil,{edge:.6,clouds:4});P.wash('#cdbfe8',box(x0+9,10.4,x0+18,11.6),{alpha:.6,edge:0})}},-5.6);
-  const qs=[];for(let i=0;i<=7;i++)qs.push([x0+16+(x1-3-x0-16)*i/7,12+(i%2?.55:0)]);qs.push([x1-2.6,10]);for(let i=0;i<=9;i++)qs.push([x1-2.6-(x1-2.6-x0-15.6)*i/9,2.8+(i%2?1:0)]);qs.push([x0+15.6,10]);
-  const qt=toCCW(sm(qs,4));P2(g,qt,{t:.4,s:22,paint:P=>{P.wash(c,qt,{top:ql,edge:.6,clouds:6});QUILT[o.q||'patch'](P,x0+16,x1-3,ql,qd)}},-5.2);
-  if(o.fb)o.fb(x1,wood,wl,wd);else{const fb=toCCW(sm([[x1-6.4,0,1],[x1,0,1],[x1,10.4],[x1-1.2,13],[x1-3.2,14.2],[x1-5.2,13],[x1-6.4,10.4]],6));
-    P2(g,fb,{t:1,s:22,paint:P=>{P.wash(wood,fb,{top:wl,edge:.6,clouds:4});P.score(sm([[x1-5.4,4],[x1-1,4],[x1-1,10.2],[x1-3.2,12.6],[x1-5.4,10.2],[x1-5.4,4]],5),{w:.14,ink:.4,dark:wd});o.fbp&&o.fbp(P,x1-3.2,8)}},-4.6)}
-  o.more&&o.more(x0,x1,wood,wl,wd)};
+/* sengen set fra fodenden (Kasper 23. nov.: "korrekt perspektiv"): hovedgærdet står mod væggen og vender mod os, puden ligger foran det,
+   dynen hænger ned over madrassens forkant, og forrest er en lav fodende med stolper. Det hele står ét sted på gulvet med rigtig dybde */
+const SENG={CX:-26.5,BW:11,zH:-7.4,zF:6.2,top:8.2};
+const bed=(g,c,o)=>{const x0=-41,x1=-12,{CX,BW,zF,top}=SENG,SX=BW/8.4,xa=CX-BW/2,xb=CX+BW/2,wood=o.wood||'#86593a',wl=lt(wood,.18),wd=dk(wood,-.35),ql=lt(c,.25),qd=dk(c,-.3);
+  /* tegningerne af hovedgærdet er lavet til venstre side; de flyttes ind på midten og gøres lidt bredere */
+  const flyt=(f,dx,sx)=>{const n=g.children.length;f();const nye=g.children.slice(n),gr=new THREE.Group();for(const m of nye){g.remove(m);gr.add(m)}gr.position.x=dx;gr.scale.x=sx;g.add(gr);return gr};
+  flyt(()=>{if(o.hb)o.hb(x0,wood,wl,wd);else{const hb=toCCW(sm([[x0,0,1],[x0+8.4,0,1],[x0+8.4,16.4],[x0+7,20.2],[x0+4.2,21.8],[x0+1.4,20.2],[x0,16.4]],6));
+    P2(g,hb,{t:1,s:22,paint:P=>{P.wash(wood,hb,{top:wl,edge:.6,clouds:4});P.score(sm([[x0+1.2,6],[x0+7.2,6],[x0+7.2,16],[x0+4.2,19.8],[x0+1.2,16],[x0+1.2,6]],5),{w:.14,ink:.4,dark:wd});o.hbp&&o.hbp(P,x0+4.2,14)}},-7.4)}},CX-(x0+4.2)*SX,SX);
+  /* puden og madrassen */
+  const pil=circ(CX,top+1.5,BW*.36,1.7,28);P2(g,pil,{t:.8,s:30,paint:P=>{P.wash(o.pil||'#fbf6ec',pil,{edge:.6,clouds:4});P.wash('#cdbfe8',box(CX-6,top-.1,CX+6,top+.9),{alpha:.5,edge:0})}},-5.6);
+  P2(g,box(xa+.2,top-.4,xb-.2,top+.5),{color:'#f3ecdc',kind:'card',t:11,edge:'#d8c8e8'},-.6);
+  /* dynen: oven på madrassen og ned over forkanten */
+  {const qt=box(xa+.1,2.8,xb-.1,12),m=piece(qt,{t:.3,s:20,paint:P=>{P.wash(c,qt,{top:ql,edge:.5,clouds:5});QUILT[o.q||'patch'](P,xa+.1,xb-.1,ql,qd)}});m.rotation.x=-Math.PI/2;put(g,m,0,top+.65,8)}
+  {const pts=[[xa-.2,top+.7],[xb+.2,top+.7],[xb+.3,top-1.6]];for(let k=0;k<=8;k++)pts.push([xb+.3-(BW+.6)*k/8,3.6+(k%2?.55:0)]);pts.push([xa-.3,top-1.6]);const dr=toCCW(sm(pts,4));
+    P2(g,dr,{t:.3,s:20,paint:P=>{P.wash(c,dr,{top:ql,edge:.6,clouds:5});QUILT[o.q||'patch'](P,xa,xb,ql,qd);P.wash(qd,box(xa-1,3,xb+1,4.6),{alpha:.35,edge:0})}},zF-.6)}
+  /* fodenden: en lav ramme med stolper i træets farve, eller i sengens eget tema */
+  const fr=o.fr||'trae',stolpe=(x,h=7.8)=>{P2(g,box(x-.55,0,x+.55,h),{color:wood,kind:'balsa',t:1.1,edge:wd},zF);P2(g,circ(x,h+.5,.75,.7,16),{color:wl,kind:'balsa',t:1.1,edge:wd},zF)};
+  if(fr==='sky'){for(const x of[xa,xb])P2(g,puff(x,5.6,1.8,2.4,8,.25),{color:'#f6f4ff',kind:'card',t:1,edge:'#c9c2e6'},zF);P2(g,puff(CX,5,BW*.42,1.5,10,.25),{color:'#f6f4ff',kind:'card',t:.8,edge:'#c9c2e6'},zF+.3)}
+  else if(fr==='jern'){for(const s of thick([[[xa,0],[xa,8.6]],[[xb,0],[xb,8.6]],[[xa,6.2],[xb,6.2]],[[xa,4.6],[xb,4.6]],...[.25,.5,.75].map(k=>[[xa+BW*k,4.6],[xa+BW*k,6.2]])],.3))P2(g,s,{color:'#3a3346',t:.6},zF);for(const x of[xa,xb])P2(g,circ(x,9,.7,.7,16),{mat:gold(),t:.7},zF+.1);P2(g,heart(CX,5.4,.7,16),{mat:gold(),t:.2},zF+.4)}
+  else{const ram=box(xa,4.4,xb,6.4);P2(g,ram,{t:.9,s:20,paint:P=>{P.wash(wood,ram,{top:wl,edge:.6,clouds:3});P.score([...box(xa+.6,4.8,xb-.6,6),[xa+.6,4.8]],{w:.1,ink:.35,dark:wd});o.fbp&&o.fbp(P,CX,5.4)}},zF+.1);
+    if(fr==='slot'){for(let x=xa;x<xb;x+=1.6)P2(g,box(x,6.4,x+.9,7.4),{color:wood,kind:'card',t:.9,edge:wd},zF+.1)}
+    if(fr==='pol')P2(g,box(xa+.3,4.6,xb-.3,6.2),{color:lt(c,.12),kind:'card',t:.4,edge:dk(c,-.3)},zF+.55);
+    if(fr==='baad'){const b=toCCW(sm([[xa-.6,6.6],[xb+.6,6.6],[xb-.4,2.2],[xa+.4,2.2]],3));P2(g,b,{t:.8,s:20,paint:P=>{boards(P,b,wood,{h:1.4,dir:'h',ink:.3})}},zF+.2)}
+    stolpe(xa);stolpe(xb)}
+  o.more&&o.more(xa-.6,xb+.6,wood,wl,wd)};
 VAER.seng=(g,v,c)=>{const S='#c9a04a';
   if(v==='enkel')bed(g,c,{hbp:(P,x,y)=>P.fill(starPts(x,y,1.7,.72),S,.9)});
   if(v==='himmelseng')bed(g,c,{wood:'#4a2e1c',q:'stripes',hbp:(P,x,y)=>P.fill(starPts(x,y,1.7,.72),S,.9),more:(x0,x1,wood)=>{for(const x of[x0+.4,x1-1.6])P2(g,box(x,0,x+1.2,36),{color:wood,kind:'balsa',t:1},-4.2);
@@ -117,17 +130,17 @@ VAER.seng=(g,v,c)=>{const S='#c9a04a';
     P2(g,vs,{t:.3,s:22,paint:P=>{P.wash(c,vs,{top:lt(c,.22),edge:.6,clouds:5});for(let i=0;i<13;i++)P.fill(starPts(x0+1.4+i*2.5,34.4,.45,.19),'#f2c230',.9)}},-3.8);
     for(const x of[x0+1,x1-1])P2(g,circ(x,37.4,1,1,16),{mat:gold(),t:1},-4.2)}});
   if(v==='skyseng'){const sky=(sh,z)=>P2(g,sh,{t:1,s:22,paint:P=>{P.wash('#f6f4ff',sh,{top:'#ffffff',edge:.7,clouds:5});P.wash('#c9c2e6',box(-60,-1,0,3.4),{alpha:.5,edge:0})}},z);
-    bed(g,c,{wood:'#d8d2ea',q:'clouds',hb:x0=>sky(clip([circ(x0+4.2,17,4.7,4.7,28),circ(x0+1.5,13.6,3.3,3.3,24),circ(x0+7,13.6,3.3,3.3,24),box(x0-.6,0,x0+9,13.4)],[],'union')[0].outer,-7.4),
+    bed(g,c,{fr:'sky',wood:'#d8d2ea',q:'clouds',hb:x0=>sky(clip([circ(x0+4.2,17,4.7,4.7,28),circ(x0+1.5,13.6,3.3,3.3,24),circ(x0+7,13.6,3.3,3.3,24),box(x0-.6,0,x0+9,13.4)],[],'union')[0].outer,-7.4),
       fb:x1=>sky(clip([circ(x1-3.2,10.4,3.5,3.5,26),circ(x1-5.5,8,2.5,2.5,22),circ(x1-.9,8,2.5,2.5,22),box(x1-6.8,0,x1+.4,8)],[],'union')[0].outer,-4.6)})}
   if(v==='maaneseng')bed(g,c,{wood:'#5a4a7a',q:'stars',fbp:(P,x,y)=>P.fill(starPts(x,y,1.5,.64),'#e9b949',.95),hb:(x0,wood)=>{P2(g,box(x0+1.4,0,x0+8.4,8),{color:wood,kind:'balsa',t:.8},-7.8);
     const m=moonS(x0+6.2,13.4,8);P2(g,m,{t:1,s:22,paint:P=>{P.wash('#e9b949',m,{top:'#f6dc8a',edge:.7,clouds:5});for(const[dx,dy,r]of[[-4.4,2,1],[-5,-2.4,.7],[-2.6,-5.4,.8],[-2.2,5.6,.6]])P.fill(circ(x0+6.2+dx,13.4+dy,r,r,14),'#a87a1a',.3)}},-7.2)}});
   if(v==='jern'){const I='#3a3346',iron=(xa,xb,h,z)=>{const m=(xa+xb)/2,top=curve([[xa,h-3],[m,h+.8],[xb,h-3]],10),L=[[[xa,0],[xa,h-3]],[[xb,0],[xb,h-3]],top,[[xa,h*.42],[xb,h*.42]]];for(const k of[.25,.5,.75]){const x=xa+(xb-xa)*k;L.push([[x,h*.42],[x,h-3+3.8*Math.sin(k*Math.PI)*.9]])}
       for(const s of thick(L,.36))P2(g,s,{color:I,t:.6},z);for(const x of[xa,xb])P2(g,circ(x,h-2.5,.8,.8,16),{mat:gold(),t:.8},z-.1);P2(g,heart(m,h*.42+ (h-3-h*.42)*.55,1.1,18),{mat:gold(),t:.2},z+.3)};
-    bed(g,c,{wood:'#3a3346',q:'stripes',hb:x0=>iron(x0+.5,x0+8,22,-7.4),fb:x1=>iron(x1-6,x1-.4,14,-4.6)})}
+    bed(g,c,{fr:'jern',wood:'#3a3346',q:'stripes',hb:x0=>iron(x0+.5,x0+8,22,-7.4),fb:x1=>iron(x1-6,x1-.4,14,-4.6)})}
   if(v==='polstret'){const pol=(pts,z,cx,ys)=>{const sh=toCCW(sm(pts,6));P2(g,sh,{t:1.2,s:22,paint:P=>{P.wash(lt(c,.12),sh,{top:lt(c,.3),edge:.7,clouds:5});for(const y of ys)for(const dx of[-2,0,2]){P.score([[cx+dx-1,y-1.6],[cx+dx,y],[cx+dx+1,y-1.6]],{w:.1,ink:.3,dark:dk(c,-.4)});P.score([[cx+dx-1,y+1.6],[cx+dx,y],[cx+dx+1,y+1.6]],{w:.1,ink:.3,dark:dk(c,-.4)});P.fill(circ(cx+dx,y,.34,.34,10),'#e8c86a',.95)}}},z)};
-    bed(g,c,{wood:'#6a4430',q:'plain',hb:x0=>pol([[x0-.4,0,1],[x0+8.8,0,1],[x0+8.8,18.6],[x0+7.2,21.2],[x0+1.2,21.2],[x0-.4,18.6]],-7.4,x0+4.2,[8,12,16]),fb:x1=>pol([[x1-6.6,0,1],[x1+.2,0,1],[x1+.2,11.4],[x1-1,13.4],[x1-5.4,13.4],[x1-6.6,11.4]],-4.6,x1-3.2,[5.4,9.4])})}
+    bed(g,c,{fr:'pol',wood:'#6a4430',q:'plain',hb:x0=>pol([[x0-.4,0,1],[x0+8.8,0,1],[x0+8.8,18.6],[x0+7.2,21.2],[x0+1.2,21.2],[x0-.4,18.6]],-7.4,x0+4.2,[8,12,16]),fb:x1=>pol([[x1-6.6,0,1],[x1+.2,0,1],[x1+.2,11.4],[x1-1,13.4],[x1-5.4,13.4],[x1-6.6,11.4]],-4.6,x1-3.2,[5.4,9.4])})}
   if(v==='baad'){const W='#8a5a3c',plank=(pts,z)=>{const sh=toCCW(sm(pts,6));P2(g,sh,{t:1,s:22,paint:P=>{boards(P,sh,W,{h:2.2,dir:'h',ink:.3})}},z)};
-    bed(g,c,{wood:W,q:'waves',hb:x0=>plank([[x0,0,1],[x0+8.4,0,1],[x0+8.4,13],[x0+6,17.6],[x0-1.2,21.6,1],[x0-.4,12]],-7.4),
+    bed(g,c,{fr:'baad',wood:W,q:'waves',hb:x0=>plank([[x0,0,1],[x0+8.4,0,1],[x0+8.4,13],[x0+6,17.6],[x0-1.2,21.6,1],[x0-.4,12]],-7.4),
       fb:x1=>{plank([[x1-6.4,0,1],[x1,0,1],[x1+.9,8.6],[x1+2.6,15.4,1],[x1-3,12],[x1-6.4,9.4]],-4.6);for(const s of ring(circ(x1-3,6.2,1.5,1.5,22),.4))P2(g,s,{mat:gold(),t:.2},-3.5);P2(g,circ(x1-3,6.2,1.5,1.5,22),{color:'#9fd8ee',kind:'water',t:.1},-3.55)},
       more:x0=>{const mx=x0+11;P2(g,box(mx-.35,0,mx+.35,37),{color:'#6a4426',kind:'balsa',t:.7},-8.6);
         const sl=toCCW([[mx+.7,34.6],[mx+.7,19.6],[mx+12.4,19.6]]);P2(g,sl,{t:.2,s:20,paint:P=>{P.wash('#f6efdc',sl,{edge:.6,clouds:5});P.fill(box(mx,24,mx+14,26.4),c,.75);P.fill(box(mx,29,mx+14,30.4),c,.6)}},-8.4);
@@ -139,7 +152,7 @@ VAER.seng=(g,v,c)=>{const S='#c9a04a';
       P2(g,circ(x0+4.2,17.6,2.5,2.5,24),{color:'#f2c230',kind:'water',t:.5},-6.7)}});
   if(v==='slot'){const ST='#b9a6d9',mur=(xa,xb,h,z,n)=>{const w=(xb-xa)/(2*n-1),pts=[[xa,0],[xb,0]];for(let i=0;i<2*n-1;i++){const xr=xb-i*w,up=i%2===0;pts.push([xr,up?h:h-1.5],[xr-w,up?h:h-1.5])}const sh=toCCW(pts);
       P2(g,sh,{t:1,s:22,paint:P=>{P.wash(ST,sh,{edge:.4,clouds:6});P.ashlar(sh,ST,{rowH:[1.5,2],bw:[2.2,3.6],tint:.1,ink:.28});const m=(xa+xb)/2;P.fill(arch(m,h*.34,1.5,h*.3,10),'#2a2040',.85)}},z)};
-    bed(g,c,{wood:'#8a7aa8',q:'patch',hb:x0=>{mur(x0-.2,x0+8.6,18.6,-7.4,3);P2(g,toCCW([[x0+.4,18.6],[x0+8,18.6],[x0+4.2,27]]),{color:c,kind:'water',t:.5},-7.9);
+    bed(g,c,{fr:'slot',wood:'#8a7aa8',q:'patch',hb:x0=>{mur(x0-.2,x0+8.6,18.6,-7.4,3);P2(g,toCCW([[x0+.4,18.6],[x0+8,18.6],[x0+4.2,27]]),{color:c,kind:'water',t:.5},-7.9);
         for(const s of thick([[[x0+4.2,27],[x0+4.2,31]]],.12))P2(g,s,{mat:gold(),t:.1},-7.8);P2(g,toCCW([[x0+4.3,31],[x0+4.3,28.8],[x0+7.6,29.9]]),{color:'#e0457a',kind:'water',t:.1},-7.7)},
       fb:x1=>mur(x1-6.6,x1+.2,12,-4.6,3)})}
   if(v==='stjerne')bed(g,c,{wood:'#efe6d6',q:'stars',pil:'#fff3c8',hb:(x0,wood,wl,wd)=>{const st=toCCW(sm([[x0,0,1],[x0+8.4,0,1],[x0+8.4,12.4],[x0+4.2,14.4],[x0,12.4]],6));P2(g,st,{t:1,s:22,paint:P=>P.wash(wood,st,{top:wl,edge:.6,clouds:4})},-7.6);
