@@ -100,8 +100,10 @@ const QUILT={
   plain:(P,xa,xb,ql)=>{P.fill(box(xa-1,9.6,xb+1,10.6),ql,.6);P.fill(box(xa-1,5,xb+1,5.6),ql,.45)}};
 /* sengen set fra fodenden (Kasper 23. nov.: "korrekt perspektiv"): hovedgærdet står mod væggen og vender mod os, puden ligger foran det,
    dynen hænger ned over madrassens forkant, og forrest er en lav fodende med stolper. Det hele står ét sted på gulvet med rigtig dybde */
-const SENG={CX:-26.5,BW:11,zH:-7.4,zF:6.2,top:8.2};
-const bed=(g,c,o)=>{const x0=-41,x1=-12,{CX,BW,zF,top}=SENG,SX=BW/8.4,xa=CX-BW/2,xb=CX+BW/2,wood=o.wood||'#86593a',wl=lt(wood,.18),wd=dk(wood,-.35),ql=lt(c,.25),qd=dk(c,-.3);
+/* hele sengen gøres K gange større omkring midten af hovedgærdet ved væggen (Kasper 23. nov.: "sengen er lidt lille") */
+VAER.SENG={CX:-26.5,BW:11,zH:-7.4,zF:6.2,top:8.2,K:1.18,til(x,y,z){return[this.CX+(x-this.CX)*this.K,y*this.K,this.zH+(z-this.zH)*this.K]}};
+const bed=(g,c,o)=>{const n0=g.children.length;bedI(g,c,o);const nye=g.children.slice(n0),gr=new THREE.Group();for(const m of nye){g.remove(m);gr.add(m)}const S_=VAER.SENG,K=S_.K;gr.scale.setScalar(K);gr.position.set(S_.CX*(1-K),0,S_.zH*(1-K));g.add(gr)};
+const bedI=(g,c,o)=>{const x0=-41,x1=-12,{CX,BW,zF,top}=VAER.SENG,SX=BW/8.4,xa=CX-BW/2,xb=CX+BW/2,wood=o.wood||'#86593a',wl=lt(wood,.18),wd=dk(wood,-.35),ql=lt(c,.25),qd=dk(c,-.3);
   /* tegningerne af hovedgærdet er lavet til venstre side; de flyttes ind på midten og gøres lidt bredere */
   const flyt=(f,dx,sx)=>{const n=g.children.length;f();const nye=g.children.slice(n),gr=new THREE.Group();for(const m of nye){g.remove(m);gr.add(m)}gr.position.x=dx;gr.scale.x=sx;g.add(gr);return gr};
   flyt(()=>{if(o.hb)o.hb(x0,wood,wl,wd);else{const hb=toCCW(sm([[x0,0,1],[x0+8.4,0,1],[x0+8.4,16.4],[x0+7,20.2],[x0+4.2,21.8],[x0+1.4,20.2],[x0,16.4]],6));

@@ -14,7 +14,7 @@ ROOMS.bog=function(ctx){
     {art:'doer',lines:[['','Kunne du tænke dig at tage med?'],['','Så følg mig …'],['big','eller skulle jeg sige …']]}];
   SIDER.forEach(q=>q.v=true);
   const PW=21,PH=28,PY=2.05,BLAEK='#3a2412';
-  let Rm=null,aaben=false,ryg=null,bog,venstre,hoejre,sideV,sideH,blad=null,pop=null,popNy=null,i=0,navn=SPIL.navn||'',travl=false,lukket=false,bogst=[],stoev=[],tiden=0,fase=null;
+  let Rm=null,aaben=false,ryg=null,rygFlad=null,bog,venstre,hoejre,sideV,sideH,blad=null,pop=null,popNy=null,i=0,navn=SPIL.navn||'',travl=false,lukket=false,bogst=[],stoev=[],tiden=0,fase=null;
   /* ---------- siderne: papir med tekst, tegnet på et lærred ---------- */
   const lag=new Map();
   function sideLaerred(n,s){const W=900,H=1200,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
@@ -97,7 +97,7 @@ ROOMS.bog=function(ctx){
         for(const[y,w,c]of[[3.9,2.6,'#7a2f3a'],[4.35,2.3,'#2e4a7a'],[4.8,2.5,'#3e7a4a']])pc(gR,box(3.4-w/2,y,3.4+w/2,y+.45),{color:c,kind:'card',t:.4,edge:'#1a1018'},.15);pc(gR,box(2.1,5.25,4.6,5.35),{color:'#f6ecd8',kind:'card',t:.4},.15);
         del(gL,gR,box(-.5,3.9,.5,4.2),{mat:gold(),t:.3},.15);del(gL,gR,box(-.25,4.2,.25,5.8),{color:'#f6ecd8',kind:'card',t:.3,edge:'#d8c8a8'},.15);flamme(gR,0,5.8,.25)});
       lag(76,7,(gL,gR)=>{const br=toCCW(sm([[-7.4,.2],[7.4,.2],[7.8,.8],[7.4,1.2],[7.4,5.2],[7.9,5.6],[7.4,6.1],[-7.4,6.1],[-7.9,5.6],[-7.4,5.2],[-7.4,1.2],[-7.8,.8]],3));del(gL,gR,br,{color:'#efe0b8',kind:'card',t:.06,edge:'#a8885a'},.04);
-        P.brev=flade(gL,gR,{y:3.15,w:14.4,h:5.4,z:.085},P);P.navnPkt={g:gR,v:new V3(4.6,2.5,.3)};P.navnLinjer=nv=>[{t:'Hej med dig!',s:.95,c:'#5a2a8a',w:700},{t:'Jeg hedder',s:.7},{t:nv||'skriv dit navn',s:1,c:nv?'#5a2a8a':'rgba(90,60,30,.4)',w:700,linje:true},{t:'og jeg vil gerne invitere dig ind i min verden.',s:.68}];P.brev.skriv(P.navnLinjer(navn));
+        P.brev=flade(gL,gR,{y:3.15,w:14.4,h:5.4,z:.085},P);P.navnPkt={g:gR,v:new V3(9.2,3.6,.3)};P.navnLinjer=nv=>[{t:'Hej med dig!',s:.95,c:'#5a2a8a',w:700},{t:'Jeg hedder',s:.7},{t:nv||'skriv dit navn',s:1,c:nv?'#5a2a8a':'rgba(90,60,30,.4)',w:700,linje:true},{t:'og jeg vil gerne invitere dig ind i min verden.',s:.68}];P.brev.skriv(P.navnLinjer(navn));
         pc(gR,toCCW(sm([[6,.4],[7.2,.6],[7.6,1.6],[6.6,1.2]],2)),{color:'#c2465e',kind:'card',t:.1},.15);pc(gR,circ(6.7,1,.42,.42,16),{color:'#b8283e',kind:'card',t:.12,edge:'#6a1020'},.2)})},
     /* 2: et soveværelse med vindue og måne, et skilt med de første ord, en kæmpe heksehat, en tryllestav og et bånd: "Jeg er nemlig en heks!" */
     hat:({lag,del,pc,side,P})=>{
@@ -187,10 +187,10 @@ ROOMS.bog=function(ctx){
       for(const[x,y]of[[100,100],[800,100],[100,1100],[800,1100]]){g.fillStyle='#e2b24a';g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,r=k%2?12:30;g.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}g.fill()}
       const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(PW+1.4,PH+2.2),new THREE.MeshStandardMaterial({map:t,roughness:.6,metalness:.05}));m.rotation.x=Math.PI/2;m.position.set(-(PW+1.6)/2,-.43,0);m.userData.noShadow=true;venstre.add(m)}
     sideV=sidePlan(sideLaerred(0,'l'),-PW/2-.4);sideH=sidePlan(sideLaerred(0,'r'),PW/2+.4);sideV.position.y=PY+.3;sideH.position.y=PY+.3;venstre.add(sideV);hoejre.add(sideH);
-    /* ryggen */Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
+    /* ryggen */rygFlad=Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
     /* bogryggen, som rejser sig, når bogen lukkes (Kasper 23. nov.: "den har ingen ryg, når den er lukket"), med guldbånd */
-    ryg=new THREE.Group();ryg.position.set(0,-.4,0);bog.add(ryg);Rm.floor(box(-5.5,-PH/2-1.2,.1,PH/2+1.2),{color:'#3e2058',kind:'card',t:.7,edge:laeK,both:true},0,ryg);
-    for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2])Rm.floor(box(-5.5,z-.22,.1,z+.22),{mat:gold(),t:.1,both:true},-.38,ryg);
+    ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;Rm.floor(box(-4.85,-PH/2-1.2,0,PH/2+1.2),{color:'#3e2058',kind:'card',t:.7,edge:laeK,both:true},-.7,ryg);
+    for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2])Rm.floor(box(-4.85,z-.22,0,z+.22),{mat:gold(),t:.06,both:true},-.76,ryg);ryg.rotation.z=-Math.PI/2;
     /* guldhjørner også på forsiden, så de ses, når bogen er lukket */
     for(const[cx,cz]of[[-PW-1.6,-PH/2-1.2],[-PW-1.6,PH/2+1.2]])Rm.floor(toCCW([[cx,cz],[cx+2.6,cz],[cx,cz-Math.sign(cz)*2.6]]),{mat:gold(),t:.1,both:true},-.5,venstre);
     }
@@ -230,7 +230,7 @@ ROOMS.bog=function(ctx){
   /* ---------- åbningen, lukningen og titlen ---------- */
   const TITEL=['Magiske','Mig'],LUKY=4.72,BX=-13;
   /* venstre bogbind drejer om sidens kant ved ryggen (samme hængsel som pop-up'erne), lidt løftet, når den er lukket */
-  function vPlace(rot,k){const hy=PY+.3;venstre.rotation.z=rot;venstre.position.set(Math.sin(rot)*hy,hy-Math.cos(rot)*hy+.02*k,0);if(ryg)ryg.rotation.z=-k*Math.PI/2}
+  function vPlace(rot,k){const hy=PY+.3;venstre.rotation.z=rot;venstre.position.set(Math.sin(rot)*hy,hy-Math.cos(rot)*hy+.02*k,0);if(ryg){ryg.visible=k>.97;rygFlad.scale.x=1-.6*k}}
   /* tryk på den lukkede bog åbner den. Trykket fjernes igen, når den er åben, ellers tog det trykket fra brevet efter "Læs igen" (Kasper 23. nov.) */
   function bogTap(){Rm.untap(bog);Rm.tap(bog,()=>{if(!aaben&&!lukket)aabn()})}
   function lukketStart(x0){vPlace(-Math.PI,1);if(Rm.taps)bogTap();bog.position.x=x0;aaben=false;if(pop){pop.op=0;if(pop.v)stilV(pop,[1,1e-3],[1,0])}}

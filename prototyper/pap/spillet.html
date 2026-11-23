@@ -296,7 +296,8 @@ body[data-rum=gribe] #toast:not(.vent),body[data-rum=dyrepark] #toast{bottom:aut
 .bog-efter.on{opacity:1;pointer-events:auto}
 .bog-efter p{margin:0;text-shadow:0 2px 0 rgba(0,0,0,.6)}
 .bog-ek{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.bog-k.bog-pen{width:46px;height:46px;margin:0;transform:translate(-50%,-50%);top:0;left:0}.bog-pen svg{width:24px;height:24px}
+.bog-k.bog-pen{width:34px;height:34px;margin:0;transform:translate(-50%,-50%);top:0;left:0;border-radius:50%}.bog-pen svg{width:18px;height:18px}@media (max-height:520px){.bog-k.bog-pen{width:28px;height:28px}.bog-pen svg{width:15px;height:15px}}
+/* i bogen kan man ikke gå til byen, før heksen er lavet (Kasper 23. nov.) */body[data-rum=bog] #hjem{display:none!important}
 </style>
 <div id="stage"></div>
 <div id="vig" aria-hidden="true"></div>
@@ -1865,7 +1866,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.39';
+const PAPVER='pap-0.40';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 /* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
 const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
@@ -3661,7 +3662,7 @@ ROOMS.bog=function(ctx){
     {art:'doer',lines:[['','Kunne du tænke dig at tage med?'],['','Så følg mig …'],['big','eller skulle jeg sige …']]}];
   SIDER.forEach(q=>q.v=true);
   const PW=21,PH=28,PY=2.05,BLAEK='#3a2412';
-  let Rm=null,aaben=false,ryg=null,bog,venstre,hoejre,sideV,sideH,blad=null,pop=null,popNy=null,i=0,navn=SPIL.navn||'',travl=false,lukket=false,bogst=[],stoev=[],tiden=0,fase=null;
+  let Rm=null,aaben=false,ryg=null,rygFlad=null,bog,venstre,hoejre,sideV,sideH,blad=null,pop=null,popNy=null,i=0,navn=SPIL.navn||'',travl=false,lukket=false,bogst=[],stoev=[],tiden=0,fase=null;
   /* ---------- siderne: papir med tekst, tegnet på et lærred ---------- */
   const lag=new Map();
   function sideLaerred(n,s){const W=900,H=1200,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
@@ -3744,7 +3745,7 @@ ROOMS.bog=function(ctx){
         for(const[y,w,c]of[[3.9,2.6,'#7a2f3a'],[4.35,2.3,'#2e4a7a'],[4.8,2.5,'#3e7a4a']])pc(gR,box(3.4-w/2,y,3.4+w/2,y+.45),{color:c,kind:'card',t:.4,edge:'#1a1018'},.15);pc(gR,box(2.1,5.25,4.6,5.35),{color:'#f6ecd8',kind:'card',t:.4},.15);
         del(gL,gR,box(-.5,3.9,.5,4.2),{mat:gold(),t:.3},.15);del(gL,gR,box(-.25,4.2,.25,5.8),{color:'#f6ecd8',kind:'card',t:.3,edge:'#d8c8a8'},.15);flamme(gR,0,5.8,.25)});
       lag(76,7,(gL,gR)=>{const br=toCCW(sm([[-7.4,.2],[7.4,.2],[7.8,.8],[7.4,1.2],[7.4,5.2],[7.9,5.6],[7.4,6.1],[-7.4,6.1],[-7.9,5.6],[-7.4,5.2],[-7.4,1.2],[-7.8,.8]],3));del(gL,gR,br,{color:'#efe0b8',kind:'card',t:.06,edge:'#a8885a'},.04);
-        P.brev=flade(gL,gR,{y:3.15,w:14.4,h:5.4,z:.085},P);P.navnPkt={g:gR,v:new V3(4.6,2.5,.3)};P.navnLinjer=nv=>[{t:'Hej med dig!',s:.95,c:'#5a2a8a',w:700},{t:'Jeg hedder',s:.7},{t:nv||'skriv dit navn',s:1,c:nv?'#5a2a8a':'rgba(90,60,30,.4)',w:700,linje:true},{t:'og jeg vil gerne invitere dig ind i min verden.',s:.68}];P.brev.skriv(P.navnLinjer(navn));
+        P.brev=flade(gL,gR,{y:3.15,w:14.4,h:5.4,z:.085},P);P.navnPkt={g:gR,v:new V3(9.2,3.6,.3)};P.navnLinjer=nv=>[{t:'Hej med dig!',s:.95,c:'#5a2a8a',w:700},{t:'Jeg hedder',s:.7},{t:nv||'skriv dit navn',s:1,c:nv?'#5a2a8a':'rgba(90,60,30,.4)',w:700,linje:true},{t:'og jeg vil gerne invitere dig ind i min verden.',s:.68}];P.brev.skriv(P.navnLinjer(navn));
         pc(gR,toCCW(sm([[6,.4],[7.2,.6],[7.6,1.6],[6.6,1.2]],2)),{color:'#c2465e',kind:'card',t:.1},.15);pc(gR,circ(6.7,1,.42,.42,16),{color:'#b8283e',kind:'card',t:.12,edge:'#6a1020'},.2)})},
     /* 2: et soveværelse med vindue og måne, et skilt med de første ord, en kæmpe heksehat, en tryllestav og et bånd: "Jeg er nemlig en heks!" */
     hat:({lag,del,pc,side,P})=>{
@@ -3834,10 +3835,10 @@ ROOMS.bog=function(ctx){
       for(const[x,y]of[[100,100],[800,100],[100,1100],[800,1100]]){g.fillStyle='#e2b24a';g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,r=k%2?12:30;g.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}g.fill()}
       const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(PW+1.4,PH+2.2),new THREE.MeshStandardMaterial({map:t,roughness:.6,metalness:.05}));m.rotation.x=Math.PI/2;m.position.set(-(PW+1.6)/2,-.43,0);m.userData.noShadow=true;venstre.add(m)}
     sideV=sidePlan(sideLaerred(0,'l'),-PW/2-.4);sideH=sidePlan(sideLaerred(0,'r'),PW/2+.4);sideV.position.y=PY+.3;sideH.position.y=PY+.3;venstre.add(sideV);hoejre.add(sideH);
-    /* ryggen */Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
+    /* ryggen */rygFlad=Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
     /* bogryggen, som rejser sig, når bogen lukkes (Kasper 23. nov.: "den har ingen ryg, når den er lukket"), med guldbånd */
-    ryg=new THREE.Group();ryg.position.set(0,-.4,0);bog.add(ryg);Rm.floor(box(-5.5,-PH/2-1.2,.1,PH/2+1.2),{color:'#3e2058',kind:'card',t:.7,edge:laeK,both:true},0,ryg);
-    for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2])Rm.floor(box(-5.5,z-.22,.1,z+.22),{mat:gold(),t:.1,both:true},-.38,ryg);
+    ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;Rm.floor(box(-4.85,-PH/2-1.2,0,PH/2+1.2),{color:'#3e2058',kind:'card',t:.7,edge:laeK,both:true},-.7,ryg);
+    for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2])Rm.floor(box(-4.85,z-.22,0,z+.22),{mat:gold(),t:.06,both:true},-.76,ryg);ryg.rotation.z=-Math.PI/2;
     /* guldhjørner også på forsiden, så de ses, når bogen er lukket */
     for(const[cx,cz]of[[-PW-1.6,-PH/2-1.2],[-PW-1.6,PH/2+1.2]])Rm.floor(toCCW([[cx,cz],[cx+2.6,cz],[cx,cz-Math.sign(cz)*2.6]]),{mat:gold(),t:.1,both:true},-.5,venstre);
     }
@@ -3877,7 +3878,7 @@ ROOMS.bog=function(ctx){
   /* ---------- åbningen, lukningen og titlen ---------- */
   const TITEL=['Magiske','Mig'],LUKY=4.72,BX=-13;
   /* venstre bogbind drejer om sidens kant ved ryggen (samme hængsel som pop-up'erne), lidt løftet, når den er lukket */
-  function vPlace(rot,k){const hy=PY+.3;venstre.rotation.z=rot;venstre.position.set(Math.sin(rot)*hy,hy-Math.cos(rot)*hy+.02*k,0);if(ryg)ryg.rotation.z=-k*Math.PI/2}
+  function vPlace(rot,k){const hy=PY+.3;venstre.rotation.z=rot;venstre.position.set(Math.sin(rot)*hy,hy-Math.cos(rot)*hy+.02*k,0);if(ryg){ryg.visible=k>.97;rygFlad.scale.x=1-.6*k}}
   /* tryk på den lukkede bog åbner den. Trykket fjernes igen, når den er åben, ellers tog det trykket fra brevet efter "Læs igen" (Kasper 23. nov.) */
   function bogTap(){Rm.untap(bog);Rm.tap(bog,()=>{if(!aaben&&!lukket)aabn()})}
   function lukketStart(x0){vPlace(-Math.PI,1);if(Rm.taps)bogTap();bog.position.x=x0;aaben=false;if(pop){pop.op=0;if(pop.v)stilV(pop,[1,1e-3],[1,0])}}
@@ -5699,8 +5700,10 @@ const QUILT={
   plain:(P,xa,xb,ql)=>{P.fill(box(xa-1,9.6,xb+1,10.6),ql,.6);P.fill(box(xa-1,5,xb+1,5.6),ql,.45)}};
 /* sengen set fra fodenden (Kasper 23. nov.: "korrekt perspektiv"): hovedgærdet står mod væggen og vender mod os, puden ligger foran det,
    dynen hænger ned over madrassens forkant, og forrest er en lav fodende med stolper. Det hele står ét sted på gulvet med rigtig dybde */
-const SENG={CX:-26.5,BW:11,zH:-7.4,zF:6.2,top:8.2};
-const bed=(g,c,o)=>{const x0=-41,x1=-12,{CX,BW,zF,top}=SENG,SX=BW/8.4,xa=CX-BW/2,xb=CX+BW/2,wood=o.wood||'#86593a',wl=lt(wood,.18),wd=dk(wood,-.35),ql=lt(c,.25),qd=dk(c,-.3);
+/* hele sengen gøres K gange større omkring midten af hovedgærdet ved væggen (Kasper 23. nov.: "sengen er lidt lille") */
+VAER.SENG={CX:-26.5,BW:11,zH:-7.4,zF:6.2,top:8.2,K:1.18,til(x,y,z){return[this.CX+(x-this.CX)*this.K,y*this.K,this.zH+(z-this.zH)*this.K]}};
+const bed=(g,c,o)=>{const n0=g.children.length;bedI(g,c,o);const nye=g.children.slice(n0),gr=new THREE.Group();for(const m of nye){g.remove(m);gr.add(m)}const S_=VAER.SENG,K=S_.K;gr.scale.setScalar(K);gr.position.set(S_.CX*(1-K),0,S_.zH*(1-K));g.add(gr)};
+const bedI=(g,c,o)=>{const x0=-41,x1=-12,{CX,BW,zF,top}=VAER.SENG,SX=BW/8.4,xa=CX-BW/2,xb=CX+BW/2,wood=o.wood||'#86593a',wl=lt(wood,.18),wd=dk(wood,-.35),ql=lt(c,.25),qd=dk(c,-.3);
   /* tegningerne af hovedgærdet er lavet til venstre side; de flyttes ind på midten og gøres lidt bredere */
   const flyt=(f,dx,sx)=>{const n=g.children.length;f();const nye=g.children.slice(n),gr=new THREE.Group();for(const m of nye){g.remove(m);gr.add(m)}gr.position.x=dx;gr.scale.x=sx;g.add(gr);return gr};
   flyt(()=>{if(o.hb)o.hb(x0,wood,wl,wd);else{const hb=toCCW(sm([[x0,0,1],[x0+8.4,0,1],[x0+8.4,16.4],[x0+7,20.2],[x0+4.2,21.8],[x0+1.4,20.2],[x0,16.4]],6));
@@ -6028,7 +6031,7 @@ ROOMS.vaerelse=function(ctx){
               ctx.say(vaeg[i]?MALERIER.find(m=>m[0]===vaeg[i])[1]:'Her er der plads til et maleri. Tryk igen for at hænge et op.')})})}
         /* bamserne fra Gribemaskinen sidder på sengen: én af hver slags, man har vundet. Er der flere, end sengen kan bære, sidder resten på gulvet foran */
         [...new Set(SPIL.data.bamser||[])].forEach((k,i)=>{const s=i<7?.95:1.05,q=bamseStykke(ctx,k,s);let x,y,z;if(i<4){x=-30.4+i*2.6;y=8.9;z=-2.6}else if(i<7){x=-29.1+(i-4)*2.6;y=9.9;z=-4.4}else{x=-40.5+(i-7)*2.5;y=.3;z=3+((i-7)%2)*.9}
-          y+=1.7*s;q.position.set(x,y,z);q.rotation.z=((i*37)%11-5)*.02;Rm.live.add(q);const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.2*s,3.4*s),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,.2,.05);q.add(hb);const b={q,y,hop:0};bamser.push(b);Rm.tap(hb,()=>{LYD.pip();b.hop=1})});
+          y+=1.7*s;[x,y,z]=i<7?VAER.SENG.til(x,y-1.7*s,z):[x,y-1.7*s,z];y+=1.7*s;q.position.set(x,y,z);q.rotation.z=((i*37)%11-5)*.02;Rm.live.add(q);const hb=new THREE.Mesh(new THREE.PlaneGeometry(2.2*s,3.4*s),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,.2,.05);q.add(hb);const b={q,y,hop:0};bamser.push(b);Rm.tap(hb,()=>{LYD.pip();b.hop=1})});
         ctx.say('Tryk på en ting for at lave den om · skabet fører ind i Garderoben')}],
     tick:t=>{pop=Math.max(0,pop-.035);hop=Math.max(0,hop-.04);const k=1+.06*Math.sin(pop*Math.PI)*pop;heks.G.scale.set(k,2-k,1);heks.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;heks.tick(t,{ph:0,amp:0});
       kat.G.position.y=1.1+Math.sin(hop*Math.PI)*2.2*hop;kat.tick(t,{ph:hop?t*14:0,amp:hop?1:0});for(const b of bamser)if(b.hop>0){b.hop=Math.max(0,b.hop-.05);b.q.position.y=b.y+Math.abs(Math.sin(b.hop*Math.PI*2))*1.2*b.hop}}});
