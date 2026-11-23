@@ -742,9 +742,12 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
   let t=0,last=performance.now(),spil=0;
   /* takten: slagene i den sang, der spiller (målt på forhånd), så bandet bevæger sig i takt. Uden en sang står de stille */
   const SLAG={};if(typeof KONCERT_SLAG!=='undefined')for(const k in KONCERT_SLAG){const v=KONCERT_SLAG[k],a=[v[0]];for(let i=1;i<v.length;i++)a.push(a[i-1]+v[i]/1000);SLAG[k]=a}
-  const slagFase=()=>{const L_=typeof LYD!=='undefined'?LYD:null,m=L_&&L_.musikTid&&L_.musikTid();if(!m||!m.id)return null;const key=m.id.replace('koncert.','').replace(/^lounge(\d)$/,'lounge-$1'),a=SLAG[key];
+  /* lydens ur på Android tæller i store hop (Kasper 23. nov.: "de bevæger sig med noget a la 2 fps"), så bandet følger et jævnt ur, der går med billederne og hele tiden trækkes blidt mod lydens tid. Ved et stort spring (ny sang, eller sløjfen starter forfra) hopper det med */
+  const ur={id:null,t:0,dt:0};
+  const slagFase=()=>{const L_=typeof LYD!=='undefined'?LYD:null,m0=L_&&L_.musikTid&&L_.musikTid();if(!m0||!m0.id){ur.id=null;return null}
+    const lat=L_.forsinkelse?L_.forsinkelse():0,mt=m0.t-lat;if(ur.id!==m0.id||Math.abs(mt-ur.t)>.35){ur.id=m0.id;ur.t=mt}else{ur.t+=ur.dt;ur.t+=(mt-ur.t)*Math.min(1,ur.dt*1.5)}const m={id:m0.id,t:ur.t};const key=m.id.replace('koncert.','').replace(/^lounge(\d)$/,'lounge-$1'),a=SLAG[key];
     if(!a)return m.t*2.2;if(m.t<a[0])return null;let lo=0,hi=a.length-1;if(m.t>=a[hi])return hi+Math.min(1,(m.t-a[hi])/((a[hi]-a[hi-1])||.45));while(hi-lo>1){const md=(lo+hi)>>1;if(a[md]<=m.t)lo=md;else hi=md}return lo+(m.t-a[lo])/(a[hi]-a[lo])};
-  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;const fase=slagFase();spil+=((fase==null?0:1)-spil)*Math.min(1,dt*(fase==null?6:3));const beat=(fase==null?0:fase)*Math.PI;
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;t+=dt;ur.dt=dt;const fase=slagFase();spil+=((fase==null?0:1)-spil)*Math.min(1,dt*(fase==null?6:3));const beat=(fase==null?0:fase)*Math.PI;
     for(const o of BAND){const walking=o.q.length>0;
       if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
       else o.dir+=(1-o.dir)*Math.min(1,dt*8);

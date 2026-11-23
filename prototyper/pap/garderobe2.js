@@ -70,7 +70,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const Z=UDSNIT[UD];if(Z){con
   for(const gl of GLOW){const s=glowS(gl.c,gl.s);s.position.set(...gl.p);live.add(s);gl.spr=s;gl.ph=R(TAU)}
   for(let i=0;i<14;i++){const s=glowS('rgba(255,236,170,.95)',1);live.add(s);s.visible=false;sparks.push({s,t:9})}
   ST.bake();UDKLAR=true;msg.classList.add('gone');let t=0,last=performance.now();
-  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;pop=Math.max(0,pop-dt*2.2);
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;t+=dt;pop=Math.max(0,pop-dt*2.2);
     const k=1+.06*Math.sin(pop*Math.PI)*pop;FIG.G.scale.set(k,2-k,1);FIG.G.position.y=.35+Math.sin(pop*Math.PI)*.9*pop;FIG.tick(t,{ph:0,amp:0});/* ved støvlerne løfter hun kjolen, ellers kan man ikke se dem */FIG.skirt.scale.y+=((UD==='fod'?.56:1)-FIG.skirt.scale.y)*Math.min(1,dt*8);petPop=Math.max(0,petPop-dt*2.4);if(PET){PET.G.position.y=.35+Math.sin(petPop*Math.PI)*2*petPop;PET.tick(t,{ph:petPop?t*14:0,amp:petPop?1:0})}
     for(const gl of GLOW){const f=gl.f?(.9+.1*Math.sin(t*9+gl.ph)*Math.sin(t*5.1)):(.9+.1*Math.sin(t*2+gl.ph));gl.spr.scale.set(gl.s*f,gl.s*f,1)}
     for(const sp of sparks){sp.t+=dt;if(sp.t>1){sp.s.visible=false;continue}sp.s.visible=true;sp.s.position.set(sp.x+sp.vx*sp.t,sp.y+sp.vy*sp.t+3*sp.t*sp.t*-1+2*sp.t,6);const z=(1-sp.t)*1.6;sp.s.scale.set(z,z,1)}

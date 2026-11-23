@@ -43,13 +43,36 @@ function papirTavle(par,felter,{x=0,y=0,z=0,s=1,farve='#d8b07a',kant='#8a5a28'}=
 /* beskeden, der hænger i to snore: et lyst kort med en tekst og evt. en mindre linje under */
 function papirBanner(par,{y=28,z=9,w=36,farve='#fbf2dc',kant='#a88a5a'}={}){const G=new THREE.Group();G.position.set(0,70,z);par.add(G);G.visible=false;let H=6;const ryd=[];
   const kort=new THREE.Group();G.add(kort);let state={vis:false,t:0,sek:0,y,sw:0};
-  const byg=(txt,txt2,col)=>{for(const f of ryd)f();ryd.length=0;kort.clear();const h1=txt2?3.4:3.8,t1=papirTekstMesh(txt,col||'#c0283e',h1,FONT.arkade,'rgba(0,0,0,0)'),b1=Math.min(w-3,t1.userData.b);
-      let b2=0,t2=null;if(txt2){t2=papirTekstMesh(txt2,'#3a2208',2.4,FONT.pil,'rgba(0,0,0,0)');b2=Math.min(w-3,t2.userData.b)}const W=Math.max(14,Math.max(b1,b2)+4);H=txt2?7.6:5.6;
+  const byg=(txt,txt2,col)=>{for(const f of ryd)f();ryd.length=0;kort.clear();kort.position.x=0;const h1=txt2?3.4:3.8,t1=papirTekstMesh(txt,col||'#c0283e',h1,FONT.arkade,'rgba(0,0,0,0)'),b1=Math.min(w-3,t1.userData.b);
+      let b2=0,t2=null;if(txt2){t2=papirTekstMesh(txt2,'#3a2208',2.4,FONT.pil,'rgba(0,0,0,0)');b2=Math.min(w-3,t2.userData.b)}const W=Math.max(14,Math.max(b1,b2)+4);H=txt2?7.6:5.6;kort.userData.W=W;
       put(kort,piece(box(-W/2,-H/2,W/2,H/2),{color:farve,kind:'card',t:.4,edge:kant}),0,0,0);
       t1.scale.setScalar(b1/t1.userData.b);t1.position.set(0,txt2?1.25:0,.3);kort.add(t1);ryd.push(t1.userData.ryd);if(t2){t2.scale.setScalar(b2/t2.userData.b);t2.position.set(0,-1.95,.3);kort.add(t2);ryd.push(t2.userData.ryd)}
       for(const sx of[-1,1]){put(kort,piece(circ(sx*(W/2-1.2),H/2-.8,.3,.3,12),{mat:gold(),t:.12}),0,0,.3);for(const q of thick([[[sx*(W/2-1.2),H/2-.8],[sx*(W/2-1.6),40]]],.09))put(kort,piece(q,{color:'#ead9b5',kind:'water',t:.04}),0,0,-.1)}};
-  return{G,vis(txt,{sek=1.6,txt2='',col,y:yy}={}){byg(txt,txt2,col);state={vis:true,t:0,sek,y:yy??y,sw:.22};G.visible=true;G.position.y=Math.max(G.position.y,yy??y+30)},skjul(){state.vis=false;state.sek=0},
+  return{G,vis(txt,{sek=1.6,txt2='',col,y:yy,portraet:pid}={}){byg(txt,txt2,col);if(pid){const W=kort.userData.W||14,r=H*.62,pg=papirPortraet(kort,pid,{r});pg.position.set(-W/2-r+1.4,.2,.5);kort.position.x=r*.5-.7;ryd.push(()=>pg.userData.ryd&&pg.userData.ryd())}state={vis:true,t:0,sek,y:yy??y,sw:.22};G.visible=true;G.position.y=Math.max(G.position.y,yy??y+30)},skjul(){state.vis=false;state.sek=0},
     get synlig(){return G.visible&&state.vis},
     tick(dt){if(!G.visible)return;state.t+=dt;if(state.vis&&state.sek>0&&state.t>state.sek)state.vis=false;const maal=state.vis?state.y:state.y+40;G.position.y+=(maal-G.position.y)*Math.min(1,dt*(state.vis?7:4));
       state.sw*=Math.pow(.25,dt);G.rotation.z=Math.sin(state.t*5.2)*state.sw;if(!state.vis&&G.position.y>state.y+34)G.visible=false},
     fjern(){for(const f of ryd)f();par.remove(G)}}}
+/* ---------- portrætter: når en person siger noget uden selv at være på skærmen, står hendes portræt ved teksten (Kasper 23. nov.) ----------
+   Personen bygges som en rigtig papfigur og fotograferes én gang ind i et rundt billede. Billedet bruges både i papskiltene og i tekstboksene. */
+const PERSONER={
+  sky:{navn:'Kaptajn Sky',bag:['#7fc4f0','#2e4a7a'],look:{hat:'ingen',hår:'kort',tøj:'opdager',kappe:'kort',tilbehør:'tørklæde',stav:false,skin:'#c68653',skinSh:'#a86a40',hair:['#c2482a','#e86a30','#7a2a18'],iris:['#9a6a3a','#5c3a24'],freck:true,mærke:'fregner',lash:.6,col:{'tøj':'#2e4a7a',kappe:'#8a2a2a',tørklæde:'#e8e4f4'}},
+    pynt:F=>{/* flyverbriller i panden, som i originalen */const hI=F.gHairF.parent,{w,cy,hh}=F.D,o=c=>({color:c,kind:'card',t:.08});
+      put(hI,piece(box(-w*.6,cy+hh*.22,w*.6,cy+hh*.3),o('#3a2a20')),0,0,.98);
+      for(const sx of[-1,1]){put(hI,piece(circ(sx*w*.22,cy+hh*.27,w*.19,w*.15,18),{color:'#3a2a20',kind:'card',t:.1,edge:'#8a6420'}),0,0,1.02);put(hI,piece(circ(sx*w*.22,cy+hh*.27,w*.13,w*.1,16),{color:'#7fd8ff',kind:'card',t:.05}),0,0,1.1)}}}};
+const PORTRAET=new Map();
+function portraet(id){if(PORTRAET.has(id))return PORTRAET.get(id);const P=PERSONER[id];if(!P)return null;const N=256,res={navn:P.navn,url:'',cv:document.createElement('canvas')};res.cv.width=res.cv.height=N;
+  try{const gc=document.createElement('canvas');gc.width=gc.height=N;const r=new THREE.WebGLRenderer({canvas:gc,alpha:true,antialias:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(N,N,false);r.outputColorSpace=THREE.SRGBColorSpace;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.05;
+    const sc=new THREE.Scene(),F=makeFigure(P.look);if(P.pynt)P.pynt(F);F.tick&&F.tick(2.2,{ph:0,amp:0});for(const k of['armL','armR','gStaff'])if(F[k])F[k].visible=false;for(const l of F.legs)l.visible=false;F.skirt&&(F.skirt.visible=false);sc.add(F.G);
+    sc.add(new THREE.HemisphereLight('#fff6e8','#6a5a7a',1.7));const d=new THREE.DirectionalLight('#ffffff',1.8);d.position.set(-8,14,20);sc.add(d);
+    const D=F.D,cy=D.cy-.6,cam=new THREE.PerspectiveCamera(13,1,1,200);cam.position.set(0,cy,62);cam.lookAt(0,cy,0);r.render(sc,cam);
+    const g=res.cv.getContext('2d'),gr=g.createLinearGradient(0,0,0,N);gr.addColorStop(0,P.bag[0]);gr.addColorStop(1,P.bag[1]);g.save();g.beginPath();g.arc(N/2,N/2,N/2,0,TAU);g.clip();g.fillStyle=gr;g.fillRect(0,0,N,N);
+    g.fillStyle='rgba(255,255,255,.25)';for(let k=0;k<14;k++){const x=Math.random()*N,y=Math.random()*N*.5;g.beginPath();g.arc(x,y,1.5+Math.random()*2,0,TAU);g.fill()}g.drawImage(gc,0,0);g.restore();
+    res.url=res.cv.toDataURL('image/png');r.dispose();r.forceContextLoss();emptyGroup&&emptyGroup(F.G)}catch(e){console.warn('portræt',e)}
+  PORTRAET.set(id,res);return res}
+/* et rundt portræt i en guldramme med navnet på et lille papskilt nedenunder, til papskiltene */
+function papirPortraet(par,id,{r=4}={}){const p=portraet(id);const G=new THREE.Group();par.add(G);if(!p)return G;
+  const t=new THREE.CanvasTexture(p.cv);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.CircleGeometry(r,48),new THREE.MeshBasicMaterial({map:t,toneMapped:false}));m.position.z=.25;m.userData.noShadow=true;G.add(m);
+  put(G,piece({outer:toCCW(circ(0,0,r+.7,r+.7,48)),holes:[toCCW(circ(0,0,r-.05,r-.05,48))]},{mat:gold(),t:.5}),0,0,.3);put(G,piece(circ(0,0,r+.75,r+.75,40),{color:'#2a1838',kind:'card',t:.2}),0,0,0);
+  const n=papirTekstMesh(p.navn,'#fbf2dc',1.5,FONT.pil,'#2a1838');const nb=n.userData.b;put(G,piece(toCCW(sm([[-nb/2-.9,-r-1.9],[nb/2+.9,-r-1.9],[nb/2+.9,-r+.1],[-nb/2-.9,-r+.1]],2)),{color:'#2e4a7a',kind:'card',t:.3,edge:'#1a2a4a'}),0,0,.55);n.position.set(0,-r-.9,.8);G.add(n);
+  G.userData.ryd=()=>{t.dispose();m.geometry.dispose();m.material.dispose();n.userData.ryd()};return G}

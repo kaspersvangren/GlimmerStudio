@@ -50,6 +50,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
     musik(id){musikVil=id||null;slutFn=null;opfrisk()},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
     /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
+    forsinkelse(){return ac?((ac.outputLatency||0)+(ac.baseLatency||0)):0},
     musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0;if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
     status:()=>({musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},

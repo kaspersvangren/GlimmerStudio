@@ -20,11 +20,17 @@ ROOMS.praemie=function(ctx){
     else{g.save();g.translate(52,48);g.fillStyle='#e2507a';g.strokeStyle='#7a1c3a';g.lineWidth=3;g.beginPath();g.moveTo(-26,-16);g.lineTo(26,-16);g.lineTo(26,-5);g.arc(26,0,5,-Math.PI/2,Math.PI/2,true);g.lineTo(26,16);g.lineTo(-26,16);g.lineTo(-26,5);g.arc(-26,0,5,Math.PI/2,-Math.PI/2,true);g.closePath();g.fill();g.stroke();g.restore();g.fillStyle=SPIL.bil>=w[3]?'#3a2414':'#a08a78';g.textAlign='left';g.font=FONT.arkade.replace('X','44px');g.fillText(String(w[3]),90,50)}
     q.t.needsUpdate=true};
   const alle=()=>{for(let i=0;i<ITEMS.length;i++)tegnMaerke(i)};
+  /* uglen fortæller lidt om hvert maleri (Kasper 23. nov.). Forslag fra Claude, som Kasper kan rette */
+  const MAL_ORD={blomster:'Malet en solskinsdag. Man kan næsten dufte dem.',maane:'Malet en stille nat. Hvem mon er vågen så sent på skolen?',hav:'Skibet sejler mod et land, som ingen har fundet endnu.',
+    svampe:'Små huse i skovbunden. Bor der mon nogen i dem?',enhjoerning:'Enhjørninger er meget sjældne. Jeg har kun set én, og det var på det her billede.',drage:'Dragen øver sig i at puste røg. Se godt efter, hvad den har lavet.',
+    kunst:'Jeg forstår det ikke helt, men det er meget kunstnerisk. Der gemmer sig noget i den røde cirkel.',kaeledyr:'Dit eget kæledyr, med noget lækkert i poterne.',selv:'Et portræt af dig, præcis som du ser ud i dag.',
+    gnoma:'Et meget berømt maleri. Hun smiler, men ingen ved hvorfor.'};
+  const ord=w=>w[0]==='maleri'&&MAL_ORD[w[1]]?MAL_ORD[w[1]]+' ':'';
   const sig=txt=>{hopU=1;LYD.fil('ugle',()=>{LYD.pip();setTimeout(()=>LYD.pip(),160)},.8);ctx.say('Hu-hu! '+txt)};
   const tryk=i=>()=>{if(vis)return;if((i<NS)!==(side==='stave'))return;const w=ITEMS[i],navn=w[2],pris=w[3],erMal=w[0]==='maleri';
     if(ejer(w)){valgt=-1;alle();sig(erMal?`${navn} er allerede dit. Det hænger i dit værelse; tryk på et billede derhjemme for at skifte.`:`${navn} er allerede din. Den ligger i Garderoben under Ekstra.`);return}
-    if(SPIL.bil<pris){valgt=-1;alle();sig(`${navn} koster ${pris} billetter. Du mangler ${pris-SPIL.bil}. Billetter får du i spillene herinde.`);return}
-    if(valgt!==i){valgt=i;valgT=8;alle();sig(MALERI_HEMMELIG.includes(w[1])?'Det er en hemmelig pakke. Ingen ved, hvad der er i den. Tryk på den igen, hvis du vil bytte.':`${navn}. Tryk på ${erMal?'det':'den'} igen, hvis du vil bytte.`);return}
+    if(SPIL.bil<pris){valgt=-1;alle();sig(`${navn}. ${ord(w)}${erMal?"Det":"Den"} koster ${pris} billetter. Du mangler ${pris-SPIL.bil}. Billetter får du i spillene herinde.`);return}
+    if(valgt!==i){valgt=i;valgT=8;alle();sig(MALERI_HEMMELIG.includes(w[1])?'Det er en hemmelig pakke. Ingen ved, hvad der er i den. Tryk på den igen, hvis du vil bytte.':`${navn}. ${ord(w)}Tryk på ${erMal?'det':'den'} igen, hvis du vil bytte.`);return}
     /* byttet */
     valgt=-1;SPIL.givBil(-pris);SPIL.har.push(w[0]+':'+w[1]);const hang=erMal?haengOp(w[1]):true;SPIL.save();LOG.row('praemie',{ting:w[1],pris});LYD.fanfare();hopU=1;alle();if(erMal){bygMal(i-NS);mal[i-NS].hop=1}else stave[i].hop=1;
     vis=visVare(w,ctx,Rm);vis.G.position.set(-4,24,13);vis.G.scale.set(.01,.01,1);Rm.live.add(vis.G);straal.visible=true;visT=0;dim.material.opacity=.6;Rm.burst(-4,24,13,16,'rgba(255,236,170,.95)',11);vis.tegn(Rm.t);

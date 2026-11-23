@@ -4,7 +4,7 @@
 const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs" role="tablist" aria-label="Hvad vil du lave om?"></div><div id="opts"></div></div>'},garderobe:{navn:'Garderoben',html:'<div id="panel"><div id="tabs" role="tablist" aria-label="Hvad vil du skifte?"></div><div id="opts"></div></div>'},
   koncert:{navn:'Koncertsalen',html:'<div id="songs" role="group" aria-label="Ønsk en sang"><span>Ønsk en sang</span></div>'},
   gang:{navn:'Skolen',mus:'kaelder'},eliksir:{navn:'Eliksirtimen',mus:'kaelder'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden',mus:'arkade',stem:'stemning',bil:1},gnom:{navn:'Bank en gnom',mus:'gnom',bil:1},praemie:{navn:'Præmiebutikken',mus:'arkade',stem:'stemning',bil:1},boblepop:{navn:'BoblePop',mus:'invader',bil:1,html:'<canvas id="tegnlag"></canvas>',lyde:['boble.pop','vandt','oev']},gribe:{navn:'Gribemaskinen',mus:'gribe',lyde:['gribe.motor','gribe.ned','gribe.luk','vandt','oev']},tryl:{navn:'Trylletegning',mus:'kost',bil:1,html:'<canvas id="tegnlag"></canvas>'},
-  fald:{navn:'Faldskærm',mus:'fald'},kost:{navn:'Kosteflyvning',mus:'kost'},dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="madvalg" class="valg" role="group" aria-label="Vælg foder" hidden></div><div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
+  fald:{navn:'Faldskærm',mus:'fald'},bog:{navn:'Eventyrbogen',mus:'byen'},kost:{navn:'Kosteflyvning',mus:'kost'},dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="madvalg" class="valg" role="group" aria-label="Vælg foder" hidden></div><div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
 RUM.tryl.lyde=['nam','gave','fuser','nyt','boble.pop','vandt'];RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
@@ -13,8 +13,11 @@ const doorEl=document.getElementById('door'),doorT=document.getElementById('door
 /* beskeder: en kort besked går væk af sig selv. En lang bliver stående, til man trykker et sted (trykket virker også på det, man trykker på).
    vent(tekst, så) er en besked, hvor spillet står stille, til man har trykket: den bruges, når noget er færdigt, og man selv skal sige "videre" */
 const videreEl=document.getElementById('videre'),LANG=42;let toastT=0,toastSat=0,ventFn=null;
-const toast=(txt,o={})=>{if(ventFn)return;const lang=o.bliv||String(txt).length>=LANG;toastEl.textContent=txt;toastEl.className='kraft'+(lang?' bliv':'');toastEl.hidden=false;toastSat=performance.now();clearTimeout(toastT);if(!lang)toastT=setTimeout(()=>{toastEl.hidden=true},2600)};
-const vent=(txt,saa)=>{clearTimeout(toastT);toastEl.textContent=txt;toastEl.className='kraft vent';toastEl.hidden=false;toastSat=performance.now();ventFn=saa||(()=>{});videreEl.hidden=false};
+/* en besked kan have et portræt af den, der siger den (o.portraet er en person i PERSONER) */
+const toastTekst=(txt,o)=>{const p=o&&o.portraet&&typeof portraet==='function'?portraet(o.portraet):null;if(!p||!p.url){toastEl.textContent=txt;return false}
+  const img=document.createElement('img');img.className='t-port';img.src=p.url;img.alt='';const d=document.createElement('div');d.className='t-tekst';const b=document.createElement('b');b.className='t-navn';b.textContent=p.navn;d.append(b,document.createTextNode(txt));toastEl.replaceChildren(img,d);return true};
+const toast=(txt,o={})=>{if(ventFn)return;const lang=o.bliv||String(txt).length>=LANG;const pt=toastTekst(txt,o);toastEl.className='kraft'+(lang?' bliv':'')+(pt?' port':'');toastEl.hidden=false;toastSat=performance.now();clearTimeout(toastT);if(!lang)toastT=setTimeout(()=>{toastEl.hidden=true},2600)};
+const vent=(txt,saa,o)=>{clearTimeout(toastT);const pt=toastTekst(txt,o);toastEl.className='kraft vent'+(pt?' port':'');toastEl.hidden=false;toastSat=performance.now();ventFn=saa||(()=>{});videreEl.hidden=false};
 const ventSlut=kald=>{const f=ventFn;ventFn=null;videreEl.hidden=true;toastEl.hidden=true;if(kald&&f)f()};
 videreEl.addEventListener('pointerdown',e=>{e.preventDefault();if(performance.now()-toastSat>600){LYD.tryk();ventSlut(true)}});
 addEventListener('pointerdown',()=>{if(!ventFn&&!toastEl.hidden&&toastEl.classList.contains('bliv')&&performance.now()-toastSat>450)toastEl.hidden=true},true);
@@ -51,7 +54,8 @@ function toMap(){LOG.maerk('ud af rum');LOG.skaerm('by');delete document.body.da
   if(dyrNyt){dyrNyt=false;SPIL.nyKat()}
   SPIL.pause=false;SPIL.rebake=false;if(window.__kortStr&&window.__kortStr()){bagHvorfor='ny størrelse, mens man var inde';bake()}
   requestAnimationFrame(()=>requestAnimationFrame(()=>{busy=false;doorEl.classList.add('gone')}))}
-function enter(id){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=true;stack.push(id);cover(`Går ind i ${RUM[id].navn} …`,()=>{closeRoom();openRoom(id)})}
+/* skift: det nye rum erstatter det, man står i, så Tilbage ikke fører tilbage dertil (bogen → Garderoben) */
+function enter(id,{skift=false}={}){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=true;if(skift)stack.pop();stack.push(id);cover(`Går ind i ${RUM[id].navn} …`,()=>{closeRoom();openRoom(id)})}
 function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1];cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else toMap()})}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */

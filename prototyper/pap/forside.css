@@ -126,3 +126,17 @@
 .sb-port svg{width:100%;height:100%;display:block}
 
 .dyrnavn{display:flex;align-items:center;gap:8px;margin:0 0 10px;font:700 17px var(--font)}.dyrnavn input{flex:1;min-width:0;font:700 17px var(--font);padding:8px 12px;border-radius:10px;border:2px solid #c9a25a;background:#fbf3dc;color:#2a1d12}
+
+.fs-fuld{position:absolute;z-index:3;top:calc(8px + env(safe-area-inset-top,0px));left:max(14px,env(safe-area-inset-left,0px));width:46px;height:46px;border:0;border-radius:12px;display:grid;place-items:center;cursor:pointer}.fs-fuld svg{width:24px;height:24px}
+/* eventyrbogen i pap (rum-bog.js) */
+.bog-k{position:fixed;z-index:6;top:50%;width:58px;height:58px;margin-top:-29px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;padding:0}
+.bog-k svg{width:30px;height:30px}
+.bog-frem{right:max(16px,env(safe-area-inset-right,0px))}
+.bog-tilb{left:max(16px,env(safe-area-inset-left,0px))}
+.bog-k:disabled{opacity:.4;cursor:default}
+.bog-k[hidden]{display:none}
+.bog-inp{position:fixed;left:-9999px;top:0;opacity:0;width:10px}
+.bog-efter{position:fixed;z-index:6;left:56%;right:max(16px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);max-width:420px;display:flex;flex-direction:column;gap:16px;align-items:flex-start;opacity:0;pointer-events:none;transition:opacity .7s ease;color:#FFE9B8;font-family:Alegreya,Georgia,serif;font-weight:700;font-size:clamp(17px,5vh,26px);line-height:1.3}
+.bog-efter.on{opacity:1;pointer-events:auto}
+.bog-efter p{margin:0;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.bog-ek{display:flex;gap:12px;flex-wrap:wrap;align-items:center}

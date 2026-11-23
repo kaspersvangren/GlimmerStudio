@@ -107,6 +107,7 @@ body[data-rum] #hint,body[data-rum] #meter{display:none}
 #videre{position:fixed;inset:0;z-index:6;cursor:pointer}
 #toast.bliv::after{content:"  ▸";opacity:.55}
 #toast.vent{bottom:calc(28px + env(safe-area-inset-bottom,0px));font-size:22px;padding:12px 22px}
+#toast.port{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:14px;text-align:left}#toast.port .t-port{width:68px;height:68px;border-radius:50%;border:3px solid #e2b24a;box-shadow:0 0 0 2px #2a1838;grid-row:span 2}#toast.port .t-navn{display:block;font-size:.72em;letter-spacing:.06em;text-transform:uppercase;opacity:.75;margin-bottom:2px}#toast.port.vent::after,#toast.port.bliv::after{grid-column:2}
 #toast.vent::after{content:"Tryk for at gå videre  ▸";display:block;margin-top:4px;font-size:.78em;opacity:.7;animation:blink 1.4s infinite}
 @keyframes blink{50%{opacity:.3}}
 /* i Eliksirtimen taler professoren oppe til højre, så teksten ikke ligger over ilden og gryden */

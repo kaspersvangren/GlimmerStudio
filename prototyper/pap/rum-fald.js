@@ -84,10 +84,11 @@ ROOMS.fald=function(ctx){
     for(let i=0;i<26;i++){const a=i/26*TAU+r()*.2,d=84+r()*30;if(Math.abs(a-2.4)<.35)continue;const x=Math.cos(a)*d,y=Y(Math.sin(a)*d*.9),rr=4+r()*3.5,c=r()<.5?'#3a6a40':'#467a4a';
       P2(J,circ(x+rr*.35,y-rr*.4,rr,rr,16),{color:'#1e3a1c',kind:'water',t:.02},.65);P2(J,puff(x,y,rr,rr,8,.18),{color:c,kind:'card',t:.4,edge:hexOf(shade(c,-.35))},rr*.7);P2(J,puff(x-rr*.2,y+rr*.2,rr*.6,rr*.6,7,.18),{color:hexOf(shade(c,.15)),kind:'card',t:.3},rr*.95)}
     /* målet: ringe og en guldstjerne i midten, og flag i en ring om det */
-    const RC=['#f2c14e','#e0457a','#fff3e0','#e0457a'];P2(J,circ(0,0,RINGS[3]+1.2,RINGS[3]+1.2,60),{color:'#fff3e0',kind:'card',t:.1},.7);
-    [3,2,1,0].forEach((i,k)=>P2(J,circ(0,0,RINGS[i],RINGS[i],60),{color:RC[i],kind:'card',t:.08,edge:'#2a2340'},.82+k*.1));P2(J,starPts(0,0,1.5,.65,Math.PI/2),{color:'#fff6d0',kind:'card',t:.1,edge:'#a87a1a'},1.3);
+    /* ringene ligger side om side som rigtige ringe med hul i, i samme højde, så de ikke ligger oven i hinanden og flimrer på afstand (Kasper 23. nov.: "Målet blinker") */
+    const RC=['#f2c14e','#e0457a','#fff3e0','#e0457a'],ann=(r0,r1)=>r0>0?{outer:toCCW(circ(0,0,r1,r1,60)),holes:[toCCW(circ(0,0,r0,r0,60))]}:circ(0,0,r1,r1,60);
+    P2(J,ann(RINGS[3],RINGS[3]+1.2),{color:'#fff3e0',kind:'card',t:.2},.9);[0,1,2,3].forEach(i=>P2(J,ann(i?RINGS[i-1]:0,RINGS[i]),{color:RC[i],kind:'card',t:.2,edge:'#2a2340'},.9));P2(J,starPts(0,0,1.5,.65,Math.PI/2),{color:'#fff6d0',kind:'card',t:.2,edge:'#a87a1a'},1.6);
     for(let i=0;i<28;i++){const a=i/28*TAU,c=['#e0457a','#f2c14e','#7fd8ff','#9be36a','#c79bff'][i%5];P2(J,toCCW([[Math.cos(a-.08)*23.5,Math.sin(a-.08)*23.5],[Math.cos(a)*24.8,Math.sin(a)*24.8],[Math.cos(a+.08)*23.5,Math.sin(a+.08)*23.5]]),{color:c,kind:'card',t:.04},1.6)}
-    {const pts=[];for(let i=0;i<=60;i++){const a=i/60*TAU;pts.push([Math.cos(a)*23.5,Math.sin(a)*23.5])}for(const q of thick([pts],.12))P2(J,q,{color:'#f2eeff',kind:'water',t:.02},1.62)}
+    {const pts=[];for(let i=0;i<=60;i++){const a=i/60*TAU;pts.push([Math.cos(a)*23.5,Math.sin(a)*23.5])}for(const q of thick([pts],.12))P2(J,q,{color:'#f2eeff',kind:'water',t:.04},1.8)}
     for(let i=0;i<6;i++){const a=i*Math.PI/3;P2(J,circ(Math.cos(a)*23.5,Math.sin(a)*23.5,.32,.32,8),{color:'#5a3a28',kind:'kraft',t:1.4},.6)}
     /* skuret med koste, tæppet med kurven, nissehuset med røg og svampene i en ring */
     {const g=new THREE.Group();g.position.set(38,34,.8);g.rotation.z=.21;J.add(g);P2(g,box(-4.6,-3.4,4.4,3),{color:'#8a4a2a',kind:'kraft',t:2.4,edge:'#4a2a1a'},0);P2(g,box(-4.6,-.15,4.4,.15),{color:'#5a2e1a',kind:'kraft',t:.1},2.45);
@@ -134,7 +135,7 @@ ROOMS.fald=function(ctx){
     for(const f of S.floaters){const g=new THREE.Group();P2(g,box(-.45,-.55,.45,.55),{mat:paperMat(f.c,'tissue',{glow:f.c,gi:1.2}),t:.9},0);P2(g,box(-.5,.5,.5,.7),{color:'#5a3a28',kind:'kraft',t:.2},.9);g.visible=false;rod.add(g);f.m=g}
     heltG.visible=false;heltG.position.set(0,0,0);heltG.scale.setScalar(1);skaerm.visible=false;if(side)side.visible=false;skygge.visible=false;if(landet){jord.remove(landet);landet=null}
     tv.saet(0,ALT0);tv.saet(1,0);vindPil.visible=false;haandVis(false);
-    ban.vis('Kaptajn Sky: Klar til at springe?',{txt2:'Træk med fingeren, og saml stjernebobler. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6})}
+    ban.vis('Klar til at springe?',{portraet:'sky',txt2:'Træk med fingeren, og saml stjernebobler. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6})}
   function ryd(){if(!S)return;for(const o of S.objs)rod.remove(o.el),o.ring&&rod.remove(o.ring);for(const m of S.motes)rod.remove(m.m);for(const f of S.floaters||[])rod.remove(f.m)}
   function makeSpawns(){let px=SCX,py=SCY,n=0;
     for(let t=1.4;t<FREE_T-TA-.2;t+=.95){px=clamp(px+(Math.random()*2-1)*380,BX0+70,BX1-70);py=clamp(py+(Math.random()*2-1)*280,BY0+70,BY1-70);S.spawn.push({t,kind:'bub',x:px,y:py,gold:++n%6===0,ox:(Math.random()*2-1)*300,oy:(Math.random()*2-1)*200})}
@@ -164,10 +165,15 @@ ROOMS.fald=function(ctx){
   function drawIntro(){const t=S.t,u=Math.min(1,t/T_UP),rise=240*Math.pow(u,2),k=ease(Math.min(1,t/2.2));
     sideL.J.position.y=-rise;sideL.Sk.position.y=-rise*1.18;sideL.H.position.y=-rise*.35;
     let x=mix(-20,-2,k),y=mix(-5,2,k)+Math.sin(t*3)*.4,a=.3*(1-Math.max(0,(t-T_UP)/T_HOVER));
-    if(t>T_UP+T_HOVER){const j=Math.min(1,(t-T_UP-T_HOVER)/T_JUMP);a=-1.3*ease(j);y=2+4*Math.sin(j*Math.PI)*.4-30*j*j;x+=6*j}
-    rytter.G.position.set(x,y,2);rytter.G.rotation.z=a;rytter.tick(Rm.t,{fart:1.3});tv.saet(0,Math.round(ALT0*Math.min(1,u)/50)*50);groundAt(.45,S.x,S.y)}
+    /* hun springer af kosten (Kasper 23. nov.): sætter af, hopper op og frem, og først i faldet vender hun hovedet nedad. Kosten flyver videre for sig selv */
+    const t0=T_UP+T_HOVER,sk=rytter.G.scale.x,K=rytter.kost;let kb=null;
+    if(t>t0-.35&&t<=t0){const c=Math.sin((t-t0+.35)/.35*Math.PI);y-=.5*c}
+    if(t>t0){const j=Math.min(1,(t-t0)/T_JUMP),x0=x,y0=y;x+=9*j;if(j<.3)y=y0+4.5*Math.sin(j/.3*Math.PI/2);else y=y0+4.5-62*(j-.3)*(j-.3);a=j<.3?.15*Math.sin(j/.3*Math.PI):-1.5*ease((j-.3)/.7);
+      kb={x:x0+16*j,y:y0+2.5*j-1.2*j*j}}
+    rytter.G.position.set(x,y,2);rytter.G.rotation.z=a;
+    if(kb){/* kosten i heksens eget koordinatsystem, så den bliver i luften, hvor den var */const ox=kb.x-x,oy=kb.y-y,c=Math.cos(-a),s_=Math.sin(-a);const SY=rytter.SY;K.position.set((ox*c-oy*s_)/sk+SY*s_,(ox*s_+oy*c)/sk-SY*c+SY,0);K.rotation.z=-a}else{K.position.set(0,0,0);K.rotation.z=0}rytter.tick(Rm.t,{fart:1.3});tv.saet(0,Math.round(ALT0*Math.min(1,u)/50)*50);groundAt(.45,S.x,S.y)}
   function freeStart(){S.run='free';S.t=0;heltG.visible=true;heltG.position.set(WX(S.hx),WY(S.hy),0);heltG.rotation.z=0;heltG.scale.setScalar(1);S.firstBub=true;LYD.pust();pt.pop(0,10,8,'Hop!',{col:'#ffb020',h:5});
-    ban.vis('Flyv hen over boblerne!',{sek:2.4,col:'#7a3fa2',y:16})}
+    ban.vis('Flyv hen over boblerne!',{portraet:'sky',sek:2.4,col:'#7a3fa2',y:16})}
   /* ---------- frit fald ---------- */
   function stepFree(dt){S.t+=dt;
     while(S.spawn.length&&S.spawn[0].t<=S.t){const o=S.spawn.shift();o.z=1;o.el=ny(o.kind==='bub'?(o.gold?'guld':'bub'):o.kind==='storm'?'storm':'sky',rod);if(o.kind==='cloud')o.el.scale.setScalar(o.k*1.6);
@@ -200,7 +206,7 @@ ROOMS.fald=function(ctx){
   /* ---------- skærmen folder sig ud ---------- */
   function openStart(){for(const o of S.objs){rod.remove(o.el);if(o.ring)rod.remove(o.ring)}S.objs=[];for(const m of S.motes)m.m.visible=false;pil.visible=false;LYD.puf();setTimeout(()=>{if(S&&ctx.alive)LYD.op()},400);S.ox=S.hx;S.oy=S.hy;S.op0=S.ppm;skaerm.visible=true}
   function stepOpen(dt){S.t+=dt;if(S.t>=OPEN_T){S.run='canopy';S.t=0;haandVis(true);if(S.wind.s)vindPil.visible=true;skygge.visible=true;
-    ban.vis('Styr mod målet!',{txt2:'Træk et håndtag ned for at dreje. Begge ned bremser',sek:4,col:'#7a3fa2',y:16})}}
+    ban.vis('Styr mod målet!',{portraet:'sky',txt2:'Træk et håndtag ned for at dreje. Begge ned bremser',sek:4,col:'#7a3fa2',y:16})}}
   function drawOpen(){const u=clamp(S.t/OPEN_T,0,1),e=ease(u),back=1+Math.sin(u*Math.PI)*.12;groundAt(S.op0+(ppmAt(H0)-S.op0)*e,S.x,S.y);S.haze=.35*(1-e);
     const hx=WX(S.ox)*(1-e),hy=WY(S.oy)*(1-e);heltG.position.set(hx,hy-2*e,0);heltG.scale.setScalar(1-.5*e);heltG.visible=u<.75;heltG.rotation.z*=.9;
     const sx=.12+.88*ease(clamp(u*1.3-.15,0,1)),sy=.2+.8*ease(clamp(u*1.5-.1,0,1));skaerm.position.set(hx,hy,2+6*(1-e));skaerm.scale.set(sx*back,sy*back,1);skaerm.rotation.set(0,0,-S.th*e*Math.PI/180);
@@ -241,7 +247,7 @@ ROOMS.fald=function(ctx){
     landet.add(oppefra(0,0,kjole,hair,0,{wave:1,cape:kappe}));if(pond){Rm.burst(0,0,2,14,'rgba(190,232,255,.95)',6);LYD.boelge()}else{LYD.dunk();if(zi===0)LYD.guld()}
     S.l0={ppm:S.ppm,x:S.x,y:S.y};pt.pop(0,8,8,msg,{col:pond?'#2e6aa8':'#e2384e',h:4.2,tilt:0});
     setTimeout(()=>{if(!S||!S.result||!ctx.alive)return;LYD.fanfare();const r=S.result;
-      ctx.vent(`${r.msg} ${r.pond?'Du landede i dammen.':`Du landede ${String(r.d).replace('.',',')} m fra midten.`} ${r.bubbles} ${r.bubbles===1?'stjerneboble':'stjernebobler'}${r.soft?' og en blød landing':''}. Du fik ${r.stars} ${r.stars===1?'stjerne':'stjerner'}! Tryk for at springe igen.`,nyt)},S.auto?60:2200)}
+      ctx.vent(`${r.msg} ${r.pond?'Du landede i dammen.':`Du landede ${String(r.d).replace('.',',')} m fra midten.`} ${r.bubbles} ${r.bubbles===1?'stjerneboble':'stjernebobler'}${r.soft?' og en blød landing':''}. Du fik ${r.stars} ${r.stars===1?'stjerne':'stjerner'}! Tryk for at springe igen.`,nyt,{portraet:'sky'})},S.auto?60:2200)}
   function drawLanded(){const u=ease(clamp(S.t/1.2,0,1)),L0=S.l0,ppm=L0.ppm+(Math.min(L0.ppm,15)-L0.ppm)*u,k=Math.hypot(L0.x,L0.y)<30?.5:0;groundAt(ppm,L0.x*(1-u*k),L0.y*(1-u*k))}
   /* ---------- jorden og disen ---------- */
   function groundAt(ppm,cx,cy){S.ppm=ppm;const u=ppm*K*dyb(ZG);S.uz=ppm*K;jord.scale.setScalar(u);jord.position.set(-cx*u,cy*u,ZG)}

@@ -79,7 +79,7 @@ ROOMS.kost=function(ctx){
   /* ---------- et nyt løb ---------- */
   function nyt(){if(S)ryd();const look=i=>{const H=[['#3a2a20','#5a4030','#2a1a10'],['#b5432a','#d8603a','#8a2a1a'],['#f2c14e','#f8dc8c','#c08628'],['#e8e4f4','#ffffff','#b8b0c8'],['#2a2238','#4a3a58','#1a1428']],c=['#2e4a7a','#3e7a4a','#a0526b','#2e6a7a','#7a2e5a','#c06a2a'];
       return Object.assign({},ctx.look,{hair:H[Math.floor(R(H.length))],col:{'tøj':c[Math.floor(R(c.length))],hat:c[Math.floor(R(c.length))]},hår:['langt','knolde','topknold'][Math.floor(R(3))]})};
-    S={course:makeCourse(),x:0,y:520,vy:0,v:V0,ang:0,t:0,run:'kort',cam:-PX,evT:3,seen:new Set(),rings:0,ringsAll:0,bubbles:0,loop:null,boost:0,finT:0,streak:0,auto:!!window.KOST_AUTO,holdT:0};
+    S={course:makeCourse(),x:0,y:520,vy:0,v:V0,ang:0,t:0,run:'kort',cam:-PX,evT:8,seen:new Set(),rings:0,ringsAll:0,bubbles:0,loop:null,boost:0,finT:0,streak:0,auto:!!window.KOST_AUTO,holdT:0};
     S.rivals=makeRivals();S.ringsAll=S.course.rings.length;
     baneG=new THREE.Group();rod.add(baneG);for(const r of S.course.rings)r.g=bygRing(baneG,X(r.x),Y(r.y),0,1,r.dbl?'#c79bff':'#ffd24a',!!r.dbl);
     for(const b of S.course.bubbles)b.g=bygBoble(baneG,X(b.x),Y(b.y));
@@ -90,7 +90,7 @@ ROOMS.kost=function(ctx){
     bygPort(baneG,X(130),'Start');bygPort(baneG,X(S.course.end),'Mål',true);
     if(!mig){mig=bygRytter(ctx.look);mig.G.scale.setScalar(.34);rod.add(mig.G)}
     tv.saet(0,0);tv.saet(1,0);tv.saet(2,3);for(const l of lamper)l.lm.emissiveIntensity=.05;
-    ban.vis('Kaptajn Sky: Klar til at flyve?',{txt2:'Tryk for at flyve op. Hold fingeren nede for et loop. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6});
+    ban.vis('Klar til at flyve?',{portraet:'sky',txt2:'Tryk for at flyve op. Hold fingeren nede for et loop. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6});
     S.rivals.forEach((rv,i)=>{prikker[i+1].material.color.set(rv.look.col['tøj'])});tegn()}
   function ryd(){rod.remove(baneG);emptyGroup(baneG);for(const g of lanG){rod.remove(g);emptyGroup(g)}lanG=[];for(const rv of S.rivals)rod.remove(rv.R.G);for(const q of kom)q.m.visible=false}
   function bygPort(par,x,txt,maal){/* en port af balloner og et skilt, og ved målet en ternet snor gennem alle tre baner */const g=new THREE.Group();g.position.set(x,0,0);par.add(g);
@@ -124,11 +124,13 @@ ROOMS.kost=function(ctx){
     if(S.run==='fly'||S.run==='done')S.t+=dt;
     for(const rv of S.rivals)if(S.run==='fly'||S.run==='done')rivalStep(rv,dt);
     if(S.run!=='fly'&&S.run!=='done')return;
+    /* efter målstregen: kameraet bliver stående, og hun flyver roligt ud af billedet til højre (Kasper 23. nov.) */
+    if(S.run==='done'){S.loop=null;S.boost=0;S.x+=S.v*dt;S.vy+=(-90-S.vy)*Math.min(1,dt*3);S.y=clamp(S.y+S.vy*dt,TOP,BOT);S.ang=clamp(S.vy/30,-16,22);return}
     if(S.loop){moveLoop(S,dt);if(S.loop)S.cam+=(S.loop.cam-S.cam)*Math.min(1,dt*7);else S.cam=S.x-PX;return}
     const x0=S.x;
     if(S.boost>0)moveBoost(S,dt);
     else{const lead=Math.max(...S.rivals.map(rv=>rv.x))-S.x,tail=lead>250?Math.min(.12,(lead-250)/2500):0;S.x+=S.v*(1+tail)*dt;
-      S.vy=Math.min(VMAXF,S.vy+GRAV*dt);S.y+=S.vy*dt;if(S.y>BOT){S.y=BOT;S.vy=-480;S.v=Math.max(V0*.8,S.v-40);LYD.dunk()}if(S.y<TOP){S.y=TOP;S.vy=Math.max(0,S.vy)}
+      /* en rolig start: tyngdekraften tager først fat efter lidt over et sekund (note 8026: kaos i starten) */S.vy=Math.min(VMAXF,S.vy+GRAV*Math.min(1,S.t/1.3)*dt);S.y+=S.vy*dt;if(S.y>BOT){S.y=BOT;S.vy=-480;S.v=Math.max(V0*.8,S.v-40);if(S.t>(S.dunkT||0)){S.dunkT=S.t+1;LYD.dunk()}}if(S.y<TOP){S.y=TOP;S.vy=Math.max(0,S.vy)}
       S.v+=(V0-S.v)*Math.min(1,dt*.35);crossRings(S,x0);if(S.auto)autopilot();S.ang=clamp(S.vy/30,-16,22)}
     for(const b of S.course.bubbles){if(b.got)continue;const dx=b.x-S.x,dy=b.y-S.y;if(dx*dx+dy*dy<(S.boost>0?130*130:85*85)){b.got=true;S.bubbles++;b.g.visible=false;LYD.plop();Rm.burst(X(b.x),Y(b.y),1,8,'rgba(255,236,170,.95)',2.5);ptW.pop(X(b.x),Y(b.y)+3,3,'+1',{col:'#ffd86b',h:2.6});tv.saet(1,S.bubbles)}}
     S.cam=S.x-PX;
@@ -147,14 +149,14 @@ ROOMS.kost=function(ctx){
     SPIL.data.kost=(SPIL.data.kost||0)+1;SPIL.giv(stars);LOG.row('kost',{plads:place,tid:+T.toFixed(1),ringe:S.rings,af:S.ringsAll,bobler:S.bubbles,loops:S.loopN||0,stars});
     S.result={place,medal,stars,time:T,rings:S.rings,bubbles:S.bubbles,loops:S.loopN||0,rivals:rTimes.map(t=>+t.toFixed(1))};tv.saet(2,place);
     setTimeout(()=>{if(!S||!ctx.alive)return;LYD.fanfare();ban.vis(place===1?'Du vandt løbet!':`Du blev nummer ${place}!`,{txt2:`${medal[0].toUpperCase()+medal.slice(1)} på ${T.toFixed(1).replace('.',',')} sekunder`,sek:0,col:place===1?'#c0283e':'#2e4a7a',y:8});
-      ctx.vent(`${place===1?'Du vandt løbet!':`Du blev nummer ${place}!`} Du fløj gennem ${S.rings} af ${S.ringsAll} ringe og samlede ${S.bubbles} ${S.bubbles===1?'stjerneboble':'stjernebobler'}. Du fik ${stars} ${stars===1?'stjerne':'stjerner'}! Tryk for at flyve igen.`,()=>{ban.skjul();nyt()})},S.auto?60:1200)}
+      ctx.vent(`${place===1?'Du vandt løbet!':`Du blev nummer ${place}!`} Du fløj gennem ${S.rings} af ${S.ringsAll} ringe og samlede ${S.bubbles} ${S.bubbles===1?'stjerneboble':'stjernebobler'}. Du fik ${stars} ${stars===1?'stjerne':'stjerner'}! Tryk for at flyve igen.`,()=>{ban.skjul();nyt()},{portraet:'sky'})},S.auto?60:1200)}
   /* ---------- tegn ---------- */
   function tegn(){const camX=X(S.cam+800);Rm.cam.position.x=camX+(ryst>0?Math.sin(Rm.t*60)*ryst*.5:0);Rm.cam.position.y=ryst>0?Math.cos(Rm.t*53)*ryst*.4:0;
     hud.position.x=camX;himmel.position.x=camX;fjern.position.x=lagX(camX,.12,fjern.position.z);midt.position.x=lagX(camX,.42,midt.position.z);
     /* fart: kameraet trækker sig lidt tilbage, når det går stærkt, og mere under boost */
     const fart=S.boost>0?BOOST_V:S.v/V0,maal=clamp((fart-1)/.38,0,1)*.1+(S.boost>0?.12:0);zoom+=(maal-zoom)*.06;Rm.cam.fov=baseFov*(1+zoom);Rm.cam.updateProjectionMatrix();
     mig.G.position.set(X(S.x),Y(S.y),.3);mig.G.rotation.z=-S.ang*Math.PI/180;mig.tick(Rm.t,{fart:fart*(S.run==='kort'||S.run==='count'?.4:1),vy:S.vy/600});
-    for(const rv of S.rivals){const n=Math.abs(rv.x-S.x)<260?1:0;rv.near=(rv.near||0)+(n-(rv.near||0))*.05;const z=rv.lane.z*(1-.35*rv.near);rv.R.G.position.set(X(rv.x),Y(rv.y)*rv.lane.kk+rv.lane.dd,z+.3);rv.R.G.rotation.z=-rv.ang*Math.PI/180;rv.R.tick(Rm.t+rv.wob,{fart:rv.boost>0?BOOST_V:rv.v/V0})}
+    for(const rv of S.rivals){const n=Math.abs(rv.x-S.x)<260&&S.t>4&&S.run==='fly'?1:0;rv.near=(rv.near||0)+(n-(rv.near||0))*.05;const z=rv.lane.z*(1-.35*rv.near);rv.R.G.position.set(X(rv.x),Y(rv.y)*rv.lane.kk+rv.lane.dd,z+.3);rv.R.G.rotation.z=-rv.ang*Math.PI/180;rv.R.tick(Rm.t+rv.wob,{fart:rv.boost>0?BOOST_V:rv.v/V0})}
     for(const r of S.course.rings){const u=r.g.userData;if(u.puls>0){u.puls=Math.max(0,u.puls-.05);r.g.scale.setScalar(1+.25*Math.sin(u.puls*Math.PI))}}
     for(const rv of S.rivals)for(const[r,g]of rv.els){const u=g.userData;if(u.puls>0){u.puls=Math.max(0,u.puls-.05);g.scale.setScalar(rv.lane.kk*(1+.25*Math.sin(u.puls*Math.PI)))}}
     for(const b of S.course.bubbles)if(!b.got)b.g.rotation.z=Math.sin(Rm.t*2+b.x)*.15;

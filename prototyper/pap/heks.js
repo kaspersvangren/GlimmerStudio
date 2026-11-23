@@ -154,6 +154,6 @@ const sparks=[];
     for(let i=0;i<7;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));live.add(s);sparks.push({s,p,ph:R(TAU),r:R(1.6,3),sp:R(.5,1.1)})}
     const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));halo.position.copy(p);halo.scale.set(6,6,1);live.add(halo)}
   ST.bake();msg.classList.add('gone');let t=0,last=performance.now();
-  const loop=now=>{requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;for(const k of sparks){const a=t*k.sp+k.ph;k.s.position.set(k.p.x+Math.cos(a)*k.r,k.p.y+Math.sin(a*1.3)*k.r*.7,k.p.z+1);const z=.35+.25*Math.sin(a*3);k.s.scale.set(z,z,1)}ST.draw()};requestAnimationFrame(loop);
+  const loop=now=>{requestAnimationFrame(loop);const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;t+=dt;for(const k of sparks){const a=t*k.sp+k.ph;k.s.position.set(k.p.x+Math.cos(a)*k.r,k.p.y+Math.sin(a*1.3)*k.r*.7,k.p.z+1);const z=.35+.25*Math.sin(a*3);k.s.scale.set(z,z,1)}ST.draw()};requestAnimationFrame(loop);
   const vb=document.getElementById('vbtn');if(vb)vb.addEventListener('click',()=>{VIEW=(VIEW+1)%4;vb.textContent=['Tæt på A','Tæt på B','Tæt på C','Alle tre'][VIEW];ST.bake();for(const k of sparks)k.s.visible=true});
   window.__heks={ready:true,bakeMs:ST.bakeMs,view:v=>{VIEW=v;ST.bake()}}}catch(e){msgN.textContent='Fejl: '+e.message;console.error(e)}})();

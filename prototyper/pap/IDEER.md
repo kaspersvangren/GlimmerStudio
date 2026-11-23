@@ -113,3 +113,21 @@ Forslaget:
 1. En lydbegrænser på al lyd i hele spillet, så den aldrig klipper.
 2. Et svagere og genbrugt pust ved tryk.
 3. Alt i banen gøres klar, før løbet starter, og tingene i baggrunden samles i færre stykker, så det kører mere jævnt.
+
+## Garderoben
+
+Kasper (note 8264, 23. nov.): flere farver alle steder, nyt layout og design af menuen, og Heks og Dyr skal have hver deres fane.
+
+Status: **Venter**. Skitsen er sendt til Kasper og ikke bygget:
+
+- To faner foroven som på en mappe: Heksen og Kæledyret.
+- Under dem knapper med små tegninger: Hat, Hår, Pande, Ansigt, Øjne, Mund, Tøj, Kappe, Støvler og Ekstra. Kæledyret har Dyr, Farver, Mønster, Pynt og Navn.
+- Valgene vises som små billeder i stedet for ord alene.
+- 48 farver i stedet for 12: tolv farver i lys, mellem og mørk, plus hvide, grå og brune toner.
+
+## Præmiebutikken
+
+| Idé | Status |
+|---|---|
+| Uglens sætninger om malerierne er forslag fra Claude. Kasper retter dem, hvis han vil | **Lavet** i 0.34 (R100), venter på Kaspers rettelser |
+
