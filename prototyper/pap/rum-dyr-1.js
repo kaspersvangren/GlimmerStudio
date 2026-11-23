@@ -8,12 +8,12 @@ const UNGER={drage:{navn:'Gnist',art:'Dragebarn',a:'#6fc86f',b:'#f6ecb0',c:'#f06
   naebdyr:{navn:'Næbbe',art:'Næbdyrunge',a:'#9c6c4c',b:'#e4c8a0',c:'#4c4a5c',eye:'#6a4a30',livret:'honning',mad:['chili','honning','sky'],saer:'keder sig hurtigt · elsker vand',g:1.5,vask:1.7}},UNGEID=Object.keys(UNGER);
 /* ---- ungernes ur ----
    Behovene falder i spilletid: kun mens spillet er åbent, men også når man er et andet sted end i stalden (dér går det fire gange så hurtigt, så der er noget at lave).
-   Fra fuld til tom tager cirka 12 minutter et andet sted. Står et behov på nul, visner et hjerte for hver 5 minutters spil; det sidste hjerte kan ikke mistes.
+   Fra fuld til tom tager cirka 2 timer et andet sted og en halv time i stalden (Kasper 23. nov.: de faldt alt for hurtigt). Står et behov på nul, visner et hjerte for hver 15 minutters spil; 5 minutter før kalder ungen en sidste gang. Det sidste hjerte kan ikke mistes.
    Hver unge har sit særpræg: Gnist bliver hurtigt sulten, Glimmer hurtigt snavset, Næbbe keder sig hurtigt. */
-const UNGEUR={m:1/900,r:1/1500,g:1/780,STALD:4,NUL:300},ungeSkridt=h=>h<3?3:h<6?4:h<8?5:6;
+const UNGEUR={m:1/7200,r:1/12000,g:1/6240,STALD:4,NUL:900,SIDSTE:300},ungeSkridt=h=>h<3?3:h<6?4:h<8?5:6;
 function ungeTid(dt,iStald,sover){const S=SPIL.data.unger,sket=[];if(!S)return sket;for(const id of UNGEID){const s=S[id],D=UNGER[id];if(!s)continue;const k=(iStald?UNGEUR.STALD:1)*(sover&&sover[id]?.5:1);
     s.m=clamp(s.m-dt*UNGEUR.m*(D.m||1)*k,0,1);s.r=clamp(s.r-dt*UNGEUR.r*(D.r||1)*k,0,1);s.g=clamp(s.g-dt*UNGEUR.g*(D.g||1)*k,0,1);const lav=Math.min(s.m,s.r,s.g);
-    if(lav<=.001){s.nul=(s.nul||0)+dt;if(s.nul>=UNGEUR.NUL){s.nul=0;if(s.h>1){s.h--;s.p=0;sket.push({id,hvad:'mistet'})}}}else s.nul=0;
+    if(lav<=.001){s.nul=(s.nul||0)+dt;if(s.nul>=UNGEUR.NUL-UNGEUR.SIDSTE&&!s.adv2&&s.h>1){s.adv2=1;sket.push({id,hvad:'sidste'})}if(s.nul>=UNGEUR.NUL){s.nul=0;s.adv2=0;if(s.h>1){s.h--;s.p=0;sket.push({id,hvad:'mistet'})}}}else{s.nul=0;s.adv2=0}
     if(lav<.2&&!s.adv){s.adv=1;sket.push({id,hvad:'kalder'})}else if(lav>.5)s.adv=0}
   return sket}
 function makeUnge(kind){const D=UNGER[kind],U={G:new THREE.Group(),kind},G=U.G,{a,b,c}=D,a1=hexOf(shade(a,.22)),ad=hexOf(shade(a,-.32)),MORK='#1a1420',W=(col,o={})=>Object.assign({color:col,kind:'water',t:.16},o);

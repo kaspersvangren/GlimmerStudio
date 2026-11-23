@@ -15,17 +15,20 @@ const trylGenkend=(()=>{const N=32,dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]),l
   const path=(a,b)=>{let s=0;for(let i=0;i<N;i++)s+=dist(a[i],b[i]);return s/N},T={},add=(name,pts)=>{const u=unit(resample(pts,N));(T[name]=T[name]||[]).push(u,u.slice().reverse())};
   for(const k of[0,-.45,.45]){add('v',[[-1,-1],[k,1],[1,-1]]);add('hat',[[-1,1],[k,-1],[1,1]])}add('v',[[-1,-.3],[-.3,1],[1,-1]]);add('hat',[[-1,.3],[-.3,-1],[1,1]]);
   add('lyn',TRYL_TEGN.lyn.p);add('lyn',TRYL_TEGN.lyn.p.map(([x,y])=>[-x,y]));add('lyn',[[-1,-1],[1,-1],[-1,1],[1,1]]);add('lyn',[[1,-1],[-1,-1],[1,1],[-1,1]]);add('lyn',[[.2,-1],[-1,.15],[1,-.15],[-.2,1]]);add('lyn',[[-.2,-1],[1,.15],[-1,-.15],[.2,1]]);
+  /* flere slags lyn: knækket højt eller lavt, midterstykket vandret, lidt opad eller nedad, smalle og brede, og med tre knæk. Børns lyn blev ellers ofte afvist (Kasper 23. nov.) */
+  for(const sx of[1,-1])for(const k1 of[-.4,0,.3])for(const dk of[-.22,0,.25])for(const ov of[-.2,.3]){const y1=k1,y2=Math.min(.9,k1+dk);add('lyn',[[sx*.3,-1],[-sx,y1],[sx*Math.max(ov,-.1)+sx*.6,y2],[-sx*.3,1]])}
+  for(const sx of[1,-1]){add('lyn',[[sx*.4,-1],[-sx,-.4],[sx*.6,-.25],[-sx*.8,.35],[sx*.4,.5],[-sx,1]]);add('lyn',[[sx,-1],[-sx*.6,-.35],[sx*.5,-.2],[-sx*.5,.4],[sx*.6,.5],[-sx*.6,1]])}
   for(let s=0;s<8;s++)add('ring',Array.from({length:33},(_,i)=>{const a=s*Math.PI/4+i/32*TAU;return[Math.cos(a),Math.sin(a)]}));
   {const h=TRYL_TEGN.hjerte.p,n=h.length-1;add('hjerte',h);add('hjerte',Array.from({length:n+1},(_,i)=>h[(i+n/2)%n]))}
   return function(raw,aktive){if(!raw||raw.length<3)return null;const A=new Set(aktive),L=len(raw),b=box(raw),D=Math.max(b.w,b.h),d=Math.min(b.w,b.h);if(L<60||D<45)return null;
     const a=raw[0],z=raw[raw.length-1],ende=dist(a,z),lige=ende/L;
     if(lige>.82||(d<.26*D&&lige>.7)){const v=Math.atan2(Math.abs(z[1]-a[1]),Math.abs(z[0]-a[0]))*180/Math.PI,n=v<38?'vand':v>52?'lod':null;return n&&A.has(n)?n:null}
-    if(d<.2*D)return null;const u=unit(resample(raw,N));let best=null,bd=9,second=9;
-    for(const name of Object.keys(T)){if(!A.has(name))continue;let m=9;for(const t of T[name]){const s=path(u,t);if(s<m)m=s}if(m<bd){second=bd;bd=m;best=name}else if(m<second)second=m}
+    /* smalle tegninger kan kun være et lyn (et lyn tegnes ofte højt og smalt) */const smal=d<.2*D;if(d<.1*D||smal&&b.w>b.h)return null;const u=unit(resample(raw,N));let best=null,bd=9,second=9;
+    for(const name of Object.keys(T)){if(!A.has(name)||smal&&name!=='lyn')continue;let m=9;for(const t of T[name]){const s=path(u,t);if(s<m)m=s}if(m<bd){second=bd;bd=m;best=name}else if(m<second)second=m}
     if(!best)return null;const lukket=ende<.5*D;
     if(lukket&&A.has('ring')&&A.has('hjerte')&&(best==='ring'||best==='hjerte')){const bund=raw.filter(p=>p[1]>b.y0+.84*b.h),bb=box(bund);best=bb.w<.42*b.w?'hjerte':'ring';bd=Math.min(bd,.5)}
     if((best==='ring'||best==='hjerte')&&ende>.7*D)return null;if(lukket&&d>.5*D&&best!=='ring'&&best!=='hjerte')return null;
-    return bd<((best==='ring'||best==='hjerte')&&lukket?.62:.48)?best:null}})();
+    return bd<((best==='ring'||best==='hjerte')&&lukket?.62:best==='lyn'?.56:.48)?best:null}})();
 ROOMS.tryl=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),TG=TRYL_TEGN,U=20,TOP=45.5,BR=2.7,HX=-11.4,DX=11.1,rnd=(a,b)=>a+Math.random()*(b-a),vaelg=a=>a[Math.floor(Math.random()*a.length)];
   /* hvert slags væsen: fart, antal balloner, hvilken runde det kommer i, hvor meget det svajer, hvor tit det kommer, og hvor højt det er (fra grebet om snorene til fødderne) */

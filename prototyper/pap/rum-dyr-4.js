@@ -61,7 +61,10 @@ ROOMS.ungestald=function(ctx){
     if(ramt(b,'mad')&&liv)b.oen.ok=true;busyB={b,slags:'mad',t:0,godbid,liv,id};if(!FM[id])FM[id]=godbid?maerke(128,T.godbid):foderMaerke(id,128);flaske.material.map=FM[id];flaske.visible=true;b.U.set({mund:'gab'})}
   const leg=b=>{if(busyB||sover(b))return;if(ramt(b,'leg'))b.oen.ok=true;busyB={b,slags:'leg',t:0};bold.visible=true;b.hopN=3;LYD.pip()};
   const klap=b=>{if(sover(b))return;LYD.kys();b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.06);b.ro=0};
-  const trykUnge=b=>()=>{lukMad();if(tool==='mad'){if(busyB||sover(b))return;if(b.s.m>.97&&!ramt(b,'mad')){ctx.say(`${b.D.navn} er helt mæt.`);b.glad=.5;return}LYD.tryk();aabnMad(b)}else if(tool==='godbid'){if(!sover(b))mad(b,'godbid')}else if(tool==='leg')leg(b);else if(tool==='vask'){if(sover(b))return;LYD.vask();for(let i=0;i<4;i++)boble(b.x,BY+8);fyld(b,'r',.08*(b.D.vask||1));b.ro=0}else klap(b)};
+  /* man kan kun give ungerne det, de selv beder om i tankeboblen; ellers er det for let at fylde dem helt op (Kasper 23. nov.). Godbidder må man altid give */
+  let nejT=0;const NEJ={mad:'er ikke sulten lige nu',vask:'vil ikke vaskes lige nu',leg:'vil ikke lege lige nu',kael:'vil ikke kæles lige nu'};
+  const maa=(b,k)=>{if(ramt(b,k))return true;const nu_=performance.now();if(nu_-nejT>3500){nejT=nu_;ctx.say(b.oen?`${b.D.navn} ${NEJ[k]}. Se i tankeboblen, hvad den ønsker sig.`:`${b.D.navn} ${NEJ[k]}. Vent, til den beder om noget.`)}b.glad=0;return false};
+  const trykUnge=b=>()=>{lukMad();if(tool==='mad'){if(busyB||sover(b))return;if(!maa(b,'mad'))return;LYD.tryk();aabnMad(b)}else if(tool==='godbid'){if(!sover(b))mad(b,'godbid')}else if(tool==='leg'){if(!sover(b)&&!maa(b,'leg'))return;leg(b)}else if(tool==='vask'){if(sover(b)||!maa(b,'vask'))return;LYD.vask();for(let i=0;i<4;i++)boble(b.x,BY+8);fyld(b,'r',.08*(b.D.vask||1));b.ro=0}else{if(!maa(b,'kael'))return;klap(b)}};
   const ungeVed=p=>p&&p.y>BY-1&&p.y<BY+19?B.find(b=>Math.abs(p.x-b.x)<8.5):null;
   /* et strøg (kæl) eller et gnid (vask) har flyttet fingeren d hen over ungen med farten v (enheder i sekundet) */
   const stroeg=(b,p,d,v)=>{b.dist+=d;b.ro=0;
@@ -70,7 +73,7 @@ ROOMS.ungestald=function(ctx){
     else{const f=b.D.vask||1;if(f<1)humoer(b,'sur',.6);else if(f>1)b.glad=Math.max(b.glad,.8);if(b.dist>4){b.dist=0;fyld(b,'r',.06*f);if(f>1)fyld(b,'g',.02);boble(p.x,p.y);if(Math.random()<.3)LYD.vask();if(b.s.r>=.995)Rm.burst(b.x,BY+9,8,10,'rgba(200,240,255,.95)',7);if(ramt(b,'vask')&&++b.oen.n>=Math.round(4/f))opfyldt(b)}}};
   const Rm=makeRoom(ctx,{bg:'#140e0a',fit:fitBox(88,50,0,20.5),sky:'#ffe2b8',ground:'#4a3020',amb:.55,key:{col:'#ffe6c4',i:1.9,tgt:[0,14,0]},
     drag:(ph,e,Rm)=>{if(tool!=='kael'&&tool!=='vask'){sidst=null;return}const p=Rm.planeAt(e,3),nu_=performance.now();if(ph==='end'||!p){sidst=null;svamp.visible=false;return}const b=ungeVed(p);if(tool==='vask'){svamp.visible=true;svamp.position.set(p.x,p.y,7)}
-      if(ph==='start'||!sidst){sidst=p;sidstT=nu_;return}const d=Math.hypot(p.x-sidst.x,p.y-sidst.y),sek=Math.max(.004,(nu_-sidstT)/1000);sidst=p;sidstT=nu_;if(!b||b.sov||busyB&&busyB.b===b)return;b.v=b.v*.6+d/sek*.4;stroeg(b,p,d,b.v)},
+      if(ph==='start'||!sidst){sidst=p;sidstT=nu_;return}const d=Math.hypot(p.x-sidst.x,p.y-sidst.y),sek=Math.max(.004,(nu_-sidstT)/1000);sidst=p;sidstT=nu_;if(!b||b.sov||busyB&&busyB.b===b)return;if(!maa(b,tool)){b.dist=0;return}b.v=b.v*.6+d/sek*.4;stroeg(b,p,d,b.v)},
     build:Rm=>[()=>{const g=Rm.scene,W=box(-76,-2,76,64);
         /* bagvæggen: varme brædder, med et lysere panel forneden */
         P2(g,W,{t:.5,s:9,cap:1800,paint:P=>{boards(P,null,'#9a6a40',{dir:'v',h:4.2,ink:.3});P.wash('#5a3a22',box(-77,-3,77,PL+3),{alpha:.55,edge:0,mode:'source-over'});P.wash('#2a1608',box(-77,40,77,65),{alpha:.45,edge:0,mode:'source-over'})}},-10);
@@ -101,9 +104,9 @@ ROOMS.ungestald=function(ctx){
         for(const b of B)b.U.set({snavs:b.s.r<.25?3:b.s.r<.5?2:b.s.r<.75?1:0});visKnap();
         ctx.say(B.some(b=>Math.min(b.s.m,b.s.r,b.s.g)<.2)?'Ungerne har savnet dig! Se på skiltene, hvad de mangler.':'Når en unge ønsker noget, viser den det i en tankeboble. Gør det, før uret løber ud, så kommer du nærmere et hjerte.')}],
     tick:(t,dt)=>{gemT-=dt;
-      {const sv={};for(const b of B)sv[b.id]=b.sov;for(const e of ungeTid(dt,true,sv))if(e.hvad==='mistet'){const b=B.find(q=>q.id===e.id);LYD.oev();humoer(b,'ked',3);Rm.burst(b.x,36,-4,10,'rgba(150,150,170,.9)',6);tegnSkilt(b);ctx.say(`${b.D.navn} har mistet et hjerte: den har manglet noget for længe.`);gem(true)}}
+      {const sv={};for(const b of B)sv[b.id]=b.sov;for(const e of ungeTid(dt,true,sv))if(e.hvad==='sidste'){const b=B.find(q=>q.id===e.id);LYD.pip&&LYD.pip();humoer(b,'ked',3);if(!b.oen)nytOenske(b);ctx.say(`${b.D.navn} er ved at blive ked af det! Giv den det, den beder om.`)}else if(e.hvad==='mistet'){const b=B.find(q=>q.id===e.id);LYD.oev();humoer(b,'ked',3);Rm.burst(b.x,36,-4,10,'rgba(150,150,170,.9)',6);tegnSkilt(b);ctx.say(`${b.D.navn} har mistet et hjerte: den har manglet noget for længe.`);gem(true)}}
       /* et nyt ønske: højst ét ad gangen i begyndelsen, senere to og tre, og med kortere pauser, jo flere hjerter man har i alt */
-      {const H=iAlt(),maks=H<8?1:H<20?2:3,aktive=B.filter(b=>b.oen).length;if(aktive<maks){oenT-=dt;if(oenT<=0){const fri=B.filter(b=>!b.oen&&!b.sov&&!(busyB&&busyB.b===b));if(fri.length)nytOenske(fri[Math.floor(Math.random()*fri.length)]);oenT=Math.max(2.5,7-H*.12)+Math.random()*3}}}
+      {const H=iAlt(),maks=H<8?1:H<20?2:3,aktive=B.filter(b=>b.oen).length;if(aktive<maks){oenT-=dt;if(oenT<=0){const fri=B.filter(b=>!b.oen&&!b.sov&&!(busyB&&busyB.b===b));if(fri.length)nytOenske(fri[Math.floor(Math.random()*fri.length)]);oenT=20+Math.random()*20}}}
       for(const b of B){const s=b.s,U=b.U;b.glad=Math.max(0,b.glad-dt*1.3);b.hum=Math.max(0,b.hum-dt);b.ro+=dt;
         if(b.oen){const o=b.oen;if(!o.ok){o.t+=dt;if(o.t>=o.T){b.oen=null;tegnTanke(b);humoer(b,'ked',1.8);fyld(b,'g',-.08);LYD.dunk()}}if(b.oen&&Math.floor(t*6)!==Math.floor((t-dt)*6))tegnTanke(b)}
         /* falder i søvn, når alt er godt, og man har ladet den være lidt; vågner igen, når den mangler noget */

@@ -131,3 +131,5 @@ Status: **Lavet** i 0.35 (R102), efter skitsen:
 |---|---|
 | Uglens sætninger om malerierne er forslag fra Claude. Kasper retter dem, hvis han vil | **Lavet** i 0.34 (R100), venter på Kaspers rettelser |
 
+
+- **Flere æg i Dyreparken** (Kasper 23. nov.): Lige nu er der ét æg, som klækker næbdyret ved 15 hjerter. Hvis Agnes bliver ved med at spille, kan der komme flere æg, og så skal hun have besked om, at der ligger et nyt æg i reden.

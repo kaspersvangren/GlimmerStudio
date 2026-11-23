@@ -104,9 +104,17 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik('byen')},{once:true});
 /* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
-{let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;continue}
-      if(e.hvad==='mistet'){LYD.oev();toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else{LYD.pip();toast(`${navn} kalder på dig i Ungestalden!`)}}
+{let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;if(e.hvad==='sidste')s.adv2=0;continue}
+      if(e.hvad==='mistet'){LYD.oev();toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.pip();toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.pip();toast(`${navn} kalder på dig i Ungestalden!`)}}
     if(sket.length||++n%10===0)SPIL.save();return sket};
   setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
+/* et lille hjerte blinker over Dyreparken på kortet, så længe en unge mangler noget, så man kan se det, selv om man missede beskeden (Kasper 23. nov.) */
+{let H=null;const lav=()=>{const S=SPIL.data.unger;if(!S)return false;for(const k in S){const s=S[k];if(Math.min(s.m,s.r,s.g)<.2)return true}return false};
+  SPIL.ungeHjerte=()=>{const vis=lav()&&typeof HOUSE!=='undefined'&&HOUSE.dyr;if(!vis){if(H)H.visible=false;return}
+    if(!H){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.translate(64,70);g.beginPath();g.moveTo(0,40);g.bezierCurveTo(-60,0,-40,-50,0,-22);g.bezierCurveTo(40,-50,60,0,0,40);g.closePath();g.fillStyle='#ff4f7e';g.fill();g.lineWidth=7;g.strokeStyle='#fff6ec';g.stroke();g.beginPath();g.ellipse(-16,-18,8,5,-.6,0,Math.PI*2);g.fillStyle='rgba(255,255,255,.7)';g.fill();
+      const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;H=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false}));H.renderOrder=50;live.add(H);
+      H.onBeforeRender=()=>{const k=.5+.5*Math.sin(performance.now()/260);H.material.opacity=.55+.45*k;const z=5.2*(.9+.2*k);H.scale.set(z,z,1)}}
+    const d=HOUSE.dyr.door;H.position.set(d[0],25,d[1]);H.visible=true};
+  setInterval(()=>{if(!SPIL.room)SPIL.ungeHjerte()},1000)}
 SPIL.arrive=name=>{const id=DOORS[name];if(id&&ROOMS[id])enter(id);else if(HUSNAVN[name])toast(`${HUSNAVN[name]} åbner snart`)};
 SPIL.enter=n=>enter(DOORS[n]||n);window.__renderer=renderer;window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;

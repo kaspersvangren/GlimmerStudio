@@ -2,11 +2,11 @@
    Herfra går man ind i Dyrekøkkenet (til venstre) og Ungestalden (til højre). Midt på gården ligger et stort æg i en rede: det ruger og klækker en dag.
    Heksen går hen til det, man trykker på; dyrene på gården kan man klappe.
    Ægget (Kasper 22. nov.: næbdyret skal man få fra ægget): det bliver varmt af glade dyreunger. Hvert hjerte, ungerne i Ungestalden har på én gang,
-   er varme; ved 2 og 4 hjerter kommer der revner, og ved 6 lyser det og vipper af sig selv. Så kan man trykke på det, og et næbdyr klækker.
+   er varme; ved 5 og 10 hjerter kommer der revner, og ved 15 lyser det og vipper af sig selv (Kasper 23. nov.: 6 var for lidt). Så kan man trykke på det, og et næbdyr klækker.
    Næbdyret bor derefter på gården, og man kan vælge det som kæledyr i Garderoben. */
 ROOMS.dyrepark=function(ctx){
   const P2=(g,shape,o,z)=>put(g,piece(shape,o),0,0,z),W0={x:0,tx:0,ph:0,amp:0,face:1,want:null},STEDER=[{id:'koek',navn:'Dyrekøkkenet',x:-27,rum:'dyrekoekken'},{id:'stald',navn:'Ungestalden',x:27,rum:'ungestald'}];
-  let heks,kat,aeg,vip=0,gaar=null,frys=null,klaek=null,aegGlow=null,top_=null,bund_=null,naeb=null;const KLAR=6,ejerNaeb=()=>SPIL.har.includes('dyr:næbdyr');
+  let heks,kat,aeg,vip=0,gaar=null,frys=null,klaek=null,aegGlow=null,top_=null,bund_=null,naeb=null;const KLAR=15,ejerNaeb=()=>SPIL.har.includes('dyr:næbdyr');
   const varme=()=>{const S=SPIL.data.unger||{};let n=0;for(const k in S)n+=S[k].h||0;SPIL.data.aegMax=Math.max(SPIL.data.aegMax||0,n);return SPIL.data.aegMax};const DYR_=[],hj=[],roeg=[];
   const hjerte=(x,y)=>{const q=hj.find(h=>h.t>1)||hj[0];q.t=0;q.x=x;q.y=y};
   const Rm=makeRoom(ctx,{bg:'#0e1418',fit:fitBox(90,50,0,20.5),sky:'#dff0ff',ground:'#5a7a48',amb:.7,key:{col:'#fff2d8',i:2.1,tgt:[0,14,0],box:[-64,64,56,-34]},
@@ -52,7 +52,7 @@ ROOMS.dyrepark=function(ctx){
         const hb=new THREE.Mesh(new THREE.PlaneGeometry(13,14),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(0,5,2);aeg.add(hb);Rm.tap(hb,()=>{W0.tx=-9;W0.want={aeg:1}});
         /* revner efter, hvor varmt ægget er */
         {const v=varme(),REV=[[[-2.8,6.2],[-1.6,5.4],[-.8,6.3],[.2,5.2]],[[.6,7.6],[1.4,6.7],[2.4,7.4],[3.2,6.4]],[[-3.4,4.3],[-2.2,3.6],[-1,4.5],[.4,3.5],[1.6,4.4],[3,3.7]]];
-          REV.forEach((pts,i)=>{if(v>=2*(i+1))for(const q of thick([pts],.16))put(aeg,piece(q,{color:'#6a4a3a',kind:'water',t:.02}),0,0,.52)});
+          REV.forEach((pts,i)=>{if(v>=KLAR*(i+1)/REV.length)for(const q of thick([pts],.16))put(aeg,piece(q,{color:'#6a4a3a',kind:'water',t:.02}),0,0,.52)});
           if(v>=KLAR&&!ejerNaeb())aegGlow=Rm.glow(0,7.5,-2,'rgba(255,224,140,.9)',20,true)}
         /* er næbdyret klækket, ligger æggeskallen i reden, og næbdyret går rundt på gården */
         const skaller=()=>{const nedre=clip([e],[toCCW([[-5,-1],[5,-1],[4.4,5.6],[3,4.6],[1.6,5.8],[0,4.6],[-1.6,5.8],[-3,4.6],[-4.4,5.6]])],'inter'),oevre=clip([e],[toCCW([[-5,11],[-4.4,5.6],[-3,4.6],[-1.6,5.8],[0,4.6],[1.6,5.8],[3,4.6],[4.4,5.6],[5,11]])],'inter');

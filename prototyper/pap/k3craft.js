@@ -168,7 +168,7 @@ const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2
    Stykker, der bevæger sig, skal markeres med userData.levende (eller ligge under en gruppe, der er det); figurer, tekster og lysskær røres ikke */
 const FAM=new Map();
 function famMat(m){if(m.userData.own||m.vertexColors||(m.emissive&&(m.emissive.r+m.emissive.g+m.emissive.b)>0)||m.metalness>0||m.transparent)return{k:m.uuid,m,farve:null};
-  const k='f'+(m.map?m.map.uuid:'-')+(m.bumpMap?m.bumpMap.uuid:'-')+m.bumpScale+'|'+m.roughness+'|'+m.side;let f=FAM.get(k);if(!f){f=m.clone();f.color.set(1,1,1);f.vertexColors=true;FAM.set(k,f)}return{k,m:f,farve:m.color}}
+  const k='f'+(m.map?m.map.uuid:'-')+(m.bumpMap?m.bumpMap.uuid:'-')+m.bumpScale+'|'+m.roughness+'|'+m.side;let f=FAM.get(k);if(!f){f=m.clone();f.color.set(1,1,1);f.vertexColors=true;f.userData.fam=true;FAM.set(k,f)}return{k,m:f,farve:m.color}}
 /* bygger én geometri af flere stykker (hver med sin matrix og sine papirfamilier); trekanter med samme materiale lægges i samme tegning */
 function famGeo(dele){const P=[],N=[],U=[],C=[],I=[],tri=new Map(),nM=new THREE.Matrix3(),v=new THREE.Vector3();
   for(const{g,M,fam}of dele){const pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv;if(M)nM.getNormalMatrix(M);
@@ -183,7 +183,9 @@ const famOk=o=>{const g=o.geometry;if(!o.isMesh||o.isSkinnedMesh||o.isInstancedM
   const mats=Array.isArray(o.material)?o.material:[o.material];if(mats.some(m=>!m||!m.isMeshStandardMaterial))return null;return mats.map(famMat)};
 /* hvert stykke papir tegnes normalt i tre omgange (forside, bagside, kant). Her bliver det til én omgang, når de tre er samme slags papir; stykkerne bliver ved med at kunne bevæge sig hver for sig.
    Bruges kun, hvor farverne ikke skiftes undervejs */
-function enFarve(root){let n=0;root.traverse(o=>{if(o.userData.enFarve||!Array.isArray(o.material))return;const fam=famOk(o);if(!fam)return;const{G,mat}=famGeo([{g:o.geometry,M:null,fam}]);o.geometry=G;o.material=mat;o.userData.enFarve=1;n++});return n}
+/* får stykket senere nyt papir (fx prikkerne i Boblepops sigtelinje, der skifter farve), får det sin oprindelige form tilbage, så det nye papir sidder rigtigt */
+function enFarve(root){let n=0;root.traverse(o=>{if(o.userData.enFarve||!Array.isArray(o.material))return;const fam=famOk(o);if(!fam)return;const{G,mat}=famGeo([{g:o.geometry,M:null,fam}]);
+    for(const x of[].concat(mat))x.userData.fam=true;const org=o.geometry,nM=[].concat(mat).length;o.geometry=G;let m_=mat;Object.defineProperty(o,'material',{configurable:true,enumerable:true,get(){return m_},set(v){const a=[].concat(v);o.geometry=a.length===nM&&a.every(x=>x&&x.userData.fam)?G:org;m_=v}});o.userData.enFarve=1;n++});return n}
 function samlStatisk(root,{celle=240}={}){root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),B={},ud=[];
   const ok=o=>{for(let p=o;p&&p!==root;p=p.parent)if(p.userData.levende)return false;return true};
   root.traverse(o=>{if(!o.visible||o.userData.ryd||!ok(o))return;const fam=famOk(o);if(!fam)return;const g=o.geometry;

@@ -38,7 +38,9 @@ function makeRoom(ctx,o){
   const setRay=e=>{const r=el.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(ndc,cam)};
   Rm.planeAt=(e,z=0)=>{setRay(e);const p=new THREE.Vector3();return ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,0,1),-z),p)?p:null};
   Rm.groundAt=(e,y=0)=>{setRay(e);const p=new THREE.Vector3();return ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),-y),p)?p:null};
-  const pick=e=>{setRay(e);let best=null;for(const t of Rm.taps){const h=ray.intersectObject(t.obj,true).find(q=>!q.object.isSprite);if(h&&(!best||h.distance<best.h.distance))best={t,h}}return best};
+  /* skjulte ting kan ikke trykkes på: den usynlige sæbeboble i Boblebutikken lå efter første køb foran tøjkrukken og tog trykkene (Kasper 23. nov.: tøj kunne ikke købes) */
+  const synlig=o=>{for(;o;o=o.parent)if(!o.visible)return false;return true};
+  const pick=e=>{setRay(e);let best=null;for(const t of Rm.taps){const h=ray.intersectObject(t.obj,true).find(q=>!q.object.isSprite&&synlig(q.object));if(h&&(!best||h.distance<best.h.distance))best={t,h}}return best};
   const onDown=e=>{if(!ctx.alive||!Rm.ready||down)return;if(o.fast){const b=pick(e);if(b)b.t.fn(b.h,e);else if(o.miss)o.miss(e,Rm);return}/* hurtige spil reagerer, i det øjeblik fingeren rører */
     down={x:e.clientX,y:e.clientY,drag:false,id:e.pointerId};if(o.drag)o.drag('start',e,Rm)};
   const onMove=e=>{if(!down||e.pointerId!==down.id)return;if(Math.hypot(e.clientX-down.x,e.clientY-down.y)>10)down.drag=true;if(o.drag)o.drag('move',e,Rm)};
