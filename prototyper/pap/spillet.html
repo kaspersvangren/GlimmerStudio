@@ -710,6 +710,26 @@ function puff(cx,cy,rx,ry,n=9,bump=.22,seed=0){const o=[];const ph=R(TAU);for(le
   for(let j=0;j<6;j++){const t=j/6,u=1-t;o.push([u*u*p0[0]+2*u*t*bx+t*t*p1[0],u*u*p0[1]+2*u*t*by+t*t*p1[1]])}}return o}
 /* et udklippet blad */
 const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2+t*l,xx=Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}for(let i=7;i>0;i--){const t=i/8,yy=-l/2+t*l,xx=-Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}return o.map(([px,py])=>[x+px*Math.cos(a)-py*Math.sin(a),y+px*Math.sin(a)+py*Math.cos(a)])};
+/* samler alle de faste papstykker i en gruppe til få store stykker, ét pr. slags papir og pr. stykke vej (celle), så grafikchippen får færre ting at tegne.
+   Stykker, der bevæger sig, skal markeres med userData.levende (eller ligge under en gruppe, der er det); figurer, tekster og lysskær røres ikke */
+function samlStatisk(root,{celle=240}={}){root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),B={},ud=[];
+  const ok=o=>{for(let p=o;p&&p!==root;p=p.parent)if(p.userData.levende)return false;return true};
+  root.traverse(o=>{if(!o.isMesh||o.isSprite||o.isSkinnedMesh||o.isInstancedMesh||!o.visible||o.userData.ryd||!ok(o))return;const g=o.geometry;if(!g||!g.attributes.position||!g.attributes.normal||!g.attributes.uv||Object.keys(g.attributes).length!==3)return;
+    const mats=Array.isArray(o.material)?o.material:[o.material];if(mats.some(m=>!m||m.transparent&&!m.alphaTest))return;
+    const M=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld),c=new THREE.Vector3();if(!g.boundingBox)g.computeBoundingBox();g.boundingBox.getCenter(c).applyMatrix4(M);
+    const key=mats.map(m=>m.uuid).join('|')+'#'+Math.floor(c.x/celle)+(o.castShadow?'s':'')+(o.receiveShadow?'r':'');(B[key]=B[key]||{mats,cast:o.castShadow,recv:o.receiveShadow,dele:[]}).dele.push({g,M});ud.push(o)});
+  let n=0;for(const k in B){const b=B[k];const P=[],N=[],U=[],I=[],grp=[];const nM=new THREE.Matrix3(),v=new THREE.Vector3();
+    const nm=b.mats.length;const tri=[];for(let mi=0;mi<nm;mi++)tri.push([]);
+    for(const{g,M}of b.dele){const base=P.length/3,pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv;nM.getNormalMatrix(M);
+      for(let i=0;i<pa.count;i++){v.fromBufferAttribute(pa,i).applyMatrix4(M);P.push(v.x,v.y,v.z);v.fromBufferAttribute(na,i).applyMatrix3(nM).normalize();N.push(v.x,v.y,v.z);U.push(ua.getX(i),ua.getY(i))}
+      const idx=g.index?g.index.array:null,cnt=idx?idx.length:pa.count,gs=g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
+      for(const q of gs){const L=tri[Math.min(q.materialIndex||0,nm-1)];for(let j=q.start;j<q.start+q.count;j++)L.push(base+(idx?idx[j]:j))}}
+    for(let mi=0;mi<nm;mi++){if(!tri[mi].length)continue;grp.push([I.length,tri[mi].length,mi]);for(const x of tri[mi])I.push(x)}
+    const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));G.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));G.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));G.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));
+    for(const[s,c,m]of grp)G.addGroup(s,c,m);G.computeBoundingSphere();const m=new THREE.Mesh(G,nm>1?b.mats:b.mats[0]);m.castShadow=b.cast;m.receiveShadow=b.recv;m.userData.noShadow=!b.cast;m.userData.samlet=true;root.add(m);n++}
+  for(const o of ud){o.parent.remove(o);o.geometry.dispose()}
+  /* tomme grupper fjernes */const tom=[];root.traverse(o=>{if(o!==root&&!o.isMesh&&!o.isSprite&&!o.isLight&&o.children.length===0&&!o.userData.levende)tom.push(o)});for(const o of tom)o.parent&&o.parent.remove(o);
+  return{for:ud.length,efter:n}}
 
 /* ============ hele kortet: en magisk pap-by på et bord ============
    `scene` tegnes én gang (bages) med lys og skygger. `live` er det, der bevæger sig. */
@@ -1866,7 +1886,15 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.41';
+const PAPVER='pap-0.42';
+/* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
+   En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
+   Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
+   så næste besøg starter rigtigt med det samme. 0: fuld, 1: lettere skygger, 2: lavere skarphed, 3: endnu lavere og ingen skygger fra det, der bevæger sig */
+const KVAL=(()=>{const N='magiske-mig-pap.kval';let gem={};try{gem=JSON.parse(localStorage.getItem(N)||'{}')||{}}catch(_){}
+  const lav=(navigator.deviceMemory||8)<=4||/[?&]lav\b/.test(location.search);
+  if(lav&&renderer.getPixelRatio()>1)renderer.setPixelRatio(1);
+  return{lav,gem,niveau(id){return gem[id]!=null?gem[id]:(gem.alm||0)},saet(id,n){gem[id]=n;let m=0;for(const k in gem)if(k!=='alm')m=Math.max(m,gem[k]);gem.alm=Math.max(0,m-1);try{localStorage.setItem(N,JSON.stringify(gem))}catch(_){}}}})();
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 /* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
 const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
@@ -2370,7 +2398,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     copyMat.uniforms.tColor.value=tile.texture;copyMat.uniforms.tDepth.value=tile.depthTexture;
     renderer.setRenderTarget(big);renderer.clear();renderer.render(copyScene,blitCam);renderer.setRenderTarget(null);tile.dispose();
     const fin=POST.run(big,FW,FH);blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;baked=true;S.bakeMs=performance.now()-t0};
-  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(levende,cam)};
+  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);if(S.foerLive)S.foerLive();renderer.render(levende,cam)};
   let rt=0;const nyStr=()=>{clearTimeout(rt);if(window.__frys){rt=setTimeout(nyStr,500);return}if(stage.clientWidth===bagW&&stage.clientHeight===bagH)return;S.bake()};const ro=new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(nyStr,250)});ro.observe(stage);
   /* når rummet forlades: slip billederne igen, så næste rum har pladsen */
   S.dispose=function(){ro.disconnect();clearTimeout(rt);baked=false;if(big){big.depthTexture.dispose();big.dispose();big=null}POST.dispose();blitMat.dispose();copyMat.dispose();for(const sc of[blitScene,copyScene])sc.children[0].geometry.dispose()};
@@ -2386,7 +2414,7 @@ function makeRoom(ctx,o){
   const scene=new THREE.Scene(),live=new THREE.Scene(),bg=o.bg||'#120e1a';scene.background=new THREE.Color(bg);
   scene.environment=live.environment=ctx.env;scene.environmentIntensity=.3;live.environmentIntensity=.35;
   const K=Object.assign({pos:[-28,62,110],tgt:[-4,16,0],box:[-56,56,52,-10],col:'#ffe2c4',i:2},o.key);
-  for(const sc of[scene,live]){const k=new THREE.DirectionalLight(K.col,K.i);k.position.set(...K.pos);k.target.position.set(...K.tgt);sc.add(k,k.target);k.castShadow=true;k.shadow.mapSize.set(2048,2048);Object.assign(k.shadow.camera,{left:K.box[0],right:K.box[1],top:K.box[2],bottom:K.box[3],near:40,far:280});k.shadow.bias=-.0006;k.shadow.normalBias=.05;k.shadow.radius=2.5}
+  let lysL=null;for(const sc of[scene,live]){const k=new THREE.DirectionalLight(K.col,K.i);if(sc===live)lysL=k;k.position.set(...K.pos);k.target.position.set(...K.tgt);sc.add(k,k.target);k.castShadow=true;k.shadow.mapSize.set(2048,2048);Object.assign(k.shadow.camera,{left:K.box[0],right:K.box[1],top:K.box[2],bottom:K.box[3],near:40,far:280});k.shadow.bias=-.0006;k.shadow.normalBias=.05;k.shadow.radius=2.5}
   scene.add(new THREE.HemisphereLight(o.sky||'#b8a8ff',o.ground||'#3a2a20',o.amb||.5));live.add(new THREE.HemisphereLight(o.sky||'#c8b8ff',o.ground||'#4a3628',(o.amb||.5)+.25));{const r=new THREE.DirectionalLight('#9fb6ff',.5);r.position.set(50,40,-40);live.add(r)}
   const CD=150,cam=new THREE.PerspectiveCamera(30,1,20,600);
   const ST=makeStage({scene,live,cam,CD,fit:o.fit,P_:Object.assign({aoR:.45,dof:[.05,.14],haze:[2,3,0],bloom:1.1,bg},o.P_)});
@@ -2399,8 +2427,18 @@ function makeRoom(ctx,o){
   /* et drys af gnister, når noget skifter */
   const sp=[];Rm.burst=(x,y,z,n=12,col='rgba(255,236,170,.95)',r=5)=>{while(sp.length<n){const s=glowSprite(col,1);s.visible=false;live.add(s);sp.push({s,t:9})}for(let i=0;i<n;i++){const q=sp[i];q.t=R(0,.2);q.x=x+R(-r,r);q.y=y+R(-r*.7,r*.7);q.z=z;q.vx=R(-5,5);q.vy=R(2,9)}};
   Rm.tap=(obj,fn)=>{Rm.taps.push({obj,fn});return obj};Rm.untap=obj=>{Rm.taps=Rm.taps.filter(t=>t.obj!==obj)};
-  Rm.shadows=root=>root.traverse(q=>{if(q.isMesh&&!q.userData.noShadow){q.castShadow=true;q.receiveShadow=true}});
+  Rm.shadows=root=>root.traverse(q=>{if(!q.isMesh)return;const s=!q.userData.noShadow;q.castShadow=s;q.receiveShadow=s});/* noShadow slår nu også skyggen fra, som piece() selv sætter (Kosteflyvning havde 2.461 ting, der kastede skygge hvert billede) */
   Rm.rebake=()=>{if(Rm.ready)ST.bake()};
+  /* kvaliteten: se KVAL i spil0.js */
+  const PR0=renderer.getPixelRatio(),rid=ctx.id||'rum';let niv=typeof KVAL!=='undefined'?Math.min(3,KVAL.niveau(rid)):0,skN=0,skHver=1;
+  const anvend=n=>{const pr=PR0*[1,1,.8,.65][n];skHver=[1,2,3,0][n];const sz=n?1024:2048;if(lysL){lysL.castShadow=n<3;if(lysL.shadow.mapSize.x!==sz){lysL.shadow.mapSize.set(sz,sz);if(lysL.shadow.map){lysL.shadow.map.dispose();lysL.shadow.map=null}}}
+    renderer.shadowMap.autoUpdate=skHver===1;const skift=Math.abs(renderer.getPixelRatio()-pr)>.01;if(skift)renderer.setPixelRatio(pr);return skift};
+  ST.foerLive=()=>{if(skHver>1)renderer.shadowMap.needsUpdate=(++skN%skHver)===0};
+  anvend(niv);Rm.niveau=()=>niv;
+  ctx.efter.push(()=>{renderer.shadowMap.autoUpdate=true;if(Math.abs(renderer.getPixelRatio()-PR0)>.01)renderer.setPixelRatio(PR0)});
+  const maal=[];let maalFra=0;
+  const maalTik=(raw,now)=>{if(niv>=3||document.hidden)return;if(now<maalFra)return;maal.push(Math.min(raw,.5));if(maal.length<90&&!(maal.length>=12&&Math.min(...maal)>.1))return;
+    const s=maal.slice().sort((a,b)=>a-b),med=s[s.length>>1];maal.length=0;if(med>1/36){niv++;if(typeof KVAL!=='undefined')KVAL.saet(rid,niv);if(typeof LOG!=='undefined')LOG.row('kvalitet',{rum:rid,niveau:niv,ms:Math.round(med*1000)});if(anvend(niv))ST.bake();maalFra=now+1500}};
   /* tryk og træk */
   const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),el=renderer.domElement;ray.camera=cam;let down=null;
   const setRay=e=>{const r=el.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(ndc,cam)};
@@ -2414,8 +2452,8 @@ function makeRoom(ctx,o){
   el.addEventListener('pointerdown',onDown);addEventListener('pointermove',onMove);addEventListener('pointerup',onUp);addEventListener('pointercancel',onUp);
   ctx.cleanup=()=>{el.removeEventListener('pointerdown',onDown);removeEventListener('pointermove',onMove);removeEventListener('pointerup',onUp);removeEventListener('pointercancel',onUp)};
   (async()=>{try{await SKRIFTER;const t0=performance.now();for(const s of(o.build(Rm)||[])){await new Promise(r=>setTimeout(r,0));if(!ctx.alive)return;s()}
-    Rm.shadows(live);const t1=performance.now();ST.bake();Rm.ready=true;window.__rumtid={malet:Math.round(t1-t0),bagt:Math.round(performance.now()-t1)};ctx.ready();let last=performance.now();
-    const loop=now=>{if(!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;Rm.t+=dt;
+    Rm.shadows(live);const t1=performance.now();ST.bake();Rm.ready=true;window.__rumtid={malet:Math.round(t1-t0),bagt:Math.round(performance.now()-t1)};ctx.ready();let last=performance.now();maalFra=last+1500;
+    const loop=now=>{if(!ctx.alive)return;requestAnimationFrame(loop);const raw=(now-last)/1000,dt=Math.max(0,Math.min(.05,raw));last=now;maalTik(raw,now);Rm.t+=dt;
       for(const g of Rm.glows){const f=g.flick?(.9+.1*Math.sin(Rm.t*9+g.ph)*Math.sin(Rm.t*5.1+g.ph)):(.93+.07*Math.sin(Rm.t*2+g.ph));g.s.scale.set(g.size*f,g.size*f,1)}
       for(const q of sp){q.t+=dt;if(q.t>1){q.s.visible=false;continue}q.s.visible=q.t>0;q.s.position.set(q.x+q.vx*q.t,q.y+q.vy*q.t-5*q.t*q.t,q.z);const zz=(1-q.t)*1.8;q.s.scale.set(zz,zz,1)}
       if(o.tick)o.tick(Rm.t,dt,Rm);ST.draw()};requestAnimationFrame(loop)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message)}})();
@@ -6079,7 +6117,7 @@ SPIL.givBil=n=>{if(n>0)LYD.ding();LOG.row('billetter',{n,ialt:Math.max(0,SPIL.bi
 SPIL.giv=n=>{if(n>0)LYD.ding();LOG.row('stjerner',{n,ialt:Math.max(0,SPIL.stj+n),ting:SPIL.har.length});SPIL.stj=Math.max(0,SPIL.stj+n);SPIL.save();visStj();stjEl.classList.remove('hop');void stjEl.offsetWidth;stjEl.classList.add('hop')};
 /* rummene ligger i en stak: fra Værelset kan man gå videre ind i Garderoben, og tilbage-knappen fører ét trin ud ad gangen */
 const stack=[],paaHeks=Object.assign({},SPIL.farver);let busy=false,dyrNyt=false;
-function openRoom(id){const t0=performance.now(),ctx={alive:true,efter:[],look:{},room:null,env:scene.environment,mats:new Set(MATS.keys())};
+function openRoom(id){const t0=performance.now(),ctx={id,alive:true,efter:[],look:{},room:null,env:scene.environment,mats:new Set(MATS.keys())};
   for(const k of SLOTS)ctx.look[k]=HEKS.L[k];Object.assign(ctx.look,SPIL.lookFuld());
   ctx.onLook=(k,v)=>{SPIL.look[k]=v;SPIL.save()};ctx.onCol=(k,v)=>{SPIL.farver[k]=v;SPIL.save()};ctx.dyr=Object.assign({},SPIL.dyr);ctx.onDyr=(k,v)=>{SPIL.dyr[k]=v;SPIL.save();dyrNyt=true};ctx.go=enter;ctx.say=toast;ctx.vent=vent;ctx.back=back;ctx.owns=SPIL.ejer;
   ctx.ready=()=>{SPIL.roomMs=Math.round(performance.now()-t0);LOG.skaerm(id);LOG.row('rum',Object.assign({id,ms:SPIL.roomMs},window.__rumtid||{}),id);LOG.flush();busy=false;doorEl.classList.add('gone');hjemEl.hidden=false};
@@ -6150,7 +6188,7 @@ addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik('byen')},{once:tr
     if(sket.length||++n%10===0)SPIL.save();return sket};
   setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
 SPIL.arrive=name=>{const id=DOORS[name];if(id&&ROOMS[id])enter(id);else if(HUSNAVN[name])toast(`${HUSNAVN[name]} åbner snart`)};
-SPIL.enter=n=>enter(DOORS[n]||n);window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;
+SPIL.enter=n=>enter(DOORS[n]||n);window.__renderer=renderer;window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;
 
 /* ============ forsiden, de tre gemte spil og bogen i starten (som i originalen) ============
    Efter indlæsningen kommer forsiden: spillets navn på et papskilt over byen og en rund play-knap.

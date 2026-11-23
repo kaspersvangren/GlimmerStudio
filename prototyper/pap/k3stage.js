@@ -67,7 +67,7 @@ void main(){vec3 c=texture2D(tC,vUv).rgb;float z=lin(texture2D(tD,vUv).x);
     copyMat.uniforms.tColor.value=tile.texture;copyMat.uniforms.tDepth.value=tile.depthTexture;
     renderer.setRenderTarget(big);renderer.clear();renderer.render(copyScene,blitCam);renderer.setRenderTarget(null);tile.dispose();
     const fin=POST.run(big,FW,FH);blitMat.uniforms.tColor.value=fin.texture;blitMat.uniforms.tDepth.value=big.depthTexture;baked=true;S.bakeMs=performance.now()-t0};
-  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);renderer.render(levende,cam)};
+  S.draw=function(){if(!baked)return;renderer.autoClear=false;renderer.setRenderTarget(null);renderer.clear(true,true,false);renderer.render(blitScene,blitCam);if(S.foerLive)S.foerLive();renderer.render(levende,cam)};
   let rt=0;const nyStr=()=>{clearTimeout(rt);if(window.__frys){rt=setTimeout(nyStr,500);return}if(stage.clientWidth===bagW&&stage.clientHeight===bagH)return;S.bake()};const ro=new ResizeObserver(()=>{if(!baked)return;clearTimeout(rt);rt=setTimeout(nyStr,250)});ro.observe(stage);
   /* når rummet forlades: slip billederne igen, så næste rum har pladsen */
   S.dispose=function(){ro.disconnect();clearTimeout(rt);baked=false;if(big){big.depthTexture.dispose();big.dispose();big=null}POST.dispose();blitMat.dispose();copyMat.dispose();for(const sc of[blitScene,copyScene])sc.children[0].geometry.dispose()};

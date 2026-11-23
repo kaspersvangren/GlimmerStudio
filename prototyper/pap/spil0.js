@@ -1,4 +1,12 @@
-const PAPVER='pap-0.41';
+const PAPVER='pap-0.42';
+/* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
+   En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
+   Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
+   så næste besøg starter rigtigt med det samme. 0: fuld, 1: lettere skygger, 2: lavere skarphed, 3: endnu lavere og ingen skygger fra det, der bevæger sig */
+const KVAL=(()=>{const N='magiske-mig-pap.kval';let gem={};try{gem=JSON.parse(localStorage.getItem(N)||'{}')||{}}catch(_){}
+  const lav=(navigator.deviceMemory||8)<=4||/[?&]lav\b/.test(location.search);
+  if(lav&&renderer.getPixelRatio()>1)renderer.setPixelRatio(1);
+  return{lav,gem,niveau(id){return gem[id]!=null?gem[id]:(gem.alm||0)},saet(id,n){gem[id]=n;let m=0;for(const k in gem)if(k!=='alm')m=Math.max(m,gem[k]);gem.alm=Math.max(0,m-1);try{localStorage.setItem(N,JSON.stringify(gem))}catch(_){}}}})();
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 /* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
 const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
