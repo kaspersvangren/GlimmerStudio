@@ -23,11 +23,11 @@ const { chromium } = require('playwright');
   await vent(400); await skud('2-navn');
   await p.click('.kb-k[data-k="enter"]', { force: true }); await vent(600);
   tjek('navnet står i feltet', await T("document.querySelector('.bog-inp').value"), await T("document.querySelector('.bog-inp').value"));
-  await p.click('.bog-frem', { force: true }); await T(F + 'f.spol(.45)'); await vent(300); await skud('3-vend'); await T(F + 'f.spol(.3)'); await vent(300); await skud('3b-vend'); await roligt(); await vent(600); await skud('4-side2');
+  await p.click('.bog-frem', { force: true }); await T(F + 'f.spol(.45)'); await vent(300); await skud('3-vend'); await T(F + 'f.spol(.3)'); await vent(300); await skud('3b-vend'); await T(F + 'f.spol(2.2)'); await vent(600); await skud('4-side2');
   tjek('side 2', (await T(F + 'f.side()')) === 1);
-  for (let k = 0; k < 3; k++) { await p.click('.bog-frem', { force: true }); await vent(300); await roligt(); await vent(500); await skud('5-side' + (k + 3)) }
-  await p.click('.bog-tilb', { force: true }); await vent(300); await roligt(); await vent(500); tjek('tilbage virker', (await T(F + 'f.side()')) === 3);
-  await p.click('.bog-frem', { force: true }); await vent(300); await roligt(); await vent(400);
+  for (let k = 0; k < 3; k++) { await p.click('.bog-frem', { force: true }); await vent(300); await T(F + 'f.spol(2.2)'); await vent(500); await skud('5-side' + (k + 3)) }
+  await p.click('.bog-tilb', { force: true }); await vent(300); await T(F + 'f.spol(2.2)'); await vent(500); tjek('tilbage virker', (await T(F + 'f.side()')) === 3);
+  await p.click('.bog-frem', { force: true }); await vent(300); await T(F + 'f.spol(2.2)'); await vent(400);
   await p.click('.bog-frem', { force: true }); await vent(1100); await skud('6-lukker');
   await T(F + 'f.spol(1.3)'); await vent(500); await skud('6b-lukket'); await T(F + 'f.spol(.9)'); await vent(400); await skud('7-titel'); console.log(JSON.stringify(await T(F + 'f.bogst()'))); await T(F + 'f.spol(1.2)'); await vent(400); await skud('8-titel2'); await T(F + 'f.spol(3)');
   await p.waitForFunction(() => __spil.room.ctx.test.efter(), null, { timeout: 150000 }); await vent(900); await skud('9-slut');

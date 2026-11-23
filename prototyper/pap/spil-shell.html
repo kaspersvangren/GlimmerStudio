@@ -111,6 +111,8 @@ body[data-rum=garderobe] #opts .sw button[aria-pressed=true]{box-shadow:0 0 0 3p
 body[data-rum] #hint,body[data-rum] #meter{display:none}
 #bar{position:fixed;z-index:9;top:calc(12px + env(safe-area-inset-top,0px));left:calc(max(14px,env(safe-area-inset-left,0px)) + 58px);display:flex;gap:10px;align-items:center;pointer-events:none}
 #bar>*{pointer-events:auto}
+#himmel{position:fixed;inset:0;z-index:4;overflow:hidden;pointer-events:none}#himmel canvas{position:absolute;left:0;top:0;will-change:transform}
+#hjem.faerdig{padding:0 18px;background:linear-gradient(#7fd88a,#4fae5c);color:#173a1c;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 5px 0 #2e6a36,0 9px 14px rgba(0,0,0,.5)}#hjem.faerdig svg{display:none}#hjem.faerdig span::after{content:" ✓"}
 #hjem{height:46px;padding:0 16px 0 8px;border:0;border-radius:12px;display:flex;align-items:center;gap:4px;font:700 20px var(--font);cursor:pointer}
 #stj{height:46px;padding:0 14px 0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;font:700 20px var(--font)}
 #stj svg{width:24px;height:24px;fill:#e0a020;stroke:#7a5410;stroke-width:1.2}

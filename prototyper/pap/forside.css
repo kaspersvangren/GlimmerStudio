@@ -111,7 +111,9 @@
 .fs-under{margin-top:1vh;font:700 clamp(16px,3.6vh,26px) "Alegreya SC",Georgia,serif;color:#5a3a24;letter-spacing:.08em}
 .fs-play{width:clamp(84px,20vh,140px);height:clamp(84px,20vh,140px);border-radius:50%;border:4px solid #fff4dc;padding:0;display:grid;place-items:center;cursor:pointer;
   background:radial-gradient(circle at 35% 30%,#ff8fc7,#e0457a 55%,#a8204e);box-shadow:0 7px 0 #6a1030,0 12px 24px rgba(0,0,0,.55);animation:pulse 1.8s ease-in-out infinite}
-.fs-play svg{width:52%;height:52%;fill:#fff8ea;margin-left:8%}
+.fs-play svg{width:52%;height:52%;fill:#fff8ea}
+/* knappen holder op med at pulsere under musen, så markøren ikke skifter frem og tilbage ved kanten (Kasper 23. nov.: et hvidt kryds blinker) */
+.fs-play:hover{animation:none}
 .fs-play:active{transform:translateY(4px)}
 .fs-udg{position:absolute;right:14px;bottom:10px;font:400 13px system-ui,sans-serif;color:rgba(255,240,220,.6)}
 .fs-tilbage{position:absolute;z-index:3;left:max(14px,env(safe-area-inset-left,0px));top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:6px;align-items:center;border:0;border-radius:12px;padding:8px 14px 8px 8px;font:700 18px var(--font);cursor:pointer}

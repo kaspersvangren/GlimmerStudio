@@ -6,7 +6,7 @@ function bygRytter(look,{gear=false,moelle=true}={}){
   const L=Object.assign({},look,{stav:false}),F=makeFigure(L),G=new THREE.Group(),D=F.D,P2=(g,sh,o,z)=>put(g,piece(sh,o),0,0,z);
   for(const k of['gTorso','skirt','armL','armR','gStaff','gAcc','gCape'])if(F[k])F[k].visible=false;for(const l of F.legs)l.visible=false;
   const kj=(L.col&&L.col['tøj'])||'#6a3fa2',kjd=hexOf(shade(kj,-.3)),hud=L.skin||'#f7d8c4',st=(L.col&&L.col['støvler'])||'#5a3a28',kap=(L.col&&L.col.kappe)||kj,o=(c,t=.3)=>({color:c,kind:'card',t,edge:hexOf(shade(c,-.38))});
-  const S=D.S,H=D.HIP,SY=H-1.7,B=new THREE.Group();F.G.add(B);const K=new THREE.Group();B.add(K);
+  const lokker=[],S=D.S,H=D.HIP,SY=H-1.7,B=new THREE.Group();F.G.add(B);const K=new THREE.Group();B.add(K);
   /* kosten: skaft, kost af halm bagtil med et bånd, og møllen foran */
   for(const q of thick([[[-12.5,SY],[13,SY+.5]]],.42))P2(K,q,{color:'#8a5a3c',kind:'kraft',t:.5,edge:'#4a2e1e'},-.1);
   P2(K,toCCW(sm([[-12,SY+.7],[-19,SY+2.2],[-20.4,SY],[-19,SY-2.4],[-12,SY-.7]],3)),{color:'#e9c46a',kind:'card',t:.6,edge:'#8a6420'},-.3);
@@ -28,13 +28,18 @@ function bygRytter(look,{gear=false,moelle=true}={}){
   if(gear){/* hjelm med flyverbriller i stedet for hatten (Kasper 12. nov.: faldskærm på ryggen og hjelm) */F.hat.visible=false;const hI=F.gHairF.parent,w=D.w,cy=D.cy,hh=D.hh,dome=[];
     for(let i=0;i<=24;i++){const a=i/24*Math.PI;dome.push([Math.cos(a)*w*.62,cy+hh*.02+Math.sin(a)*hh*.62])}dome.push([-w*.62,cy-hh*.06],[w*.62,cy-hh*.06]);
     put(hI,piece(toCCW(dome),{color:'#e2384e',kind:'card',t:.3,edge:'#8a1a2a'}),0,0,.62);put(hI,piece(toCCW(dome.map(([x,y])=>[x*.7,cy+(y-cy)*.7+hh*.12])),{color:'#f0606e',kind:'card',t:.05}),0,0,.93);
-    put(hI,piece(box(-w*.62,cy+hh*.1,w*.62,cy+hh*.2),{color:'#3a2a20',kind:'card',t:.08}),0,0,.95);for(const sx of[-1,1]){put(hI,piece(circ(sx*w*.22,cy+hh*.17,w*.17,w*.15,18),{color:'#3a2a20',kind:'card',t:.1}),0,0,.99);put(hI,piece(circ(sx*w*.22,cy+hh*.17,w*.12,w*.1,16),{color:'#7fd8ff',kind:'card',t:.05}),0,0,1.06)}}
+    put(hI,piece(box(-w*.62,cy+hh*.1,w*.62,cy+hh*.2),{color:'#3a2a20',kind:'card',t:.08}),0,0,.95);
+    /* håret under hjelmen (Kasper 23. nov.: "hvad er der med hendes hår?"): det lange hår er skjult, og i stedet flagrer tre lokker bagud under hjelmkanten */
+    F.hairB.visible=false;F.gHairF.visible=false;const[H0,H1,H2]=F.L.hair||['#eab84e','#f8dc8c','#c08628'];
+    for(const[k,dy,l,b,c]of[[0,-.02,1.25,.2,H2],[1,-.2,1.05,.17,H0],[2,.14,.85,.14,H1]]){const g=new THREE.Group();g.position.set(-w*.46,cy+hh*dy,.05-k*.01);hI.add(g);lokker.push(g);
+      const L_=w*l*1.6,B=hh*b,q=toCCW(sm([[.3,B],[-L_*.35,B*1.15],[-L_*.75,B*.6],[-L_,-B*.1],[-L_*.7,-B*.3],[-L_*.3,-B*.8],[.3,-B]],4));P2(g,q,{t:.12,s:40,paint:P=>{P.wash(c,q,{top:hexOf(shade(c,.12)),edge:.5,clouds:2});for(let j=-2;j<=2;j++)P.pen(curve([[0,j*B*.3],[-L_*.4,j*B*.32+B*.1],[-L_*.85,j*B*.15]],6),hexOf(shade(c,-.3)),.05,.55)}},0)}
+    /* lidt hår ved øret under hjelmkanten */P2(hI,toCCW(sm([[-w*.62,cy-hh*.04],[-w*.3,cy-hh*.06],[-w*.36,cy-hh*.3],[-w*.6,cy-hh*.36]],3)),{color:H0,kind:'card',t:.1,edge:H2},.6);for(const sx of[-1,1]){put(hI,piece(circ(sx*w*.22,cy+hh*.17,w*.17,w*.15,18),{color:'#3a2a20',kind:'card',t:.1}),0,0,.99);put(hI,piece(circ(sx*w*.22,cy+hh*.17,w*.12,w*.1,16),{color:'#7fd8ff',kind:'card',t:.05}),0,0,1.06)}}
   if(gear){/* faldskærmen på ryggen og selerne */P2(B,box(-4.4,D.Wy+.2,-1.8,S-.2),{color:'#7a5a3a',kind:'kraft',t:.8,edge:'#4a321e'},-.25);for(const q of thick([[[-1.9,S-.4],[1.4,D.Wy+.4]]],.22))P2(B,q,{color:'#2a2a3a',kind:'card',t:.06},.5)}
   /* hovedet og håret: hovedet lidt frem, håret og hatten bagud */
   F.head.position.x+=.9;F.hairB.position.x+=.9;F.gNeck.position.x+=.5;
   G.add(F.G);F.G.position.set(0,-SY,0);G.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});
   const R={G,F,moel,kost:K,SY,tick(t,{fart=1,vy=0,boost=0}={}){F.tick(t,{ph:0,amp:0});const f=Math.min(2.4,fart);
-      F.hairB.rotation.z=.75+.07*Math.sin(t*9*f)+.08*Math.min(1,f-.5);F.hat.rotation.z=.16+.04*Math.sin(t*7*f);F.head.rotation.z=-.05+.03*Math.sin(t*1.3)+clamp(vy,-1,1)*.05;
+      F.hairB.rotation.z=.75+.07*Math.sin(t*9*f)+.08*Math.min(1,f-.5);lokker.forEach((g,i)=>{g.rotation.z=-.06+.1*Math.sin(t*(8+i*1.3)*f+i*1.7)});F.hat.rotation.z=.16+.04*Math.sin(t*7*f);F.head.rotation.z=-.05+.03*Math.sin(t*1.3)+clamp(vy,-1,1)*.05;
       kappe.forEach((g,i)=>{g.rotation.z=(i?.12:-.05)+.16*Math.sin(t*(6+3*f)-i*1.1)*(.6+.4*Math.min(1.5,f))});skoert.rotation.z=.05*Math.sin(t*8*f);
       moel.rotation.z-=.06+.22*f;benN.rotation.z=.03*Math.sin(t*2);benF.rotation.z=.03*Math.sin(t*2+1)}};
   return R}

@@ -44,7 +44,7 @@ function openRoom(id){const t0=performance.now(),ctx={alive:true,efter:[],look:{
   ctx.ready=()=>{SPIL.roomMs=Math.round(performance.now()-t0);LOG.skaerm(id);LOG.row('rum',Object.assign({id,ms:SPIL.roomMs},window.__rumtid||{}),id);LOG.flush();busy=false;doorEl.classList.add('gone');hjemEl.hidden=false};
   ctx.fail=v=>{if(!v)return;LOG.row('fejl',{besked:String(v).slice(0,300),rum:id});LOG.flush();busy=false;doorT.textContent=v;hjemEl.hidden=false};
   ctx.msg={classList:{add(){ctx.ready()}}};ctx.msgN={set textContent(v){ctx.fail(v)}};
-  SPIL.room={id,ctx};document.body.dataset.rum=id;bilEl.hidden=!RUM[id].bil;if(RUM[id].mus!==null)LYD.musik(RUM[id].mus||'byen');LYD.stemning(RUM[id].stem||null);LYD.forhent(RUM[id].lyde||[]);rumEl.innerHTML=RUM[id].html||'';hjemT.textContent=stack.length>1?RUM[stack[stack.length-2]].navn:'Byen';
+  SPIL.room={id,ctx};document.body.dataset.rum=id;bilEl.hidden=!RUM[id].bil;if(RUM[id].mus!==null)LYD.musik(RUM[id].mus||'byen');LYD.stemning(RUM[id].stem||null);LYD.forhent(RUM[id].lyde||[]);rumEl.innerHTML=RUM[id].html||'';/* første gang man har lavet sin heks, hedder knappen Færdig (Kasper 23. nov.) */const faerdig=id==='garderobe'&&!!SPIL.data.nyHeks;hjemEl.classList.toggle('faerdig',faerdig);hjemT.textContent=faerdig?'Færdig':stack.length>1?RUM[stack[stack.length-2]].navn:'Byen';
   setTimeout(()=>{try{ROOMS[id](ctx)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message)}},40)}
 function closeRoom(){ventSlut(false);const r=SPIL.room;if(!r)return;r.ctx.alive=false;try{for(const f of r.ctx.efter||[])f();if(r.ctx.cleanup)r.ctx.cleanup();if(r.ctx.room)disposeRoom(r.ctx.room,r.ctx.mats)}catch(e){console.error(e)}rumEl.innerHTML='';SPIL.room=null}
 function cover(txt,then){doorT.textContent=txt;doorEl.classList.remove('gone');hjemEl.hidden=true;toastEl.hidden=true;setTimeout(then,300)}
@@ -56,7 +56,26 @@ function toMap(){LOG.maerk('ud af rum');LOG.skaerm('by');delete document.body.da
   requestAnimationFrame(()=>requestAnimationFrame(()=>{busy=false;doorEl.classList.add('gone')}))}
 /* skift: det nye rum erstatter det, man står i, så Tilbage ikke fører tilbage dertil (bogen → Garderoben) */
 function enter(id,{skift=false}={}){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=true;if(skift)stack.pop();stack.push(id);cover(`Går ind i ${RUM[id].navn} …`,()=>{closeRoom();openRoom(id)})}
-function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1];cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else toMap()})}
+function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1],ny=!to&&hjemEl.classList.contains('faerdig');if(ny){SPIL.data.nyHeks=false;SPIL.save();LOG.row('heks faerdig',{})}
+  cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else{if(ny)himmel();toMap()}})}
+/* fra himlen ned på byen: første gang man går ud i byen med sin nye heks, ser man op i nattehimlen med papskyer, og billedet panorerer ned, til byen ligger der.
+   Byen er bagt som ét stort billede, så panoreringen laves med en himmel af pap foran og byen, der glider op nedefra */
+function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('div');el.id='himmel';const cv=document.createElement('canvas'),sk=document.createElement('canvas');el.append(cv,sk);document.body.appendChild(el);
+  const pr=Math.min(2,devicePixelRatio||1),HH=H*1.7;for(const c of[cv,sk]){c.width=Math.round(W*pr);c.height=Math.round(HH*pr);c.style.width=W+'px';c.style.height=HH+'px'}
+  const g=cv.getContext('2d');g.scale(pr,pr);const gr=g.createLinearGradient(0,0,0,HH);gr.addColorStop(0,'#070516');gr.addColorStop(.55,'#1c1440');gr.addColorStop(1,'#3a2a5e');g.fillStyle=gr;g.fillRect(0,0,W,HH);
+  for(let k=0;k<260;k++){const x=Math.random()*W,y=Math.random()*HH*.85,r=Math.random()*1.4+.3;g.fillStyle=`rgba(255,${235+Math.random()*20|0},${200+Math.random()*55|0},${.4+Math.random()*.6})`;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
+  for(let k=0;k<6;k++){const x=Math.random()*W,y=Math.random()*HH*.6,r=4+Math.random()*3;g.fillStyle='#ffe9a8';g.beginPath();for(let j=0;j<10;j++){const a=-Math.PI/2+j*Math.PI/5,q=j%2?r*.42:r;g.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}g.fill()}
+  /* papskyer: bløde puder med lys overkant og skygge under; et tæt bælte forneden dækker overgangen til byen */
+  const s=sk.getContext('2d');s.scale(pr,pr);const sky=(x,y,w,a)=>{const n=6+Math.random()*4|0,P=[];for(let i=0;i<n;i++)P.push([x-w/2+w*(i+.5)/n,y-Math.random()*w*.12,w*(.12+Math.random()*.1)]);
+    s.save();s.globalAlpha=a;s.fillStyle='rgba(10,6,24,.35)';for(const[px,py,r]of P){s.beginPath();s.arc(px+6,py+r*.5+8,r,0,7);s.fill()}s.fillRect(x-w/2+6,y+8,w,w*.1);
+    const c2=s.createLinearGradient(0,y-w*.3,0,y+w*.12);c2.addColorStop(0,'#f6f0ff');c2.addColorStop(1,'#b8a8d8');s.fillStyle=c2;for(const[px,py,r]of P){s.beginPath();s.arc(px,py+r*.5,r,0,7);s.fill()}s.fillRect(x-w/2,y,w,w*.1);
+    s.fillStyle='rgba(255,255,255,.08)';for(let k=0;k<w/3;k++)s.fillRect(x-w/2+Math.random()*w,y-Math.random()*w*.2,2,2);s.restore()};
+  for(let k=0;k<7;k++)sky(Math.random()*W,HH*(.12+k*.09),W*(.18+Math.random()*.2),.9);
+  for(let x=-W*.1;x<W*1.15;x+=W*.13)sky(x,HH*.93+Math.random()*HH*.04,W*(.24+Math.random()*.1),1);
+  const cvM=renderer.domElement,T=4.2,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
+  const e=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+  const tik=()=>{const u=Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82));cv.style.transform=`translateY(${-k*HH}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
+    if(u<1)requestAnimationFrame(tik);else{cvM.style.transform='';el.remove()}};requestAnimationFrame(tik)}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */
 /* udgaven står med lille skrift på indlæsningen, så man kan se, om det er den nye (Kasper 22. nov.) */

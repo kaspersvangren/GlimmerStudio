@@ -91,8 +91,14 @@ ROOMS.fald=function(ctx){
     {const pts=[];for(let i=0;i<=60;i++){const a=i/60*TAU;pts.push([Math.cos(a)*23.5,Math.sin(a)*23.5])}for(const q of thick([pts],.12))P2(J,q,{color:'#f2eeff',kind:'water',t:.04},1.8)}
     for(let i=0;i<6;i++){const a=i*Math.PI/3;P2(J,circ(Math.cos(a)*23.5,Math.sin(a)*23.5,.32,.32,8),{color:'#5a3a28',kind:'kraft',t:1.4},.6)}
     /* skuret med koste, tæppet med kurven, nissehuset med røg og svampene i en ring */
-    {const g=new THREE.Group();g.position.set(38,34,.8);g.rotation.z=.21;J.add(g);P2(g,box(-4.6,-3.4,4.4,3),{color:'#8a4a2a',kind:'kraft',t:2.4,edge:'#4a2a1a'},0);P2(g,box(-4.6,-.15,4.4,.15),{color:'#5a2e1a',kind:'kraft',t:.1},2.45);
-      for(let i=0;i<3;i++){const y=-4.6-i*1.1;for(const q of thick([[[-3,y],[2.6,y]]],.11))P2(g,q,{color:'#8a5a3c',kind:'kraft',t:.15},.2);P2(g,toCCW([[2.4,y-.4],[4.4,y-.55],[4.4,y+.55],[2.4,y+.4]]),{color:'#e9c46a',kind:'card',t:.2},.2)}}
+    {/* kosteskuret, set oppefra (Kasper 23. nov.: "hvad er den brune firkant?"): et saddeltag med tegl i to nuancer, en skorsten, og en kosteholder med tre koste foran døren */
+      const g=new THREE.Group();g.position.set(38,34,.8);g.rotation.z=.21;J.add(g);P2(g,box(-5,-3.8,4.8,3.4),{color:'#3a2418',kind:'kraft',t:.2},-.05);
+      const tag=(y0,y1,c,lys)=>{const B=box(-5.2,y0,5,y1);P2(g,B,{t:2.6,s:12,paint:P=>{P.wash(c,B,{top:hexOf(shade(c,lys)),edge:.4,clouds:3});for(let y=Math.min(y0,y1)+.5;y<Math.max(y0,y1);y+=.7){for(let x=-5.2+(Math.round(y/.7)%2?.4:0);x<5;x+=.8)P.pen(curve([[x,y],[x+.4,y-.22],[x+.8,y]],4),hexOf(shade(c,-.35)),.06,.7)}}},0)};
+      tag(0,3.6,'#b85a3a',.12);tag(-4,0,'#8a3e28',-.05);P2(g,box(-5.3,-.22,5.1,.22),{color:'#5a2a1a',kind:'kraft',t:.12},2.65);
+      P2(g,box(1.8,1.2,3.1,2.5),{color:'#8a8496',kind:'card',t:3.6,edge:'#4a4456'},0);P2(g,box(2.05,1.45,2.85,2.25),{color:'#2a2430',kind:'card',t:.05},3.62);
+      /* døren og kosteholderen foran */P2(g,box(-1,-4.6,1,-4),{color:'#6a4a2a',kind:'kraft',t:.15},.1);P2(g,box(-4.2,-5.4,4.2,-5.1),{color:'#5a3a24',kind:'kraft',t:.5},.2);
+      for(let i=0;i<3;i++){const x=-3.2+i*3.1,b=new THREE.Group();b.position.set(x,-5.25,.6);b.rotation.z=.1-i*.1;g.add(b);for(const q of thick([[[0,0],[0,-4.4]]],.14))P2(b,q,{color:'#8a5a3c',kind:'kraft',t:.15},0);
+        P2(b,toCCW(sm([[-.2,-4.2],[.2,-4.2],[.9,-6.4],[0,-6.8],[-.9,-6.4]],3)),{color:'#e9c46a',kind:'card',t:.2,edge:'#8a6420'},.05);P2(b,box(-.3,-4.4,.3,-4.1),{color:'#8a2a2a',kind:'card',t:.1},.2)}}
     {const g=new THREE.Group();g.position.set(-36,-32,.75);g.rotation.z=-.31;g.scale.setScalar(2.3);J.add(g);P2(g,box(-3,-2.2,3,2.2),{color:'#ffffff',kind:'card',t:.06},0);for(let i=0;i<6;i++)P2(g,box(-3+(i%3)*2,-2.2+Math.floor(i/3)*2.2,-2+(i%3)*2,-1.1+Math.floor(i/3)*2.2),{color:'#e0457a',kind:'card',t:.02},.07);
       P2(g,box(1.2,-.2,2.8,1),{color:'#b9763f',kind:'kraft',t:.9,edge:'#7e4307'},.1);P2(g,circ(-1.6,-.8,.35,.35,8),{color:'#ff5a5a',kind:'card',t:.3},.1);P2(g,circ(-.8,-1.2,.3,.3,8),{color:'#9be36a',kind:'card',t:.3},.1)}
     {const g=new THREE.Group();g.position.set(-58,-6,.75);J.add(g);P2(g,circ(0,0,3.2,3.2,20),{color:'#b5432a',kind:'card',t:2.6,edge:'#6a2a1a'},0);for(let i=0;i<8;i++)P2(g,circ(Math.cos(i*.8)*2,Math.sin(i*.8)*2,.8,.8,10),{color:'#6a9a4a',kind:'card',t:.3},2.6);
@@ -113,6 +119,7 @@ ROOMS.fald=function(ctx){
     if(o.cape)P2(k,toCCW(sm([[-.36,0],[-.42,.5],[0,.64],[.42,.5],[.36,0]],2)),{color:o.cape,kind:'card',t:.04},.2);
     if(o.wave){for(const s of[-1,1]){for(const q of thick([[[s*.34,-.02],[s*.62,-.06],[s*.66,-.3]]],.075))P2(k,q,{color:body,kind:'card',t:.04},.32);P2(k,circ(s*.67,-.34,.1,.1,8),{color:'#f1c9a6',kind:'card',t:.05},.36)}g.userData.vinker=true;tal.push(g)}
     P2(k,circ(0,0,.4,.24,16),{color:body,kind:'card',t:.06,edge:bd},.25);P2(k,circ(0,.02,.19,.19,12),{color:hairC,kind:'card',t:.06},.33);
+    if(o.hjelm){/* hjelmen fra turen op, set oppefra: rød med flyverbriller foran */P2(k,circ(0,.02,.22,.22,16),{color:'#e2384e',kind:'card',t:.06,edge:'#8a1a2a'},.4);P2(k,circ(-.05,.07,.09,.08,10),{color:'#f0606e',kind:'card',t:.02},.47);P2(k,box(-.23,-.17,.23,-.13),{color:'#3a2a20',kind:'card',t:.03},.47);for(const sx of[-1,1])P2(k,circ(sx*.08,-.17,.06,.045,10),{color:'#7fd8ff',kind:'card',t:.03},.5)}
     if(o.hat){P2(k,circ(0,.02,.3,.3,14),{color:body,kind:'card',t:.05,edge:bd},.4);P2(k,toCCW([[-.15,.02],[0,.17],[.15,.02],[0,-.13]]),{color:hexOf(shade(body,.15)),kind:'card',t:.05},.46)}
     return g}
   /* ---------- tingene i det frie fald ---------- */
@@ -244,13 +251,13 @@ ROOMS.fald=function(ctx){
     /* hun står på jorden, og skærmen ligger sammenfaldet bag hende */
     landet=new THREE.Group();landet.position.set(S.x,-S.y,1.7);landet.rotation.z=-S.th*Math.PI/180;jord.add(landet);
     /* skærmen er faldet sammen og ligger bredt ud bag hende som et stykke stof med folder, med snorene hen til hende (Kasper 23. nov.: "hun ser ret underlig ud") */
-    {const n=7,A=[0,-2.4],kant=[];for(let i=0;i<=n;i++){const a=(-.95+1.9*i/n),r=R(9.5,11.5);kant.push([Math.sin(a)*r*1.15,A[1]-Math.cos(a)*r*.72])}
+    {const cg=new THREE.Group();cg.rotation.z=Math.PI;landet.add(cg);/* skærmen ligger bag hende: hun vender væk fra den og vinker */const n=7,A=[0,-2.4],kant=[];for(let i=0;i<=n;i++){const a=(-.95+1.9*i/n),r=R(9.5,11.5);kant.push([Math.sin(a)*r*1.15,A[1]-Math.cos(a)*r*.72])}
       /* ét stykke stof: kanten bølger, og de lyse baner og folderne er malet på */
       const ud=toCCW(sm([[-2.6,-1.2],...kant.map(([x,y],i)=>[x+R(-.4,.4),y+(i%2?R(.6,1.2):0)]),[2.6,-1.2],[0,-.4]],5));
-      P2(landet,ud,{t:.14,s:16,paint:P=>{P.wash(kjole,ud,{top:hexOf(shade(kjole,.15)),edge:.5,clouds:4});for(let i=0;i<n;i+=2){const p0=kant[i],p1=kant[i+1];P.fill(toCCW([[A[0]+(p0[0]-A[0])*.15,A[1]+(p0[1]-A[1])*.15],[p0[0]*1.2,p0[1]*1.2],[p1[0]*1.2,p1[1]*1.2],[A[0]+(p1[0]-A[0])*.15,A[1]+(p1[1]-A[1])*.15]]),'#fff3e0',.92)}
-        for(let k=0;k<9;k++){const a=R(-.9,.9),r0=R(2,4),r1=R(6,10);P.pen([[Math.sin(a)*r0,A[1]-Math.cos(a)*r0*.7],[Math.sin(a+R(-.1,.1))*r1*1.1,A[1]-Math.cos(a)*r1*.7]],hexOf(shade(kjole,-.45)),.12,.35)}P.pen([...ud,ud[0]],hexOf(shade(kjole,-.5)),.22,.9)}},-.3);{const sk=put(landet,piece(ud,{color:'#1a2a10',kind:'water',t:.02}),.5,-.6,-.42);sk.material=sk.material.map?sk.material:sk.material;sk.traverse(o=>{if(o.material){const m=(Array.isArray(o.material)?o.material:[o.material]).map(q=>{q=q.clone();q.transparent=true;q.opacity=.28;return q});o.material=Array.isArray(o.material)?m:m[0]}})}
-      for(const k of kant)for(const q of thick([[[0,-.6],[k[0]*.3,A[1]+(k[1]-A[1])*.2]]],.05))P2(landet,q,{color:'#e8e4f0',kind:'water',t:.02},-.1)}
-    landet.add(oppefra(0,0,kjole,hair,0,{wave:1,cape:kappe}));if(pond){Rm.burst(0,0,2,14,'rgba(190,232,255,.95)',6);LYD.boelge()}else{LYD.dunk();if(zi===0)LYD.guld()}
+      P2(cg,ud,{t:.14,s:16,paint:P=>{P.wash(kjole,ud,{top:hexOf(shade(kjole,.15)),edge:.5,clouds:4});for(let i=0;i<n;i+=2){const p0=kant[i],p1=kant[i+1];P.fill(toCCW([[A[0]+(p0[0]-A[0])*.15,A[1]+(p0[1]-A[1])*.15],[p0[0]*1.2,p0[1]*1.2],[p1[0]*1.2,p1[1]*1.2],[A[0]+(p1[0]-A[0])*.15,A[1]+(p1[1]-A[1])*.15]]),'#fff3e0',.92)}
+        for(let k=0;k<9;k++){const a=R(-.9,.9),r0=R(2,4),r1=R(6,10);P.pen([[Math.sin(a)*r0,A[1]-Math.cos(a)*r0*.7],[Math.sin(a+R(-.1,.1))*r1*1.1,A[1]-Math.cos(a)*r1*.7]],hexOf(shade(kjole,-.45)),.12,.35)}P.pen([...ud,ud[0]],hexOf(shade(kjole,-.5)),.22,.9)}},-.3);{const sk=put(cg,piece(ud,{color:'#1a2a10',kind:'water',t:.02}),.5,-.6,-.42);sk.material=sk.material.map?sk.material:sk.material;sk.traverse(o=>{if(o.material){const m=(Array.isArray(o.material)?o.material:[o.material]).map(q=>{q=q.clone();q.transparent=true;q.opacity=.28;return q});o.material=Array.isArray(o.material)?m:m[0]}})}
+      for(const k of kant)for(const q of thick([[[0,-.6],[k[0]*.3,A[1]+(k[1]-A[1])*.2]]],.05))P2(cg,q,{color:'#e8e4f0',kind:'water',t:.02},-.1)}
+    landet.add(oppefra(0,0,kjole,hair,0,{wave:1,cape:kappe,hjelm:true}));if(pond){Rm.burst(0,0,2,14,'rgba(190,232,255,.95)',6);LYD.boelge()}else{LYD.dunk();if(zi===0)LYD.guld()}
     S.l0={ppm:S.ppm,x:S.x,y:S.y};pt.pop(0,8,8,msg,{col:pond?'#2e6aa8':'#e2384e',h:4.2,tilt:0});
     setTimeout(()=>{if(!S||!S.result||!ctx.alive)return;LYD.fanfare();const r=S.result;
       ctx.vent(`${r.msg} ${r.pond?'Du landede i dammen.':`Du landede ${String(r.d).replace('.',',')} m fra midten.`} ${r.bubbles} ${r.bubbles===1?'stjerneboble':'stjernebobler'}${r.soft?' og en blød landing':''}. Du fik ${r.stars} ${r.stars===1?'stjerne':'stjerner'}! Tryk for at springe igen.`,nyt,{portraet:'sky'})},S.auto?60:2200)}
