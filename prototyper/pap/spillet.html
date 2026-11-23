@@ -710,26 +710,43 @@ function puff(cx,cy,rx,ry,n=9,bump=.22,seed=0){const o=[];const ph=R(TAU);for(le
   for(let j=0;j<6;j++){const t=j/6,u=1-t;o.push([u*u*p0[0]+2*u*t*bx+t*t*p1[0],u*u*p0[1]+2*u*t*by+t*t*p1[1]])}}return o}
 /* et udklippet blad */
 const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2+t*l,xx=Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}for(let i=7;i>0;i--){const t=i/8,yy=-l/2+t*l,xx=-Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}return o.map(([px,py])=>[x+px*Math.cos(a)-py*Math.sin(a),y+px*Math.sin(a)+py*Math.cos(a)])};
-/* samler alle de faste papstykker i en gruppe til få store stykker, ét pr. slags papir og pr. stykke vej (celle), så grafikchippen får færre ting at tegne.
+/* samler alle de faste papstykker i en gruppe til få store stykker, så grafikchippen får færre ting at tegne. Papir af samme slags samles, selv om farven er forskellig:
+   farven flyttes ud i hjørnerne af stykket. Selvlysende, metal og malede stykker samles kun med deres egne. Én samling pr. stykke vej (celle), så det, der er uden for billedet, stadig springes over.
    Stykker, der bevæger sig, skal markeres med userData.levende (eller ligge under en gruppe, der er det); figurer, tekster og lysskær røres ikke */
+const FAM=new Map();
+function famMat(m){if(m.userData.own||m.vertexColors||(m.emissive&&(m.emissive.r+m.emissive.g+m.emissive.b)>0)||m.metalness>0||m.transparent)return{k:m.uuid,m,farve:null};
+  const k='f'+(m.map?m.map.uuid:'-')+(m.bumpMap?m.bumpMap.uuid:'-')+m.bumpScale+'|'+m.roughness+'|'+m.side;let f=FAM.get(k);if(!f){f=m.clone();f.color.set(1,1,1);f.vertexColors=true;FAM.set(k,f)}return{k,m:f,farve:m.color}}
+/* bygger én geometri af flere stykker (hver med sin matrix og sine papirfamilier); trekanter med samme materiale lægges i samme tegning */
+function famGeo(dele){const P=[],N=[],U=[],C=[],I=[],tri=new Map(),nM=new THREE.Matrix3(),v=new THREE.Vector3();
+  for(const{g,M,fam}of dele){const pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv;if(M)nM.getNormalMatrix(M);
+    const idx=g.index?g.index.array:null,cnt=idx?idx.length:pa.count,gs=g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
+    for(const q of gs){const f=fam[Math.min(q.materialIndex||0,fam.length-1)],fc=f.farve,map=new Map();let L=tri.get(f.m);if(!L)tri.set(f.m,L=[]);
+      for(let j=q.start;j<q.start+q.count;j++){const i=idx?idx[j]:j;let ni=map.get(i);if(ni===undefined){ni=P.length/3;map.set(i,ni);
+        v.fromBufferAttribute(pa,i);if(M)v.applyMatrix4(M);P.push(v.x,v.y,v.z);v.fromBufferAttribute(na,i);if(M)v.applyMatrix3(nM).normalize();N.push(v.x,v.y,v.z);U.push(ua.getX(i),ua.getY(i));if(fc)C.push(fc.r,fc.g,fc.b);else C.push(1,1,1)}L.push(ni)}}}
+  const G=new THREE.BufferGeometry(),mats=[];G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));G.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));G.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));G.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  for(const[m,L]of tri){if(!L.length)continue;G.addGroup(I.length,L.length,mats.length);mats.push(m);for(const x of L)I.push(x)}
+  G.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));if(mats.length===1)G.clearGroups();G.computeBoundingSphere();G.computeBoundingBox();return{G,mat:mats.length===1?mats[0]:mats}}
+const famOk=o=>{const g=o.geometry;if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||!g||!g.attributes.position||!g.attributes.normal||!g.attributes.uv||Object.keys(g.attributes).length!==3)return null;
+  const mats=Array.isArray(o.material)?o.material:[o.material];if(mats.some(m=>!m||!m.isMeshStandardMaterial))return null;return mats.map(famMat)};
+/* hvert stykke papir tegnes normalt i tre omgange (forside, bagside, kant). Her bliver det til én omgang, når de tre er samme slags papir; stykkerne bliver ved med at kunne bevæge sig hver for sig.
+   Bruges kun, hvor farverne ikke skiftes undervejs */
+function enFarve(root){let n=0;root.traverse(o=>{if(o.userData.enFarve||!Array.isArray(o.material))return;const fam=famOk(o);if(!fam)return;const{G,mat}=famGeo([{g:o.geometry,M:null,fam}]);o.geometry=G;o.material=mat;o.userData.enFarve=1;n++});return n}
 function samlStatisk(root,{celle=240}={}){root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),B={},ud=[];
   const ok=o=>{for(let p=o;p&&p!==root;p=p.parent)if(p.userData.levende)return false;return true};
-  root.traverse(o=>{if(!o.isMesh||o.isSprite||o.isSkinnedMesh||o.isInstancedMesh||!o.visible||o.userData.ryd||!ok(o))return;const g=o.geometry;if(!g||!g.attributes.position||!g.attributes.normal||!g.attributes.uv||Object.keys(g.attributes).length!==3)return;
-    const mats=Array.isArray(o.material)?o.material:[o.material];if(mats.some(m=>!m||m.transparent&&!m.alphaTest))return;
+  root.traverse(o=>{if(!o.visible||o.userData.ryd||!ok(o))return;const fam=famOk(o);if(!fam)return;const g=o.geometry;
     const M=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld),c=new THREE.Vector3();if(!g.boundingBox)g.computeBoundingBox();g.boundingBox.getCenter(c).applyMatrix4(M);
-    const key=mats.map(m=>m.uuid).join('|')+'#'+Math.floor(c.x/celle)+(o.castShadow?'s':'')+(o.receiveShadow?'r':'');(B[key]=B[key]||{mats,cast:o.castShadow,recv:o.receiveShadow,dele:[]}).dele.push({g,M});ud.push(o)});
-  let n=0;for(const k in B){const b=B[k];const P=[],N=[],U=[],I=[],grp=[];const nM=new THREE.Matrix3(),v=new THREE.Vector3();
-    const nm=b.mats.length;const tri=[];for(let mi=0;mi<nm;mi++)tri.push([]);
-    for(const{g,M}of b.dele){const base=P.length/3,pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv;nM.getNormalMatrix(M);
-      for(let i=0;i<pa.count;i++){v.fromBufferAttribute(pa,i).applyMatrix4(M);P.push(v.x,v.y,v.z);v.fromBufferAttribute(na,i).applyMatrix3(nM).normalize();N.push(v.x,v.y,v.z);U.push(ua.getX(i),ua.getY(i))}
-      const idx=g.index?g.index.array:null,cnt=idx?idx.length:pa.count,gs=g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
-      for(const q of gs){const L=tri[Math.min(q.materialIndex||0,nm-1)];for(let j=q.start;j<q.start+q.count;j++)L.push(base+(idx?idx[j]:j))}}
-    for(let mi=0;mi<nm;mi++){if(!tri[mi].length)continue;grp.push([I.length,tri[mi].length,mi]);for(const x of tri[mi])I.push(x)}
-    const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));G.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));G.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));G.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));
-    for(const[s,c,m]of grp)G.addGroup(s,c,m);G.computeBoundingSphere();const m=new THREE.Mesh(G,nm>1?b.mats:b.mats[0]);m.castShadow=b.cast;m.receiveShadow=b.recv;m.userData.noShadow=!b.cast;m.userData.samlet=true;root.add(m);n++}
-  for(const o of ud){o.parent.remove(o);o.geometry.dispose()}
-  /* tomme grupper fjernes */const tom=[];root.traverse(o=>{if(o!==root&&!o.isMesh&&!o.isSprite&&!o.isLight&&o.children.length===0&&!o.userData.levende)tom.push(o)});for(const o of tom)o.parent&&o.parent.remove(o);
-  return{for:ud.length,efter:n}}
+    const key=fam.map(f=>f.k).join('|')+'#'+Math.floor(c.x/celle)+(o.castShadow?'s':'')+(o.receiveShadow?'r':'');(B[key]=B[key]||{cast:o.castShadow,recv:o.receiveShadow,dele:[]}).dele.push({g,M,fam,o})});
+  let n=0;for(const k in B){const b=B[k];if(b.dele.length<2)continue;const{G,mat}=famGeo(b.dele);const m=new THREE.Mesh(G,mat);m.castShadow=b.cast;m.receiveShadow=b.recv;m.userData.samlet=true;root.add(m);n++;for(const{o}of b.dele)ud.push(o)}
+  const brugt=new Set();for(const o of ud){o.parent.remove(o);brugt.add(o.geometry)}root.traverse(o=>{if(o.geometry)brugt.delete(o.geometry)});for(const g of brugt)g.dispose();
+  const tom=[];root.traverse(o=>{if(o!==root&&!o.isMesh&&!o.isSprite&&!o.isLight&&o.children.length===0&&!o.userData.levende)tom.push(o)});for(const o of tom)o.parent&&o.parent.remove(o);
+  return{efter:n}}
+/* til figurer, der bevæger sig led for led: de stykker, der sidder fast på det samme led, samles til ét. Leddene selv og alt, der er navngivet i skaan (øjenlåg, kugler og lign.), røres ikke */
+function samlStiv(root,skaan=[]){const S=new Set();for(const x of skaan)if(x)for(const k in x){const v=x[k];if(v&&v.isObject3D)S.add(v);else if(Array.isArray(v))for(const w of v)if(w&&w.isObject3D)S.add(w)}
+  const noder=[];root.traverse(o=>{if(!o.isMesh)noder.push(o)});let n=0;
+  for(const p of noder){const dele=[];for(const c of p.children){if(!c.isMesh||!c.visible||S.has(c)||c.userData.ryd||!Array.isArray(c.material))continue;const mats=Array.isArray(c.material)?c.material:[c.material];if(mats.some(m=>m&&m.transparent))continue;const fam=famOk(c);if(!fam)continue;c.updateMatrix();dele.push({g:c.geometry,M:c.matrix.clone(),fam,o:c})}
+    if(dele.length<2)continue;const{G,mat}=famGeo(dele);const m=new THREE.Mesh(G,mat);m.castShadow=dele[0].o.castShadow;m.receiveShadow=dele[0].o.receiveShadow;m.userData.noShadow=dele[0].o.userData.noShadow;m.userData.enFarve=1;
+    const i=p.children.indexOf(dele[0].o);for(const d of dele)p.remove(d.o);p.add(m);p.children.splice(p.children.indexOf(m),1);p.children.splice(Math.min(i,p.children.length),0,m);n++}
+  enFarve(root);return n}
 
 /* ============ hele kortet: en magisk pap-by på et bord ============
    `scene` tegnes én gang (bages) med lys og skygger. `live` er det, der bevæger sig. */
@@ -1886,7 +1903,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.42';
+const PAPVER='pap-0.43';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2452,7 +2469,7 @@ function makeRoom(ctx,o){
   el.addEventListener('pointerdown',onDown);addEventListener('pointermove',onMove);addEventListener('pointerup',onUp);addEventListener('pointercancel',onUp);
   ctx.cleanup=()=>{el.removeEventListener('pointerdown',onDown);removeEventListener('pointermove',onMove);removeEventListener('pointerup',onUp);removeEventListener('pointercancel',onUp)};
   (async()=>{try{await SKRIFTER;const t0=performance.now();for(const s of(o.build(Rm)||[])){await new Promise(r=>setTimeout(r,0));if(!ctx.alive)return;s()}
-    Rm.shadows(live);const t1=performance.now();ST.bake();Rm.ready=true;window.__rumtid={malet:Math.round(t1-t0),bagt:Math.round(performance.now()-t1)};ctx.ready();let last=performance.now();maalFra=last+1500;
+    /* hvert stykke papir i det levende lag tegnes i én omgang i stedet for tre, når siderne er samme slags papir */if(!ctx.helFarve&&!window.__udenEnFarve)enFarve(live);Rm.shadows(live);const t1=performance.now();ST.bake();Rm.ready=true;window.__rumRm=Rm;window.__rumtid={malet:Math.round(t1-t0),bagt:Math.round(performance.now()-t1)};ctx.ready();let last=performance.now();maalFra=last+1500;
     const loop=now=>{if(!ctx.alive)return;requestAnimationFrame(loop);const raw=(now-last)/1000,dt=Math.max(0,Math.min(.05,raw));last=now;maalTik(raw,now);Rm.t+=dt;
       for(const g of Rm.glows){const f=g.flick?(.9+.1*Math.sin(Rm.t*9+g.ph)*Math.sin(Rm.t*5.1+g.ph)):(.93+.07*Math.sin(Rm.t*2+g.ph));g.s.scale.set(g.size*f,g.size*f,1)}
       for(const q of sp){q.t+=dt;if(q.t>1){q.s.visible=false;continue}q.s.visible=q.t>0;q.s.position.set(q.x+q.vx*q.t,q.y+q.vy*q.t-5*q.t*q.t,q.z);const zz=(1-q.t)*1.8;q.s.scale.set(zz,zz,1)}
@@ -3719,9 +3736,13 @@ ROOMS.bog=function(ctx){
         for(const l of lin){y+=big?84:68;g.fillText(l,W/2,y)}y+=big?60:44}
       /* en lille stjerne som slutvignet */g.fillStyle='#d9a53a';g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,r=k%2?9:22;g.lineTo(W/2+Math.cos(a)*r,Math.min(H-170,y+60)+Math.sin(a)*r)}g.fill()}
     const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t}
+  /* siderne males én gang og gemmes, så de ikke skal males og lægges op på grafikkortet igen, hver gang man bladrer (det gav et hak på tabletten) */
+  const SC=new Map();function sideTex(n,s){const k=n+s+'|'+(SIDER[n].v?'':navn||'');let t=SC.get(k);if(t)return t;t=sideLaerred(n,s);t.userData.cache=true;SC.set(k,t);return t}
+  const glemSider=()=>{for(const t of SC.values())t.userData.cache=false;SC.clear()};
+  /* næste opslag males i forvejen, mens man læser */const forbered=n=>setTimeout(()=>{if(!ctx.alive||n<0||n>=SIDER.length||travl)return;for(const s of['l','r']){const t=sideTex(n,s);try{renderer.initTexture&&renderer.initTexture(t)}catch(_){}}},700);
   const sideMat=t=>new THREE.MeshStandardMaterial({map:t,roughness:.95,metalness:0});
   function sidePlan(t,x){const m=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),sideMat(t));m.rotation.x=-Math.PI/2;m.position.set(x,PY,0);m.receiveShadow=true;m.userData.noShadow=true;return m}
-  function saetSide(m,t){if(m.material.map)m.material.map.dispose();m.material.map=t;m.material.needsUpdate=true}
+  function saetSide(m,t){if(m.material.map&&m.material.map!==t&&!m.material.map.userData.cache)m.material.map.dispose();m.material.map=t;m.material.needsUpdate=true}
   /* ---------- pop-up-opslagene: rigtige V-folds (Kasper 23. nov.: "motiver popper op, folder ud og folder sammen, når man bladrer") ----------
      Hvert lag er et stykke pap foldet på midten over ryggen. Den ene halvdel er limet på venstresiden, den anden på højresiden, så
      hvor meget det står op, afhænger kun af, hvor åben bogen er: halvt åben er det halvt rejst, og lukket ligger det fladt mellem siderne.
@@ -3872,7 +3893,7 @@ ROOMS.bog=function(ctx){
       g.strokeStyle='#e2b24a';g.lineWidth=10;g.strokeRect(70,70,760,1060);g.lineWidth=3;g.strokeRect(100,100,700,1000);
       for(const[x,y]of[[100,100],[800,100],[100,1100],[800,1100]]){g.fillStyle='#e2b24a';g.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,r=k%2?12:30;g.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}g.fill()}
       const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(PW+1.4,PH+2.2),new THREE.MeshStandardMaterial({map:t,roughness:.6,metalness:.05}));m.rotation.x=Math.PI/2;m.position.set(-(PW+1.6)/2,-.43,0);m.userData.noShadow=true;venstre.add(m)}
-    sideV=sidePlan(sideLaerred(0,'l'),-PW/2-.4);sideH=sidePlan(sideLaerred(0,'r'),PW/2+.4);sideV.position.y=PY+.3;sideH.position.y=PY+.3;venstre.add(sideV);hoejre.add(sideH);
+    sideV=sidePlan(sideTex(0,'l'),-PW/2-.4);sideH=sidePlan(sideTex(0,'r'),PW/2+.4);sideV.position.y=PY+.3;sideH.position.y=PY+.3;venstre.add(sideV);hoejre.add(sideH);
     /* ryggen */rygFlad=Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
     /* bogryggen, som rejser sig, når bogen lukkes (Kasper 23. nov.: "den har ingen ryg, når den er lukket"), med guldbånd */
     /* en buet bogryg, som går i ét med for- og bagsiden, når bogen er lukket (Kasper 23. nov.) */ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;
@@ -3901,8 +3922,8 @@ ROOMS.bog=function(ctx){
   function vend(d){if(travl||lukket)return;if(!aaben){aabn();return}if(d>0&&i===0&&!ok()){skriv();return}if(d<0&&i===0)return;if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();pyt();
     if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.pust();const ny=i+d;
     /* bladet drejer om ryggen. Frem: den nye pop-up sidder på bladets bagside og folder sig op, mens bladet lægger sig. Tilbage: den gamle sidder på bladet og folder sig ned */
-    if(d>0){blad=bygBlad(sideLaerred(i,'r'),sideLaerred(ny,'l'),1);saetSide(sideH,sideLaerred(ny,'r'));popNy=bygPop(SIDER[ny].art,blad);if(!popNy.v){popNy.G.position.set(PW/2+.4,-.05,GZ);popNy.G.rotation.z=Math.PI}}
-    else{blad=bygBlad(sideLaerred(i,'l'),sideLaerred(ny,'r'),-1);saetSide(sideV,sideLaerred(ny,'l'));if(!pop.v){blad.add(pop.G);pop.G.position.set(-PW/2-.4,.05,GZ)}popNy=bygPop(SIDER[ny].art,venstre)}
+    if(d>0){blad=bygBlad(sideTex(i,'r'),sideTex(ny,'l'),1);saetSide(sideH,sideTex(ny,'r'));popNy=bygPop(SIDER[ny].art,blad);if(!popNy.v){popNy.G.position.set(PW/2+.4,-.05,GZ);popNy.G.rotation.z=Math.PI}}
+    else{blad=bygBlad(sideTex(i,'l'),sideTex(ny,'r'),-1);saetSide(sideV,sideTex(ny,'l'));if(!pop.v){blad.add(pop.G);pop.G.position.set(-PW/2-.4,.05,GZ)}popNy=bygPop(SIDER[ny].art,venstre)}
     LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,d,ny,trin:'vend'}}
   function bygBlad(fraT,tilT,d){/* bladet: forside = siden, der vendes, bagside = den nye side på den anden side; det drejer om ryggen */
     const g=new THREE.Group();g.position.set(0,PY+.35,0);bog.add(g);const f=sidePlan(fraT,(d>0?1:-1)*(PW/2+.4));f.position.y=0;g.add(f);const b=sidePlan(tilT,(d>0?1:-1)*(PW/2+.4));b.position.y=-.02;b.rotation.order='ZYX';b.rotation.set(-Math.PI/2,0,Math.PI);g.add(b);f.castShadow=b.castShadow=true;f.userData.noShadow=b.userData.noShadow=false;return g}
@@ -3911,9 +3932,9 @@ ROOMS.bog=function(ctx){
       if(u>=1){vPlace(0,0);bog.position.x=0;fase=null;travl=false;aaben=true;pile();if(!ok())setTimeout(()=>{if(ctx.alive&&i===0&&!travl)skriv()},300)}}
     else if(F.trin==='vend'){const u=Math.min(1,F.t/1.9),e=ease(u);blad.rotation.z=F.d*e*Math.PI;blad.position.y=PY+.35;pop.op=1-clamp(e/.85,0,1);popNy.op=clamp((e-.15)/.85,0,1);
       {const c=Math.cos(e*Math.PI),s_=Math.sin(e*Math.PI),bd=F.d>0?[c,s_]:[-c,s_];if(pop.v)stilV(pop,F.d>0?[-1,0]:bd,F.d>0?bd:[1,0]);if(popNy.v)stilV(popNy,F.d>0?bd:[-1,0],F.d>0?[1,0]:bd)}
-      if(u>=1){if(F.d>0){saetSide(sideV,sideLaerred(F.ny,'l'));if(!popNy.v){venstre.add(popNy.G);popNy.G.position.set(-PW/2-.4,PY+.4,GZ);popNy.G.rotation.z=0}}else saetSide(sideH,sideLaerred(F.ny,'r'));if(popNy.v)stilV(popNy,[-1,0],[1,0]);
-        fjern(pop);pop=popNy;popNy=null;pop.op=1;bog.remove(blad);blad.traverse(q=>{if(q.isMesh){q.geometry.dispose();q.material.map&&q.material.map.dispose();q.material.dispose()}});blad=null;
-        i=F.ny;fase=null;travl=false;pile();if(i===0&&!ok())skriv()}}}
+      if(u>=1){if(F.d>0){saetSide(sideV,sideTex(F.ny,'l'));if(!popNy.v){venstre.add(popNy.G);popNy.G.position.set(-PW/2-.4,PY+.4,GZ);popNy.G.rotation.z=0}}else saetSide(sideH,sideTex(F.ny,'r'));if(popNy.v)stilV(popNy,[-1,0],[1,0]);
+        fjern(pop);pop=popNy;popNy=null;pop.op=1;bog.remove(blad);blad.traverse(q=>{if(q.isMesh){q.geometry.dispose();q.material.map&&!q.material.map.userData.cache&&q.material.map.dispose();q.material.dispose()}});blad=null;
+        i=F.ny;fase=null;travl=false;pile();forbered(i+1);forbered(i-1);if(i===0&&!ok())skriv()}}}
   function tickPop(p){if(!p||p.v)return;const n=p.L.length;p.L.forEach((g,k)=>{const u=clamp(p.op*(1+.12*n)-k*.12,0,1),s=1.70158,e=u<1?1+(s+1)*Math.pow(u-1,3)+s*Math.pow(u-1,2):1;g.rotation.x=-Math.PI/2*(1-e)})}
   /* ---------- åbningen, lukningen og titlen ---------- */
   const TITEL=['Magiske','Mig'],LUKY=4.72,BX=-13;
@@ -3945,17 +3966,17 @@ ROOMS.bog=function(ctx){
     for(const s of stoev){if(!s.m.visible)continue;s.t+=dt;if(s.t>=s.liv){s.m.visible=false;continue}s.m.position.addScaledVector(s.v,dt);s.m.scale.setScalar(1-s.t/s.liv);s.m.rotation.z+=dt*4}
     return faerdig}
   function igen(){efter.classList.remove('on');efter.hidden=true;for(const q of bogst){Rm.live.remove(q.m);q.m.userData.ryd&&q.m.userData.ryd()}bogst=[];
-    lukket=false;fase=null;i=0;saetSide(sideV,sideLaerred(0,'l'));saetSide(sideH,sideLaerred(0,'r'));pop=bygPop(SIDER[0].art);lukketStart(bog.position.x);travl=false;aabn()}
+    lukket=false;fase=null;i=0;saetSide(sideV,sideTex(0,'l'));saetSide(sideH,sideTex(0,'r'));pop=bygPop(SIDER[0].art);lukketStart(bog.position.x);travl=false;aabn()}
   function slut(){LYD.valg&&LYD.valg();pyt();SPIL.navn=navn;SPIL.data.intro=true;SPIL.data.nyHeks=true;SPIL.save();LOG.row('intro',{navn:navn.length});enter('garderobe',{skift:true})}
   /* blyanten følger navnet på brevet, så man kan se, at man kan rette det (Kasper 23. nov.) */
   const pv=new THREE.Vector3();function blyant(){const vis=!!(pop&&pop.navnPkt&&aaben&&i===0&&!travl&&!lukket&&ok());pen.hidden=!vis;if(!vis)return;pop.navnPkt.g.updateWorldMatrix(true,false);pv.copy(pop.navnPkt.v).applyMatrix4(pop.navnPkt.g.matrixWorld).project(Rm.cam);
     const r=renderer.domElement.getBoundingClientRect();pen.style.left=(r.left+(pv.x+1)/2*r.width)+'px';pen.style.top=(r.top+(1-pv.y)/2*r.height)+'px'}
   /* ligger navnelinjen bag spillets tastatur, skubbes hele billedet op, så man kan se, hvad man skriver */
   let skubbet=0;const nv=new THREE.Vector3();
-  function skub(dt){const kb=document.querySelector('.kb'),cv=renderer.domElement;let maal=0;
+  let skubTf='';function skub(dt){const kb=document.querySelector('.kb'),cv=renderer.domElement;let maal=0;
     if(kb&&!kb.hidden&&kb.classList.contains('on')&&i===0&&aaben&&!lukket){const kt=innerHeight-kb.offsetHeight,r=cv.getBoundingClientRect();if(!pop||!pop.brev)return;pop.brev.meshes[0].updateWorldMatrix(true,false);pop.brev.meshes[0].getWorldPosition(nv);nv.y-=1.2;nv.project(Rm.cam);
       const y=r.top+(1-nv.y)/2*r.height+skubbet;maal=Math.max(0,y+24-kt)}
-    skubbet+=(maal-skubbet)*Math.min(1,dt*8);if(Math.abs(skubbet)<.5&&maal===0)skubbet=0;cv.style.transform=skubbet?`translateY(${-skubbet}px)`:''}
+    skubbet+=(maal-skubbet)*Math.min(1,dt*8);if(Math.abs(skubbet)<.5&&maal===0)skubbet=0;{const tf=skubbet?`translateY(${-skubbet.toFixed(1)}px)`:'';if(tf!==skubTf){skubTf=tf;cv.style.transform=tf}}}
   /* ---------- rummet: skrivebordet i stearinlysets skær ---------- */
   const OPT={bg:'#1a1220',fit:(c,w,h)=>{const asp=w/h,HH=Math.max(34,62/asp),D=78;c.fov=2*Math.atan(HH/2/D)*180/Math.PI;c.position.set(0,D*Math.sin(.64),D*Math.cos(.64)+4);c.lookAt(0,4.5,0)},
     sky:'#ffe8c0',ground:'#3a2418',amb:.7,key:{col:'#ffd9a0',i:1.6,pos:[-40,60,10],tgt:[0,0,0],box:[-50,50,50,-50]},P_:{dof:[0,0],haze:[0,0,0]},
@@ -3967,11 +3988,11 @@ ROOMS.bog=function(ctx){
         /* blækhus og fjerpen til højre */const bh=new THREE.Group();bh.position.set(36,0,-16);S.add(bh);P2(bh,box(-2.2,0,2.2,3.4),{color:'#2a2a3a',kind:'card',t:4,edge:'#10101a'},-2);P2(bh,box(-1,3.4,1,4.4),{color:'#3a3a4a',kind:'card',t:2,edge:'#10101a'},-1);
         const fj=new THREE.Group();fj.position.set(35,4,-16);fj.rotation.z=-.5;S.add(fj);P2(fj,toCCW(sm([[0,0],[1.4,4],[1.6,10],[.6,13],[-.6,9],[-.8,4]],4)),{color:'#f4f0f8',kind:'card',t:.1,edge:'#b8b0c8'},0);
         /* tørrede blomster og et par løse stjerner på bordet */for(const[x,z,c]of[[30,14,'#c79bff'],[33,17,'#ff9fc8'],[-31,15,'#ffd86b']])Rm.floor(starPts(x,-z,1.3,.55,R(TAU)),{color:c,kind:'card',t:.08},.62,S)},
-      ()=>{bygBog();pop=bygPop(SIDER[0].art);lukketStart(-(PW/2+.8));pile();document.fonts&&document.fonts.ready.then(()=>{if(!ctx.alive)return;saetSide(sideV,sideLaerred(i,'l'));saetSide(sideH,sideLaerred(i,'r'))});
+      ()=>{bygBog();pop=bygPop(SIDER[0].art);lukketStart(-(PW/2+.8));pile();document.fonts&&document.fonts.ready.then(()=>{if(!ctx.alive)return;glemSider();forbered(1);saetSide(sideV,sideTex(i,'l'));saetSide(sideH,sideTex(i,'r'))});
         /* bogen ligger lukket, til man trykker på den (Kasper 23. nov.) */bogTap();setTimeout(()=>{if(ctx.alive&&!aaben&&!travl)ctx.say('Tryk på bogen for at åbne den')},1600)}],
     tick:(t,dt)=>{tiden+=dt;skub(dt);blyant();tickPop(pop);tickPop(popNy);if(!tickLuk(dt))tickFase(dt)}};
   makeRoom(ctx,OPT);
-  ctx.efter.push(()=>{renderer.domElement.style.transform='';for(const d of DOM)d.remove();if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();for(const q of bogst)q.m.userData.ryd&&q.m.userData.ryd()});
+  ctx.efter.push(()=>{renderer.domElement.style.transform='';for(const t of SC.values())t.dispose();SC.clear();for(const d of DOM)d.remove();if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();for(const q of bogst)q.m.userData.ryd&&q.m.userData.ryd()});
   ctx.test={aabn,aaben:()=>aaben,side:()=>i,navn:v=>{inp.value=v;inp.dispatchEvent(new Event('input'))},vend,lukket:()=>lukket,fase:()=>fase&&fase.trin,efter:()=>!efter.hidden,spol:sek=>{for(let k=0;k<sek*25;k++)OPT.tick(0,.04)},bogst:()=>bogst.map(q=>[q.m.visible,q.m.position.toArray().map(v=>+v.toFixed(1)),+q.t.toFixed(2)])}};
 
 /* ============ Dyreparken, del 1: ungerne og foderet ============
@@ -4468,7 +4489,7 @@ ROOMS.eliksir=function(ctx){
   const FXM=[],farvet=[];
   const fxStart=kind=>{fx={kind,t:0,ud:null};if(TEGN[kind]){const map=maerke(TEGN[kind]);for(let i=0;i<14;i++){let q=FXM[i];if(!q){const sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false}));Rm.live.add(sp);q=FXM[i]={s:sp}}if(q.s.material.map&&q.s.material.map!==map&&i===0)q.s.material.map.dispose();q.s.material.map=map;q.s.material.needsUpdate=true;q.s.material.opacity=0;q.s.visible=true;
         q.d=i*.22;q.a=i/14*TAU;q.sx=i%2?1:-1;q.r=.6+((i*37)%10)/10*.8;q.px=HX+((i*53)%29-14);q.py=1+((i*31)%7);q.bx=HX+(i%2?1:-1)*(3+((i*17)%13)*.55);q.bz=6.5+((i*29)%10)*.55}}
-    if(kind==='regnbue')heks.G.traverse(m=>{if(m.isMesh&&!m.isSprite){const o=m.material,n=Array.isArray(o)?o.map(x=>x.clone()):o.clone();farvet.push({m,o,n});m.material=n}})};
+    if(kind==='regnbue')heks.G.traverse(m=>{if(m.isMesh&&!m.isSprite){const o=m.material,n=Array.isArray(o)?o.map(x=>x.clone()):o.clone();for(const x of[].concat(n))x.vertexColors=false;farvet.push({m,o,n});m.material=n}})};
   const fxSlut=()=>{fx=null;for(const q of FXM)q.s.visible=false;for(const f of farvet){f.m.material=f.o;for(const x of[].concat(f.n))x.dispose()}farvet.length=0;if(heks){heks.G.rotation.z=0}};
   const fxTegn=(dt,k,y)=>{const t=fx.t,kind=fx.kind;
     if(kind==='regnbue'){const c=new THREE.Color();farvet.forEach((f,i)=>{c.setHSL((t*.45+i*.013)%1,.85,.5+.25*(1-k));c.lerp(new THREE.Color('#ffffff'),1-k);for(const x of[].concat(f.n))x.color.copy(c)})}
@@ -5092,9 +5113,9 @@ ROOMS.kost=function(ctx){
     const bag=new THREE.Group(),for_=new THREE.Group();g.add(bag,for_);bag.position.z=-.9;for_.position.z=.9;
     for(const q of thick([half(-1)],.5))P2(bag,q,{color:hexOf(shade(c,-.18)),kind:'card',t:.3,edge:e},0);for(const q of thick([half(1)],.5))P2(for_,q,{color:c,kind:'card',t:.3,edge:e},0);
     P2(for_,starPts(0,ry+.2,1.1,.5,Math.PI/2),{color:dbl?'#fff0ff':'#fff6d0',kind:'card',t:.15,edge:e},.2);
-    g.userData={bag,for_,puls:0};return g}
+    g.userData={puls:0};samlStatisk(g,{celle:1e6});return g}
   function bygBoble(par,x,y){const G=new THREE.Group();G.position.set(x,y,0);par.add(G);P2(G,circ(0,0,1.9,1.9,24),{color:'#bfe8ff',kind:'card',t:.25,edge:'#4a8ab8'},0);P2(G,circ(0,0,1.45,1.45,22),{color:'#eaf8ff',kind:'card',t:.04},.26);
-    P2(G,starPts(0,0,1,.45,Math.PI/2),{color:'#ffc02e',kind:'card',t:.12,edge:'#a87a1a'},.3);P2(G,circ(-.75,.75,.28,.2,8),{color:'#ffffff',kind:'card',t:.03},.43);return G}
+    P2(G,starPts(0,0,1,.45,Math.PI/2),{color:'#ffc02e',kind:'card',t:.12,edge:'#a87a1a'},.3);P2(G,circ(-.75,.75,.28,.2,8),{color:'#ffffff',kind:'card',t:.03},.43);samlStatisk(G,{celle:1e6});return G}
   /* ---------- kulisserne ---------- */
   /* hvor et lag skal stå, for at glide med en bestemt brøkdel af banens fart (dybden gør resten) */
   const lagX=(camX,p,z)=>camX*(1-p*(CD-z)/CD);
@@ -5145,10 +5166,11 @@ ROOMS.kost=function(ctx){
     for(const b of S.course.bubbles)b.g=bygBoble(baneG,X(b.x),Y(b.y));
     /* klassekammeraternes baner bagved: de samme ringe i deres egen farve, mindre og lidt højere oppe */
     S.rivals.forEach(rv=>{const g=new THREE.Group();rod.add(g);lanG.push(g);rv.look=look(rv.li);const c=hexOf(shade(rv.look.col['tøj'],.25));rv.els=new Map();for(const r of S.course.rings)rv.els.set(r,bygRing(g,X(r.x),Y(r.y)*rv.lane.kk+rv.lane.dd,rv.lane.z,rv.lane.kk,c,!!r.dbl));
-      rv.R=bygRytter(rv.look);rv.R.G.scale.setScalar(.34*rv.lane.kk);rod.add(rv.R.G)});
+      rv.R=bygRytter(rv.look);samlStiv(rv.R.G,[rv.R,rv.R.F]);rv.R.G.scale.setScalar(.34*rv.lane.kk);rod.add(rv.R.G)});
     /* start- og målport */
     bygPort(baneG,X(130),'Start');bygPort(baneG,X(S.course.end),'Mål',true);
-    if(!mig){mig=bygRytter(ctx.look);mig.G.scale.setScalar(.34);rod.add(mig.G)}
+    if(!mig){mig=bygRytter(ctx.look);samlStiv(mig.G,[mig,mig.F]);mig.G.scale.setScalar(.34);rod.add(mig.G)}
+    /* intet her kaster skygger (det koster en ekstra tegning af alt) */rod.traverse(q=>{if(q.isMesh){q.userData.noShadow=true;q.castShadow=q.receiveShadow=false}});
     tv.saet(0,0);tv.saet(1,0);tv.saet(2,3);for(const l of lamper)l.lm.emissiveIntensity=.05;
     ban.vis('Klar til at flyve?',{portraet:'sky',txt2:'Tryk for at flyve op. Hold fingeren nede for et loop. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6});
     S.rivals.forEach((rv,i)=>{prikker[i+1].material.color.set(rv.look.col['tøj'])});tegn()}
@@ -5258,10 +5280,10 @@ ROOMS.kost=function(ctx){
   /* ---------- rummet ---------- */
   const OPT={bg:'#1c1838',fit:(c,w,h)=>{const asp=w/h,HH=Math.max(50,88/asp);baseFov=2*Math.atan(HH/2/CD)*180/Math.PI;c.fov=baseFov;c.position.set(c.position.x||0,0,CD);c.lookAt(c.position.x||0,0,0)},
     sky:'#c8c0ff',ground:'#3a3048',amb:1.1,key:{col:'#d8d8ff',i:1.3,pos:[-60,90,200],tgt:[0,0,-60],box:[-80,80,60,-60]},P_:{dof:[0,0],haze:[0,0,0]},
-    build:R_=>[()=>{Rm=R_;rod=new THREE.Group();Rm.live.add(rod);himmel=new THREE.Group();himmel.position.z=-420;rod.add(himmel);bygHimmel(himmel);
-        fjern=new THREE.Group();fjern.position.set(0,0,-250);rod.add(fjern);bygFjern(fjern,900)},
-      ()=>{midt=new THREE.Group();midt.position.set(0,0,-110);rod.add(midt);bygMidt(midt,1450)},
-      ()=>{naer=new THREE.Group();naer.position.set(0,0,40);rod.add(naer);bygNaer(naer,1720);bygGlimmer(rod,1720)},
+    build:R_=>[()=>{Rm=R_;rod=new THREE.Group();Rm.live.add(rod);himmel=new THREE.Group();himmel.position.z=-420;rod.add(himmel);bygHimmel(himmel);samlStatisk(himmel,{celle:1e6});
+        fjern=new THREE.Group();fjern.position.set(0,0,-250);rod.add(fjern);bygFjern(fjern,900);samlStatisk(fjern,{celle:260})},
+      ()=>{midt=new THREE.Group();midt.position.set(0,0,-110);rod.add(midt);bygMidt(midt,1450);samlStatisk(midt,{celle:220})},
+      ()=>{naer=new THREE.Group();naer.position.set(0,0,40);rod.add(naer);bygNaer(naer,1720);samlStatisk(naer,{celle:120});const glim=new THREE.Group();rod.add(glim);bygGlimmer(glim,1720);samlStatisk(glim,{celle:160})},
       ()=>{/* tavlen og skiltene hænger helt fremme, foran lygtepæle og vimpler */hud=new THREE.Group();hud.position.z=60;hud.scale.setScalar(.6);rod.add(hud);tv=papirTavle(hud,[{navn:'Ringe',cifre:2},{navn:'Bobler',cifre:2},{navn:'Plads',cifre:1}],{x:30,y:20,z:20,s:.75});
         ptW=papirTekster(rod);ptH=papirTekster(hud);ban=papirBanner(hud,{y:6,z:22,w:46});
         /* fartlamperne og stribe med prikker foroven */
@@ -5270,7 +5292,7 @@ ROOMS.kost=function(ctx){
         for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(.75,18),new THREE.MeshBasicMaterial({color:i?'#ffffff':((ctx.look.col&&ctx.look.col['tøj'])||'#6a3fa2')}));m.position.z=.3+i*.01;stribe.add(m);prikker.push(m);
           const kant=new THREE.Mesh(new THREE.RingGeometry(.75,1,18),new THREE.MeshBasicMaterial({color:'#fffaf0'}));m.add(kant)}
         {const cols=['#ff8fc7','#ffd24a','#7fd8ff','#fff6d0'];for(let i=0;i<40;i++){const m=piece(i%3?starPts(0,0,.7,.3,0):box(-.15,-.9,.15,.9),{mat:paperMat(cols[i%4],'tissue',{glow:cols[i%4],gi:1.3}),t:.05});m.visible=false;rod.add(m);kom.push({m,t:0,life:.5,s:1})}}
-        bygEv();rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
+        samlStiv(hud,[{l:lamper.map(l=>l.m),p:prikker}]);bygEv();rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
     tick:(t,dt)=>{if(!S)return;const hh=Math.tan(baseFov*Math.PI/360)*CD,hw=hh*Rm.cam.aspect,sz=(CD-20)/CD;
       tv.G.position.set((hw-13)*sz,(hh-4.5)*sz,20);lamper.forEach((l,i)=>l.m.position.set((hw-21+i*2.2)*sz,(hh-9.2)*sz,20));stribe.position.set(0,(hh-3)*sz,20);
       const n=window.KOST_WARP||(S.auto?4:1);for(let i=0;i<n;i++)step(dt);ryst=Math.max(0,ryst-dt);if(S.boost>0)ryst=Math.max(ryst,.12);

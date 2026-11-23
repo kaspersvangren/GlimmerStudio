@@ -46,7 +46,7 @@ function makeRoom(ctx,o){
   el.addEventListener('pointerdown',onDown);addEventListener('pointermove',onMove);addEventListener('pointerup',onUp);addEventListener('pointercancel',onUp);
   ctx.cleanup=()=>{el.removeEventListener('pointerdown',onDown);removeEventListener('pointermove',onMove);removeEventListener('pointerup',onUp);removeEventListener('pointercancel',onUp)};
   (async()=>{try{await SKRIFTER;const t0=performance.now();for(const s of(o.build(Rm)||[])){await new Promise(r=>setTimeout(r,0));if(!ctx.alive)return;s()}
-    Rm.shadows(live);const t1=performance.now();ST.bake();Rm.ready=true;window.__rumtid={malet:Math.round(t1-t0),bagt:Math.round(performance.now()-t1)};ctx.ready();let last=performance.now();maalFra=last+1500;
+    /* hvert stykke papir i det levende lag tegnes i én omgang i stedet for tre, når siderne er samme slags papir */if(!ctx.helFarve&&!window.__udenEnFarve)enFarve(live);Rm.shadows(live);const t1=performance.now();ST.bake();Rm.ready=true;window.__rumRm=Rm;window.__rumtid={malet:Math.round(t1-t0),bagt:Math.round(performance.now()-t1)};ctx.ready();let last=performance.now();maalFra=last+1500;
     const loop=now=>{if(!ctx.alive)return;requestAnimationFrame(loop);const raw=(now-last)/1000,dt=Math.max(0,Math.min(.05,raw));last=now;maalTik(raw,now);Rm.t+=dt;
       for(const g of Rm.glows){const f=g.flick?(.9+.1*Math.sin(Rm.t*9+g.ph)*Math.sin(Rm.t*5.1+g.ph)):(.93+.07*Math.sin(Rm.t*2+g.ph));g.s.scale.set(g.size*f,g.size*f,1)}
       for(const q of sp){q.t+=dt;if(q.t>1){q.s.visible=false;continue}q.s.visible=q.t>0;q.s.position.set(q.x+q.vx*q.t,q.y+q.vy*q.t-5*q.t*q.t,q.z);const zz=(1-q.t)*1.8;q.s.scale.set(zz,zz,1)}

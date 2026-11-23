@@ -461,26 +461,43 @@ function puff(cx,cy,rx,ry,n=9,bump=.22,seed=0){const o=[];const ph=R(TAU);for(le
   for(let j=0;j<6;j++){const t=j/6,u=1-t;o.push([u*u*p0[0]+2*u*t*bx+t*t*p1[0],u*u*p0[1]+2*u*t*by+t*t*p1[1]])}}return o}
 /* et udklippet blad */
 const leafPts=(x,y,l,w,a)=>{const o=[];for(let i=0;i<=8;i++){const t=i/8,yy=-l/2+t*l,xx=Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}for(let i=7;i>0;i--){const t=i/8,yy=-l/2+t*l,xx=-Math.sin(t*Math.PI)*w/2;o.push([xx,yy])}return o.map(([px,py])=>[x+px*Math.cos(a)-py*Math.sin(a),y+px*Math.sin(a)+py*Math.cos(a)])};
-/* samler alle de faste papstykker i en gruppe til få store stykker, ét pr. slags papir og pr. stykke vej (celle), så grafikchippen får færre ting at tegne.
+/* samler alle de faste papstykker i en gruppe til få store stykker, så grafikchippen får færre ting at tegne. Papir af samme slags samles, selv om farven er forskellig:
+   farven flyttes ud i hjørnerne af stykket. Selvlysende, metal og malede stykker samles kun med deres egne. Én samling pr. stykke vej (celle), så det, der er uden for billedet, stadig springes over.
    Stykker, der bevæger sig, skal markeres med userData.levende (eller ligge under en gruppe, der er det); figurer, tekster og lysskær røres ikke */
+const FAM=new Map();
+function famMat(m){if(m.userData.own||m.vertexColors||(m.emissive&&(m.emissive.r+m.emissive.g+m.emissive.b)>0)||m.metalness>0||m.transparent)return{k:m.uuid,m,farve:null};
+  const k='f'+(m.map?m.map.uuid:'-')+(m.bumpMap?m.bumpMap.uuid:'-')+m.bumpScale+'|'+m.roughness+'|'+m.side;let f=FAM.get(k);if(!f){f=m.clone();f.color.set(1,1,1);f.vertexColors=true;FAM.set(k,f)}return{k,m:f,farve:m.color}}
+/* bygger én geometri af flere stykker (hver med sin matrix og sine papirfamilier); trekanter med samme materiale lægges i samme tegning */
+function famGeo(dele){const P=[],N=[],U=[],C=[],I=[],tri=new Map(),nM=new THREE.Matrix3(),v=new THREE.Vector3();
+  for(const{g,M,fam}of dele){const pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv;if(M)nM.getNormalMatrix(M);
+    const idx=g.index?g.index.array:null,cnt=idx?idx.length:pa.count,gs=g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
+    for(const q of gs){const f=fam[Math.min(q.materialIndex||0,fam.length-1)],fc=f.farve,map=new Map();let L=tri.get(f.m);if(!L)tri.set(f.m,L=[]);
+      for(let j=q.start;j<q.start+q.count;j++){const i=idx?idx[j]:j;let ni=map.get(i);if(ni===undefined){ni=P.length/3;map.set(i,ni);
+        v.fromBufferAttribute(pa,i);if(M)v.applyMatrix4(M);P.push(v.x,v.y,v.z);v.fromBufferAttribute(na,i);if(M)v.applyMatrix3(nM).normalize();N.push(v.x,v.y,v.z);U.push(ua.getX(i),ua.getY(i));if(fc)C.push(fc.r,fc.g,fc.b);else C.push(1,1,1)}L.push(ni)}}}
+  const G=new THREE.BufferGeometry(),mats=[];G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));G.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));G.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));G.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
+  for(const[m,L]of tri){if(!L.length)continue;G.addGroup(I.length,L.length,mats.length);mats.push(m);for(const x of L)I.push(x)}
+  G.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));if(mats.length===1)G.clearGroups();G.computeBoundingSphere();G.computeBoundingBox();return{G,mat:mats.length===1?mats[0]:mats}}
+const famOk=o=>{const g=o.geometry;if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||!g||!g.attributes.position||!g.attributes.normal||!g.attributes.uv||Object.keys(g.attributes).length!==3)return null;
+  const mats=Array.isArray(o.material)?o.material:[o.material];if(mats.some(m=>!m||!m.isMeshStandardMaterial))return null;return mats.map(famMat)};
+/* hvert stykke papir tegnes normalt i tre omgange (forside, bagside, kant). Her bliver det til én omgang, når de tre er samme slags papir; stykkerne bliver ved med at kunne bevæge sig hver for sig.
+   Bruges kun, hvor farverne ikke skiftes undervejs */
+function enFarve(root){let n=0;root.traverse(o=>{if(o.userData.enFarve||!Array.isArray(o.material))return;const fam=famOk(o);if(!fam)return;const{G,mat}=famGeo([{g:o.geometry,M:null,fam}]);o.geometry=G;o.material=mat;o.userData.enFarve=1;n++});return n}
 function samlStatisk(root,{celle=240}={}){root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),B={},ud=[];
   const ok=o=>{for(let p=o;p&&p!==root;p=p.parent)if(p.userData.levende)return false;return true};
-  root.traverse(o=>{if(!o.isMesh||o.isSprite||o.isSkinnedMesh||o.isInstancedMesh||!o.visible||o.userData.ryd||!ok(o))return;const g=o.geometry;if(!g||!g.attributes.position||!g.attributes.normal||!g.attributes.uv||Object.keys(g.attributes).length!==3)return;
-    const mats=Array.isArray(o.material)?o.material:[o.material];if(mats.some(m=>!m||m.transparent&&!m.alphaTest))return;
+  root.traverse(o=>{if(!o.visible||o.userData.ryd||!ok(o))return;const fam=famOk(o);if(!fam)return;const g=o.geometry;
     const M=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld),c=new THREE.Vector3();if(!g.boundingBox)g.computeBoundingBox();g.boundingBox.getCenter(c).applyMatrix4(M);
-    const key=mats.map(m=>m.uuid).join('|')+'#'+Math.floor(c.x/celle)+(o.castShadow?'s':'')+(o.receiveShadow?'r':'');(B[key]=B[key]||{mats,cast:o.castShadow,recv:o.receiveShadow,dele:[]}).dele.push({g,M});ud.push(o)});
-  let n=0;for(const k in B){const b=B[k];const P=[],N=[],U=[],I=[],grp=[];const nM=new THREE.Matrix3(),v=new THREE.Vector3();
-    const nm=b.mats.length;const tri=[];for(let mi=0;mi<nm;mi++)tri.push([]);
-    for(const{g,M}of b.dele){const base=P.length/3,pa=g.attributes.position,na=g.attributes.normal,ua=g.attributes.uv;nM.getNormalMatrix(M);
-      for(let i=0;i<pa.count;i++){v.fromBufferAttribute(pa,i).applyMatrix4(M);P.push(v.x,v.y,v.z);v.fromBufferAttribute(na,i).applyMatrix3(nM).normalize();N.push(v.x,v.y,v.z);U.push(ua.getX(i),ua.getY(i))}
-      const idx=g.index?g.index.array:null,cnt=idx?idx.length:pa.count,gs=g.groups.length?g.groups:[{start:0,count:cnt,materialIndex:0}];
-      for(const q of gs){const L=tri[Math.min(q.materialIndex||0,nm-1)];for(let j=q.start;j<q.start+q.count;j++)L.push(base+(idx?idx[j]:j))}}
-    for(let mi=0;mi<nm;mi++){if(!tri[mi].length)continue;grp.push([I.length,tri[mi].length,mi]);for(const x of tri[mi])I.push(x)}
-    const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));G.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));G.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));G.setIndex(P.length/3>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));
-    for(const[s,c,m]of grp)G.addGroup(s,c,m);G.computeBoundingSphere();const m=new THREE.Mesh(G,nm>1?b.mats:b.mats[0]);m.castShadow=b.cast;m.receiveShadow=b.recv;m.userData.noShadow=!b.cast;m.userData.samlet=true;root.add(m);n++}
-  for(const o of ud){o.parent.remove(o);o.geometry.dispose()}
-  /* tomme grupper fjernes */const tom=[];root.traverse(o=>{if(o!==root&&!o.isMesh&&!o.isSprite&&!o.isLight&&o.children.length===0&&!o.userData.levende)tom.push(o)});for(const o of tom)o.parent&&o.parent.remove(o);
-  return{for:ud.length,efter:n}}
+    const key=fam.map(f=>f.k).join('|')+'#'+Math.floor(c.x/celle)+(o.castShadow?'s':'')+(o.receiveShadow?'r':'');(B[key]=B[key]||{cast:o.castShadow,recv:o.receiveShadow,dele:[]}).dele.push({g,M,fam,o})});
+  let n=0;for(const k in B){const b=B[k];if(b.dele.length<2)continue;const{G,mat}=famGeo(b.dele);const m=new THREE.Mesh(G,mat);m.castShadow=b.cast;m.receiveShadow=b.recv;m.userData.samlet=true;root.add(m);n++;for(const{o}of b.dele)ud.push(o)}
+  const brugt=new Set();for(const o of ud){o.parent.remove(o);brugt.add(o.geometry)}root.traverse(o=>{if(o.geometry)brugt.delete(o.geometry)});for(const g of brugt)g.dispose();
+  const tom=[];root.traverse(o=>{if(o!==root&&!o.isMesh&&!o.isSprite&&!o.isLight&&o.children.length===0&&!o.userData.levende)tom.push(o)});for(const o of tom)o.parent&&o.parent.remove(o);
+  return{efter:n}}
+/* til figurer, der bevæger sig led for led: de stykker, der sidder fast på det samme led, samles til ét. Leddene selv og alt, der er navngivet i skaan (øjenlåg, kugler og lign.), røres ikke */
+function samlStiv(root,skaan=[]){const S=new Set();for(const x of skaan)if(x)for(const k in x){const v=x[k];if(v&&v.isObject3D)S.add(v);else if(Array.isArray(v))for(const w of v)if(w&&w.isObject3D)S.add(w)}
+  const noder=[];root.traverse(o=>{if(!o.isMesh)noder.push(o)});let n=0;
+  for(const p of noder){const dele=[];for(const c of p.children){if(!c.isMesh||!c.visible||S.has(c)||c.userData.ryd||!Array.isArray(c.material))continue;const mats=Array.isArray(c.material)?c.material:[c.material];if(mats.some(m=>m&&m.transparent))continue;const fam=famOk(c);if(!fam)continue;c.updateMatrix();dele.push({g:c.geometry,M:c.matrix.clone(),fam,o:c})}
+    if(dele.length<2)continue;const{G,mat}=famGeo(dele);const m=new THREE.Mesh(G,mat);m.castShadow=dele[0].o.castShadow;m.receiveShadow=dele[0].o.receiveShadow;m.userData.noShadow=dele[0].o.userData.noShadow;m.userData.enFarve=1;
+    const i=p.children.indexOf(dele[0].o);for(const d of dele)p.remove(d.o);p.add(m);p.children.splice(p.children.indexOf(m),1);p.children.splice(Math.min(i,p.children.length),0,m);n++}
+  enFarve(root);return n}
 
 /* ============ en scene der bages én gang (lys, skygger, kontaktskygger, dybde, glød) med et levende lag ovenpå ============ */
 function makeStage({cam,CD,fit,P_={},scene:bagt=scene,live:levende=live}){/* scenerne gives med, så flere rum kan leve i samme spil */P_=Object.assign({aoR:.75,dof:[.11,.3],haze:[1.08,1.45,.38],hazeC:[.075,.06,.16],bloom:1,bg:'#0d0a12'},P_);

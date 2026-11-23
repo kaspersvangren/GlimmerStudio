@@ -32,9 +32,9 @@ ROOMS.kost=function(ctx){
     const bag=new THREE.Group(),for_=new THREE.Group();g.add(bag,for_);bag.position.z=-.9;for_.position.z=.9;
     for(const q of thick([half(-1)],.5))P2(bag,q,{color:hexOf(shade(c,-.18)),kind:'card',t:.3,edge:e},0);for(const q of thick([half(1)],.5))P2(for_,q,{color:c,kind:'card',t:.3,edge:e},0);
     P2(for_,starPts(0,ry+.2,1.1,.5,Math.PI/2),{color:dbl?'#fff0ff':'#fff6d0',kind:'card',t:.15,edge:e},.2);
-    g.userData={bag,for_,puls:0};return g}
+    g.userData={puls:0};samlStatisk(g,{celle:1e6});return g}
   function bygBoble(par,x,y){const G=new THREE.Group();G.position.set(x,y,0);par.add(G);P2(G,circ(0,0,1.9,1.9,24),{color:'#bfe8ff',kind:'card',t:.25,edge:'#4a8ab8'},0);P2(G,circ(0,0,1.45,1.45,22),{color:'#eaf8ff',kind:'card',t:.04},.26);
-    P2(G,starPts(0,0,1,.45,Math.PI/2),{color:'#ffc02e',kind:'card',t:.12,edge:'#a87a1a'},.3);P2(G,circ(-.75,.75,.28,.2,8),{color:'#ffffff',kind:'card',t:.03},.43);return G}
+    P2(G,starPts(0,0,1,.45,Math.PI/2),{color:'#ffc02e',kind:'card',t:.12,edge:'#a87a1a'},.3);P2(G,circ(-.75,.75,.28,.2,8),{color:'#ffffff',kind:'card',t:.03},.43);samlStatisk(G,{celle:1e6});return G}
   /* ---------- kulisserne ---------- */
   /* hvor et lag skal stå, for at glide med en bestemt brøkdel af banens fart (dybden gør resten) */
   const lagX=(camX,p,z)=>camX*(1-p*(CD-z)/CD);
@@ -85,10 +85,11 @@ ROOMS.kost=function(ctx){
     for(const b of S.course.bubbles)b.g=bygBoble(baneG,X(b.x),Y(b.y));
     /* klassekammeraternes baner bagved: de samme ringe i deres egen farve, mindre og lidt højere oppe */
     S.rivals.forEach(rv=>{const g=new THREE.Group();rod.add(g);lanG.push(g);rv.look=look(rv.li);const c=hexOf(shade(rv.look.col['tøj'],.25));rv.els=new Map();for(const r of S.course.rings)rv.els.set(r,bygRing(g,X(r.x),Y(r.y)*rv.lane.kk+rv.lane.dd,rv.lane.z,rv.lane.kk,c,!!r.dbl));
-      rv.R=bygRytter(rv.look);rv.R.G.scale.setScalar(.34*rv.lane.kk);rod.add(rv.R.G)});
+      rv.R=bygRytter(rv.look);samlStiv(rv.R.G,[rv.R,rv.R.F]);rv.R.G.scale.setScalar(.34*rv.lane.kk);rod.add(rv.R.G)});
     /* start- og målport */
     bygPort(baneG,X(130),'Start');bygPort(baneG,X(S.course.end),'Mål',true);
-    if(!mig){mig=bygRytter(ctx.look);mig.G.scale.setScalar(.34);rod.add(mig.G)}
+    if(!mig){mig=bygRytter(ctx.look);samlStiv(mig.G,[mig,mig.F]);mig.G.scale.setScalar(.34);rod.add(mig.G)}
+    /* intet her kaster skygger (det koster en ekstra tegning af alt) */rod.traverse(q=>{if(q.isMesh){q.userData.noShadow=true;q.castShadow=q.receiveShadow=false}});
     tv.saet(0,0);tv.saet(1,0);tv.saet(2,3);for(const l of lamper)l.lm.emissiveIntensity=.05;
     ban.vis('Klar til at flyve?',{portraet:'sky',txt2:'Tryk for at flyve op. Hold fingeren nede for et loop. Tryk for at begynde',sek:0,col:'#2e4a7a',y:6});
     S.rivals.forEach((rv,i)=>{prikker[i+1].material.color.set(rv.look.col['tøj'])});tegn()}
@@ -198,10 +199,10 @@ ROOMS.kost=function(ctx){
   /* ---------- rummet ---------- */
   const OPT={bg:'#1c1838',fit:(c,w,h)=>{const asp=w/h,HH=Math.max(50,88/asp);baseFov=2*Math.atan(HH/2/CD)*180/Math.PI;c.fov=baseFov;c.position.set(c.position.x||0,0,CD);c.lookAt(c.position.x||0,0,0)},
     sky:'#c8c0ff',ground:'#3a3048',amb:1.1,key:{col:'#d8d8ff',i:1.3,pos:[-60,90,200],tgt:[0,0,-60],box:[-80,80,60,-60]},P_:{dof:[0,0],haze:[0,0,0]},
-    build:R_=>[()=>{Rm=R_;rod=new THREE.Group();Rm.live.add(rod);himmel=new THREE.Group();himmel.position.z=-420;rod.add(himmel);bygHimmel(himmel);
-        fjern=new THREE.Group();fjern.position.set(0,0,-250);rod.add(fjern);bygFjern(fjern,900)},
-      ()=>{midt=new THREE.Group();midt.position.set(0,0,-110);rod.add(midt);bygMidt(midt,1450)},
-      ()=>{naer=new THREE.Group();naer.position.set(0,0,40);rod.add(naer);bygNaer(naer,1720);bygGlimmer(rod,1720)},
+    build:R_=>[()=>{Rm=R_;rod=new THREE.Group();Rm.live.add(rod);himmel=new THREE.Group();himmel.position.z=-420;rod.add(himmel);bygHimmel(himmel);samlStatisk(himmel,{celle:1e6});
+        fjern=new THREE.Group();fjern.position.set(0,0,-250);rod.add(fjern);bygFjern(fjern,900);samlStatisk(fjern,{celle:260})},
+      ()=>{midt=new THREE.Group();midt.position.set(0,0,-110);rod.add(midt);bygMidt(midt,1450);samlStatisk(midt,{celle:220})},
+      ()=>{naer=new THREE.Group();naer.position.set(0,0,40);rod.add(naer);bygNaer(naer,1720);samlStatisk(naer,{celle:120});const glim=new THREE.Group();rod.add(glim);bygGlimmer(glim,1720);samlStatisk(glim,{celle:160})},
       ()=>{/* tavlen og skiltene hænger helt fremme, foran lygtepæle og vimpler */hud=new THREE.Group();hud.position.z=60;hud.scale.setScalar(.6);rod.add(hud);tv=papirTavle(hud,[{navn:'Ringe',cifre:2},{navn:'Bobler',cifre:2},{navn:'Plads',cifre:1}],{x:30,y:20,z:20,s:.75});
         ptW=papirTekster(rod);ptH=papirTekster(hud);ban=papirBanner(hud,{y:6,z:22,w:46});
         /* fartlamperne og stribe med prikker foroven */
@@ -210,7 +211,7 @@ ROOMS.kost=function(ctx){
         for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(.75,18),new THREE.MeshBasicMaterial({color:i?'#ffffff':((ctx.look.col&&ctx.look.col['tøj'])||'#6a3fa2')}));m.position.z=.3+i*.01;stribe.add(m);prikker.push(m);
           const kant=new THREE.Mesh(new THREE.RingGeometry(.75,1,18),new THREE.MeshBasicMaterial({color:'#fffaf0'}));m.add(kant)}
         {const cols=['#ff8fc7','#ffd24a','#7fd8ff','#fff6d0'];for(let i=0;i<40;i++){const m=piece(i%3?starPts(0,0,.7,.3,0):box(-.15,-.9,.15,.9),{mat:paperMat(cols[i%4],'tissue',{glow:cols[i%4],gi:1.3}),t:.05});m.visible=false;rod.add(m);kom.push({m,t:0,life:.5,s:1})}}
-        bygEv();rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
+        samlStiv(hud,[{l:lamper.map(l=>l.m),p:prikker}]);bygEv();rod.traverse(q=>{if(q.isMesh)q.userData.noShadow=true});nyt();forvarm(Rm)}],
     tick:(t,dt)=>{if(!S)return;const hh=Math.tan(baseFov*Math.PI/360)*CD,hw=hh*Rm.cam.aspect,sz=(CD-20)/CD;
       tv.G.position.set((hw-13)*sz,(hh-4.5)*sz,20);lamper.forEach((l,i)=>l.m.position.set((hw-21+i*2.2)*sz,(hh-9.2)*sz,20));stribe.position.set(0,(hh-3)*sz,20);
       const n=window.KOST_WARP||(S.auto?4:1);for(let i=0;i<n;i++)step(dt);ryst=Math.max(0,ryst-dt);if(S.boost>0)ryst=Math.max(ryst,.12);
