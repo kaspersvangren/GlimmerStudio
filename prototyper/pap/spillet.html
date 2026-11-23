@@ -1866,7 +1866,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.40';
+const PAPVER='pap-0.41';
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 /* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
 const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
@@ -3813,7 +3813,7 @@ ROOMS.bog=function(ctx){
         for(const x of[-4.4,4.4])pc(side(gL,gR,x),box(x-.04,7.8,x+.04,8.6),{color:'#3a2a20',kind:'card',t:.03},.2)});
       lag(78,2.6,(gL,gR)=>{const fr=toCCW([[-4,0],[4,0],[4,5.6],[3,7.4],[0,8.3],[-3,7.4],[-4,5.6]]),hul=toCCW([[-2.4,.6],[2.4,.6],[2.4,5.2],[1.6,6.4],[0,6.9],[-1.6,6.4],[-2.4,5.2]]);
         del(gL,gR,{outer:fr,holes:[hul]},stenP(fr,'#9a94b0','#7a7490'),.1);del(gL,gR,hul,{mat:paperMat('#ffe6a8','tissue',{glow:'#ffd070',gi:3}),t:.05},-.05);P.glows=[Rm.glow(-1.1,3.4,.4,'rgba(255,214,130,.9)',8,false,gL),Rm.glow(1.1,3.4,.4,'rgba(255,214,130,.9)',8,false,gR),Rm.glow(0,1,1.2,'rgba(255,200,110,.7)',7,false,gR)];
-        const d=new THREE.Group();d.position.set(2.4,.6,.15);d.rotation.y=.8;gR.add(d);const dd=toCCW([[0,0],[-4.8,0],[-4.8,4.6],[-4,5.8],[-2.4,6.3],[-.8,5.8],[0,4.6]]);pc(d,dd,{t:.2,s:20,edge:'#3e2414',paint:P_=>{P_.wash('#7a4a2a',dd,{top:'#8a5a34',edge:.4});for(let x=-4.4;x<0;x+=.8)P_.pen([[x,.1],[x,6]],'#4a2a18',.06,.7)}},0);pc(d,circ(-4.1,2.8,.28,.28,12),{mat:gold(),t:.15},.15);for(const y of[1.2,4.6])pc(d,box(-4.6,y,-.2,y+.3),{color:'#2a2238',kind:'card',t:.04},.12);
+        /* døren står på klem, men er tegnet fladt i murens plan (set skråt, så den er smallere), så den folder sig fladt sammen med muren (Kasper 23. nov.: "døren stikker igennem") */const d=new THREE.Group();d.position.set(2.4,.6,.12);d.scale.x=.5;gR.add(d);const dd=toCCW([[0,0],[-4.8,0],[-4.8,4.6],[-4,5.8],[-2.4,6.3],[-.8,5.8],[0,4.6]]);pc(d,dd,{t:.2,s:20,edge:'#3e2414',paint:P_=>{P_.wash('#7a4a2a',dd,{top:'#8a5a34',edge:.4});for(let x=-4.4;x<0;x+=.8)P_.pen([[x,.1],[x,6]],'#4a2a18',.06,.7)}},0);pc(d,circ(-4.1,2.8,.28,.28,12),{mat:gold(),t:.15},.15);for(const y of[1.2,4.6])pc(d,box(-4.6,y,-.2,y+.3),{color:'#2a2238',kind:'card',t:.04},.12);
         for(const[w,y]of[[5.6,0],[4.6,.3]])del(gL,gR,box(-w/2,y,w/2,y+.3),{color:'#8a84a0',kind:'card',t:.3,edge:'#4a4456'},.2);
         for(const s of[-1,1]){const g=s<0?gL:gR,x=s*5;pc(g,box(x-.08,4,x+.08,5.4),{color:'#2a2238',kind:'card',t:.08},.1);put(g,piece(box(x-.45,5.4,x+.45,6.5),{mat:paperMat('#ffe2a0','tissue',{glow:'#ffc860',gi:1.8}),t:.3}),0,0,.1)}
         pc(gL,circ(-.8,3.8,.12,.12,8),{color:'#fff6d0',kind:'card',t:.02},-.02)});
@@ -3837,8 +3837,10 @@ ROOMS.bog=function(ctx){
     sideV=sidePlan(sideLaerred(0,'l'),-PW/2-.4);sideH=sidePlan(sideLaerred(0,'r'),PW/2+.4);sideV.position.y=PY+.3;sideH.position.y=PY+.3;venstre.add(sideV);hoejre.add(sideH);
     /* ryggen */rygFlad=Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
     /* bogryggen, som rejser sig, når bogen lukkes (Kasper 23. nov.: "den har ingen ryg, når den er lukket"), med guldbånd */
-    ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;Rm.floor(box(-4.85,-PH/2-1.2,0,PH/2+1.2),{color:'#3e2058',kind:'card',t:.7,edge:laeK,both:true},-.7,ryg);
-    for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2])Rm.floor(box(-4.85,z-.22,0,z+.22),{mat:gold(),t:.06,both:true},-.76,ryg);ryg.rotation.z=-Math.PI/2;
+    /* en buet bogryg, som går i ét med for- og bagsiden, når bogen er lukket (Kasper 23. nov.) */ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;
+    {const RH=(PY+.3)*2+.04,r=RH/2,L=PH+2.4,bue=(rad,len,mat)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,len,32,1,true,Math.PI,Math.PI),mat);m.rotation.x=Math.PI/2;m.scale.z=1;return m};
+      const lm=new THREE.MeshStandardMaterial({color:'#3e2058',roughness:.75,side:THREE.DoubleSide}),gm=gold();
+      const holder=new THREE.Group();holder.position.set(.05,r,0);holder.scale.x=.42;ryg.add(holder);holder.add(bue(r,L,lm));for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2]){const b=bue(r+.04,.38,gm);b.position.z=z;holder.add(b)}}
     /* guldhjørner også på forsiden, så de ses, når bogen er lukket */
     for(const[cx,cz]of[[-PW-1.6,-PH/2-1.2],[-PW-1.6,PH/2+1.2]])Rm.floor(toCCW([[cx,cz],[cx+2.6,cz],[cx,cz-Math.sign(cz)*2.6]]),{mat:gold(),t:.1,both:true},-.5,venstre);
     }
@@ -6099,22 +6101,28 @@ function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();cons
   cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else{if(ny)himmel();toMap()}})}
 /* fra himlen ned på byen: første gang man går ud i byen med sin nye heks, ser man op i nattehimlen med papskyer, og billedet panorerer ned, til byen ligger der.
    Byen er bagt som ét stort billede, så panoreringen laves med en himmel af pap foran og byen, der glider op nedefra */
-function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('div');el.id='himmel';const cv=document.createElement('canvas'),sk=document.createElement('canvas');el.append(cv,sk);document.body.appendChild(el);
-  const pr=Math.min(2,devicePixelRatio||1),HH=H*1.7;for(const c of[cv,sk]){c.width=Math.round(W*pr);c.height=Math.round(HH*pr);c.style.width=W+'px';c.style.height=HH+'px'}
+function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('div');el.id='himmel';const cv=document.createElement('canvas'),sk=document.createElement('canvas'),bt=document.createElement('canvas');el.append(cv,sk,bt);document.body.appendChild(el);
+  /* tre lag: himlen, skyerne højt oppe (glider hurtigere og giver dybde) og skybæltet forneden, som følger himlens kant, så kanten aldrig ses (Kasper 23. nov.) */
+  const pr=Math.min(2,devicePixelRatio||1),HH=H*1.7,BH=H*.6,FADE=H*.22;for(const[c,h]of[[cv,HH],[sk,HH],[bt,BH*1.4]]){c.width=Math.round(W*pr);c.height=Math.round(h*pr);c.style.width=W+'px';c.style.height=h+'px'}
   const g=cv.getContext('2d');g.scale(pr,pr);const gr=g.createLinearGradient(0,0,0,HH);gr.addColorStop(0,'#070516');gr.addColorStop(.55,'#1c1440');gr.addColorStop(1,'#3a2a5e');g.fillStyle=gr;g.fillRect(0,0,W,HH);
   for(let k=0;k<260;k++){const x=Math.random()*W,y=Math.random()*HH*.85,r=Math.random()*1.4+.3;g.fillStyle=`rgba(255,${235+Math.random()*20|0},${200+Math.random()*55|0},${.4+Math.random()*.6})`;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
   for(let k=0;k<6;k++){const x=Math.random()*W,y=Math.random()*HH*.6,r=4+Math.random()*3;g.fillStyle='#ffe9a8';g.beginPath();for(let j=0;j<10;j++){const a=-Math.PI/2+j*Math.PI/5,q=j%2?r*.42:r;g.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}g.fill()}
-  /* papskyer: bløde puder med lys overkant og skygge under; et tæt bælte forneden dækker overgangen til byen */
-  const s=sk.getContext('2d');s.scale(pr,pr);const sky=(x,y,w,a)=>{const n=6+Math.random()*4|0,P=[];for(let i=0;i<n;i++)P.push([x-w/2+w*(i+.5)/n,y-Math.random()*w*.12,w*(.12+Math.random()*.1)]);
-    s.save();s.globalAlpha=a;s.fillStyle='rgba(10,6,24,.35)';for(const[px,py,r]of P){s.beginPath();s.arc(px+6,py+r*.5+8,r,0,7);s.fill()}s.fillRect(x-w/2+6,y+8,w,w*.1);
-    const c2=s.createLinearGradient(0,y-w*.3,0,y+w*.12);c2.addColorStop(0,'#f6f0ff');c2.addColorStop(1,'#b8a8d8');s.fillStyle=c2;for(const[px,py,r]of P){s.beginPath();s.arc(px,py+r*.5,r,0,7);s.fill()}s.fillRect(x-w/2,y,w,w*.1);
+  /* himlens bund toner blødt ud */{g.globalCompositeOperation='destination-out';const f=g.createLinearGradient(0,HH-FADE,0,HH);f.addColorStop(0,'rgba(0,0,0,0)');f.addColorStop(1,'rgba(0,0,0,1)');g.fillStyle=f;g.fillRect(0,HH-FADE,W,FADE);g.globalCompositeOperation='source-over'}
+  /* papskyer: bløde puder med lys overkant og skygge under */
+  const sky=(s,x,y,w,a,flad=true)=>{const n=6+Math.random()*4|0,P=[];for(let i=0;i<n;i++)P.push([x-w/2+w*(i+.5)/n,y-Math.random()*w*.12,w*(.12+Math.random()*.1)]);
+    s.save();s.globalAlpha=a;s.fillStyle='rgba(10,6,24,.35)';for(const[px,py,r]of P){s.beginPath();s.arc(px+6,py+r*.5+8,r,0,7);s.fill()}if(flad)s.fillRect(x-w/2+6,y+8,w,w*.1);
+    const c2=s.createLinearGradient(0,y-w*.3,0,y+w*.12);c2.addColorStop(0,'#f6f0ff');c2.addColorStop(1,'#b8a8d8');s.fillStyle=c2;for(const[px,py,r]of P){s.beginPath();s.arc(px,py+r*.5,r,0,7);s.fill()}if(flad)s.fillRect(x-w/2,y,w,w*.1);
     s.fillStyle='rgba(255,255,255,.08)';for(let k=0;k<w/3;k++)s.fillRect(x-w/2+Math.random()*w,y-Math.random()*w*.2,2,2);s.restore()};
-  for(let k=0;k<7;k++)sky(Math.random()*W,HH*(.12+k*.09),W*(.18+Math.random()*.2),.9);
-  for(let x=-W*.1;x<W*1.15;x+=W*.13)sky(x,HH*.93+Math.random()*HH*.04,W*(.24+Math.random()*.1),1);
-  const cvM=renderer.domElement,T=4.2,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
+  const s1=sk.getContext('2d');s1.scale(pr,pr);for(let k=0;k<7;k++)sky(s1,Math.random()*W,HH*(.12+k*.08),W*(.18+Math.random()*.2),.9);
+  /* skybæltet: tre tætte rækker, der dækker himlens udtoning og lidt mere */const s2=bt.getContext('2d');s2.scale(pr,pr);
+  for(const[y0,ww]of[[BH*.3,.26],[BH*.5,.3],[BH*.7,.34]])for(let x=-W*.12;x<W*1.15;x+=W*.12)sky(s2,x+Math.random()*W*.04,y0+Math.random()*BH*.06,W*(ww+Math.random()*.08),1);
+  /* en sidste række runde skyer forneden, så bæltet ikke har en lige underkant */for(let x=-W*.08;x<W*1.1;x+=W*.07)sky(s2,x,BH*.8+Math.random()*BH*.05,W*(.14+Math.random()*.06),1,false);
+  const BT0=HH-BH*.55;/* bæltets top, målt fra himlens top; dets midte ligger over himlens udtoning */
+  const cvM=renderer.domElement,T=4.4,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
   const e=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
-  const tik=()=>{const u=Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82));cv.style.transform=`translateY(${-k*HH}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
-    if(u<1)requestAnimationFrame(tik);else{cvM.style.transform='';el.remove()}};requestAnimationFrame(tik)}
+  /* himlen og bæltet glider samme vej, bæltet bare så meget længere, at det er ude af billedet, når himlen er det */
+  const tik=()=>{const u=window.HIMMEL_U!=null?window.HIMMEL_U:Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82)),y=-k*HH;cv.style.transform=`translateY(${y}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;bt.style.transform=`translateY(${BT0+y-k*(BH*.95)}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
+    if(u<1)requestAnimationFrame(tik);else{cvM.style.transform='';el.remove()}};requestAnimationFrame(tik);window.__himmel={el,tik}}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */
 /* udgaven står med lille skrift på indlæsningen, så man kan se, om det er den nye (Kasper 22. nov.) */

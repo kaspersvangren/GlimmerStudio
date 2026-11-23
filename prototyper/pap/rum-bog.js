@@ -165,7 +165,7 @@ ROOMS.bog=function(ctx){
         for(const x of[-4.4,4.4])pc(side(gL,gR,x),box(x-.04,7.8,x+.04,8.6),{color:'#3a2a20',kind:'card',t:.03},.2)});
       lag(78,2.6,(gL,gR)=>{const fr=toCCW([[-4,0],[4,0],[4,5.6],[3,7.4],[0,8.3],[-3,7.4],[-4,5.6]]),hul=toCCW([[-2.4,.6],[2.4,.6],[2.4,5.2],[1.6,6.4],[0,6.9],[-1.6,6.4],[-2.4,5.2]]);
         del(gL,gR,{outer:fr,holes:[hul]},stenP(fr,'#9a94b0','#7a7490'),.1);del(gL,gR,hul,{mat:paperMat('#ffe6a8','tissue',{glow:'#ffd070',gi:3}),t:.05},-.05);P.glows=[Rm.glow(-1.1,3.4,.4,'rgba(255,214,130,.9)',8,false,gL),Rm.glow(1.1,3.4,.4,'rgba(255,214,130,.9)',8,false,gR),Rm.glow(0,1,1.2,'rgba(255,200,110,.7)',7,false,gR)];
-        const d=new THREE.Group();d.position.set(2.4,.6,.15);d.rotation.y=.8;gR.add(d);const dd=toCCW([[0,0],[-4.8,0],[-4.8,4.6],[-4,5.8],[-2.4,6.3],[-.8,5.8],[0,4.6]]);pc(d,dd,{t:.2,s:20,edge:'#3e2414',paint:P_=>{P_.wash('#7a4a2a',dd,{top:'#8a5a34',edge:.4});for(let x=-4.4;x<0;x+=.8)P_.pen([[x,.1],[x,6]],'#4a2a18',.06,.7)}},0);pc(d,circ(-4.1,2.8,.28,.28,12),{mat:gold(),t:.15},.15);for(const y of[1.2,4.6])pc(d,box(-4.6,y,-.2,y+.3),{color:'#2a2238',kind:'card',t:.04},.12);
+        /* døren står på klem, men er tegnet fladt i murens plan (set skråt, så den er smallere), så den folder sig fladt sammen med muren (Kasper 23. nov.: "døren stikker igennem") */const d=new THREE.Group();d.position.set(2.4,.6,.12);d.scale.x=.5;gR.add(d);const dd=toCCW([[0,0],[-4.8,0],[-4.8,4.6],[-4,5.8],[-2.4,6.3],[-.8,5.8],[0,4.6]]);pc(d,dd,{t:.2,s:20,edge:'#3e2414',paint:P_=>{P_.wash('#7a4a2a',dd,{top:'#8a5a34',edge:.4});for(let x=-4.4;x<0;x+=.8)P_.pen([[x,.1],[x,6]],'#4a2a18',.06,.7)}},0);pc(d,circ(-4.1,2.8,.28,.28,12),{mat:gold(),t:.15},.15);for(const y of[1.2,4.6])pc(d,box(-4.6,y,-.2,y+.3),{color:'#2a2238',kind:'card',t:.04},.12);
         for(const[w,y]of[[5.6,0],[4.6,.3]])del(gL,gR,box(-w/2,y,w/2,y+.3),{color:'#8a84a0',kind:'card',t:.3,edge:'#4a4456'},.2);
         for(const s of[-1,1]){const g=s<0?gL:gR,x=s*5;pc(g,box(x-.08,4,x+.08,5.4),{color:'#2a2238',kind:'card',t:.08},.1);put(g,piece(box(x-.45,5.4,x+.45,6.5),{mat:paperMat('#ffe2a0','tissue',{glow:'#ffc860',gi:1.8}),t:.3}),0,0,.1)}
         pc(gL,circ(-.8,3.8,.12,.12,8),{color:'#fff6d0',kind:'card',t:.02},-.02)});
@@ -189,8 +189,10 @@ ROOMS.bog=function(ctx){
     sideV=sidePlan(sideLaerred(0,'l'),-PW/2-.4);sideH=sidePlan(sideLaerred(0,'r'),PW/2+.4);sideV.position.y=PY+.3;sideH.position.y=PY+.3;venstre.add(sideV);hoejre.add(sideH);
     /* ryggen */rygFlad=Rm.floor(box(-1.6,-PH/2-1.2,1.6,PH/2+1.2),{color:'#3a1e52',kind:'card',t:1.6,edge:laeK},0,bog);
     /* bogryggen, som rejser sig, når bogen lukkes (Kasper 23. nov.: "den har ingen ryg, når den er lukket"), med guldbånd */
-    ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;Rm.floor(box(-4.85,-PH/2-1.2,0,PH/2+1.2),{color:'#3e2058',kind:'card',t:.7,edge:laeK,both:true},-.7,ryg);
-    for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2])Rm.floor(box(-4.85,z-.22,0,z+.22),{mat:gold(),t:.06,both:true},-.76,ryg);ryg.rotation.z=-Math.PI/2;
+    /* en buet bogryg, som går i ét med for- og bagsiden, når bogen er lukket (Kasper 23. nov.) */ryg=new THREE.Group();bog.add(ryg);ryg.visible=false;
+    {const RH=(PY+.3)*2+.04,r=RH/2,L=PH+2.4,bue=(rad,len,mat)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,len,32,1,true,Math.PI,Math.PI),mat);m.rotation.x=Math.PI/2;m.scale.z=1;return m};
+      const lm=new THREE.MeshStandardMaterial({color:'#3e2058',roughness:.75,side:THREE.DoubleSide}),gm=gold();
+      const holder=new THREE.Group();holder.position.set(.05,r,0);holder.scale.x=.42;ryg.add(holder);holder.add(bue(r,L,lm));for(const z of[-PH/2+1.2,-PH/2+3,PH/2-3,PH/2-1.2]){const b=bue(r+.04,.38,gm);b.position.z=z;holder.add(b)}}
     /* guldhjørner også på forsiden, så de ses, når bogen er lukket */
     for(const[cx,cz]of[[-PW-1.6,-PH/2-1.2],[-PW-1.6,PH/2+1.2]])Rm.floor(toCCW([[cx,cz],[cx+2.6,cz],[cx,cz-Math.sign(cz)*2.6]]),{mat:gold(),t:.1,both:true},-.5,venstre);
     }

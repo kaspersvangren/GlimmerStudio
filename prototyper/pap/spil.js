@@ -60,22 +60,28 @@ function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();cons
   cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else{if(ny)himmel();toMap()}})}
 /* fra himlen ned på byen: første gang man går ud i byen med sin nye heks, ser man op i nattehimlen med papskyer, og billedet panorerer ned, til byen ligger der.
    Byen er bagt som ét stort billede, så panoreringen laves med en himmel af pap foran og byen, der glider op nedefra */
-function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('div');el.id='himmel';const cv=document.createElement('canvas'),sk=document.createElement('canvas');el.append(cv,sk);document.body.appendChild(el);
-  const pr=Math.min(2,devicePixelRatio||1),HH=H*1.7;for(const c of[cv,sk]){c.width=Math.round(W*pr);c.height=Math.round(HH*pr);c.style.width=W+'px';c.style.height=HH+'px'}
+function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('div');el.id='himmel';const cv=document.createElement('canvas'),sk=document.createElement('canvas'),bt=document.createElement('canvas');el.append(cv,sk,bt);document.body.appendChild(el);
+  /* tre lag: himlen, skyerne højt oppe (glider hurtigere og giver dybde) og skybæltet forneden, som følger himlens kant, så kanten aldrig ses (Kasper 23. nov.) */
+  const pr=Math.min(2,devicePixelRatio||1),HH=H*1.7,BH=H*.6,FADE=H*.22;for(const[c,h]of[[cv,HH],[sk,HH],[bt,BH*1.4]]){c.width=Math.round(W*pr);c.height=Math.round(h*pr);c.style.width=W+'px';c.style.height=h+'px'}
   const g=cv.getContext('2d');g.scale(pr,pr);const gr=g.createLinearGradient(0,0,0,HH);gr.addColorStop(0,'#070516');gr.addColorStop(.55,'#1c1440');gr.addColorStop(1,'#3a2a5e');g.fillStyle=gr;g.fillRect(0,0,W,HH);
   for(let k=0;k<260;k++){const x=Math.random()*W,y=Math.random()*HH*.85,r=Math.random()*1.4+.3;g.fillStyle=`rgba(255,${235+Math.random()*20|0},${200+Math.random()*55|0},${.4+Math.random()*.6})`;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
   for(let k=0;k<6;k++){const x=Math.random()*W,y=Math.random()*HH*.6,r=4+Math.random()*3;g.fillStyle='#ffe9a8';g.beginPath();for(let j=0;j<10;j++){const a=-Math.PI/2+j*Math.PI/5,q=j%2?r*.42:r;g.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}g.fill()}
-  /* papskyer: bløde puder med lys overkant og skygge under; et tæt bælte forneden dækker overgangen til byen */
-  const s=sk.getContext('2d');s.scale(pr,pr);const sky=(x,y,w,a)=>{const n=6+Math.random()*4|0,P=[];for(let i=0;i<n;i++)P.push([x-w/2+w*(i+.5)/n,y-Math.random()*w*.12,w*(.12+Math.random()*.1)]);
-    s.save();s.globalAlpha=a;s.fillStyle='rgba(10,6,24,.35)';for(const[px,py,r]of P){s.beginPath();s.arc(px+6,py+r*.5+8,r,0,7);s.fill()}s.fillRect(x-w/2+6,y+8,w,w*.1);
-    const c2=s.createLinearGradient(0,y-w*.3,0,y+w*.12);c2.addColorStop(0,'#f6f0ff');c2.addColorStop(1,'#b8a8d8');s.fillStyle=c2;for(const[px,py,r]of P){s.beginPath();s.arc(px,py+r*.5,r,0,7);s.fill()}s.fillRect(x-w/2,y,w,w*.1);
+  /* himlens bund toner blødt ud */{g.globalCompositeOperation='destination-out';const f=g.createLinearGradient(0,HH-FADE,0,HH);f.addColorStop(0,'rgba(0,0,0,0)');f.addColorStop(1,'rgba(0,0,0,1)');g.fillStyle=f;g.fillRect(0,HH-FADE,W,FADE);g.globalCompositeOperation='source-over'}
+  /* papskyer: bløde puder med lys overkant og skygge under */
+  const sky=(s,x,y,w,a,flad=true)=>{const n=6+Math.random()*4|0,P=[];for(let i=0;i<n;i++)P.push([x-w/2+w*(i+.5)/n,y-Math.random()*w*.12,w*(.12+Math.random()*.1)]);
+    s.save();s.globalAlpha=a;s.fillStyle='rgba(10,6,24,.35)';for(const[px,py,r]of P){s.beginPath();s.arc(px+6,py+r*.5+8,r,0,7);s.fill()}if(flad)s.fillRect(x-w/2+6,y+8,w,w*.1);
+    const c2=s.createLinearGradient(0,y-w*.3,0,y+w*.12);c2.addColorStop(0,'#f6f0ff');c2.addColorStop(1,'#b8a8d8');s.fillStyle=c2;for(const[px,py,r]of P){s.beginPath();s.arc(px,py+r*.5,r,0,7);s.fill()}if(flad)s.fillRect(x-w/2,y,w,w*.1);
     s.fillStyle='rgba(255,255,255,.08)';for(let k=0;k<w/3;k++)s.fillRect(x-w/2+Math.random()*w,y-Math.random()*w*.2,2,2);s.restore()};
-  for(let k=0;k<7;k++)sky(Math.random()*W,HH*(.12+k*.09),W*(.18+Math.random()*.2),.9);
-  for(let x=-W*.1;x<W*1.15;x+=W*.13)sky(x,HH*.93+Math.random()*HH*.04,W*(.24+Math.random()*.1),1);
-  const cvM=renderer.domElement,T=4.2,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
+  const s1=sk.getContext('2d');s1.scale(pr,pr);for(let k=0;k<7;k++)sky(s1,Math.random()*W,HH*(.12+k*.08),W*(.18+Math.random()*.2),.9);
+  /* skybæltet: tre tætte rækker, der dækker himlens udtoning og lidt mere */const s2=bt.getContext('2d');s2.scale(pr,pr);
+  for(const[y0,ww]of[[BH*.3,.26],[BH*.5,.3],[BH*.7,.34]])for(let x=-W*.12;x<W*1.15;x+=W*.12)sky(s2,x+Math.random()*W*.04,y0+Math.random()*BH*.06,W*(ww+Math.random()*.08),1);
+  /* en sidste række runde skyer forneden, så bæltet ikke har en lige underkant */for(let x=-W*.08;x<W*1.1;x+=W*.07)sky(s2,x,BH*.8+Math.random()*BH*.05,W*(.14+Math.random()*.06),1,false);
+  const BT0=HH-BH*.55;/* bæltets top, målt fra himlens top; dets midte ligger over himlens udtoning */
+  const cvM=renderer.domElement,T=4.4,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
   const e=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
-  const tik=()=>{const u=Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82));cv.style.transform=`translateY(${-k*HH}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
-    if(u<1)requestAnimationFrame(tik);else{cvM.style.transform='';el.remove()}};requestAnimationFrame(tik)}
+  /* himlen og bæltet glider samme vej, bæltet bare så meget længere, at det er ude af billedet, når himlen er det */
+  const tik=()=>{const u=window.HIMMEL_U!=null?window.HIMMEL_U:Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82)),y=-k*HH;cv.style.transform=`translateY(${y}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;bt.style.transform=`translateY(${BT0+y-k*(BH*.95)}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
+    if(u<1)requestAnimationFrame(tik);else{cvM.style.transform='';el.remove()}};requestAnimationFrame(tik);window.__himmel={el,tik}}
 const leave=back;hjemEl.addEventListener('click',back);
 /* lyden kan slås fra og til */
 /* udgaven står med lille skrift på indlæsningen, så man kan se, om det er den nye (Kasper 22. nov.) */
