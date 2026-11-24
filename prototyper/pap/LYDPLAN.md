@@ -2,6 +2,8 @@
 
 Skrevet 24. nov. 2026 efter samtale med Kasper. Alt nyt laves til pap-designet, og den gamle musik genbruges ikke.
 
+Lydbordet (artifact "Magiske Mig Lydbord") viser alle lyde i spillet, deres status, og hvor Kasper lægger nye lyde og sange op.
+
 ## Grundregler
 
 1. **Musikken følger områder, ikke rum.** Hvert område har én sang, som bliver ved med at spille, mens man går rundt inde i området. Den starter ikke forfra, når man går ind ad en dør.
@@ -12,7 +14,7 @@ Skrevet 24. nov. 2026 efter samtale med Kasper. Alt nyt laves til pap-designet, 
 6. **Sangene er 2–3 minutter lange og har en god løkke**, så man ikke hører den samme lille bid igen og igen. Alle sange har samme lydstyrke.
 7. **Musik og effekter har hver sin lydstyrke.** Musikken er lav som standard.
 
-## Områder og sange (7 sange i alt)
+## Områder og sange (8 sange i alt)
 
 Ændret 24. nov.: Kasper vil gerne have lidt færre sange, og det er svært at få en musik-AI til at lave den samme sang i to udgaver.
 
@@ -22,7 +24,8 @@ Skrevet 24. nov. 2026 efter samtale med Kasper. Alt nyt laves til pap-designet, 
 | **Skolen** | `ny-skolen.mp3` | Gangen, Eliksirtimen |
 | **Dyreparken** | `ny-dyreparken.mp3` | Parken, Dyrekøkkenet, Ungestalden |
 | **Arkaden** | `ny-arkaden.mp3` | Hallen, Præmiebutikken |
-| **Fart** | `ny-fart.mp3` | Kosteflyvning, Faldskærm |
+| **Fart** | `ny-fart.mp3` | Kosteflyvning (hurtigt) |
+| **Svæv** | `ny-svaev.mp3` | Faldskærm (frit svævende, Kasper 24. nov.) |
 | **Magi** | `ny-magi.mp3` | Trylletegning |
 | **Leg** | `ny-leg.mp3` | BoblePop, Bank en gnom, Gribemaskinen |
 | Koncertsalen | (bandets egne sange) | Gnomebandet. Før og efter sangene: publikums snak |
@@ -97,6 +100,7 @@ Baggrundsmusik skal kunne lade sig ignorere (Kasper 24. nov.: "der er meget gang
 | `ny-skolen.mp3` | calm mysterious fantasy background music, soft clarinet melody, plucked guitar, harp, faint choir pad, 80 BPM |
 | `ny-dyreparken.mp3` | gentle cheerful fantasy background music, oboe melody, acoustic guitar, harp, birdsong-like flute, 95 BPM |
 | `ny-arkaden.mp3` | playful magical fantasy background music, bell melody, soft marimba, harp, light strings, 105 BPM |
-| `ny-fart.mp3` | uplifting magical flying music, flute and strings melody, light drums, wind, adventurous but not loud, 130 BPM |
+| `ny-fart.mp3` | uplifting magical flying music, flute and strings melody, light drums, wind, fast but not loud, 135 BPM |
+| `ny-svaev.mp3` | floating dreamy fantasy music, harp, soft flute, airy strings, gentle wind, weightless and free, 85 BPM, no drums |
 | `ny-magi.mp3` | sparkling magical fantasy music, bells and harp, soft choir, curious and playful, 110 BPM |
 | `ny-leg.mp3` | bouncy playful fantasy game music, clarinet melody, marimba, light percussion, cheerful, 120 BPM |
