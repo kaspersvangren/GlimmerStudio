@@ -80,7 +80,29 @@ Rækkefølge, når vi går i gang:
 3. Baggrundslydene.
 4. Jingles.
 
-## Åbne spørgsmål til Kasper
+## Til Kasper: når du laver sangene
 
-- Hvor kommer den nye musik fra: laver du den selv (som de fjollede sange), skal den findes som fri musik, eller skal vi bruge et værktøj til at lave musik?
-- Skal Garderoben have sin egen rolige sang, når man vender tilbage, eller høre til Byen?
+Kasper laver selv musikken (sagt 24. nov.). Det her gør det nemt at sætte den ind:
+
+- **Uden sang.** Kun instrumenter, så musikken ikke konkurrerer med teksterne i spillet. Undtagelsen er Koncertsalen.
+- **Længde 2–3 minutter.** Gerne med en del i midten, der kan gentages, uden at slutningen fader ud. Hvis den fader ud, klipper jeg den af og laver løkken selv.
+- **Leveres som mp3 eller wav**, med et navn efter området, fx `byen.mp3` og `skolen.mp3`.
+- **Jeg ordner resten:** finder løkkepunktet, gør alle lige høje og sætter dem ind.
+- **Jingles:** 2–5 sekunder. Gerne flere bud på hvert, så vælger vi.
+
+### Bud på hver sang
+
+| Fil | Tempo | Instrumenter | Følelse |
+|---|---|---|---|
+| `start.mp3` | Langsom (70–85 slag/min.) | Spilledåse, celeste, harpe, bløde strygere | "Der var engang …": et eventyr, der åbner sig |
+| `byen.mp3` | Middel (100–115) | Fløjte, klarinet, pizzicato, lette trommer, glockenspiel | En solskinsdag i en magisk landsby |
+| `skolen.mp3` | Middel-langsom (85–100) | Celeste, fagot, pizzicato-strygere, lidt kor uden ord | Hemmeligheder, trylledrikke og gamle bøger, men hyggeligt |
+| `dyreparken.mp3` | Middel (95–110) | Ukulele, harmonika, banjo, fløjt | Landlig og glad, dyr og halm |
+| `hjemme.mp3` | Langsom (65–80) | Klaver, spilledåse, bløde strygere | Trygt og drømmende, ens eget værelse |
+| `arkaden.mp3` | Hurtig (120–135) | Legetøjsklaver, synth-bip i pap-udgave, kastagnetter | Blink og lyde, tivoli |
+| `kost.mp3` | Hurtig (130–150) | Strygere i fart, fløjte, pauker | Fart gennem luften |
+| `fald.mp3` | Middel (100–110) | Harpe, fløjte, let vind | Svæve stille ned, lidt spænding |
+| `tryl.mp3` | Middel (105–120) | Celeste, glockenspiel, pizzicato | Magi, der funkler |
+| `boblepop.mp3` | Hurtig (120–130) | Marimba, xylofon, bas | Sprudlende og rytmisk |
+| `gnom.mp3` | Hurtig (140–160) | Tuba, xylofon, woodblock | Fjollet og hektisk |
+| `gribe.mp3` | Middel (95–105) | Legetøjsklaver, kontrabas med små pauser | Spændt: får jeg den? |
