@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.45';
+const PAPVER='pap-0.46';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2026,7 +2026,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   let MB=null;const mbus=a=>{if(MB&&MB.a===a)return MB.g;const g=a.createGain(),f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=20000;f.Q.value=.5;g.connect(f);f.connect(UD(a));MB={a,g,f};if(indeVil)saetInde(true,0);return g};
   let indeVil=false;const saetInde=(on,tid=.5)=>{indeVil=on;if(!MB)return;const t=MB.a.currentTime;MB.f.frequency.setTargetAtTime(on?1700:20000,t,tid/3||.01);MB.g.gain.setTargetAtTime(on?.8:1,t,tid/3||.01)};
   /* hvor langt hver sang var nået, så den fortsætter derfra, når man kommer tilbage inden for 3 minutter */
-  const POS={};const husk=L=>{if(L!==lag.musik||!L.n||!L.m||L.m.en||!L.buf)return;const a=ac,lp=L.m.loop||[0,L.buf.duration],s0=lp[0],e0=Math.min(lp[1],L.buf.duration);let p=a.currentTime-L.t0+(L.off||0);if(p>e0&&e0>s0)p=s0+(p-s0)%(e0-s0);POS[L.id]={p,ts:Date.now()}};
+  const POS={},RAD={R:null,tmr:0};const husk=L=>{if(L!==lag.musik||!L.n||!L.m||L.m.en||!L.buf)return;const a=ac,lp=L.m.loop||[0,L.buf.duration],s0=lp[0],e0=Math.min(lp[1],L.buf.duration);let p=a.currentTime-L.t0+(L.off||0);if(p>e0&&e0>s0)p=s0+(p-s0)%(e0-s0);POS[L.id]={p,ts:Date.now()}};
   const loopNode=(a,buf,m)=>{const n=a.createBufferSource();n.buffer=buf;if(m.en)return n;n.loop=true;const sr=buf.sampleRate,s=Math.round(m.loop[0]*sr),e=Math.round(Math.min(m.loop[1],buf.duration)*sr),f=Math.round((m.xf||0)*sr);
     if(f&&s-f>=0&&!buf._xf){for(let c=0;c<buf.numberOfChannels;c++){const d=buf.getChannelData(c);for(let i=0;i<f;i++){const t=i/f*Math.PI/2;d[e-f+i]=d[e-f+i]*Math.cos(t)+d[s-f+i]*Math.sin(t)}}buf._xf=1}
     n.loopStart=s/sr;n.loopEnd=e/sr;return n};
@@ -2035,10 +2035,19 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   const opfrisk=()=>{saet(lag.musik,musikVil,1,.8,slutFn);saet(lag.stemning,stemVil,1,1.2)};
   return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)tone(660,880,.12,'triangle',.15);opfrisk();return til},
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
-    musik(id){musikVil=id||null;slutFn=null;opfrisk()},get musikNu(){return musikVil},inde(on){saetInde(!!on)},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
+    musik(id){clearTimeout(RAD.tmr);musikVil=id||null;slutFn=null;opfrisk()},
+    /* radio(liste,{ny}): en række sange, der spiller til ende én efter én, som om de altid spiller (Koncertsalens hyggesange, Kasper 24. nov.).
+       Spillet husker, hvilken sang der spillede, og hvornår den startede; kommer man ind igen, regnes det ud, hvor langt den er nået.
+       Første gang styrer uret. ny: start næste sang forfra (efter et ønske) */
+    radio(liste,{ny=false}={}){clearTimeout(RAD.tmr);const n=liste.length,len=id=>{const m=MUSIK[id];return m&&m.loop?m.loop[1]:180},nu=Date.now();
+      if(!RAD.R||RAD.R.key!==liste.join()){let T=0;for(const id of liste)T+=len(id);let p=(nu/1000)%T,i=0;while(p>=len(liste[i])){p-=len(liste[i]);i++}RAD.R={key:liste.join(),i,t0:nu-p*1000}}
+      const R=RAD.R;if(ny){R.i=(R.i+1)%n;R.t0=nu}
+      let el=(nu-R.t0)/1000;while(el>=len(liste[R.i])){el-=len(liste[R.i]);R.t0+=len(liste[R.i])*1000;R.i=(R.i+1)%n}
+      const id=liste[R.i];POS[id]={p:el,ts:nu};musikVil=id;slutFn=null;opfrisk();
+      const rest=Math.max(.5,len(id)-el-.4);RAD.tmr=setTimeout(()=>{if(musikVil!==id)return;R.i=(R.i+1)%n;R.t0=Date.now();delete POS[liste[R.i]];this.radio(liste)},rest*1000)},get musikNu(){return musikVil},har:id=>!!MUSIK[id],inde(on){saetInde(!!on)},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){clearTimeout(RAD.tmr);musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
     /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
     forsinkelse(){return ac?((ac.outputLatency||0)+(ac.baseLatency||0)):0},
-    musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0;if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
+    musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0+(L.off||0);if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
     status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('gnom.guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
@@ -2909,11 +2918,11 @@ function walkOut(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0
 function walkIn(){for(const o of BAND){const m=MARK[o.i],r=RIS.find(r=>m.x>r.x0&&m.x<r.x1&&m.z>r.z0&&m.z<r.z1+.4);o.q=[];if(r)o.q.push([m.ex<0?r.x0-1.6:r.x1+1.6,m.z]);o.q.push([m.x,m.z])}}
 const idle=()=>BAND.every(o=>!o.q.length);
 /* musikken: lounge i baggrunden. En ønsket sang (Kaspers egne) spilles én gang, så klapper publikum, og loungen kommer tilbage */
-  const L_=typeof LYD!=='undefined'?LYD:null,levende=()=>(typeof ctx==='undefined')||ctx.alive,lounge=()=>{if(L_&&levende())L_.musik('koncert.lounge'+(1+Math.floor(Math.random()*4)))};if(L_)setTimeout(lounge,600);
+  const L_=typeof LYD!=='undefined'?LYD:null,levende=()=>(typeof ctx==='undefined')||ctx.alive,HYGGE=['koncert.lounge1','koncert.lounge2','koncert.lounge3','koncert.lounge4'],lounge=ny=>{if(L_&&levende()){if(L_.radio)L_.radio(HYGGE,{ny:!!ny});else L_.musik(HYGGE[0])}};if(L_)setTimeout(lounge,600);
   /* hygge er ikke noget, man ønsker: det er det, bandet spiller, når ingen har ønsket noget. Når en ønsket sang er slut, og der er klappet, går de selv ud og kommer tilbage i hyggetøjet */
   let oenskeNr=0;const visValg=k=>document.querySelectorAll('#songs button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===k)));
   async function wish(k){if(busy||k===cur)return;busy=true;const nr=++oenskeNr;visValg(k);if(L_){L_.musik(null);await new Promise(r=>setTimeout(r,900));L_.fil('koncert.ud')}walkOut();await until(idle);if(L_)L_.taeppe();curtain.target=1;await until(()=>curtain.t>=1);setStyle(k);await new Promise(r=>setTimeout(r,450));if(L_)L_.taeppe();curtain.target=0;await until(()=>curtain.t<.12);walkIn();if(L_&&k!=='hygge')L_.klap();await until(idle);busy=false;
-    if(!levende())return;const hjem=ms=>setTimeout(()=>{if(levende()&&nr===oenskeNr&&cur===k)wish('hygge')},ms);if(k==='hygge'){lounge();return}
+    if(!levende())return;const hjem=ms=>setTimeout(()=>{if(levende()&&nr===oenskeNr&&cur===k)wish('hygge')},ms);if(k==='hygge'){lounge(true);return}
     if(L_)L_.stemning(null);if(!(L_&&L_.sang('koncert.'+k,fejl=>{if(!levende()||nr!==oenskeNr)return;L_.stemning('stemning.koncert');if(fejl){hjem(0);return}setTimeout(()=>{if(!levende()||nr!==oenskeNr)return;buk();L_.klap()},700);hjem(4600)}))){if(L_)L_.stemning('stemning.koncert');lounge();hjem(typeof window!=='undefined'&&window.__koncertKort?1500:25000)}}
   {const box_=document.getElementById('songs');for(const k in STY){if(k==='hygge')continue;const b=document.createElement('button');b.type='button';b.textContent=STY[k].n;b.dataset.k=k;b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>wish(k));box_.appendChild(b)}}
 
@@ -6132,10 +6141,14 @@ const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs
 RUM.tryl.lyde=['nam','gave','fuser','nyt','boble.pop','vandt'];RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
 /* musikken følger områder, ikke rum (LYDPLAN.md): sangen fortsætter, mens man går rundt i et område, og bliver bare dæmpet, når man går ind. Minispil har deres egen sang.
    OMRSANG er pladsholdere, indtil Kaspers egne sange kommer (Kasper 24. nov.) */
-const OMR={bog:'start',garderobe:'byen',bobler:'byen',vaerelse:'hjemme',gang:'skolen',eliksir:'skolen',dyrepark:'dyreparken',dyrekoekken:'dyreparken',ungestald:'dyreparken',arkade:'arkaden',praemie:'arkaden'};
-const OMRSANG={start:'byen',byen:'byen',skolen:'kaelder',dyreparken:'byen',hjemme:'byen',arkaden:'arkade'};
+/* 8 sange i alt (Kasper 24. nov.: lidt færre er godt): fire områder og fire slags minispil; Faldskærm svæver og har sin egen. Starten bruger byens sang, dæmpet, og Værelset hører til Byen.
+   Når Kaspers nye sang ligger i lyd/ som ny-<navn>.mp3 og står i MUSIK som 'ny.<navn>', bruges den; ellers spiller den gamle som pladsholder */
+const OMR={bog:'start',garderobe:'byen',bobler:'byen',vaerelse:'byen',gang:'skolen',eliksir:'skolen',dyrepark:'dyreparken',dyrekoekken:'dyreparken',ungestald:'dyreparken',arkade:'arkaden',praemie:'arkaden'};
+const OMRSANG0={start:'byen',byen:'byen',skolen:'kaelder',dyreparken:'byen',arkaden:'arkade'},SPILGRP={kost:'fart',fald:'svaev',tryl:'magi',boblepop:'leg',gnom:'leg',gribe:'leg'};
+const nySang=(navn,gammel)=>LYD.har&&LYD.har('ny.'+navn)?'ny.'+navn:gammel;
+const OMRSANG=new Proxy({},{get:(_,o)=>nySang(o==='start'?'byen':o,OMRSANG0[o])});
 const rumOmr=id=>id==='garderobe'&&SPIL.data&&SPIL.data.nyHeks?'start':OMR[id];
-const rumSang=id=>{const o=rumOmr(id);return o?OMRSANG[o]:RUM[id].mus};
+const rumSang=id=>{const o=rumOmr(id);if(o)return OMRSANG[o];return SPILGRP[id]?nySang(SPILGRP[id],RUM[id].mus):RUM[id].mus};
 /* ude på kortet venter musikken 12 sekunder, før den skifter til byens sang, så en kort tur ud og ind et nyt sted ikke giver to skift. Efter et minispil skifter den med det samme */
 let kortMusT=0;const kortMusik=(fra)=>{clearTimeout(kortMusT);LYD.inde(false);const nu=LYD.musikNu;if(!fra||!OMR[fra]||!nu||nu===OMRSANG.byen){LYD.musik(OMRSANG.byen);return}kortMusT=setTimeout(()=>{if(!SPIL.room)LYD.musik(OMRSANG.byen)},12000)};
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};

@@ -44,7 +44,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   let MB=null;const mbus=a=>{if(MB&&MB.a===a)return MB.g;const g=a.createGain(),f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=20000;f.Q.value=.5;g.connect(f);f.connect(UD(a));MB={a,g,f};if(indeVil)saetInde(true,0);return g};
   let indeVil=false;const saetInde=(on,tid=.5)=>{indeVil=on;if(!MB)return;const t=MB.a.currentTime;MB.f.frequency.setTargetAtTime(on?1700:20000,t,tid/3||.01);MB.g.gain.setTargetAtTime(on?.8:1,t,tid/3||.01)};
   /* hvor langt hver sang var nået, så den fortsætter derfra, når man kommer tilbage inden for 3 minutter */
-  const POS={};const husk=L=>{if(L!==lag.musik||!L.n||!L.m||L.m.en||!L.buf)return;const a=ac,lp=L.m.loop||[0,L.buf.duration],s0=lp[0],e0=Math.min(lp[1],L.buf.duration);let p=a.currentTime-L.t0+(L.off||0);if(p>e0&&e0>s0)p=s0+(p-s0)%(e0-s0);POS[L.id]={p,ts:Date.now()}};
+  const POS={},RAD={R:null,tmr:0};const husk=L=>{if(L!==lag.musik||!L.n||!L.m||L.m.en||!L.buf)return;const a=ac,lp=L.m.loop||[0,L.buf.duration],s0=lp[0],e0=Math.min(lp[1],L.buf.duration);let p=a.currentTime-L.t0+(L.off||0);if(p>e0&&e0>s0)p=s0+(p-s0)%(e0-s0);POS[L.id]={p,ts:Date.now()}};
   const loopNode=(a,buf,m)=>{const n=a.createBufferSource();n.buffer=buf;if(m.en)return n;n.loop=true;const sr=buf.sampleRate,s=Math.round(m.loop[0]*sr),e=Math.round(Math.min(m.loop[1],buf.duration)*sr),f=Math.round((m.xf||0)*sr);
     if(f&&s-f>=0&&!buf._xf){for(let c=0;c<buf.numberOfChannels;c++){const d=buf.getChannelData(c);for(let i=0;i<f;i++){const t=i/f*Math.PI/2;d[e-f+i]=d[e-f+i]*Math.cos(t)+d[s-f+i]*Math.sin(t)}}buf._xf=1}
     n.loopStart=s/sr;n.loopEnd=e/sr;return n};
@@ -53,10 +53,19 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   const opfrisk=()=>{saet(lag.musik,musikVil,1,.8,slutFn);saet(lag.stemning,stemVil,1,1.2)};
   return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)tone(660,880,.12,'triangle',.15);opfrisk();return til},
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
-    musik(id){musikVil=id||null;slutFn=null;opfrisk()},get musikNu(){return musikVil},inde(on){saetInde(!!on)},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
+    musik(id){clearTimeout(RAD.tmr);musikVil=id||null;slutFn=null;opfrisk()},
+    /* radio(liste,{ny}): en række sange, der spiller til ende én efter én, som om de altid spiller (Koncertsalens hyggesange, Kasper 24. nov.).
+       Spillet husker, hvilken sang der spillede, og hvornår den startede; kommer man ind igen, regnes det ud, hvor langt den er nået.
+       Første gang styrer uret. ny: start næste sang forfra (efter et ønske) */
+    radio(liste,{ny=false}={}){clearTimeout(RAD.tmr);const n=liste.length,len=id=>{const m=MUSIK[id];return m&&m.loop?m.loop[1]:180},nu=Date.now();
+      if(!RAD.R||RAD.R.key!==liste.join()){let T=0;for(const id of liste)T+=len(id);let p=(nu/1000)%T,i=0;while(p>=len(liste[i])){p-=len(liste[i]);i++}RAD.R={key:liste.join(),i,t0:nu-p*1000}}
+      const R=RAD.R;if(ny){R.i=(R.i+1)%n;R.t0=nu}
+      let el=(nu-R.t0)/1000;while(el>=len(liste[R.i])){el-=len(liste[R.i]);R.t0+=len(liste[R.i])*1000;R.i=(R.i+1)%n}
+      const id=liste[R.i];POS[id]={p:el,ts:nu};musikVil=id;slutFn=null;opfrisk();
+      const rest=Math.max(.5,len(id)-el-.4);RAD.tmr=setTimeout(()=>{if(musikVil!==id)return;R.i=(R.i+1)%n;R.t0=Date.now();delete POS[liste[R.i]];this.radio(liste)},rest*1000)},get musikNu(){return musikVil},har:id=>!!MUSIK[id],inde(on){saetInde(!!on)},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){clearTimeout(RAD.tmr);musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
     /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
     forsinkelse(){return ac?((ac.outputLatency||0)+(ac.baseLatency||0)):0},
-    musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0;if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
+    musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0+(L.off||0);if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
     status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('gnom.guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},

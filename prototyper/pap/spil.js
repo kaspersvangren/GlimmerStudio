@@ -8,10 +8,14 @@ const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs
 RUM.tryl.lyde=['nam','gave','fuser','nyt','boble.pop','vandt'];RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
 /* musikken følger områder, ikke rum (LYDPLAN.md): sangen fortsætter, mens man går rundt i et område, og bliver bare dæmpet, når man går ind. Minispil har deres egen sang.
    OMRSANG er pladsholdere, indtil Kaspers egne sange kommer (Kasper 24. nov.) */
-const OMR={bog:'start',garderobe:'byen',bobler:'byen',vaerelse:'hjemme',gang:'skolen',eliksir:'skolen',dyrepark:'dyreparken',dyrekoekken:'dyreparken',ungestald:'dyreparken',arkade:'arkaden',praemie:'arkaden'};
-const OMRSANG={start:'byen',byen:'byen',skolen:'kaelder',dyreparken:'byen',hjemme:'byen',arkaden:'arkade'};
+/* 8 sange i alt (Kasper 24. nov.: lidt færre er godt): fire områder og fire slags minispil; Faldskærm svæver og har sin egen. Starten bruger byens sang, dæmpet, og Værelset hører til Byen.
+   Når Kaspers nye sang ligger i lyd/ som ny-<navn>.mp3 og står i MUSIK som 'ny.<navn>', bruges den; ellers spiller den gamle som pladsholder */
+const OMR={bog:'start',garderobe:'byen',bobler:'byen',vaerelse:'byen',gang:'skolen',eliksir:'skolen',dyrepark:'dyreparken',dyrekoekken:'dyreparken',ungestald:'dyreparken',arkade:'arkaden',praemie:'arkaden'};
+const OMRSANG0={start:'byen',byen:'byen',skolen:'kaelder',dyreparken:'byen',arkaden:'arkade'},SPILGRP={kost:'fart',fald:'svaev',tryl:'magi',boblepop:'leg',gnom:'leg',gribe:'leg'};
+const nySang=(navn,gammel)=>LYD.har&&LYD.har('ny.'+navn)?'ny.'+navn:gammel;
+const OMRSANG=new Proxy({},{get:(_,o)=>nySang(o==='start'?'byen':o,OMRSANG0[o])});
 const rumOmr=id=>id==='garderobe'&&SPIL.data&&SPIL.data.nyHeks?'start':OMR[id];
-const rumSang=id=>{const o=rumOmr(id);return o?OMRSANG[o]:RUM[id].mus};
+const rumSang=id=>{const o=rumOmr(id);if(o)return OMRSANG[o];return SPILGRP[id]?nySang(SPILGRP[id],RUM[id].mus):RUM[id].mus};
 /* ude på kortet venter musikken 12 sekunder, før den skifter til byens sang, så en kort tur ud og ind et nyt sted ikke giver to skift. Efter et minispil skifter den med det samme */
 let kortMusT=0;const kortMusik=(fra)=>{clearTimeout(kortMusT);LYD.inde(false);const nu=LYD.musikNu;if(!fra||!OMR[fra]||!nu||nu===OMRSANG.byen){LYD.musik(OMRSANG.byen);return}kortMusT=setTimeout(()=>{if(!SPIL.room)LYD.musik(OMRSANG.byen)},12000)};
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};
