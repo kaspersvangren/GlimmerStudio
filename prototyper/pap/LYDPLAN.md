@@ -79,7 +79,7 @@ Kasper laver selv musikken (sagt 24. nov.). Det her gør det nemt at sætte den 
 
 - **Uden sang.** Kun instrumenter, så musikken ikke konkurrerer med teksterne i spillet. Undtagelsen er Koncertsalen.
 - **Længde 2–3 minutter.** Gerne med en del i midten, der kan gentages, uden at slutningen fader ud. Hvis den fader ud, klipper jeg den af og laver løkken selv.
-- **Leveres som mp3 eller wav**, med et navn efter området, fx `byen.mp3` og `skolen.mp3`.
+- **Leveres som mp3 eller wav**, gerne med et navn efter sangen, fx `byen` eller `skolen`. Navnet behøver ikke passe præcis, jeg omdøber dem.
 - **Jeg ordner resten:** finder løkkepunktet, gør alle lige høje og sætter dem ind.
 - **Jingles:** 2–5 sekunder. Gerne flere bud på hvert, så vælger vi.
 
