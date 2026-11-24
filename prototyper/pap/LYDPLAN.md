@@ -12,18 +12,23 @@ Skrevet 24. nov. 2026 efter samtale med Kasper. Alt nyt laves til pap-designet, 
 6. **Sangene er 2–3 minutter lange og har en god løkke**, så man ikke hører den samme lille bid igen og igen. Alle sange har samme lydstyrke.
 7. **Musik og effekter har hver sin lydstyrke.** Musikken er lav som standard.
 
-## Områder og sange
+## Områder og sange (7 sange i alt)
 
-| Område | Hvor | Stemning | Status |
-|---|---|---|---|
-| **Starten** | Forsiden, hylden med de tre bøger, Eventyrbogen, Garderoben første gang | Rolig, eventyrlig, lidt spilledåse. Bliver ved fra forsiden til heksen er færdig. Når "Færdig" trykkes, glider den over i byen sammen med kameraet | Mangler |
-| **Byen** | Kortet, Boblebutikken, Garderoben senere | Glad, legende, med blæsere/fløjter, ikke for travl | Mangler (byen.mp3 skal ikke genbruges) |
-| **Skolen** | Gangen, Eliksirtimen, senere andre klasser | Hemmelighedsfuld, men varm: celeste, pizzicato-strygere, lidt mystik | Mangler |
-| **Dyreparken** | Parken, Dyrekøkkenet, Ungestalden | Hyggelig, landlig, gerne med harmonika/ukulele og fuglelyde | Mangler |
-| **Hjemme** | Værelset, Kollegiet | Rolig og tryg, lidt drømmende | Mangler |
-| **Arkaden** | Hallen og Præmiebutikken | Glimtende, legetøjsagtig, med lidt "8-bit" i pap-udgave | Mangler |
-| **Koncertsalen** | Gnomebandet | Bandets egne sange, som man ønsker. Før og efter sangene: publikums snak, ingen musik | Har egne sange, som bliver |
-| **Senere steder** | Dragehulen, Øksebrønden, Den Flyvende Støvle, Klokketårnet | Én sang til hvert, når stedet bygges | Mangler |
+Ændret 24. nov.: Kasper vil gerne have lidt færre sange, og det er svært at få en musik-AI til at lave den samme sang i to udgaver.
+
+| Sang | Fil | Rum |
+|---|---|---|
+| **Byen** | `ny-byen.mp3` | Kortet, Boblebutikken, Garderoben, Værelset. Starten (forsiden, bogen, Garderoben første gang) bruger også byens sang, men dæmpet |
+| **Skolen** | `ny-skolen.mp3` | Gangen, Eliksirtimen |
+| **Dyreparken** | `ny-dyreparken.mp3` | Parken, Dyrekøkkenet, Ungestalden |
+| **Arkaden** | `ny-arkaden.mp3` | Hallen, Præmiebutikken |
+| **Fart** | `ny-fart.mp3` | Kosteflyvning, Faldskærm |
+| **Magi** | `ny-magi.mp3` | Trylletegning |
+| **Leg** | `ny-leg.mp3` | BoblePop, Bank en gnom, Gribemaskinen |
+| Koncertsalen | (bandets egne sange) | Gnomebandet. Før og efter sangene: publikums snak |
+| Senere steder | én hver, når de bygges | Dragehulen, Øksebrønden, Den Flyvende Støvle, Klokketårnet |
+
+Spillet er allerede sat op efter denne fordeling. Indtil en ny sang ligger der, spiller den gamle som pladsholder.
 
 ## Baggrundslyde (ingen musik, kun lyd)
 
@@ -40,18 +45,6 @@ Spiller sammen med områdets sang, så man kan høre, at man er et nyt sted.
 | Værelset | Ur der tikker, regn eller vind ved vinduet |
 | Boblebutikken | Glas der klirrer, sæbebobler |
 | Arkaden | Maskiner der bipper og ringer |
-
-## Minispil og begivenheder
-
-| Hvad | Musik | Status |
-|---|---|---|
-| Kosteflyvning | Hurtig, svævende, med fart på | Mangler |
-| Faldskærm | Luftig, lidt spændende | Mangler |
-| Trylletegning | Magisk, legende | Mangler |
-| BoblePop | Sprudlende, rytmisk | Mangler |
-| Bank en gnom | Fjollet og hurtig | Mangler |
-| Gribemaskinen | Spændt, med små pauser | Mangler |
-| Eliksirtimen, når timeglasset løber | Skolens sang bliver lidt hurtigere og mere spændt (en ekstra stemme), ikke en ny sang | Mangler |
 
 ## Jingles (2–5 sekunder)
 
@@ -90,19 +83,20 @@ Kasper laver selv musikken (sagt 24. nov.). Det her gør det nemt at sætte den 
 - **Jeg ordner resten:** finder løkkepunktet, gør alle lige høje og sætter dem ind.
 - **Jingles:** 2–5 sekunder. Gerne flere bud på hvert, så vælger vi.
 
+### Stilen
+
+Magisk fantasy-filmmusik (Kasper 24. nov.: "noget i stil med Harry Potter-musik"): Et orkester med celeste, harpe, strygere, horn, træblæsere og kor uden ord. Gerne vals eller mol, der vender til dur, med én melodi, man kan nynne. Navne på kendte værker og komponister skal ikke med i prompten, for mange musik-AI'er afviser dem.
+
 ### Bud på hver sang
 
-| Fil | Tempo | Instrumenter | Følelse |
-|---|---|---|---|
-| `start.mp3` | Langsom (70–85 slag/min.) | Spilledåse, celeste, harpe, bløde strygere | "Der var engang …": et eventyr, der åbner sig |
-| `byen.mp3` | Middel (100–115) | Fløjte, klarinet, pizzicato, lette trommer, glockenspiel | En solskinsdag i en magisk landsby |
-| `skolen.mp3` | Middel-langsom (85–100) | Celeste, fagot, pizzicato-strygere, lidt kor uden ord | Hemmeligheder, trylledrikke og gamle bøger, men hyggeligt |
-| `dyreparken.mp3` | Middel (95–110) | Ukulele, harmonika, banjo, fløjt | Landlig og glad, dyr og halm |
-| `hjemme.mp3` | Langsom (65–80) | Klaver, spilledåse, bløde strygere | Trygt og drømmende, ens eget værelse |
-| `arkaden.mp3` | Hurtig (120–135) | Legetøjsklaver, synth-bip i pap-udgave, kastagnetter | Blink og lyde, tivoli |
-| `kost.mp3` | Hurtig (130–150) | Strygere i fart, fløjte, pauker | Fart gennem luften |
-| `fald.mp3` | Middel (100–110) | Harpe, fløjte, let vind | Svæve stille ned, lidt spænding |
-| `tryl.mp3` | Middel (105–120) | Celeste, glockenspiel, pizzicato | Magi, der funkler |
-| `boblepop.mp3` | Hurtig (120–130) | Marimba, xylofon, bas | Sprudlende og rytmisk |
-| `gnom.mp3` | Hurtig (140–160) | Tuba, xylofon, woodblock | Fjollet og hektisk |
-| `gribe.mp3` | Middel (95–105) | Legetøjsklaver, kontrabas med små pauser | Spændt: får jeg den? |
+Baggrundsmusik skal kunne lade sig ignorere (Kasper 24. nov.: "der er meget gang i den"): ét instrument med en enkel melodi, et stille tæppe under og ingen store udbrud. Ordene `background music`, `calm` og `gentle` i stil-feltet holder den nede, og `no drums, no crescendo` hjælper, hvis den vokser. Undgå vals, celeste, spilledåse og pizzicato sammen, for så bliver det ballet. Brev.ai bygger på Suno: brug custom, slå "instrumental" fra og skriv `[Instrumental]` øverst i tekstfeltet, og hold stil-feltet under cirka 120 tegn.
+
+| Fil | Stil (til stil-feltet) |
+|---|---|
+| `ny-byen.mp3` | gentle magical fantasy background music, soft flute melody, harp arpeggios, warm string pad, calm, 90 BPM |
+| `ny-skolen.mp3` | calm mysterious fantasy background music, soft clarinet melody, plucked guitar, harp, faint choir pad, 80 BPM |
+| `ny-dyreparken.mp3` | gentle cheerful fantasy background music, oboe melody, acoustic guitar, harp, birdsong-like flute, 95 BPM |
+| `ny-arkaden.mp3` | playful magical fantasy background music, bell melody, soft marimba, harp, light strings, 105 BPM |
+| `ny-fart.mp3` | uplifting magical flying music, flute and strings melody, light drums, wind, adventurous but not loud, 130 BPM |
+| `ny-magi.mp3` | sparkling magical fantasy music, bells and harp, soft choir, curious and playful, 110 BPM |
+| `ny-leg.mp3` | bouncy playful fantasy game music, clarinet melody, marimba, light percussion, cheerful, 120 BPM |
