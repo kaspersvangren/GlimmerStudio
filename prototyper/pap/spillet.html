@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.44';
+const PAPVER='pap-0.45';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2022,19 +2022,24 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   const forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
   /* musikken: ét nummer ad gangen plus et lag stemning. Skifter blødt */
   const lag={musik:{id:null,n:null,g:null,gen:0},stemning:{id:null,n:null,g:null,gen:0}};let musikVil=null,stemVil=null,slutFn=null;
+  /* musikken går gennem et filter: inde i et rum bliver den dæmpet og lidt lavere, så man kan høre, at man er gået ind, uden at sangen skifter (LYDPLAN.md) */
+  let MB=null;const mbus=a=>{if(MB&&MB.a===a)return MB.g;const g=a.createGain(),f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=20000;f.Q.value=.5;g.connect(f);f.connect(UD(a));MB={a,g,f};if(indeVil)saetInde(true,0);return g};
+  let indeVil=false;const saetInde=(on,tid=.5)=>{indeVil=on;if(!MB)return;const t=MB.a.currentTime;MB.f.frequency.setTargetAtTime(on?1700:20000,t,tid/3||.01);MB.g.gain.setTargetAtTime(on?.8:1,t,tid/3||.01)};
+  /* hvor langt hver sang var nået, så den fortsætter derfra, når man kommer tilbage inden for 3 minutter */
+  const POS={};const husk=L=>{if(L!==lag.musik||!L.n||!L.m||L.m.en||!L.buf)return;const a=ac,lp=L.m.loop||[0,L.buf.duration],s0=lp[0],e0=Math.min(lp[1],L.buf.duration);let p=a.currentTime-L.t0+(L.off||0);if(p>e0&&e0>s0)p=s0+(p-s0)%(e0-s0);POS[L.id]={p,ts:Date.now()}};
   const loopNode=(a,buf,m)=>{const n=a.createBufferSource();n.buffer=buf;if(m.en)return n;n.loop=true;const sr=buf.sampleRate,s=Math.round(m.loop[0]*sr),e=Math.round(Math.min(m.loop[1],buf.duration)*sr),f=Math.round((m.xf||0)*sr);
     if(f&&s-f>=0&&!buf._xf){for(let c=0;c<buf.numberOfChannels;c++){const d=buf.getChannelData(c);for(let i=0;i<f;i++){const t=i/f*Math.PI/2;d[e-f+i]=d[e-f+i]*Math.cos(t)+d[s-f+i]*Math.sin(t)}}buf._xf=1}
     n.loopStart=s/sr;n.loopEnd=e/sr;return n};
-  const saet=(L,id,vol0,ind=.8,efter)=>{const vil=til?id:null;if(vil===L.id)return;L.gen++;const a=ac;if(L.n&&a){try{L.g.gain.setTargetAtTime(0,a.currentTime,.15);L.n.onended=null;L.n.stop(a.currentTime+.7)}catch(_){}}L.n=L.g=null;L.id=vil;const m=vil&&MUSIK[vil];if(!m||!kanFil)return;const a2=A();if(!a2)return;const my=L.gen;
-    hent(m.src,true).then(buf=>{if(my!==L.gen)return;const n=loopNode(a2,buf,m),g=a2.createGain();g.gain.setValueAtTime(0,a2.currentTime);g.gain.linearRampToValueAtTime((m.vol||.55)*vol0,a2.currentTime+ind);n.connect(g);g.connect(UD(a2));n.start(0);L.n=n;L.g=g;L.t0=a2.currentTime;L.m=m;if(m.en)n.onended=()=>{if(my===L.gen){L.id=null;L.n=L.g=null;/* sangen er slut: den skal ikke startes igen, næste gang lagene friskes op (den begyndte kort forfra, Kasper 23. nov.) */if(L===lag.musik&&musikVil===vil){musikVil=null;slutFn=null}if(efter)efter()}}}).catch(()=>{if(my===L.gen){L.id=null;if(m.en&&efter)efter('fejl')}})};
+  const saet=(L,id,vol0,ind=.8,efter)=>{const vil=til?id:null;if(vil===L.id)return;L.gen++;const a=ac;husk(L);if(L.n&&a){try{L.g.gain.setTargetAtTime(0,a.currentTime,.15);L.n.onended=null;L.n.stop(a.currentTime+.7)}catch(_){}}L.n=L.g=null;L.id=vil;const m=vil&&MUSIK[vil];if(!m||!kanFil)return;const a2=A();if(!a2)return;const my=L.gen;
+    hent(m.src,true).then(buf=>{if(my!==L.gen)return;const n=loopNode(a2,buf,m),g=a2.createGain();g.gain.setValueAtTime(0,a2.currentTime);g.gain.linearRampToValueAtTime((m.vol||.55)*vol0,a2.currentTime+ind);n.connect(g);g.connect(L===lag.musik?mbus(a2):UD(a2));const ps=!m.en&&L===lag.musik&&POS[vil],off=ps&&Date.now()-ps.ts<180000?Math.min(ps.p,buf.duration-.1):0;n.start(0,off);L.n=n;L.g=g;L.t0=a2.currentTime;L.off=off;L.m=m;L.buf=buf;if(m.en)n.onended=()=>{if(my===L.gen){L.id=null;L.n=L.g=null;/* sangen er slut: den skal ikke startes igen, næste gang lagene friskes op (den begyndte kort forfra, Kasper 23. nov.) */if(L===lag.musik&&musikVil===vil){musikVil=null;slutFn=null}if(efter)efter()}}}).catch(()=>{if(my===L.gen){L.id=null;if(m.en&&efter)efter('fejl')}})};
   const opfrisk=()=>{saet(lag.musik,musikVil,1,.8,slutFn);saet(lag.stemning,stemVil,1,1.2)};
   return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)tone(660,880,.12,'triangle',.15);opfrisk();return til},
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
-    musik(id){musikVil=id||null;slutFn=null;opfrisk()},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
+    musik(id){musikVil=id||null;slutFn=null;opfrisk()},get musikNu(){return musikVil},inde(on){saetInde(!!on)},stemning(id){stemVil=id||null;opfrisk()},sang(id,efter){musikVil=id;slutFn=efter;lag.musik.id=null;lag.musik.gen++;if(lag.musik.n){try{lag.musik.n.onended=null;lag.musik.n.stop()}catch(_){}lag.musik.n=null}if(!til||!kanFil||!MUSIK[id]){musikVil=null;return false}saet(lag.musik,id,1,.05,efter);return true},
     /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
     forsinkelse(){return ac?((ac.outputLatency||0)+(ac.baseLatency||0)):0},
     musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0;if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
-    status:()=>({musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
+    status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('gnom.guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
     ding(){tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
@@ -6125,6 +6130,14 @@ const RUM={vaerelse:{navn:'Værelset',html:'<div id="panel" hidden><div id="tabs
   gang:{navn:'Skolen',mus:'kaelder'},eliksir:{navn:'Eliksirtimen',mus:'kaelder'},bobler:{navn:'Boblebutikken'},arkade:{navn:'Arkaden',mus:'arkade',stem:'stemning',bil:1},gnom:{navn:'Bank en gnom',mus:'gnom',bil:1},praemie:{navn:'Præmiebutikken',mus:'arkade',stem:'stemning',bil:1},boblepop:{navn:'BoblePop',mus:'invader',bil:1,html:'<canvas id="tegnlag"></canvas>',lyde:['boble.pop','vandt','oev']},gribe:{navn:'Gribemaskinen',mus:'gribe',lyde:['gribe.motor','gribe.ned','gribe.luk','vandt','oev']},tryl:{navn:'Trylletegning',mus:'kost',bil:1,html:'<canvas id="tegnlag"></canvas>'},
   fald:{navn:'Faldskærm',mus:'fald'},bog:{navn:'Eventyrbogen',mus:'byen'},kost:{navn:'Kosteflyvning',mus:'kost'},dyrepark:{navn:'Dyreparken'},dyrekoekken:{navn:'Dyrekøkkenet',mus:'kost'},ungestald:{navn:'Ungestalden',html:'<div id="madvalg" class="valg" role="group" aria-label="Vælg foder" hidden></div><div id="pleje" class="valg" role="group" aria-label="Hvad vil du gøre?"></div>'}};
 RUM.tryl.lyde=['nam','gave','fuser','nyt','boble.pop','vandt'];RUM.gnom.lyde=['gnom.slag','gnom.av','gnom.forbi','gnom.kanin','vandt'];RUM.bobler.lyde=['boble.tryk','boble.pop','vandt'];RUM.koncert.lyde=['koncert.ud','koncert.taeppe','koncert.klap'];RUM.eliksir.lyde=['vandt','fuser'];RUM.koncert.mus=null;RUM.koncert.stem='stemning.koncert';
+/* musikken følger områder, ikke rum (LYDPLAN.md): sangen fortsætter, mens man går rundt i et område, og bliver bare dæmpet, når man går ind. Minispil har deres egen sang.
+   OMRSANG er pladsholdere, indtil Kaspers egne sange kommer (Kasper 24. nov.) */
+const OMR={bog:'start',garderobe:'byen',bobler:'byen',vaerelse:'hjemme',gang:'skolen',eliksir:'skolen',dyrepark:'dyreparken',dyrekoekken:'dyreparken',ungestald:'dyreparken',arkade:'arkaden',praemie:'arkaden'};
+const OMRSANG={start:'byen',byen:'byen',skolen:'kaelder',dyreparken:'byen',hjemme:'byen',arkaden:'arkade'};
+const rumOmr=id=>id==='garderobe'&&SPIL.data&&SPIL.data.nyHeks?'start':OMR[id];
+const rumSang=id=>{const o=rumOmr(id);return o?OMRSANG[o]:RUM[id].mus};
+/* ude på kortet venter musikken 12 sekunder, før den skifter til byens sang, så en kort tur ud og ind et nyt sted ikke giver to skift. Efter et minispil skifter den med det samme */
+let kortMusT=0;const kortMusik=(fra)=>{clearTimeout(kortMusT);LYD.inde(false);const nu=LYD.musikNu;if(!fra||!OMR[fra]||!nu||nu===OMRSANG.byen){LYD.musik(OMRSANG.byen);return}kortMusT=setTimeout(()=>{if(!SPIL.room)LYD.musik(OMRSANG.byen)},12000)};
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
 const SLOTS=['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'];
@@ -6163,11 +6176,11 @@ function openRoom(id){const t0=performance.now(),ctx={id,alive:true,efter:[],loo
   ctx.ready=()=>{SPIL.roomMs=Math.round(performance.now()-t0);LOG.skaerm(id);LOG.row('rum',Object.assign({id,ms:SPIL.roomMs},window.__rumtid||{}),id);LOG.flush();busy=false;doorEl.classList.add('gone');hjemEl.hidden=false};
   ctx.fail=v=>{if(!v)return;LOG.row('fejl',{besked:String(v).slice(0,300),rum:id});LOG.flush();busy=false;doorT.textContent=v;hjemEl.hidden=false};
   ctx.msg={classList:{add(){ctx.ready()}}};ctx.msgN={set textContent(v){ctx.fail(v)}};
-  SPIL.room={id,ctx};document.body.dataset.rum=id;bilEl.hidden=!RUM[id].bil;if(RUM[id].mus!==null)LYD.musik(RUM[id].mus||'byen');LYD.stemning(RUM[id].stem||null);LYD.forhent(RUM[id].lyde||[]);rumEl.innerHTML=RUM[id].html||'';/* første gang man har lavet sin heks, hedder knappen Færdig (Kasper 23. nov.) */const faerdig=id==='garderobe'&&!!SPIL.data.nyHeks;hjemEl.classList.toggle('faerdig',faerdig);hjemT.textContent=faerdig?'Færdig':stack.length>1?RUM[stack[stack.length-2]].navn:'Byen';
+  SPIL.room={id,ctx};document.body.dataset.rum=id;bilEl.hidden=!RUM[id].bil;clearTimeout(kortMusT);if(RUM[id].mus!==null)LYD.musik(rumSang(id)||'byen');LYD.inde(!!rumOmr(id));LYD.stemning(RUM[id].stem||null);LYD.forhent(RUM[id].lyde||[]);rumEl.innerHTML=RUM[id].html||'';/* første gang man har lavet sin heks, hedder knappen Færdig (Kasper 23. nov.) */const faerdig=id==='garderobe'&&!!SPIL.data.nyHeks;hjemEl.classList.toggle('faerdig',faerdig);hjemT.textContent=faerdig?'Færdig':stack.length>1?RUM[stack[stack.length-2]].navn:'Byen';
   setTimeout(()=>{try{ROOMS[id](ctx)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message)}},40)}
-function closeRoom(){ventSlut(false);const r=SPIL.room;if(!r)return;r.ctx.alive=false;try{for(const f of r.ctx.efter||[])f();if(r.ctx.cleanup)r.ctx.cleanup();if(r.ctx.room)disposeRoom(r.ctx.room,r.ctx.mats)}catch(e){console.error(e)}rumEl.innerHTML='';SPIL.room=null}
+let sidsteRum=null;function closeRoom(){ventSlut(false);const r=SPIL.room;if(!r)return;sidsteRum=r.id;r.ctx.alive=false;try{for(const f of r.ctx.efter||[])f();if(r.ctx.cleanup)r.ctx.cleanup();if(r.ctx.room)disposeRoom(r.ctx.room,r.ctx.mats)}catch(e){console.error(e)}rumEl.innerHTML='';SPIL.room=null}
 function cover(txt,then){doorT.textContent=txt;doorEl.classList.remove('gone');hjemEl.hidden=true;toastEl.hidden=true;setTimeout(then,300)}
-function toMap(){LOG.maerk('ud af rum');LOG.skaerm('by');delete document.body.dataset.rum;bilEl.hidden=true;LYD.musik('byen');LYD.stemning(null);renderer.setRenderTarget(null);renderer.setClearColor('#0d0a12');renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=true;
+function toMap(){LOG.maerk('ud af rum');LOG.skaerm('by');delete document.body.dataset.rum;bilEl.hidden=true;kortMusik(sidsteRum);LYD.stemning(null);renderer.setRenderTarget(null);renderer.setClearColor('#0d0a12');renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=true;
   for(const k of SLOTS)if(SPIL.look[k]!==undefined&&HEKS.L[k]!==SPIL.look[k])HEKS.set(k,SPIL.look[k]);
   for(const k in SPIL.farver)if(paaHeks[k]!==SPIL.farver[k]){paaHeks[k]=SPIL.farver[k];HEKS.setCol(k,SPIL.farver[k])}
   if(dyrNyt){dyrNyt=false;SPIL.nyKat()}
@@ -6236,7 +6249,7 @@ addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik('byen')},{once:tr
     const d=HOUSE.dyr.door;H.position.set(d[0],25,d[1]);H.visible=true};
   setInterval(()=>{if(!SPIL.room)SPIL.ungeHjerte()},1000)}
 SPIL.arrive=name=>{const id=DOORS[name];if(id&&ROOMS[id])enter(id);else if(HUSNAVN[name])toast(`${HUSNAVN[name]} åbner snart`)};
-SPIL.enter=n=>enter(DOORS[n]||n);window.__renderer=renderer;window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;
+SPIL.enter=n=>enter(DOORS[n]||n);window.__renderer=renderer;window.__lyd=LYD;window.LOGTEST=()=>LOG.nu();window.LYDTEST=()=>LYD.status();SPIL.stack=stack;SPIL.leave=leave;SPIL.info=()=>Object.assign({programs:renderer.info.programs.length},renderer.info.memory);SPIL.heks=()=>Object.fromEntries(SLOTS.map(k=>[k,HEKS.L[k]]));window.__spil=SPIL;
 
 /* ============ forsiden, de tre gemte spil og bogen i starten (som i originalen) ============
    Efter indlæsningen kommer forsiden: spillets navn på et papskilt over byen og en rund play-knap.
