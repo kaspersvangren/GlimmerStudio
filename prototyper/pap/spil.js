@@ -50,6 +50,10 @@ SPIL.givBil=n=>{if(n>0)LYD.ding();LOG.row('billetter',{n,ialt:Math.max(0,SPIL.bi
 SPIL.giv=n=>{if(n>0)LYD.ding();LOG.row('stjerner',{n,ialt:Math.max(0,SPIL.stj+n),ting:SPIL.har.length});SPIL.stj=Math.max(0,SPIL.stj+n);SPIL.save();visStj();stjEl.classList.remove('hop');void stjEl.offsetWidth;stjEl.classList.add('hop')};
 /* rummene ligger i en stak: fra Værelset kan man gå videre ind i Garderoben, og tilbage-knappen fører ét trin ud ad gangen */
 const stack=[],paaHeks=Object.assign({},SPIL.farver);let busy=false,dyrNyt=false;
+/* skift bog uden at genindlæse siden, så musikken spiller videre og fuld skærm bliver ved (Kasper 25. nov.). Heksen og katten på kortet, stjernerne og billetterne følger med */
+SPIL.skiftPlads=n=>{if(!SPIL.slettet)SPIL.save();try{localStorage.setItem('magiske-mig-pap.plads',String(n))}catch(_){}PLADS=n;SPIL.slettet=false;SPIL.laes(n);
+  const lf=SPIL.lookFuld(),L=HEKS.L;for(const k of SLOTS)L[k]=SPIL.look[k]!==undefined?SPIL.look[k]:LOOK0[k];L.col=Object.assign({},LOOK0.col,lf.col);L.skin=lf.skin||LOOK0.skin;L.skinSh=lf.skinSh||LOOK0.skinSh;L.iris=lf.iris||LOOK0.iris;
+  HEKS.setCol('hår',(lf.hair||LOOK0.hair)[0]);HEKS.build();for(const k in paaHeks)delete paaHeks[k];Object.assign(paaHeks,SPIL.farver);SPIL.nyKat();visStj();visBil();LOG.row('plads',{n,navn:SPIL.navn||''})};
 function openRoom(id){const t0=performance.now(),ctx={id,alive:true,efter:[],look:{},room:null,env:scene.environment,mats:new Set(MATS.keys())};
   for(const k of SLOTS)ctx.look[k]=HEKS.L[k];Object.assign(ctx.look,SPIL.lookFuld());
   ctx.onLook=(k,v)=>{SPIL.look[k]=v;SPIL.save()};ctx.onCol=(k,v)=>{SPIL.farver[k]=v;SPIL.save()};ctx.dyr=Object.assign({},SPIL.dyr);ctx.onDyr=(k,v)=>{SPIL.dyr[k]=v;SPIL.save();dyrNyt=true};ctx.go=enter;ctx.say=toast;ctx.vent=vent;ctx.back=back;ctx.owns=SPIL.ejer;

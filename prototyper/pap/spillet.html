@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.47';
+const PAPVER='pap-0.48';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -1921,10 +1921,12 @@ const KVAL=(()=>{const N='magiske-mig-pap.kval';let gem={};try{gem=JSON.parse(lo
   return{lav,gem,niveau(id){return gem[id]!=null?gem[id]:(gem.alm||0)},saet(id,n){gem[id]=n;let m=0;for(const k in gem)if(k!=='alm')m=Math.max(m,gem[k]);gem.alm=Math.max(0,m-1);try{localStorage.setItem(N,JSON.stringify(gem))}catch(_){}}}})();
 /* ============ spillets tilstand: tøjet heksen har på, værelsets indretning, stjerner og hvad man har fået; gemmes i browseren ============ */
 /* tre gemte spil, som i originalen: plads 1 bruger det gamle navn, så det, der allerede er gemt, bliver plads 1. Plads 2 og 3 får @2 og @3 bag på */
-const PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
+let PLADS=(()=>{try{const n=+localStorage.getItem('magiske-mig-pap.plads');return n>=1&&n<=3?n:1}catch(_){return 1}})(),PLADSNOEGLE=n=>'magiske-mig-pap'+(n>1?'@'+n:'');
 const SPIL={plads:PLADS,navn:'',look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[],pause:false,rebake:false,room:null,arrive(){}};
-try{const s=JSON.parse(localStorage.getItem(PLADSNOEGLE(PLADS))||'null');if(s){if(typeof s.navn==='string')SPIL.navn=s.navn.slice(0,14);if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
-  if(s.rum)for(const k in s.rum)if(typeof s.rum[k]==='string')SPIL.rum[k]=s.rum[k];if(s.rumc)for(const k in s.rumc)if(/^#[0-9a-f]{6}$/i.test(s.rumc[k]||''))SPIL.rumc[k]=s.rumc[k];if(Number.isFinite(s.stj))SPIL.stj=Math.max(0,Math.floor(s.stj));if(Number.isFinite(s.bil))SPIL.bil=Math.max(0,Math.floor(s.bil));if(s.data&&typeof s.data==='object'&&!Array.isArray(s.data)&&JSON.stringify(s.data).length<6000)SPIL.data=s.data;if(Array.isArray(s.har))SPIL.har=s.har.filter(x=>typeof x==='string').slice(0,400);if(Number.isInteger(s.eliksir))SPIL.eliksir=s.eliksir;if(s.dyr){for(const k of['kind','moenster','pynt'])if(typeof s.dyr[k]==='string')SPIL.dyr[k]=s.dyr[k];if(typeof s.dyr.navn==='string')SPIL.dyr.navn=s.dyr.navn.slice(0,12);for(const k of['a','b','c','eye'])if(/^#[0-9a-f]{6}$/i.test(s.dyr[k]||''))SPIL.dyr[k]=s.dyr[k]}if(s.farver)for(const k of['tøj','tøj2','hat','kappe','støvler','hår','hud','øjne'])if(/^#[0-9a-f]{6}$/i.test(s.farver[k]||''))SPIL.farver[k]=s.farver[k]}}catch(_){}
+/* læser en bog (gemt spil) ind; bruges ved start og når man skifter bog uden at genindlæse siden */
+SPIL.laes=n=>{Object.assign(SPIL,{plads:n,navn:'',look:{},farver:{},dyr:{},rum:{},rumc:{},stj:0,bil:0,data:{},har:[]});delete SPIL.eliksir;
+try{const s=JSON.parse(localStorage.getItem(PLADSNOEGLE(n))||'null');if(s){if(typeof s.navn==='string')SPIL.navn=s.navn.slice(0,14);if(s.look)for(const k of['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'])if(typeof s.look[k]==='string')SPIL.look[k]=s.look[k];
+  if(s.rum)for(const k in s.rum)if(typeof s.rum[k]==='string')SPIL.rum[k]=s.rum[k];if(s.rumc)for(const k in s.rumc)if(/^#[0-9a-f]{6}$/i.test(s.rumc[k]||''))SPIL.rumc[k]=s.rumc[k];if(Number.isFinite(s.stj))SPIL.stj=Math.max(0,Math.floor(s.stj));if(Number.isFinite(s.bil))SPIL.bil=Math.max(0,Math.floor(s.bil));if(s.data&&typeof s.data==='object'&&!Array.isArray(s.data)&&JSON.stringify(s.data).length<6000)SPIL.data=s.data;if(Array.isArray(s.har))SPIL.har=s.har.filter(x=>typeof x==='string').slice(0,400);if(Number.isInteger(s.eliksir))SPIL.eliksir=s.eliksir;if(s.dyr){for(const k of['kind','moenster','pynt'])if(typeof s.dyr[k]==='string')SPIL.dyr[k]=s.dyr[k];if(typeof s.dyr.navn==='string')SPIL.dyr.navn=s.dyr.navn.slice(0,12);for(const k of['a','b','c','eye'])if(/^#[0-9a-f]{6}$/i.test(s.dyr[k]||''))SPIL.dyr[k]=s.dyr[k]}if(s.farver)for(const k of['tøj','tøj2','hat','kappe','støvler','hår','hud','øjne'])if(/^#[0-9a-f]{6}$/i.test(s.farver[k]||''))SPIL.farver[k]=s.farver[k]}}catch(_){}};SPIL.laes(PLADS);
 SPIL.save=()=>{if(SPIL.slettet)return;try{localStorage.setItem(PLADSNOEGLE(PLADS),JSON.stringify({navn:SPIL.navn,look:SPIL.look,farver:SPIL.farver,dyr:SPIL.dyr,rum:SPIL.rum,rumc:SPIL.rumc,stj:SPIL.stj,bil:SPIL.bil,data:SPIL.data,har:SPIL.har,eliksir:SPIL.eliksir||0}))}catch(_){}};
 /* det man kan få i Boblebutikken; resten har heksen fra starten */
 SPIL.VARER=[['dyr','kanin','Kaninen'],['dyr','enhjørning','Enhjørningen'],['dyr','bjørn','Bjørnen'],['dyr','drage','Dragen'],['dyr','ugle','Uglen'],['dyr','ræv','Ræven'],['dyr','frø','Frøen'],
@@ -6183,6 +6185,10 @@ SPIL.givBil=n=>{if(n>0)LYD.ding();LOG.row('billetter',{n,ialt:Math.max(0,SPIL.bi
 SPIL.giv=n=>{if(n>0)LYD.ding();LOG.row('stjerner',{n,ialt:Math.max(0,SPIL.stj+n),ting:SPIL.har.length});SPIL.stj=Math.max(0,SPIL.stj+n);SPIL.save();visStj();stjEl.classList.remove('hop');void stjEl.offsetWidth;stjEl.classList.add('hop')};
 /* rummene ligger i en stak: fra Værelset kan man gå videre ind i Garderoben, og tilbage-knappen fører ét trin ud ad gangen */
 const stack=[],paaHeks=Object.assign({},SPIL.farver);let busy=false,dyrNyt=false;
+/* skift bog uden at genindlæse siden, så musikken spiller videre og fuld skærm bliver ved (Kasper 25. nov.). Heksen og katten på kortet, stjernerne og billetterne følger med */
+SPIL.skiftPlads=n=>{if(!SPIL.slettet)SPIL.save();try{localStorage.setItem('magiske-mig-pap.plads',String(n))}catch(_){}PLADS=n;SPIL.slettet=false;SPIL.laes(n);
+  const lf=SPIL.lookFuld(),L=HEKS.L;for(const k of SLOTS)L[k]=SPIL.look[k]!==undefined?SPIL.look[k]:LOOK0[k];L.col=Object.assign({},LOOK0.col,lf.col);L.skin=lf.skin||LOOK0.skin;L.skinSh=lf.skinSh||LOOK0.skinSh;L.iris=lf.iris||LOOK0.iris;
+  HEKS.setCol('hår',(lf.hair||LOOK0.hair)[0]);HEKS.build();for(const k in paaHeks)delete paaHeks[k];Object.assign(paaHeks,SPIL.farver);SPIL.nyKat();visStj();visBil();LOG.row('plads',{n,navn:SPIL.navn||''})};
 function openRoom(id){const t0=performance.now(),ctx={id,alive:true,efter:[],look:{},room:null,env:scene.environment,mats:new Set(MATS.keys())};
   for(const k of SLOTS)ctx.look[k]=HEKS.L[k];Object.assign(ctx.look,SPIL.lookFuld());
   ctx.onLook=(k,v)=>{SPIL.look[k]=v;SPIL.save()};ctx.onCol=(k,v)=>{SPIL.farver[k]=v;SPIL.save()};ctx.dyr=Object.assign({},SPIL.dyr);ctx.onDyr=(k,v)=>{SPIL.dyr[k]=v;SPIL.save();dyrNyt=true};ctx.go=enter;ctx.say=toast;ctx.vent=vent;ctx.back=back;ctx.owns=SPIL.ejer;
@@ -6296,7 +6302,8 @@ const FORSIDE=(()=>{
       return h('div',{class:'sb-wrap'},[bog,slet])});
     vis(h('div',{class:'fs-pladser','data-navn':'pladser'},[h('div',{class:'sb-bg'}),h('button',{class:'fs-tilbage kraft',type:'button',on:{click:()=>{lyd('valg');forside()}},html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg><span>Forsiden</span>'}),h('h1',{class:'sb-title'},'Hvem skal spille?'),h('div',{class:'sb-shelf'},boeger)]))}
   function spoerg(titel,tekst,ja,fn){const b=h('div',{class:'fs-spoerg'},[h('div',{class:'kraft fs-spkort'},[h('h2',{},titel),h('p',{},tekst),h('div',{class:'fs-spkn'},[h('button',{type:'button',class:'fs-knap',on:{click:()=>b.remove()}},'Nej'),h('button',{type:'button',class:'fs-knap hot',on:{click:()=>{b.remove();fn()}}},ja)])])]);rod.append(b)}
-  function vaelg(n,brugt){lyd('guld');if(n!==PLADS||slettet){try{localStorage.setItem('magiske-mig-pap.plads',String(n));sessionStorage.setItem('magiske-mig-pap.direkte',brugt?'by':'intro')}catch(_){}vis(h('div',{class:'fs-titel'},[h('div',{class:'fs-skilt'},[h('div',{class:'fs-under'},'Henter bogen …')])]));setTimeout(()=>location.reload(),250);return}
+  function vaelg(n,brugt){lyd('guld');if(n!==PLADS||slettet){/* skift bog uden at genindlæse; kun hvis det fejler, genindlæses siden som før */let ok=false;try{if(SPIL.skiftPlads){SPIL.skiftPlads(n);ok=true}}catch(e){console.error(e)}if(ok){slettet=false;if(brugt)luk();else intro();return}
+    try{localStorage.setItem('magiske-mig-pap.plads',String(n));sessionStorage.setItem('magiske-mig-pap.direkte',brugt?'by':'intro')}catch(_){}vis(h('div',{class:'fs-titel'},[h('div',{class:'fs-skilt'},[h('div',{class:'fs-under'},'Henter bogen …')])]));setTimeout(()=>location.reload(),250);return}
     if(brugt)luk();else intro()}
 
   /* bogen i starten er nu et rum i pap (rum-bog.js) */

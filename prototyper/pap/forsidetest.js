@@ -11,10 +11,12 @@ const { chromium } = require('playwright');
   const klar = () => p.waitForFunction(() => document.getElementById('msg').classList.contains('gone'), null, { timeout: 120000 });
   await p.goto('file://' + __dirname + '/spillet.html'); await T(`localStorage.clear()`); await p.reload(); await klar(); await p.waitForTimeout(800);
   await skud('titel'); tjek('forsiden står der efter indlæsningen', await T(`!!document.querySelector('#forside .fs-play')`)); tjek('der er en fuldskærmsknap på forsiden', await T(`!!document.querySelector('#forside .fs-fuld')`)); tjek('skiltet siger kun Magiske Mig', (await T(`document.querySelector('.fs-skilt').textContent`)) === 'Magiske Mig');
+  await T(`window.__ikkeGenindlaest=1`);
   await p.click('.fs-play', { force: true }); await p.waitForTimeout(500); await skud('pladser'); tjek('tre bøger på hylden', (await T(`document.querySelectorAll('.sbook').length`)) === 3);
   /* bog 2 er tom og ikke den indlæste: siden genindlæses med plads 2, og bogen åbner */
   await p.click('.sb-wrap:nth-child(2) .sbook'); await p.waitForTimeout(500); await klar(); await p.waitForTimeout(1500);
   await p.waitForFunction(() => __spil.room && __spil.room.id === 'bog' && document.getElementById('door').classList.contains('gone'), null, { timeout: 120000 }); await p.waitForTimeout(2500);
+  tjek('bogen blev skiftet uden at genindlæse siden (musikken spiller videre)', await T(`window.__ikkeGenindlaest===1`));
   tjek('plads 2 er valgt', (await T(`localStorage.getItem('magiske-mig-pap.plads')`)) === '2'); tjek('bogen i pap er åben', await T(`__spil.room.id==='bog'`)); await skud('bog1');
   tjek('fuldskærmsknappen var på forsiden', true);
   tjek('bogen ligger lukket', !(await T(`__spil.room.ctx.test.aaben()`))); await p.click('.bog-frem', { force: true }); await T(`__spil.room.ctx.test.spol(2)`); await p.waitForTimeout(1200);
@@ -32,5 +34,10 @@ const { chromium } = require('playwright');
   await p.click('#menuknap'); await p.waitForTimeout(300); await p.click('.fs-spoerg .fs-knap.hot'); await p.waitForTimeout(300); await p.click('.fs-play', { force: true }); await p.waitForTimeout(400);
   tjek('bog 2 viser navnet', (await T(`document.querySelectorAll('.sb-name')[1].textContent`)) === 'Agnes'); await skud('pladser2');
   await p.click('.sb-wrap:nth-child(2) .sbook'); await p.waitForTimeout(400); tjek('samme bog: lige ud i byen', await T(`document.getElementById('forside').hidden`));
+  /* bog 2 har stjerner og en hat; skift til den tomme bog 3 og tilbage: alt følger med, uden genindlæsning */
+  await T(`__spil.giv(7);__spil.look.hat='krone';__spil.save()`);await p.click('#menuknap');await p.waitForTimeout(300);await p.click('.fs-spoerg .fs-knap.hot');await p.waitForTimeout(300);await p.click('.fs-play',{force:true});await p.waitForTimeout(400);
+  await p.click('.sb-wrap:nth-child(3) .sbook');await p.waitForFunction(()=>__spil.room&&__spil.room.id==='bog'&&document.getElementById('door').classList.contains('gone'),null,{timeout:120000});
+  tjek('bog 3 er tom: ingen stjerner, intet navn', await T(`__spil.stj===0&&!__spil.navn&&!__spil.look.hat&&__spil.plads===3`), await T(`[__spil.stj,__spil.navn,__spil.plads]`));
+  tjek('stadig uden genindlæsning', await T(`window.__ikkeGenindlaest===1`));
   console.log(fejl ? fejl + ' FEJL' : 'alt ok'); await b.close();
 })();

@@ -30,7 +30,8 @@ const FORSIDE=(()=>{
       return h('div',{class:'sb-wrap'},[bog,slet])});
     vis(h('div',{class:'fs-pladser','data-navn':'pladser'},[h('div',{class:'sb-bg'}),h('button',{class:'fs-tilbage kraft',type:'button',on:{click:()=>{lyd('valg');forside()}},html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7 1.5-1.4L10.8 12 16 6.4z"/></svg><span>Forsiden</span>'}),h('h1',{class:'sb-title'},'Hvem skal spille?'),h('div',{class:'sb-shelf'},boeger)]))}
   function spoerg(titel,tekst,ja,fn){const b=h('div',{class:'fs-spoerg'},[h('div',{class:'kraft fs-spkort'},[h('h2',{},titel),h('p',{},tekst),h('div',{class:'fs-spkn'},[h('button',{type:'button',class:'fs-knap',on:{click:()=>b.remove()}},'Nej'),h('button',{type:'button',class:'fs-knap hot',on:{click:()=>{b.remove();fn()}}},ja)])])]);rod.append(b)}
-  function vaelg(n,brugt){lyd('guld');if(n!==PLADS||slettet){try{localStorage.setItem('magiske-mig-pap.plads',String(n));sessionStorage.setItem('magiske-mig-pap.direkte',brugt?'by':'intro')}catch(_){}vis(h('div',{class:'fs-titel'},[h('div',{class:'fs-skilt'},[h('div',{class:'fs-under'},'Henter bogen …')])]));setTimeout(()=>location.reload(),250);return}
+  function vaelg(n,brugt){lyd('guld');if(n!==PLADS||slettet){/* skift bog uden at genindlæse; kun hvis det fejler, genindlæses siden som før */let ok=false;try{if(SPIL.skiftPlads){SPIL.skiftPlads(n);ok=true}}catch(e){console.error(e)}if(ok){slettet=false;if(brugt)luk();else intro();return}
+    try{localStorage.setItem('magiske-mig-pap.plads',String(n));sessionStorage.setItem('magiske-mig-pap.direkte',brugt?'by':'intro')}catch(_){}vis(h('div',{class:'fs-titel'},[h('div',{class:'fs-skilt'},[h('div',{class:'fs-under'},'Henter bogen …')])]));setTimeout(()=>location.reload(),250);return}
     if(brugt)luk();else intro()}
 
   /* bogen i starten er nu et rum i pap (rum-bog.js) */
