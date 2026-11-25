@@ -217,7 +217,7 @@ ROOMS.bog=function(ctx){
   /* ---------- at vende en side ---------- */
   const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,fjern=p=>{if(!p)return;p.G.parent&&p.G.parent.remove(p.G);if(p.ryd)for(const f of p.ryd)f();emptyGroup(p.G)};
   function vend(d){if(travl||lukket)return;if(!aaben){aabn();return}if(d>0&&i===0&&!ok()){skriv();return}if(d<0&&i===0)return;if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();pyt();
-    if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.pust();const ny=i+d;
+    if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.fil('bog.blad',()=>LYD.pust());const ny=i+d;
     /* bladet drejer om ryggen. Frem: den nye pop-up sidder på bladets bagside og folder sig op, mens bladet lægger sig. Tilbage: den gamle sidder på bladet og folder sig ned */
     if(d>0){blad=bygBlad(sideTex(i,'r'),sideTex(ny,'l'),1);saetSide(sideH,sideTex(ny,'r'));popNy=bygPop(SIDER[ny].art,blad);if(!popNy.v){popNy.G.position.set(PW/2+.4,-.05,GZ);popNy.G.rotation.z=Math.PI}}
     else{blad=bygBlad(sideTex(i,'l'),sideTex(ny,'r'),-1);saetSide(sideV,sideTex(ny,'l'));if(!pop.v){blad.add(pop.G);pop.G.position.set(-PW/2-.4,.05,GZ)}popNy=bygPop(SIDER[ny].art,venstre)}
@@ -240,8 +240,8 @@ ROOMS.bog=function(ctx){
   /* tryk på den lukkede bog åbner den. Trykket fjernes igen, når den er åben, ellers tog det trykket fra brevet efter "Læs igen" (Kasper 23. nov.) */
   function bogTap(){Rm.untap(bog);Rm.tap(bog,()=>{if(!aaben&&!lukket)aabn()})}
   function lukketStart(x0){vPlace(-Math.PI,1);if(Rm.taps)bogTap();bog.position.x=x0;aaben=false;if(pop){pop.op=0;if(pop.v)stilV(pop,[1,1e-3],[1,0])}}
-  function aabn(){if(travl||aaben||lukket)return;Rm.untap(bog);travl=true;pile();LYD.pust();LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,trin:'aabn',x0:bog.position.x}}
-  function luk(){travl=true;lukket=true;pile();fase={t:0,trin:'lukvend'};LYD.pust()}
+  function aabn(){if(travl||aaben||lukket)return;Rm.untap(bog);travl=true;pile();LYD.fil('bog.aabn',()=>LYD.pust());LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,trin:'aabn',x0:bog.position.x}}
+  function luk(){travl=true;lukket=true;pile();fase={t:0,trin:'lukvend'};LYD.fil('bog.luk',()=>LYD.pust())}
   function tickLuk(dt){if(!fase||!lukket)return false;const F=fase;F.t+=dt;
     if(F.trin==='lukvend'){const u=Math.min(1,F.t/1.3),e=ease(u);vPlace(-e*Math.PI,e);bog.position.x=e*(BX-(PW/2+.8));if(pop){pop.op=1-clamp(e/.8,0,1);if(pop.v)stilV(pop,[-Math.cos(e*Math.PI),Math.sin(e*Math.PI)],[1,0])}
       if(u>=1){fjern(pop);pop=null;LYD.dunk();F.trin='titel';F.t=0;startTitel()}}

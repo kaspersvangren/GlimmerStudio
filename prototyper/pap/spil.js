@@ -93,7 +93,7 @@ function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('di
   for(const[y0,ww]of[[BH*.3,.26],[BH*.5,.3],[BH*.7,.34]])for(let x=-W*.12;x<W*1.15;x+=W*.12)sky(s2,x+Math.random()*W*.04,y0+Math.random()*BH*.06,W*(ww+Math.random()*.08),1);
   /* en sidste række runde skyer forneden, så bæltet ikke har en lige underkant */for(let x=-W*.08;x<W*1.1;x+=W*.07)sky(s2,x,BH*.8+Math.random()*BH*.05,W*(.14+Math.random()*.06),1,false);
   const BT0=HH-BH*.55;/* bæltets top, målt fra himlens top; dets midte ligger over himlens udtoning */
-  const cvM=renderer.domElement,T=4.4,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
+  const cvM=renderer.domElement,T=4.4,t0=performance.now();/* ingen lyd, når kameraet suser ned mod byen (Kasper 25. nov.) */
   const e=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
   /* himlen og bæltet glider samme vej, bæltet bare så meget længere, at det er ude af billedet, når himlen er det */
   const tik=()=>{const u=window.HIMMEL_U!=null?window.HIMMEL_U:Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82)),y=-k*HH;cv.style.transform=`translateY(${y}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;bt.style.transform=`translateY(${BT0+y-k*(BH*.95)}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
@@ -119,9 +119,11 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
   fm.addEventListener('submit',e=>{e.preventDefault();SPIL.note(type,tx_.value);luk();toast(LOG.on?'Noten er gemt':'Noten kan ikke gemmes her')})}
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik(OMRSANG.byen)},{once:true});
+/* de lyde, der bruges overalt, hentes ved første tryk, så de er klar første gang (ellers kommer pladsholderen) */
+addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk'])}catch(_){}},{once:true});
 /* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
 {let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;if(e.hvad==='sidste')s.adv2=0;continue}
-      if(e.hvad==='mistet'){LYD.oev();toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.pip();toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.pip();toast(`${navn} kalder på dig i Ungestalden!`)}}
+      if(e.hvad==='mistet'){LYD.fil('unge.mistet',()=>LYD.oev());toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} kalder på dig i Ungestalden!`)}}
     if(sket.length||++n%10===0)SPIL.save();return sket};
   setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
 /* et lille hjerte blinker over Dyreparken på kortet, så længe en unge mangler noget, så man kan se det, selv om man missede beskeden (Kasper 23. nov.) */

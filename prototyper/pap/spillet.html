@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.50';
+const PAPVER='pap-0.51';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2003,7 +2003,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   const MAPPE=(typeof window!=='undefined'&&window.__lydmappe)||'../../lyd/';
   let kanFil=typeof location!=='undefined'&&/^https?:$/.test(location.protocol)&&!/claude|anthropic/.test(location.hostname);
   const liste=(n,navn,fra=1)=>Array.from({length:n},(_,i)=>`${navn}-${i+fra}.mp3`);
-  const FILER={'gnom.slag':liste(3,'gnom-slag'),'gnom.av':liste(7,'gnom-av'),'gnom.forbi':liste(8,'gnom-forbi'),'gnom.guld':['gnom-guld.mp3'],'gnom.kanin':['gnom-kanin.mp3'],'boble.tryk':['boble-tryk.mp3'],'boble.pop':['boble-pop.mp3'],
+  const FILER={/* Kaspers lyde fra lydbordet (25. nov.) */'tryk':['ui-tryk.mp3'],'lyd.til':['ui-lyd-til.mp3'],'ding':['ui-ding.mp3'],'unge.kald':['unge-kald.mp3'],'unge.mistet':['unge-mistet.mp3'],'bog.aabn':['bog-aabn.mp3'],'bog.blad':['bog-blad.mp3'],'bog.luk':['bog-luk.mp3'],'gnom.slag':liste(3,'gnom-slag'),'gnom.av':liste(7,'gnom-av'),'gnom.forbi':liste(8,'gnom-forbi'),'gnom.guld':['gnom-guld.mp3'],'gnom.kanin':['gnom-kanin.mp3'],'boble.tryk':['boble-tryk.mp3'],'boble.pop':['boble-pop.mp3'],
     'koncert.ud':['koncert-ud.mp3'],'koncert.taeppe':liste(2,'koncert-taeppe'),'koncert.klap':['koncert-klap.mp3'],'nam':['tryl-nam.mp3'],'gave':['tryl-gave.mp3'],'fuser':['tryl-fuser.mp3'],'nyt':['tryl-nyt.mp3'],'vandt':['gribe-vandt.mp3'],'gribe.motor':['gribe-motor.wav'],'gribe.ned':['gribe-ned.wav'],'gribe.luk':['gribe-luk.mp3'],'oev':['gribe-oev.mp3'],'boelge':['invader-boelge.mp3'],'ugle':['invader-ugle.mp3']};
   /* musikken: løkke = [start, slut] i sekunder (Kaspers valg fra det oprindelige spil). xf = sekunders overtoning hen over hoppet */
   const MUSIK={/* Kaspers egne sange (24. nov.), lige høje (-17 LUFS), loop valgt af Kasper på lydbordet */'ny.byen':{src:'ny-byen.mp3',loop:[42.94192,125.09412],xf:0.01,vol:.62},'ny.skolen':{src:'ny-skolen.mp3',loop:[39.30799,142.23044],xf:0.01,vol:.62},'ny.arkaden':{src:'ny-arkaden.mp3',loop:[51.03988,141.22037],xf:0.01,vol:.62},'ny.svaev':{src:'ny-svaev.mp3',loop:[104.49221,193.44786],xf:0.01,vol:.62},'ny.leg':{src:'ny-leg.mp3',loop:[9.44133,49.13003],xf:0.01,vol:.62},'ny.dyreparken':{src:'ny-dyreparken.mp3',loop:[19.9,62.34238],xf:1.5,vol:.62},'ny.fart':{src:'ny-fart.mp3',loop:[19.2,80.39066],xf:1.5,vol:.62},'ny.magi':{src:'ny-magi.mp3',loop:[38.2,76.55406],xf:1.5,vol:.62},byen:{src:'byen.mp3',loop:[73.57294,133.61413]},kaelder:{src:'wizard-crypt.mp3',loop:[65.4,101.49313]},arkade:{src:'arcade-drift.mp3',loop:[37.612,117.9774],xf:.5},gnom:{src:'mole-pop.mp3',loop:[11.28151,65.60459],xf:.01},
@@ -2035,7 +2035,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   const saet=(L,id,vol0,ind=.8,efter)=>{const vil=til?id:null;if(vil===L.id)return;L.gen++;const a=ac;husk(L);if(L.n&&a){try{L.g.gain.setTargetAtTime(0,a.currentTime,.15);L.n.onended=null;L.n.stop(a.currentTime+.7)}catch(_){}}L.n=L.g=null;L.id=vil;const m=vil&&MUSIK[vil];if(!m||!kanFil)return;const a2=A();if(!a2)return;const my=L.gen;
     hent(m.src,true).then(buf=>{if(my!==L.gen)return;const n=loopNode(a2,buf,m),g=a2.createGain();g.gain.setValueAtTime(0,a2.currentTime);g.gain.linearRampToValueAtTime((m.vol||.55)*vol0,a2.currentTime+ind);n.connect(g);g.connect(L===lag.musik?mbus(a2):UD(a2));const ps=!m.en&&L===lag.musik&&POS[vil],off=ps&&Date.now()-ps.ts<180000?Math.min(ps.p,buf.duration-.1):0;n.start(0,off);L.n=n;L.g=g;L.t0=a2.currentTime;L.off=off;L.m=m;L.buf=buf;if(m.en)n.onended=()=>{if(my===L.gen){L.id=null;L.n=L.g=null;/* sangen er slut: den skal ikke startes igen, næste gang lagene friskes op (den begyndte kort forfra, Kasper 23. nov.) */if(L===lag.musik&&musikVil===vil){musikVil=null;slutFn=null}if(efter)efter()}}}).catch(()=>{if(my===L.gen){L.id=null;if(m.en&&efter)efter('fejl')}})};
   const opfrisk=()=>{saet(lag.musik,musikVil,1,.8,slutFn);saet(lag.stemning,stemVil,1,1.2)};
-  return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)tone(660,880,.12,'triangle',.15);opfrisk();return til},
+  return{get til(){return til},get filer(){return kanFil},skift(){til=!til;try{localStorage.setItem('magiske-mig-pap.lyd',til?'til':'fra')}catch(_){}if(til)fil('lyd.til',()=>tone(660,880,.12,'triangle',.15));opfrisk();return til},
     /* musik(id): nummeret der skal spille nu (null = stille). stemning(id) er laget under. sang(id, efter) spiller et nummer én gang og kalder efter(), når det er slut */
     musik(id){clearTimeout(RAD.tmr);musikVil=id||null;slutFn=null;opfrisk()},
     /* radio(liste,{ny}): en række sange, der spiller til ende én efter én, som om de altid spiller (Koncertsalens hyggesange, Kasper 24. nov.).
@@ -2053,8 +2053,8 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
     status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('gnom.guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
-    ding(){tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
-    pop(){fil('boble.pop',()=>{stoej(.05,.35,2400,1.2);tone(950,280,.1,'triangle',.18)})},bobletryk(n=0){fil('boble.tryk',()=>tone(420+n*90,300+n*90,.12,'sine',.2),1,1+n*.12)},doer(){tone(150,95,.22,'triangle',.14);stoej(.1,.07,500,.6,.05)},valg(){tone(560,840,.1,'triangle',.13)},tryk(){tone(440,440,.05,'triangle',.08)},
+    ding(){fil('ding',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
+    pop(){fil('boble.pop',()=>{stoej(.05,.35,2400,1.2);tone(950,280,.1,'triangle',.18)})},bobletryk(n=0){fil('boble.tryk',()=>tone(420+n*90,300+n*90,.12,'sine',.2),1,1+n*.12)},doer(){tone(150,95,.22,'triangle',.14);stoej(.1,.07,500,.6,.05)},valg(){tone(560,840,.1,'triangle',.13)},tryk(){fil('tryk',()=>tone(440,440,.05,'triangle',.08))},
     roer(){tone(260,340,.12,'sine',.12);stoej(.1,.06,900,.8)},ild(){stoej(.35,.25,700,.4);tone(200,400,.3,'sawtooth',.05)},pust(){stoej(.5,.12,1300,.5);tone(300,700,.5,'sine',.06)},sus(){stoej(.16,.045,1800,.7)},
     nam(){fil('nam',()=>{tone(300,200,.09,'square',.12);tone(260,180,.09,'square',.12,.12)})},gave(){fil('gave',()=>{[784,988,1319].forEach((f,i)=>tone(f,f,.2,'sine',.14,i*.07))})},fuser(){fil('fuser',()=>{stoej(.3,.2,500,.5);tone(220,70,.3,'sawtooth',.1)})},nyt(){fil('nyt',()=>tone(500,760,.1,'triangle',.14))},
     oev(){fil('oev',()=>{tone(330,220,.25,'triangle',.15);tone(220,150,.35,'triangle',.15,.22)})},boelge(){fil('boelge',()=>{[392,494,587].forEach((f,i)=>tone(f,f,.14,'square',.09,i*.08))})},klap(){fil('koncert.klap',()=>{for(let i=0;i<14;i++)stoej(.05,.18,1800+Math.random()*900,.9,i*.09+Math.random()*.04)})},taeppe(){fil('koncert.taeppe',()=>stoej(.7,.1,500,.4))},
@@ -4032,7 +4032,7 @@ ROOMS.bog=function(ctx){
   /* ---------- at vende en side ---------- */
   const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,fjern=p=>{if(!p)return;p.G.parent&&p.G.parent.remove(p.G);if(p.ryd)for(const f of p.ryd)f();emptyGroup(p.G)};
   function vend(d){if(travl||lukket)return;if(!aaben){aabn();return}if(d>0&&i===0&&!ok()){skriv();return}if(d<0&&i===0)return;if(typeof FORSIDE!=='undefined'&&FORSIDE.kbLuk)FORSIDE.kbLuk();pyt();
-    if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.pust();const ny=i+d;
+    if(d>0&&i===SIDER.length-1){luk();return}travl=true;pile();LYD.fil('bog.blad',()=>LYD.pust());const ny=i+d;
     /* bladet drejer om ryggen. Frem: den nye pop-up sidder på bladets bagside og folder sig op, mens bladet lægger sig. Tilbage: den gamle sidder på bladet og folder sig ned */
     if(d>0){blad=bygBlad(sideTex(i,'r'),sideTex(ny,'l'),1);saetSide(sideH,sideTex(ny,'r'));popNy=bygPop(SIDER[ny].art,blad);if(!popNy.v){popNy.G.position.set(PW/2+.4,-.05,GZ);popNy.G.rotation.z=Math.PI}}
     else{blad=bygBlad(sideTex(i,'l'),sideTex(ny,'r'),-1);saetSide(sideV,sideTex(ny,'l'));if(!pop.v){blad.add(pop.G);pop.G.position.set(-PW/2-.4,.05,GZ)}popNy=bygPop(SIDER[ny].art,venstre)}
@@ -4055,8 +4055,8 @@ ROOMS.bog=function(ctx){
   /* tryk på den lukkede bog åbner den. Trykket fjernes igen, når den er åben, ellers tog det trykket fra brevet efter "Læs igen" (Kasper 23. nov.) */
   function bogTap(){Rm.untap(bog);Rm.tap(bog,()=>{if(!aaben&&!lukket)aabn()})}
   function lukketStart(x0){vPlace(-Math.PI,1);if(Rm.taps)bogTap();bog.position.x=x0;aaben=false;if(pop){pop.op=0;if(pop.v)stilV(pop,[1,1e-3],[1,0])}}
-  function aabn(){if(travl||aaben||lukket)return;Rm.untap(bog);travl=true;pile();LYD.pust();LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,trin:'aabn',x0:bog.position.x}}
-  function luk(){travl=true;lukket=true;pile();fase={t:0,trin:'lukvend'};LYD.pust()}
+  function aabn(){if(travl||aaben||lukket)return;Rm.untap(bog);travl=true;pile();LYD.fil('bog.aabn',()=>LYD.pust());LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,trin:'aabn',x0:bog.position.x}}
+  function luk(){travl=true;lukket=true;pile();fase={t:0,trin:'lukvend'};LYD.fil('bog.luk',()=>LYD.pust())}
   function tickLuk(dt){if(!fase||!lukket)return false;const F=fase;F.t+=dt;
     if(F.trin==='lukvend'){const u=Math.min(1,F.t/1.3),e=ease(u);vPlace(-e*Math.PI,e);bog.position.x=e*(BX-(PW/2+.8));if(pop){pop.op=1-clamp(e/.8,0,1);if(pop.v)stilV(pop,[-Math.cos(e*Math.PI),Math.sin(e*Math.PI)],[1,0])}
       if(u>=1){fjern(pop);pop=null;LYD.dunk();F.trin='titel';F.t=0;startTitel()}}
@@ -4499,7 +4499,7 @@ ROOMS.ungestald=function(ctx){
         for(const b of B)b.U.set({snavs:b.s.r<.25?3:b.s.r<.5?2:b.s.r<.75?1:0});visKnap();
         ctx.say(B.some(b=>Math.min(b.s.m,b.s.r,b.s.g)<.2)?'Ungerne har savnet dig! Se på skiltene, hvad de mangler.':'Når en unge ønsker noget, viser den det i en tankeboble. Gør det, før uret løber ud, så kommer du nærmere et hjerte.')}],
     tick:(t,dt)=>{gemT-=dt;
-      {const sv={};for(const b of B)sv[b.id]=b.sov;for(const e of ungeTid(dt,true,sv))if(e.hvad==='sidste'){const b=B.find(q=>q.id===e.id);LYD.pip&&LYD.pip();humoer(b,'ked',3);if(!b.oen)nytOenske(b);ctx.say(`${b.D.navn} er ved at blive ked af det! Giv den det, den beder om.`)}else if(e.hvad==='mistet'){const b=B.find(q=>q.id===e.id);LYD.oev();humoer(b,'ked',3);Rm.burst(b.x,36,-4,10,'rgba(150,150,170,.9)',6);tegnSkilt(b);ctx.say(`${b.D.navn} har mistet et hjerte: den har manglet noget for længe.`);gem(true)}}
+      {const sv={};for(const b of B)sv[b.id]=b.sov;for(const e of ungeTid(dt,true,sv))if(e.hvad==='sidste'){const b=B.find(q=>q.id===e.id);LYD.fil('unge.kald',()=>LYD.pip());humoer(b,'ked',3);if(!b.oen)nytOenske(b);ctx.say(`${b.D.navn} er ved at blive ked af det! Giv den det, den beder om.`)}else if(e.hvad==='mistet'){const b=B.find(q=>q.id===e.id);LYD.fil('unge.mistet',()=>LYD.oev());humoer(b,'ked',3);Rm.burst(b.x,36,-4,10,'rgba(150,150,170,.9)',6);tegnSkilt(b);ctx.say(`${b.D.navn} har mistet et hjerte: den har manglet noget for længe.`);gem(true)}}
       /* et nyt ønske: højst ét ad gangen i begyndelsen, senere to og tre, og med kortere pauser, jo flere hjerter man har i alt */
       {const H=iAlt(),maks=H<8?1:H<20?2:3,aktive=B.filter(b=>b.oen).length;if(aktive<maks){oenT-=dt;if(oenT<=0){const fri=B.filter(b=>!b.oen&&!b.sov&&!(busyB&&busyB.b===b));if(fri.length)nytOenske(fri[Math.floor(Math.random()*fri.length)]);oenT=20+Math.random()*20}}}
       for(const b of B){const s=b.s,U=b.U;b.glad=Math.max(0,b.glad-dt*1.3);b.hum=Math.max(0,b.hum-dt);b.ro+=dt;
@@ -6312,7 +6312,7 @@ function himmel(){const W=innerWidth,H=innerHeight,el=document.createElement('di
   for(const[y0,ww]of[[BH*.3,.26],[BH*.5,.3],[BH*.7,.34]])for(let x=-W*.12;x<W*1.15;x+=W*.12)sky(s2,x+Math.random()*W*.04,y0+Math.random()*BH*.06,W*(ww+Math.random()*.08),1);
   /* en sidste række runde skyer forneden, så bæltet ikke har en lige underkant */for(let x=-W*.08;x<W*1.1;x+=W*.07)sky(s2,x,BH*.8+Math.random()*BH*.05,W*(.14+Math.random()*.06),1,false);
   const BT0=HH-BH*.55;/* bæltets top, målt fra himlens top; dets midte ligger over himlens udtoning */
-  const cvM=renderer.domElement,T=4.4,t0=performance.now();if(typeof LYD!=='undefined'&&LYD.sus)setTimeout(()=>LYD.sus(),700);
+  const cvM=renderer.domElement,T=4.4,t0=performance.now();/* ingen lyd, når kameraet suser ned mod byen (Kasper 25. nov.) */
   const e=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
   /* himlen og bæltet glider samme vej, bæltet bare så meget længere, at det er ude af billedet, når himlen er det */
   const tik=()=>{const u=window.HIMMEL_U!=null?window.HIMMEL_U:Math.min(1,(performance.now()-t0)/1000/T),k=e(Math.max(0,(u-.18)/.82)),y=-k*HH;cv.style.transform=`translateY(${y}px)`;sk.style.transform=`translateY(${-k*HH*1.25}px)`;bt.style.transform=`translateY(${BT0+y-k*(BH*.95)}px)`;cvM.style.transform=`translateY(${(1-k)*H*.9}px)`;
@@ -6338,9 +6338,11 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
   fm.addEventListener('submit',e=>{e.preventDefault();SPIL.note(type,tx_.value);luk();toast(LOG.on?'Noten er gemt':'Noten kan ikke gemmes her')})}
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik(OMRSANG.byen)},{once:true});
+/* de lyde, der bruges overalt, hentes ved første tryk, så de er klar første gang (ellers kommer pladsholderen) */
+addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk'])}catch(_){}},{once:true});
 /* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
 {let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;if(e.hvad==='sidste')s.adv2=0;continue}
-      if(e.hvad==='mistet'){LYD.oev();toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.pip();toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.pip();toast(`${navn} kalder på dig i Ungestalden!`)}}
+      if(e.hvad==='mistet'){LYD.fil('unge.mistet',()=>LYD.oev());toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} kalder på dig i Ungestalden!`)}}
     if(sket.length||++n%10===0)SPIL.save();return sket};
   setInterval(()=>{const nu=performance.now(),dt=Math.min(2,(nu-sidst)/1000);sidst=nu;if(!document.hidden)SPIL.ungeUr(dt)},1000)}
 /* et lille hjerte blinker over Dyreparken på kortet, så længe en unge mangler noget, så man kan se det, selv om man missede beskeden (Kasper 23. nov.) */
