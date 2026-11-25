@@ -71,8 +71,8 @@ function toMap(){LOG.maerk('ud af rum');LOG.skaerm('by');delete document.body.da
   SPIL.pause=false;SPIL.rebake=false;if(window.__kortStr&&window.__kortStr()){bagHvorfor='ny størrelse, mens man var inde';bake()}
   requestAnimationFrame(()=>requestAnimationFrame(()=>{busy=false;doorEl.classList.add('gone')}))}
 /* skift: det nye rum erstatter det, man står i, så Tilbage ikke fører tilbage dertil (bogen → Garderoben) */
-function enter(id,{skift=false}={}){if(busy||!ROOMS[id])return;LYD.doer();busy=true;SPIL.pause=true;if(skift)stack.pop();stack.push(id);cover(`Går ind i ${RUM[id].navn} …`,()=>{closeRoom();openRoom(id)})}
-function back(){if(busy||!SPIL.room)return;LYD.doer();busy=true;stack.pop();const to=stack[stack.length-1],ny=!to&&hjemEl.classList.contains('faerdig');if(ny){SPIL.data.nyHeks=false;SPIL.save();LOG.row('heks faerdig',{})}
+function enter(id,{skift=false}={}){if(busy||!ROOMS[id])return;busy=true;SPIL.pause=true;if(skift)stack.pop();stack.push(id);cover(`Går ind i ${RUM[id].navn} …`,()=>{closeRoom();openRoom(id)})}
+function back(){if(busy||!SPIL.room)return;busy=true;stack.pop();const to=stack[stack.length-1],ny=!to&&hjemEl.classList.contains('faerdig');if(ny){SPIL.data.nyHeks=false;SPIL.save();LOG.row('heks faerdig',{})}
   cover(to?`Går ind i ${RUM[to].navn} …`:'Går ud i byen …',()=>{closeRoom();if(to)openRoom(to);else{if(ny)himmel();toMap()}})}
 /* fra himlen ned på byen: første gang man går ud i byen med sin nye heks, ser man op i nattehimlen med papskyer, og billedet panorerer ned, til byen ligger der.
    Byen er bagt som ét stort billede, så panoreringen laves med en himmel af pap foran og byen, der glider op nedefra */
