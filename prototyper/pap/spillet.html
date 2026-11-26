@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.52';
+const PAPVER='pap-0.53';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2737,6 +2737,8 @@ BUILD.push(()=>{const SIL='#170c18',EDGE='#5a3a6a';
 /* ---- scenen har dybde: trommerne står på en forhøjning bagerst, bassen på en lavere til højre, sang og guitar forrest ---- */
 /* trommesættet og DJ-pulten skifter med stilen (hiphop: Jægeren er DJ) */
 let KIT=null,DJ=null;
+/* bukket sættes, når scenen er bygget; ønskerne kalder det, når en sang er slut */
+let buk=()=>{};
 const MARK=[{x:-14,z:2.6,ex:-1},{x:3,z:3.6,ex:1},{x:-3,z:-7.8,ex:-1},{x:15.5,z:-4.2,ex:1}];
 const RIS=[{x0:-9.4,x1:3.4,z0:-11,z1:-4.2,h:2.6},{x0:9.6,x1:21.4,z0:-8,z1:-1.4,h:1.4}];
 const floorY=(x,z)=>{for(const r of RIS)if(x>r.x0&&x<r.x1&&z>r.z0&&z<r.z1+.4)return r.h;return 0};
@@ -2964,7 +2966,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
   const SLAG={};if(typeof KONCERT_SLAG!=='undefined')for(const k in KONCERT_SLAG){const v=KONCERT_SLAG[k],a=[v[0]];for(let i=1;i<v.length;i++)a.push(a[i-1]+v[i]/1000);SLAG[k]=a}
   /* lydens ur på Android tæller i store hop (Kasper 23. nov.: "de bevæger sig med noget a la 2 fps"), så bandet følger et jævnt ur, der går med billederne og hele tiden trækkes blidt mod lydens tid. Ved et stort spring (ny sang, eller sløjfen starter forfra) hopper det med */
   /* bukket efter en ønsket sang: bandet står stille et øjeblik, bukker mod publikum, og så går de ud (Kasper 23. nov.) */
-  let bukT=9;const buk=()=>{bukT=0};
+  let bukT=9;buk=()=>{bukT=0};
   /* Ulven hyler (AHUUU): sekunder i sangen, hvor han smider hovedet tilbage og strækker armen op */
   const HYL={'koncert.hiphop':[[.2,3.4],[191.1,192.5],[194.5,196.6]]};let hylH=0;
   const ur={id:null,t:0,dt:0};
