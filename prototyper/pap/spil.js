@@ -120,7 +120,7 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik(OMRSANG.byen)},{once:true});
 /* de lyde, der bruges overalt, hentes ved første tryk, så de er klar første gang (ellers kommer pladsholderen) */
-addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk'])}catch(_){}},{once:true});
+addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk','doer','valg','guld','op','ugle','bog.pling','trin.kort','trin.gang'])}catch(_){}},{once:true});
 /* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
 {let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;if(e.hvad==='sidste')s.adv2=0;continue}
       if(e.hvad==='mistet'){LYD.fil('unge.mistet',()=>LYD.oev());toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} kalder på dig i Ungestalden!`)}}

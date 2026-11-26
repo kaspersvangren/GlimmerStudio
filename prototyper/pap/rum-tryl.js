@@ -89,7 +89,7 @@ ROOMS.tryl=function(ctx){
   const bossStart=w=>{const nr=++S.bossNr,def=BOSSER[(nr-1)%BOSSER.length],cyk=Math.floor((nr-1)/BOSSER.length),G=new THREE.Group(),A=TRYLBOSS.byg(G,def.k);G.position.set(0,TOP+14,3);Rm.live.add(G);
     S.koe=[];S.tving=[];S.kort=null;S.spawnT=99;S.gaveT=Math.random()<.6?rnd(10,22):-1;
     S.boss={ui:{},def,nr,G,A,x:0,y:TOP+14,t:0,vt:0,fase:'ind',faseT:2.4,hp:def.hp+cyk,hpMax:def.hp+cyk,komboN:Math.min(5,def.kombo+cyk),flyv:Math.max(2.2,4.6-.3*(nr-1)),gab:Math.max(.8,2.1-.2*(nr-1)),plan:[],kastI:0,kastT:1.2,lad:0,kombo:[],komboI:0,saarT:0,saarMax:1,ramtT:0,pynt:0,snak:null,snakT:0,besejrT:0,glimt:0};
-    bossUI(S.boss);S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.boelge();tegnHud()};
+    bossUI(S.boss);S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.fil('tryl.boss',()=>LYD.boelge());tegnHud()};
   /* tegnene: forskellige på skud, der flyver samtidig, når det kan lade sig gøre */
   const nytTegn=()=>{const brugt=new Set(S.skud.map(k=>k.sym)),pulje=S.cfg.tegn.filter(t=>!brugt.has(t));return vaelg(pulje.length?pulje:S.cfg.tegn)};
   const nytSkud=o=>{const G=new THREE.Group();G.add(SKT[o.k].clone(true));o.G=G;o.adv=STJ.adv.clone(true);o.adv.visible=false;o.adv.position.z=-.3;G.add(o.adv);o.sk=SKI[o.sym].clone(true);o.sk.position.z=1.2;G.add(o.sk);G.visible=false;G.position.set(o.x0,o.y0,7+S.skud.length%4*.3);Rm.live.add(G);S.skud.push(o);return o};

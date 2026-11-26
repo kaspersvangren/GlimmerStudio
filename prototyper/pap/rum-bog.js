@@ -221,7 +221,7 @@ ROOMS.bog=function(ctx){
     /* bladet drejer om ryggen. Frem: den nye pop-up sidder på bladets bagside og folder sig op, mens bladet lægger sig. Tilbage: den gamle sidder på bladet og folder sig ned */
     if(d>0){blad=bygBlad(sideTex(i,'r'),sideTex(ny,'l'),1);saetSide(sideH,sideTex(ny,'r'));popNy=bygPop(SIDER[ny].art,blad);if(!popNy.v){popNy.G.position.set(PW/2+.4,-.05,GZ);popNy.G.rotation.z=Math.PI}}
     else{blad=bygBlad(sideTex(i,'l'),sideTex(ny,'r'),-1);saetSide(sideV,sideTex(ny,'l'));if(!pop.v){blad.add(pop.G);pop.G.position.set(-PW/2-.4,.05,GZ)}popNy=bygPop(SIDER[ny].art,venstre)}
-    LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,d,ny,trin:'vend'}}
+    fase={t:0,d,ny,trin:'vend'}}
   function bygBlad(fraT,tilT,d){/* bladet: forside = siden, der vendes, bagside = den nye side på den anden side; det drejer om ryggen */
     const g=new THREE.Group();g.position.set(0,PY+.35,0);bog.add(g);const f=sidePlan(fraT,(d>0?1:-1)*(PW/2+.4));f.position.y=0;g.add(f);const b=sidePlan(tilT,(d>0?1:-1)*(PW/2+.4));b.position.y=-.02;b.rotation.order='ZYX';b.rotation.set(-Math.PI/2,0,Math.PI);g.add(b);f.castShadow=b.castShadow=true;f.userData.noShadow=b.userData.noShadow=false;return g}
   function tickFase(dt){if(!fase)return;fase.t+=dt;const F=fase;
@@ -240,11 +240,11 @@ ROOMS.bog=function(ctx){
   /* tryk på den lukkede bog åbner den. Trykket fjernes igen, når den er åben, ellers tog det trykket fra brevet efter "Læs igen" (Kasper 23. nov.) */
   function bogTap(){Rm.untap(bog);Rm.tap(bog,()=>{if(!aaben&&!lukket)aabn()})}
   function lukketStart(x0){vPlace(-Math.PI,1);if(Rm.taps)bogTap();bog.position.x=x0;aaben=false;if(pop){pop.op=0;if(pop.v)stilV(pop,[1,1e-3],[1,0])}}
-  function aabn(){if(travl||aaben||lukket)return;Rm.untap(bog);travl=true;pile();LYD.fil('bog.aabn',()=>LYD.pust());LYD.fil('bog.pop',()=>LYD.plop(),.4);fase={t:0,trin:'aabn',x0:bog.position.x}}
+  function aabn(){if(travl||aaben||lukket)return;Rm.untap(bog);travl=true;pile();LYD.fil('bog.aabn',()=>LYD.pust());fase={t:0,trin:'aabn',x0:bog.position.x}}
   function luk(){travl=true;lukket=true;pile();fase={t:0,trin:'lukvend'};LYD.fil('bog.luk',()=>LYD.pust())}
   function tickLuk(dt){if(!fase||!lukket)return false;const F=fase;F.t+=dt;
     if(F.trin==='lukvend'){const u=Math.min(1,F.t/1.3),e=ease(u);vPlace(-e*Math.PI,e);bog.position.x=e*(BX-(PW/2+.8));if(pop){pop.op=1-clamp(e/.8,0,1);if(pop.v)stilV(pop,[-Math.cos(e*Math.PI),Math.sin(e*Math.PI)],[1,0])}
-      if(u>=1){fjern(pop);pop=null;LYD.dunk();F.trin='titel';F.t=0;startTitel()}}
+      if(u>=1){fjern(pop);pop=null;LYD.dunk();F.trin='titel';F.t=0;startTitel();/* én magisk lyd for hele titlen: den topper, når bogstaverne lander (Kasper 26. nov.) */setTimeout(()=>{if(ctx.alive)LYD.fil('bog.pling')},900)}}
     else if(F.trin==='titel'){if(tickTitel(dt)){F.trin='glans';F.t=0;LYD.guld();const top=LUKY+.95;F.glow=[Rm.glow(BX,top+1.5,-3.2,'rgba(255,224,140,.9)',22),Rm.glow(BX,top+1.5,4.6,'rgba(255,224,140,.9)',22)];for(const g of F.glow){g.s.material.depthTest=false;g.s.renderOrder=5}for(const q of bogst)Rm.burst(q.m.position.x,q.m.position.y,q.m.position.z,3,'rgba(255,236,170,.95)',1.6)}}
     else if(F.trin==='glans'){if(F.glow)for(const g of F.glow)g.s.material.opacity=Math.max(0,1-F.t/1.4);if(F.t>1.2&&!F.vist){F.vist=true;efter.hidden=false;requestAnimationFrame(()=>efter.classList.add('on'))}}
     return true}
@@ -258,7 +258,7 @@ ROOMS.bog=function(ctx){
   function tickTitel(dt){let faerdig=true;for(const q of bogst){q.t+=dt;if(q.t<0){faerdig=false;continue}q.m.visible=true;const u=Math.min(1,q.t/1.6),e=1-Math.pow(1-u,3),sw=(1-e)*14,a=q.a0+e*Math.PI*3;
       const p=q.start.clone().lerp(q.slut,e);p.x+=Math.cos(a)*sw;p.z+=Math.sin(a)*sw*.7;p.y+=Math.sin(u*Math.PI)*6*(1-u);if(u>=1){const b=Math.max(0,1-(q.t-1.6)/.35);p.y+=Math.sin(b*Math.PI)*.8*b}
       q.m.position.copy(p);q.m.rotation.set(-Math.PI/2,0,u<1?(1-e)*q.spin*TAU*.4:0);const sk=.6+.4*e;q.m.scale.setScalar(sk);
-      if(u<1){faerdig=false;stoevUd(p,2)}else if(!q.landet){q.landet=true;Rm.burst(p.x,p.y,p.z,8,'rgba(255,230,150,.95)',2.2);LYD.fil('bog.pling',()=>LYD.ding(),.25,R(1.1,1.4))}
+      if(u<1){faerdig=false;stoevUd(p,2)}else if(!q.landet){q.landet=true;Rm.burst(p.x,p.y,p.z,8,'rgba(255,230,150,.95)',2.2)}
       if(q.t<2)faerdig=false}
     for(const s of stoev){if(!s.m.visible)continue;s.t+=dt;if(s.t>=s.liv){s.m.visible=false;continue}s.m.position.addScaledVector(s.v,dt);s.m.scale.setScalar(1-s.t/s.liv);s.m.rotation.z+=dt*4}
     return faerdig}

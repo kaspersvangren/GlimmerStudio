@@ -23,7 +23,7 @@ ROOMS.dyrekoekken=function(ctx){
     if(o.finish){g.save();g.translate(W/2-52,118);g.fillStyle='#3a2a58';g.beginPath();g.arc(0,0,30,0,TAU);g.fill();tegnFinish(g,o.finish,19);g.restore();g.fillStyle='#3a2a58';g.textAlign='left';g.textBaseline='middle';g.font='700 28px "Alegreya Sans",sans-serif';g.fillText(FINISH[o.finish].navn,W/2-14,120,W/2)}
     a.bt.needsUpdate=true};
   /* ---- spillets gang ---- */
-  const begynd=()=>{on=true;over=false;left=TID;fodret=0;point=0;nextT=.4;skaal={ing:[],finish:null};tegnSkaal();tegnHud();LYD.boelge()};
+  const begynd=()=>{on=true;over=false;left=TID;fodret=0;point=0;nextT=.4;skaal={ing:[],finish:null};tegnSkaal();tegnHud();LYD.fil('dyr.runde',()=>LYD.boelge())};
   const kom=nr=>{const i=[0,1,2].filter(k=>!SLOT[k]),fri=POOL.filter(a=>a.st==='hvile');if(!i.length||!fri.length)return;const slot=i[Math.floor(Math.random()*i.length)],a=typeof nr==='number'&&POOL[nr].st==='hvile'?POOL[nr]:fri[Math.floor(Math.random()*fri.length)];SLOT[slot]=a;a.slot=slot;a.st='ind';a.ordre=nyOrdre();a.tid=a.tid0=a.ordre.tid;a.fra=slot===2?1:slot===0?-1:(Math.random()<.5?-1:1);a.x=a.fra*66;a.tx=SX[slot]-6;a.K.G.visible=true;a.glad=0};
   const gaa=(a,glad)=>{a.st='ud';a.glad=glad?1:0;a.tx=(a.x>0?1:-1)*68;a.bm.visible=false;a.bar.visible=a.barB.visible=false;SLOT[a.slot]=null;lyser[a.slot]=false;nextT=Math.min(nextT,1+Math.random()*1.5)};
   const server=a=>{if(!on||!a||a.st!=='venter')return;if(!skaal.ing.length){ctx.say('Skålen er tom. Tryk på kasserne for at fylde den.');return}

@@ -32,7 +32,7 @@ ROOMS.gang=function(ctx){
           const hitbox=new THREE.Mesh(new THREE.PlaneGeometry(DW+3,DH+12),new THREE.MeshBasicMaterial({visible:false}));hitbox.position.set(f.x,(DH+12)/2,-8);g.add(hitbox);Rm.tap(hitbox,()=>{if(!opening){W0.tx=f.x;W0.want=f}})}},
       ()=>{heks=makeFigure(Object.assign({},ctx.look));heks.G.scale.setScalar(.8);heks.G.position.set(0,.35,5.4);Rm.live.add(heks.G);W0.sh=Rm.blob(0,5.4,13,5);
         kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.5);kat.G.position.set(-8,.35,7.5);Rm.live.add(kat.G);ctx.say('Tryk på en dør, så går heksen derhen')}],
-    tick:(t,dt)=>{const d=W0.tx-W0.x,mv=Math.abs(d)>.3&&!opening;if(mv){const st=Math.sign(d)*Math.min(Math.abs(d),24*dt);W0.x+=st;W0.face=Math.sign(d);W0.ph+=Math.abs(st)/3.4*Math.PI}
+    tick:(t,dt)=>{const d=W0.tx-W0.x,mv=Math.abs(d)>.3&&!opening;if(mv){const st=Math.sign(d)*Math.min(Math.abs(d),24*dt);W0.x+=st;W0.face=Math.sign(d);W0.ph+=Math.abs(st)/3.4*Math.PI;/* fodtrin på hvert andet skridt, for hun går hurtigt (Kasper 26. nov.) */const s2=Math.floor(W0.ph/(2*Math.PI));if(W0.s2!==undefined&&s2!==W0.s2)LYD.fil('trin.gang',null,.8);W0.s2=s2}
       W0.amp+=((mv?1:0)-W0.amp)*Math.min(1,dt*8);heks.G.position.x=W0.x;heks.G.scale.x=.8*W0.face;heks.G.position.y=.35+Math.abs(Math.sin(W0.ph))*.5*W0.amp;heks.tick(t,{ph:W0.ph,amp:W0.amp});W0.sh.position.x=W0.x;
       const kx=W0.x-W0.face*8,kd=kx-kat.G.position.x,km=Math.abs(kd)>.6;if(km&&(!kat.hopper||kat.luft))kat.G.position.x+=Math.sign(kd)*Math.min(Math.abs(kd),26*(kat.hopper?1.7:1)*dt);kat.G.scale.x=.5*(km?Math.sign(kd):W0.face);kat.tick(t,{ph:t*13,amp:km?1:0});
       if(W0.want&&!mv&&!opening){const f=W0.want;W0.want=null;if(f.rum&&ROOMS[f.rum]){opening={f,t:0}}else ctx.say(`${f.navn} åbner snart`)}
