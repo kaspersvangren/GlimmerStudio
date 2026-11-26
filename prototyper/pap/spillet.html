@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.51';
+const PAPVER='pap-0.52';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2966,7 +2966,7 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
   /* bukket efter en ønsket sang: bandet står stille et øjeblik, bukker mod publikum, og så går de ud (Kasper 23. nov.) */
   let bukT=9;const buk=()=>{bukT=0};
   /* Ulven hyler (AHUUU): sekunder i sangen, hvor han smider hovedet tilbage og strækker armen op */
-  const HYL={'koncert.hiphop':[[.2,3.4]]};let hylH=0;
+  const HYL={'koncert.hiphop':[[.2,3.4],[191.1,192.5],[194.5,196.6]]};let hylH=0;
   const ur={id:null,t:0,dt:0};
   const slagFase=()=>{const L_=typeof LYD!=='undefined'?LYD:null,m0=L_&&L_.musikTid&&L_.musikTid();if(!m0||!m0.id){ur.id=null;return null}
     const lat=L_.forsinkelse?L_.forsinkelse():0,mt=m0.t-lat;if(ur.id!==m0.id||Math.abs(mt-ur.t)>.35){ur.id=m0.id;ur.t=mt}else{ur.t+=ur.dt;ur.t+=(mt-ur.t)*Math.min(1,ur.dt*1.5)}const m={id:m0.id,t:ur.t};const key=m.id.replace('koncert.','').replace(/^lounge(\d)$/,'lounge-$1'),a=SLAG[key];
