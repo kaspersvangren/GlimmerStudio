@@ -101,7 +101,7 @@ ROOMS.kost=function(ctx){
     if(maal){for(let i=0;i<22;i++){const y=-21+i*2;P2(g,box(-.9,y,.9,y+2),{color:i%2?'#ffffff':'#2a2340',kind:'card',t:.1},.3)}for(const L of LANES)for(let i=0;i<14;i++){const y=(-21+i*3)*L.kk+L.dd;P2(g,box(-.9,y,.9,y+1.5),{color:i%2?'#ffffff':'#2a2340',kind:'card',t:.1},L.z+.3)}}}
   /* ---------- flyvningen ---------- */
   function begynd(){if(!S||S.run!=='kort')return;ban.skjul();S.run='count';S.ct=0;S.cn=-1}
-  function flap(){if(!S||S.run!=='fly'||S.loop||S.boost>0)return;S.vy=FLAP;LYD.fil('kost.flap',()=>LYD.sus(),.3,R(1,1.2))}
+  function flap(){if(!S||S.run!=='fly'||S.loop||S.boost>0)return;S.vy=FLAP;LYD.fil('kost.flap',()=>LYD.sus(),.55,R(.95,1.1))}
   const pairAt=f=>S.course.rings.find(r=>r.dbl==='lo'&&!f.seen.has(r.pair)&&r.x-f.x<180&&r.x-f.x>-230&&Math.abs(r.y-f.y)<170);
   function startLoop(f){if(f.loop||f.boost>0)return false;const hit=pairAt(f)||null;
     f.loop=hit?{x0:hit.x,y0:hit.y,sx:f.x,sy:f.y,t:0,cam:hit.x-PX,hit,px:f.x}:{x0:f.x,y0:f.y,sx:f.x,sy:f.y,t:0,cam:f.x-PX,hit:null,px:f.x-.01};
@@ -109,7 +109,7 @@ ROOMS.kost=function(ctx){
   function tryLoop(){if(!S||S.run!=='fly')return;if(startLoop(S)){S.vy=0;if(S.loop.hit)LYD.guld();else LYD.op();ptW.pop(X(S.x)+2,Y(S.y)+7,3,'Loop!',{col:'#c79bff',h:2.8})}}
   function passRing(f,r){if(f.seen.has(r))return;f.seen.add(r);f.passN=(f.passN||0)+1;if(f.boost<=0)f.v=Math.min(V0*1.38,f.v+55);
     if(f!==S){const el=f.els&&f.els.get(r);if(el)el.userData.puls=1;return}
-    S.rings++;S.streak++;r.g.userData.puls=1;LYD.fil('kost.ring',()=>LYD.ding(),.45,1+Math.min(S.streak,8)*.04);Rm.burst(X(r.x),Y(r.y),1.5,8,r.dbl?'rgba(220,190,255,.95)':'rgba(255,236,170,.95)',3);tv.saet(0,S.rings);
+    S.rings++;S.streak++;r.g.userData.puls=1;LYD.fil('kost.ring',()=>LYD.ding(),.7,1+Math.min(S.streak,8)*.04);Rm.burst(X(r.x),Y(r.y),1.5,8,r.dbl?'rgba(220,190,255,.95)':'rgba(255,236,170,.95)',3);tv.saet(0,S.rings);
     if(S.streak>=3&&S.streak%3===0)ptW.pop(X(r.x)+3,Y(r.y)+8,3,S.streak+' i træk!',{col:'#ffb020',h:2.6})}
   function missRing(f,r,d){f.seen.add(r);if(d<140){f.v=Math.max(V0*.8,f.v-60);if(f===S){S.vy=S.y<r.y?-260:260;LYD.dunk()}}if(f===S)S.streak=0}
   function moveLoop(f,dt){const L=f.loop;L.t+=dt/LOOP_T;const t=Math.min(1,L.t),a=Math.PI/2-2*Math.PI*t,c=Math.cos(a),sn=Math.sin(a),u=Math.min(1,t/.38),b=u*u*(3-2*u);
@@ -121,7 +121,7 @@ ROOMS.kost=function(ctx){
   function moveBoost(f,dt){const x0=f.x;f.x+=f.v*dt;const nr=S.course.rings.find(r=>!f.seen.has(r)&&r.x>x0&&!r.dbl);if(!nr){f.boost=0;return}
     f.y+=(nr.y-f.y)*Math.min(1,dt*6);f.vy=0;f.ang=0;if(x0<nr.x&&f.x>=nr.x){passRing(f,nr);f.boost--;f.bN=(f.bN||0)+1;if(f.boost<=0)f.v=V0*1.5}}
   function crossRings(f,x0){for(const r of S.course.rings){if(f.seen.has(r)||!(x0<r.x&&f.x>=r.x))continue;const d=Math.abs(f.y-r.y);if(d<100)passRing(f,r);else if(!r.dbl)missRing(f,r,d)}}
-  function step(dt){if(S.run==='count'){S.ct+=dt;const n=Math.floor(S.ct/.7);if(n!==S.cn&&n<4){S.cn=n;const t=['3','2','1','Afsted!'][n];ptH.pop(0,4,8,t,{col:n<3?'#ffd24a':'#ff4fa0',h:n<3?9:7,tilt:0});n<3?LYD.fil('kost.tael',()=>LYD.pip()):LYD.op()}if(S.ct>=2.8){S.run='fly';S.t=0}return}
+  function step(dt){if(S.run==='count'){S.ct+=dt;const n=Math.floor(S.ct/.7);if(n!==S.cn&&n<4){S.cn=n;const t=['3','2','1','Afsted!'][n];ptH.pop(0,4,8,t,{col:n<3?'#ffd24a':'#ff4fa0',h:n<3?9:7,tilt:0});n<3?LYD.fil('kost.tael',()=>LYD.pip()):LYD.fil('kost.start',()=>LYD.op())}if(S.ct>=2.8){S.run='fly';S.t=0}return}
     if(S.run==='fly'||S.run==='done')S.t+=dt;
     for(const rv of S.rivals)if(S.run==='fly'||S.run==='done')rivalStep(rv,dt);
     if(S.run!=='fly'&&S.run!=='done')return;
@@ -186,7 +186,7 @@ ROOMS.kost=function(ctx){
       if(e.k==='bat'){e.g.position.set(mix(e.x0,e.x1,u),e.y+Math.sin(e.t*6)*1.5,0);const f=Math.sin(e.t*22);e.vg.forEach((v,i)=>{v.scale.y=.3+.7*Math.abs(f);v.rotation.z=(i?-1:1)*.2*f})}
       if(e.k==='skud'){e.g.position.set(e.x-u*60,e.y-u*20,0);e.g.rotation.z=1.25;e.g.scale.setScalar(Math.sin(u*Math.PI))}
       if(e.k==='lanterne'){e.g.position.set(e.x+Math.sin(e.t*.8)*4,mix(-hh,hh*1.1,u),0);e.g.rotation.z=Math.sin(e.t*1.3)*.12}
-      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.puf()}
+      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.fil('kost.fyr',()=>LYD.puf())}
         const k=(u-.35)/.65;e.gn.forEach((m,i)=>{const a=i/16*TAU,d=4+14*Math.sqrt(k);m.position.set(Math.cos(a)*d,Math.sin(a)*d-8*k*k,.1);m.scale.setScalar(1.2*(1-k))})}}}}
   /* ---------- styring ---------- */
   const el=renderer.domElement;let holdT=0;

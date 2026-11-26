@@ -206,7 +206,7 @@ ROOMS.fald=function(ctx){
     for(const o of S.objs){const z0=o.z;o.z-=dt/TA;
       if(z0>0&&o.z<=0){if(o.ring){rod.remove(o.ring);o.ring=null}if(o.first)pil.visible=false;
         if(o.kind==='bub'&&Math.hypot(o.x-S.hx,o.y-S.hy)<130){o.got=true;const v=o.gold?3:1;S.bubbles+=v;LYD.fil('boble.saml',()=>LYD.plop());if(o.gold)LYD.guld();Rm.burst(WX(o.x),WY(o.y),2,10,o.gold?'rgba(255,200,60,.95)':'rgba(255,236,170,.95)',3);pt.pop(WX(o.x),WY(o.y)+3,6,'+'+v,{col:o.gold?'#ffb020':'#ffd86b',h:3.4});tv.saet(1,S.bubbles);rod.remove(o.el);o.dead=true}
-        if(o.kind==='cloud'&&Math.hypot(o.x-S.hx,o.y-S.hy)<300*o.k){S.puf=1;LYD.puf()}
+        if(o.kind==='cloud'&&Math.hypot(o.x-S.hx,o.y-S.hy)<300*o.k){S.puf=1;LYD.fil('fald.sky',()=>LYD.puf())}
         if(o.kind==='storm'&&Math.hypot(o.x-S.hx,o.y-S.hy)<170)zap(o)}
       if(o.z<-.16){rod.remove(o.el);if(o.ring)rod.remove(o.ring);o.dead=true}}
     S.objs=S.objs.filter(o=>!o.dead);
@@ -224,7 +224,7 @@ ROOMS.fald=function(ctx){
     for(const m of S.motes){const vis=m.z<=1&&m.z>-.1;m.m.visible=vis;if(vis)m.m.position.set(m.x,m.y,-ZS*m.z)}
     tv.saet(0,Math.round((ALT0-(ALT0-ALT1)*f)/50)*50)}
   /* ---------- skærmen folder sig ud ---------- */
-  function openStart(){for(const o of S.objs){rod.remove(o.el);if(o.ring)rod.remove(o.ring)}S.objs=[];for(const m of S.motes)m.m.visible=false;pil.visible=false;LYD.puf();setTimeout(()=>{if(S&&ctx.alive)LYD.op()},400);S.ox=S.hx;S.oy=S.hy;S.op0=S.ppm;skaerm.visible=true}
+  function openStart(){for(const o of S.objs){rod.remove(o.el);if(o.ring)rod.remove(o.ring)}S.objs=[];for(const m of S.motes)m.m.visible=false;pil.visible=false;LYD.fil('fald.skaerm',()=>LYD.puf());setTimeout(()=>{if(S&&ctx.alive)LYD.op()},400);S.ox=S.hx;S.oy=S.hy;S.op0=S.ppm;skaerm.visible=true}
   function stepOpen(dt){S.t+=dt;if(S.t>=OPEN_T){S.run='canopy';S.t=0;haandVis(true);if(S.wind.s)vindPil.visible=true;skygge.visible=true;
     ban.vis('Styr mod målet!',{portraet:'sky',txt2:'Træk et håndtag ned for at dreje. Begge ned bremser',sek:4,col:'#7a3fa2',y:16})}}
   function drawOpen(){const u=clamp(S.t/OPEN_T,0,1),e=ease(u),back=1+Math.sin(u*Math.PI)*.12;groundAt(S.op0+(ppmAt(H0)-S.op0)*e,S.x,S.y);S.haze=.35*(1-e);

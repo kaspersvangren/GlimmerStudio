@@ -66,7 +66,7 @@ ROOMS.boblepop=function(ctx){
   const trim=()=>{while(G.grid.length&&G.grid[G.grid.length-1].every(b=>!b))G.grid.pop()};
   const land=()=>{const s=G.skud,b=s.b,[x,y]=s.pts[s.pts.length-1],pl=plads(x,y);G.skud=null;if(!pl){Rm.live.remove(b.m);G.cur=lad();G.fase='sigt';visKoe();return}const[r,c]=pl;let sprang=0,faldt=0;
     if(b.sp==='bombe'||b.sp==='lyn'){const px=cx(r,c),py=cy(r),rk=(n=>n(r)>=n(r-1)?r:r-1)(q=>alle().filter(b=>b.r===q).length),ofre=alle().filter(q=>b.sp==='bombe'?Math.hypot(q.tx-px,q.ty-py)<D*2.7:q.r===rk);ofre.sort((a,q)=>Math.hypot(a.tx-px,a.ty-py)-Math.hypot(q.tx-px,q.ty-py)).forEach((q,i)=>fjern(q,'pop',i*.4));sprang=ofre.length;Rm.live.remove(b.m);
-      Rm.burst(px,py,4,16,'rgba(255,236,170,.95)',b.sp==='bombe'?6:14);if(b.sp==='bombe')LYD.ild();else LYD.hak();G.ryst=.3;tekst(px,py+2,b.sp==='bombe'?'BUM!':'ZAP!',KFARVE[b.sp],54)}
+      Rm.burst(px,py,4,16,'rgba(255,236,170,.95)',b.sp==='bombe'?6:14);if(b.sp==='bombe')LYD.fil('boblepop.bombe',()=>LYD.ild());else LYD.fil('boblepop.special',()=>LYD.hak());G.ryst=.3;tekst(px,py+2,b.sp==='bombe'?'BUM!':'ZAP!',KFARVE[b.sp],54)}
     else{if(b.sp==='regnbue'){/* regnbuen tager den farve, der giver den største klynge */let bedst=null,bn=0;for(const t of new Set(naboer(r,c).map(([a,q])=>celle(a,q)).filter(Boolean).map(q=>q.t))){saet(b,r,c);b.t=t;const n=klynge(r,c,t).length;G.grid[r][c]=null;if(n>bn){bn=n;bedst=t}}b.t=bedst==null?vaelg(paaBraet().length?paaBraet():[0]):bedst;b.sp=null;skift(b)}
       saet(b,r,c,true);b.dunk=.18;const kl=klynge(r,c,b.t);if(kl.length>=3){kl.map(([a,q])=>celle(a,q)).sort((a,q)=>Math.hypot(a.tx-b.tx,a.ty-b.ty)-Math.hypot(q.tx-b.tx,q.ty-b.ty)).forEach((q,i)=>fjern(q,'pop',i));sprang=kl.length}}
     if(sprang){const ls=loese();ls.forEach((q,i)=>fjern(q,'fald',i));faldt=ls.length;const p=10*sprang+(sprang>3?(sprang-3)*10:0)+20*faldt;G.score+=p;hopH=1;tekst(cx(r,c),cy(r)+1.5,'+'+p,'#fff6d0',faldt?46:36);if(faldt>=3)tekst(cx(r,c),cy(r)+4,faldt>=8?'Kæmpe fald!':faldt>=5?'Flot fald!':'Fald!','#ffe27a',50);if(faldt)LYD.fil('bobler.falder',()=>LYD.opBip())}
@@ -157,7 +157,7 @@ ROOMS.boblepop=function(ctx){
       /* boblerne glider på plads */
       for(const b of alle()){const m=b.m;m.position.x+=(b.tx+rx-m.position.x)*Math.min(1,dt*16);m.position.y+=(b.ty-m.position.y)*Math.min(1,dt*(G.fase==='sigt'&&G.vent<=0?16:9));if(b.dunk>0){b.dunk-=dt;m.scale.setScalar(1+Math.sin(b.dunk/.18*Math.PI)*.14)}else m.scale.setScalar(1);if(b.graa)m.rotation.z=Math.sin(t*20+b.c)*.06}
       /* dem, der springer eller falder */
-      for(const b of G.doede){if(b.pop!=null){b.pop-=dt;if(b.pop<=0){const k=-b.pop/.14;if(!b.puf){b.puf=true;LYD.fil('boble.pop',()=>LYD.pop(),.7,rnd(.9,1.25));Rm.burst(b.tx,b.ty,2,5,'rgba(255,246,208,.95)',1.6);hopK=Math.max(hopK,.6)}b.m.scale.setScalar(Math.max(0,k<.45?1+k*.9:1.4*(1-(k-.45)/.55)));if(k>=1)b.vaek=true}}
+      for(const b of G.doede){if(b.pop!=null){b.pop-=dt;if(b.pop<=0){const k=-b.pop/.14;if(!b.puf){b.puf=true;LYD.fil('boblepop.pop',()=>LYD.pop(),.7,rnd(.9,1.25));Rm.burst(b.tx,b.ty,2,5,'rgba(255,246,208,.95)',1.6);hopK=Math.max(hopK,.6)}b.m.scale.setScalar(Math.max(0,k<.45?1+k*.9:1.4*(1-(k-.45)/.55)));if(k>=1)b.vaek=true}}
         else{const f=b.fald;f.t+=dt;if(f.t>0){f.vy-=42*dt;b.m.position.x+=f.vx*dt;b.m.position.y+=f.vy*dt;b.m.position.z=4;b.m.rotation.z+=f.vx*.3*dt;if(b.m.position.y<-6)b.vaek=true}}if(b.vaek)Rm.live.remove(b.m)}
       G.doede=G.doede.filter(b=>!b.vaek);
       /* kræfterne falder ned til kanonen */

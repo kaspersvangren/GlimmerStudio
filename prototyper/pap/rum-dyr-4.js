@@ -60,7 +60,7 @@ ROOMS.ungestald=function(ctx){
   function mad(b,id){if(busyB||b.sov)return;const godbid=id==='godbid',liv=godbid||id===b.D.livret;if(godbid){if(!(SPIL.data.godbid>0))return;SPIL.data.godbid--;visKnap()}
     if(ramt(b,'mad')&&liv)b.oen.ok=true;busyB={b,slags:'mad',t:0,godbid,liv,id};if(!FM[id])FM[id]=godbid?maerke(128,T.godbid):foderMaerke(id,128);flaske.material.map=FM[id];flaske.visible=true;b.U.set({mund:'gab'})}
   const leg=b=>{if(busyB||sover(b))return;if(ramt(b,'leg'))b.oen.ok=true;busyB={b,slags:'leg',t:0};bold.visible=true;b.hopN=3;LYD.fil('unge.bold',()=>LYD.pip())};
-  const klap=b=>{if(sover(b))return;LYD.kys();b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.06);b.ro=0};
+  const klap=b=>{if(sover(b))return;LYD.fil('unge.kael',()=>LYD.kys());b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.06);b.ro=0};
   /* man kan kun give ungerne det, de selv beder om i tankeboblen; ellers er det for let at fylde dem helt op (Kasper 23. nov.). Godbidder må man altid give */
   let nejT=0;const NEJ={mad:'er ikke sulten lige nu',vask:'vil ikke vaskes lige nu',leg:'vil ikke lege lige nu',kael:'vil ikke kæles lige nu'};
   const maa=(b,k)=>{if(ramt(b,k))return true;const nu_=performance.now();if(nu_-nejT>3500){nejT=nu_;ctx.say(b.oen?`${b.D.navn} ${NEJ[k]}. Se i tankeboblen, hvad den ønsker sig.`:`${b.D.navn} ${NEJ[k]}. Vent, til den beder om noget.`)}b.glad=0;return false};
@@ -69,7 +69,7 @@ ROOMS.ungestald=function(ctx){
   /* et strøg (kæl) eller et gnid (vask) har flyttet fingeren d hen over ungen med farten v (enheder i sekundet) */
   const stroeg=(b,p,d,v)=>{b.dist+=d;b.ro=0;
     if(tool==='kael'){if(b.D.langsom&&v>30){/* Uhu vil kæles langsomt */b.dist=0;humoer(b,'sur',.9);b.glad=0;if(!sagtLangsom){sagtLangsom=true;ctx.say(`${b.D.navn} vil kæles langsomt. Stryg helt roligt.`)}return}
-      b.glad=Math.max(b.glad,1);if(b.dist>5){b.dist=0;fyld(b,'g',.05);hjerte(p.x,p.y+2);if(Math.random()<.35)LYD.kys();if(ramt(b,'kael')&&++b.oen.n>=4)opfyldt(b)}}
+      b.glad=Math.max(b.glad,1);if(b.dist>5){b.dist=0;fyld(b,'g',.05);hjerte(p.x,p.y+2);if(Math.random()<.35)LYD.fil('unge.kael',()=>LYD.kys());if(ramt(b,'kael')&&++b.oen.n>=4)opfyldt(b)}}
     else{const f=b.D.vask||1;if(f<1)humoer(b,'sur',.6);else if(f>1)b.glad=Math.max(b.glad,.8);if(b.dist>4){b.dist=0;fyld(b,'r',.06*f);if(f>1)fyld(b,'g',.02);boble(p.x,p.y);if(Math.random()<.3)LYD.vask();if(b.s.r>=.995)Rm.burst(b.x,BY+9,8,10,'rgba(200,240,255,.95)',7);if(ramt(b,'vask')&&++b.oen.n>=Math.round(4/f))opfyldt(b)}}};
   const Rm=makeRoom(ctx,{bg:'#140e0a',fit:fitBox(88,50,0,20.5),sky:'#ffe2b8',ground:'#4a3020',amb:.55,key:{col:'#ffe6c4',i:1.9,tgt:[0,14,0]},
     drag:(ph,e,Rm)=>{if(tool!=='kael'&&tool!=='vask'){sidst=null;return}const p=Rm.planeAt(e,3),nu_=performance.now();if(ph==='end'||!p){sidst=null;svamp.visible=false;return}const b=ungeVed(p);if(tool==='vask'){svamp.visible=true;svamp.position.set(p.x,p.y,7)}
@@ -110,7 +110,7 @@ ROOMS.ungestald=function(ctx){
       for(const b of B){const s=b.s,U=b.U;b.glad=Math.max(0,b.glad-dt*1.3);b.hum=Math.max(0,b.hum-dt);b.ro+=dt;
         if(b.oen){const o=b.oen;if(!o.ok){o.t+=dt;if(o.t>=o.T){b.oen=null;tegnTanke(b);humoer(b,'ked',1.8);fyld(b,'g',-.08);LYD.dunk()}}if(b.oen&&Math.floor(t*6)!==Math.floor((t-dt)*6))tegnTanke(b)}
         /* falder i søvn, når alt er godt, og man har ladet den være lidt; vågner igen, når den mangler noget */
-        if(!b.sov&&!b.oen&&s.m>.9&&s.r>.9&&s.g>.9&&b.ro>2.6&&!(busyB&&busyB.b===b)){b.sov=true;U.set({oje:'sover',mund:'smil',bryn:null});zzz[b.i].visible=true;LYD.snor()}
+        if(!b.sov&&!b.oen&&s.m>.9&&s.r>.9&&s.g>.9&&b.ro>2.6&&!(busyB&&busyB.b===b)){b.sov=true;U.set({oje:'sover',mund:'smil',bryn:null});zzz[b.i].visible=true;LYD.fil('unge.sove',()=>LYD.snor())}
         if(b.sov&&(s.m<.55||s.g<.55||s.r<.55))vaagn(b);
         if(!b.sov){const ked=b.hum>0||Math.min(s.m,s.r,s.g)<.12;U.set({oje:b.glad>.25&&!ked?'glad':'aaben',bryn:b.hum>0?b.humS:ked?'ked':null})}
         if(b.hopN>0){b.hop+=dt*2.6;if(b.hop>=1){b.hop=0;b.hopN--;if(b.hopN>0&&busyB&&busyB.b===b)LYD.fil('unge.bold',()=>LYD.pip())}}
