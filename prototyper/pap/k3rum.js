@@ -52,5 +52,5 @@ function makeRoom(ctx,o){
     const loop=now=>{if(!ctx.alive)return;requestAnimationFrame(loop);const raw=(now-last)/1000,dt=Math.max(0,Math.min(.05,raw));last=now;maalTik(raw,now);Rm.t+=dt;
       for(const g of Rm.glows){const f=g.flick?(.9+.1*Math.sin(Rm.t*9+g.ph)*Math.sin(Rm.t*5.1+g.ph)):(.93+.07*Math.sin(Rm.t*2+g.ph));g.s.scale.set(g.size*f,g.size*f,1)}
       for(const q of sp){q.t+=dt;if(q.t>1){q.s.visible=false;continue}q.s.visible=q.t>0;q.s.position.set(q.x+q.vx*q.t,q.y+q.vy*q.t-5*q.t*q.t,q.z);const zz=(1-q.t)*1.8;q.s.scale.set(zz,zz,1)}
-      if(o.tick)o.tick(Rm.t,dt,Rm);ST.draw()};requestAnimationFrame(loop)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message)}})();
+      if(o.tick)o.tick(Rm.t,dt,Rm);ST.draw()};requestAnimationFrame(loop)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message,e)}})();
   return Rm}

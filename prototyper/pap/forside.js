@@ -44,7 +44,7 @@ const FORSIDE=(()=>{
     KB.el.addEventListener('pointerdown',e=>{const b=e.target.closest('.kb-k');e.preventDefault();if(!b)return;b.classList.add('down');setTimeout(()=>b.classList.remove('down'),120);kbTast(b.dataset.k)});
     document.addEventListener('pointerdown',e=>{if(KB.el.hidden||e.target.closest('.kb')||e.target===KB.inp)return;kbLuk()},true)}
   function kbTegn(){if(!KB.el)return;KB.el.classList.toggle('up',KB.shift);KB.el.querySelectorAll('.k-ch span').forEach(sp=>{const k=sp.parentNode.dataset.k;sp.textContent=KB.shift?k.toLocaleUpperCase('da'):k})}
-  function kbTast(k){const inp=KB.inp;if(!inp)return;lyd('valg');if(k==='enter'){kbLuk();return}if(k==='shift'){KB.shift=!KB.shift;kbTegn();return}
+  function kbTast(k){const inp=KB.inp;if(!inp)return;lyd(k==='space'||k==='del'||k==='enter'?'tastTung':'tast');if(k==='enter'){kbLuk();return}if(k==='shift'){KB.shift=!KB.shift;kbTegn();return}
     let v=inp.value;const max=+inp.getAttribute('maxlength')||20;if(k==='del')v=v.slice(0,-1);else if(v.length<max){const ch=k==='space'?' ':KB.shift?k.toLocaleUpperCase('da'):k;if(!(ch===' '&&(!v||v.endsWith(' '))))v+=ch}
     inp.value=v;inp.dispatchEvent(new Event('input',{bubbles:true}));KB.shift=!v||v.endsWith(' ')||v.endsWith('-');kbTegn()}
   function kbAaben(inp){if(!KB.el)kbByg();KB.inp=inp;KB.shift=!inp.value||/[\s-]$/.test(inp.value);kbTegn();KB.el.hidden=false;requestAnimationFrame(()=>KB.el.classList.add('on'));try{inp.focus({preventScroll:true})}catch(_){}

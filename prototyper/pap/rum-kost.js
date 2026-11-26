@@ -121,7 +121,7 @@ ROOMS.kost=function(ctx){
   function moveBoost(f,dt){const x0=f.x;f.x+=f.v*dt;const nr=S.course.rings.find(r=>!f.seen.has(r)&&r.x>x0&&!r.dbl);if(!nr){f.boost=0;return}
     f.y+=(nr.y-f.y)*Math.min(1,dt*6);f.vy=0;f.ang=0;if(x0<nr.x&&f.x>=nr.x){passRing(f,nr);f.boost--;f.bN=(f.bN||0)+1;if(f.boost<=0)f.v=V0*1.5}}
   function crossRings(f,x0){for(const r of S.course.rings){if(f.seen.has(r)||!(x0<r.x&&f.x>=r.x))continue;const d=Math.abs(f.y-r.y);if(d<100)passRing(f,r);else if(!r.dbl)missRing(f,r,d)}}
-  function step(dt){if(S.run==='count'){S.ct+=dt;const n=Math.floor(S.ct/.7);if(n!==S.cn&&n<4){S.cn=n;const t=['3','2','1','Afsted!'][n];ptH.pop(0,4,8,t,{col:n<3?'#ffd24a':'#ff4fa0',h:n<3?9:7,tilt:0});n<3?LYD.pip():LYD.op()}if(S.ct>=2.8){S.run='fly';S.t=0}return}
+  function step(dt){if(S.run==='count'){S.ct+=dt;const n=Math.floor(S.ct/.7);if(n!==S.cn&&n<4){S.cn=n;const t=['3','2','1','Afsted!'][n];ptH.pop(0,4,8,t,{col:n<3?'#ffd24a':'#ff4fa0',h:n<3?9:7,tilt:0});n<3?LYD.fil('kost.tael',()=>LYD.pip()):LYD.op()}if(S.ct>=2.8){S.run='fly';S.t=0}return}
     if(S.run==='fly'||S.run==='done')S.t+=dt;
     for(const rv of S.rivals)if(S.run==='fly'||S.run==='done')rivalStep(rv,dt);
     if(S.run!=='fly'&&S.run!=='done')return;
@@ -133,7 +133,7 @@ ROOMS.kost=function(ctx){
     else{const lead=Math.max(...S.rivals.map(rv=>rv.x))-S.x,tail=lead>250?Math.min(.12,(lead-250)/2500):0;S.x+=S.v*(1+tail)*dt;
       /* en rolig start: tyngdekraften tager først fat efter lidt over et sekund (note 8026: kaos i starten) */S.vy=Math.min(VMAXF,S.vy+GRAV*Math.min(1,S.t/1.3)*dt);S.y+=S.vy*dt;if(S.y>BOT){S.y=BOT;S.vy=-480;S.v=Math.max(V0*.8,S.v-40);if(S.t>(S.dunkT||0)){S.dunkT=S.t+1;LYD.dunk()}}if(S.y<TOP){S.y=TOP;S.vy=Math.max(0,S.vy)}
       S.v+=(V0-S.v)*Math.min(1,dt*.35);crossRings(S,x0);if(S.auto)autopilot();S.ang=clamp(S.vy/30,-16,22)}
-    for(const b of S.course.bubbles){if(b.got)continue;const dx=b.x-S.x,dy=b.y-S.y;if(dx*dx+dy*dy<(S.boost>0?130*130:85*85)){b.got=true;S.bubbles++;b.g.visible=false;LYD.plop();Rm.burst(X(b.x),Y(b.y),1,8,'rgba(255,236,170,.95)',2.5);ptW.pop(X(b.x),Y(b.y)+3,3,'+1',{col:'#ffd86b',h:2.6});tv.saet(1,S.bubbles)}}
+    for(const b of S.course.bubbles){if(b.got)continue;const dx=b.x-S.x,dy=b.y-S.y;if(dx*dx+dy*dy<(S.boost>0?130*130:85*85)){b.got=true;S.bubbles++;b.g.visible=false;LYD.fil('boble.saml',()=>LYD.plop());Rm.burst(X(b.x),Y(b.y),1,8,'rgba(255,236,170,.95)',2.5);ptW.pop(X(b.x),Y(b.y)+3,3,'+1',{col:'#ffd86b',h:2.6});tv.saet(1,S.bubbles)}}
     S.cam=S.x-PX;
     if(S.run==='fly'&&S.x>=S.course.end){S.run='done';S.finT=S.t;finish()}}
   function rivalStep(rv,dt){if(rv.loop){moveLoop(rv,dt);return}if(rv.boost>0){moveBoost(rv,dt);if(!rv.finT&&rv.x>=S.course.end)rv.finT=S.t;return}

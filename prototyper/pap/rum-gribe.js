@@ -136,7 +136,7 @@ ROOMS.gribe=function(ctx){
       S.pt+=dt;
       if(ph==='luk'&&S.close>=1&&S.pt>1.05){S.phase='op';S.pt=0;LYD.hold('gribe.ned',true)}/* kablet ruller op igen: samme lyd som ned */
       else if(ph==='op'&&S.cable.length<=L0+.5){S.phase='hjem';S.pt=0;LYD.hold('gribe.ned',false);LYD.hold('gribe.motor',true);if(S.carried)LYD.pip()}
-      else if(ph==='hjem'&&Math.abs(S.tx-XMIN)<1&&Math.abs(S.vx)<5&&S.pt>.3){S.phase='slip';S.pt=0;LYD.hold('gribe.motor',false);LYD.plop()}
+      else if(ph==='hjem'&&Math.abs(S.tx-XMIN)<1&&Math.abs(S.vx)<5&&S.pt>.3){S.phase='slip';S.pt=0;LYD.hold('gribe.motor',false);LYD.fil('gribe.slip',()=>LYD.plop())}
       else if(ph==='slip'&&S.pt>.4){S.phase='efter';S.pt=0}
       else if(ph==='efter'&&(S.wonP||S.pt>(S.carried?2.2:.6))&&!S.ended){S.ended=true;if(!S.wonP)tabt()}
       if(S.ended&&!S.vist){S.endT-=dt;if(S.endT<=0){S.vist=true;ctx.vent(S.slut,nulstil)}}

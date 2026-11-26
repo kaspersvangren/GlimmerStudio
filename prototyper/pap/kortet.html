@@ -1887,7 +1887,7 @@ function frame(now){
   if(W0.q&&W0.q.length&&Math.hypot(W0.tx-W0.x,W0.tz-W0.z)<1.4)[W0.tx,W0.tz]=W0.q.shift();
   /* to figurer, der mødes, viger: den forreste træder lidt frem, den bageste lidt tilbage, så de går forbi hinanden i stedet for igennem */
   {const alle=[W0,C0,...walkers];for(const w of alle)w.vzT=0;for(let i=0;i<alle.length;i++)for(let j=i+1;j<alle.length;j++){const a=alle[i],b=alle[j];if(a.x===undefined||b.x===undefined)continue;const dx=Math.abs(a.x-b.x),dz=a.z-b.z;if(dx<2.4&&Math.abs(dz)<1){const k=(1-dx/2.4)*(1-Math.abs(dz))*.75,s=dz>0||(dz===0&&i<j)?1:-1;a.vzT+=s*k;b.vzT-=s*k}}}
-  stepWalker(W0,dt);/* fodtrin, når heksen går på kortet: ét pr. skridt (Kasper 26. nov.) */{const s=Math.floor(W0.ph/Math.PI);if(W0.moving&&W0.trin!==undefined&&s!==W0.trin&&typeof LYD!=='undefined')LYD.fil('trin.kort',null,.9);W0.trin=s}
+  stepWalker(W0,dt);/* fodtrin, når heksen går på kortet: ét pr. skridt (Kasper 26. nov.) */{const s=Math.floor(W0.ph/Math.PI);if(W0.moving&&W0.trin!==undefined&&s!==W0.trin&&typeof LYD!=='undefined')LYD.fil('trin.kort',null,.45);W0.trin=s}
   if(doorWant&&!W0.q.length){const sp=SPOTS[doorWant];if(Math.hypot(W0.x-sp[0],W0.z-sp[1])<.6){const d=doorWant;doorWant=null;if((typeof SPIL!=='undefined'))SPIL.arrive(d)}}
   /* katten følger heksens spor et par skridt bagud */
   {const l=trail[trail.length-1];if(Math.hypot(W0.x-l[0],W0.z-l[1])>.6){trail.push([W0.x,W0.z]);if(trail.length>60)trail.shift()}

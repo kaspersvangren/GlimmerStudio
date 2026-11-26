@@ -59,7 +59,7 @@ ROOMS.ungestald=function(ctx){
   const sover=b=>{if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return true}return false};
   function mad(b,id){if(busyB||b.sov)return;const godbid=id==='godbid',liv=godbid||id===b.D.livret;if(godbid){if(!(SPIL.data.godbid>0))return;SPIL.data.godbid--;visKnap()}
     if(ramt(b,'mad')&&liv)b.oen.ok=true;busyB={b,slags:'mad',t:0,godbid,liv,id};if(!FM[id])FM[id]=godbid?maerke(128,T.godbid):foderMaerke(id,128);flaske.material.map=FM[id];flaske.visible=true;b.U.set({mund:'gab'})}
-  const leg=b=>{if(busyB||sover(b))return;if(ramt(b,'leg'))b.oen.ok=true;busyB={b,slags:'leg',t:0};bold.visible=true;b.hopN=3;LYD.pip()};
+  const leg=b=>{if(busyB||sover(b))return;if(ramt(b,'leg'))b.oen.ok=true;busyB={b,slags:'leg',t:0};bold.visible=true;b.hopN=3;LYD.fil('unge.bold',()=>LYD.pip())};
   const klap=b=>{if(sover(b))return;LYD.kys();b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.06);b.ro=0};
   /* man kan kun give ungerne det, de selv beder om i tankeboblen; ellers er det for let at fylde dem helt op (Kasper 23. nov.). Godbidder må man altid give */
   let nejT=0;const NEJ={mad:'er ikke sulten lige nu',vask:'vil ikke vaskes lige nu',leg:'vil ikke lege lige nu',kael:'vil ikke kæles lige nu'};
@@ -113,7 +113,7 @@ ROOMS.ungestald=function(ctx){
         if(!b.sov&&!b.oen&&s.m>.9&&s.r>.9&&s.g>.9&&b.ro>2.6&&!(busyB&&busyB.b===b)){b.sov=true;U.set({oje:'sover',mund:'smil',bryn:null});zzz[b.i].visible=true;LYD.snor()}
         if(b.sov&&(s.m<.55||s.g<.55||s.r<.55))vaagn(b);
         if(!b.sov){const ked=b.hum>0||Math.min(s.m,s.r,s.g)<.12;U.set({oje:b.glad>.25&&!ked?'glad':'aaben',bryn:b.hum>0?b.humS:ked?'ked':null})}
-        if(b.hopN>0){b.hop+=dt*2.6;if(b.hop>=1){b.hop=0;b.hopN--;if(b.hopN>0&&busyB&&busyB.b===b)LYD.pip()}}
+        if(b.hopN>0){b.hop+=dt*2.6;if(b.hop>=1){b.hop=0;b.hopN--;if(b.hopN>0&&busyB&&busyB.b===b)LYD.fil('unge.bold',()=>LYD.pip())}}
         const hy=Math.sin(Math.min(1,b.hop)*Math.PI)*4.2;U.G.position.y=BY+hy;U.G.scale.set(SC,SC*(1-.08*Math.sin(Math.min(1,b.hop)*Math.PI*2)),SC);U.G.rotation.z=b.hum>0&&b.humS==='sur'?Math.sin(t*24)*.04:0;U.tick(t,{glad:Math.min(1,b.glad),hop:b.hop,spis:b.spis});U.set({snavs:s.r<.25?3:s.r<.5?2:s.r<.75?1:0});
         if(zzz[b.i].visible){const u=(t*.5+b.i*.3)%1;zzz[b.i].position.set(b.x+5+u*2.4,BY+14+u*5,8);zzz[b.i].material.opacity=Math.sin(u*Math.PI);const z=2+u*2.4;zzz[b.i].scale.set(z,z,1)}
         {const tk=tanke[b.i].s;tk.visible=!!b.oen;if(b.oen){const w=6.6*(1+.05*Math.sin(t*5+b.i)+(b.oen.T-b.oen.t<3&&!b.oen.ok?.06*Math.sin(t*16):0));tk.scale.set(w,w,1)}}

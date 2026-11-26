@@ -96,7 +96,7 @@ ROOMS.tryl=function(ctx){
   const bossKast=m=>{const B=S.boss,d=B.def,M=MOENSTER[d.k],boelge=m==='boelge',n=boelge?M.n+(B.nr>8?1:0):d.antal+(B.nr>8?1:0);
     for(let i=0;i<n;i++){const fra=boelge&&M.fra?M.fra[i%M.fra.length]:d.hand,x0=B.x+fra[0],y0=B.y+fra[1],tx=n>1?(i-(n-1)/2)*(boelge?M.spred:6):rnd(-3.5,3.5);
       nytSkud({k:d.skud,bane:d.bane,sym:nytTegn(),x0,y0,tx,ty:7.5,x:x0,y:y0,T:B.flyv*(d.bane==='ret'?.9:1)*rnd(.95,1.08)*(boelge?1.12:1),t:-(boelge?i*M.forsink:i*.5),plan:0,rot:rnd(0,6),ph:boelge&&M.modfase?i*Math.PI:rnd(0,6)})}
-    B.glimt=.3;LYD.pust();if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
+    B.glimt=.3;LYD.fil('tryl.kast',()=>LYD.pust());if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
   /* superangrebet: først lader bossen op, så sendes kæmpekuglen af sted */
   const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.snor()};
   const superKast=()=>{const B=S.boss,d=B.def,n=Math.min(5,3+Math.floor((B.nr-1)/2)),p=S.cfg.tegn.slice(),syms=[];for(let i=0;i<n;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===syms[i-1]);syms.push(t)}

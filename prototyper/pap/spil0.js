@@ -1,4 +1,4 @@
-const PAPVER='pap-0.54';
+const PAPVER='pap-0.55';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -40,7 +40,9 @@ SPIL.RUMVALG={
   gulv:{navn:'Tæppe',c0:'#5a2a6a',pal:PG,list:[['rund','Rundt tæppe'],['stjerne','Stjernetæppe','Stjernetæppet'],['stribet','Stribet tæppe','Det stribede tæppe'],['sky','Skytæppe','Skytæppet'],['hjerte','Hjertetæppe','Hjertetæppet'],['persisk','Persisk tæppe','Det persiske tæppe'],['maane','Månetæppe','Månetæppet'],['blomst','Blomstertæppe','Blomstertæppet'],['pels','Pelstæppe','Pelstæppet'],['ternet','Ternet tæppe','Det ternede tæppe']]},
   ting:{navn:'Hjørne',c0:'#3f9a8a',pal:PG,list:[['kedel','Heksekedel'],['kost','Svævende kost','Den svævende kost'],['plante','Måneplante','Måneplanten'],['globus','Stjerneglobus','Stjerneglobussen'],['ur','Bedstefarsur','Bedstefarsuret'],['kiste','Skattekiste','Skattekisten'],['grammofon','Grammofon','Grammofonen'],['teleskop','Teleskop','Teleskopet'],['aeg','Drageæg','Drageægget'],['ovn','Brændeovn','Brændeovnen']]},
   dyreseng:{navn:'Dyreseng',c0:'#e88aa8',pal:PG,list:[['kurv','Kurv'],['pude','Stor pude','Den store pude til kæledyret'],['slot','Lille slot','Kæledyrets lille slot'],['kasse','Papkasse','Papkassen'],['hule','Hule','Kæledyrets hule'],['sofa','Lille sofa','Den lille sofa'],['hundehus','Hundehus','Hundehuset'],['skypude','Skypude','Skypuden'],['muslingeskal','Muslingeskal','Muslingeskallen'],['balje','Zinkbalje','Zinkbaljen']]}};
-for(const s in SPIL.RUMVALG){const o=SPIL.RUMVALG[s];for(const[v,,d]of o.list)if(d)SPIL.VARER.push(['rum.'+s,v,d]);if(!o.list.some(w=>w[0]===SPIL.rum[s]))SPIL.rum[s]=o.list[0][0];if(!SPIL.rumc[s])SPIL.rumc[s]=o.c0}}
+for(const s in SPIL.RUMVALG){const o=SPIL.RUMVALG[s];for(const[v,,d]of o.list)if(d)SPIL.VARER.push(['rum.'+s,v,d])}
+/* Værelsets startvalg: sættes ved start og igen, når man skifter bog (ellers mangler en ny bog sine farver, og Værelset går i stå; rettet 26. nov.) */
+SPIL.rumStd=()=>{for(const s in SPIL.RUMVALG){const o=SPIL.RUMVALG[s];if(!o.list.some(w=>w[0]===SPIL.rum[s]))SPIL.rum[s]=o.list[0][0];if(!SPIL.rumc[s])SPIL.rumc[s]=o.c0}};SPIL.rumStd()}
 /* præmierne i Arkaden: de kan kun fås for billetter og ligger aldrig i en boble. Priserne er de samme som i det oprindelige spil */
 SPIL.PRAEMIER=[['tilbehør','hjertestav','Hjertetryllestaven',30],['tilbehør','regnbuestav','Regnbuestaven',30],['tilbehør','blomsterstav','Blomsterstaven',50],['tilbehør','sommerfuglestav','Sommerfuglestaven',50],['tilbehør','slikstav','Slikstaven',60],['tilbehør','stjernestav','Stjernestaven',70],['tilbehør','maanestav','Månestaven',80],['tilbehør','krystalstav','Krystalstaven',90],['tilbehør','vingestav','Vingestaven',100]];
 /* næbdyret ligger hverken i boblerne eller i Præmiebutikken: det klækker af ægget i Dyreparken (Agnes' ønske, Kasper 22. nov.) */

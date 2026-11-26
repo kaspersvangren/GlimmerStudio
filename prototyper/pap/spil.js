@@ -51,17 +51,17 @@ SPIL.giv=n=>{if(n>0)LYD.ding();LOG.row('stjerner',{n,ialt:Math.max(0,SPIL.stj+n)
 /* rummene ligger i en stak: fra Værelset kan man gå videre ind i Garderoben, og tilbage-knappen fører ét trin ud ad gangen */
 const stack=[],paaHeks=Object.assign({},SPIL.farver);let busy=false,dyrNyt=false;
 /* skift bog uden at genindlæse siden, så musikken spiller videre og fuld skærm bliver ved (Kasper 25. nov.). Heksen og katten på kortet, stjernerne og billetterne følger med */
-SPIL.skiftPlads=n=>{if(!SPIL.slettet)SPIL.save();try{localStorage.setItem('magiske-mig-pap.plads',String(n))}catch(_){}PLADS=n;SPIL.slettet=false;SPIL.laes(n);
+SPIL.skiftPlads=n=>{if(!SPIL.slettet)SPIL.save();try{localStorage.setItem('magiske-mig-pap.plads',String(n))}catch(_){}PLADS=n;SPIL.slettet=false;SPIL.laes(n);SPIL.rumStd();
   const lf=SPIL.lookFuld(),L=HEKS.L;for(const k of SLOTS)L[k]=SPIL.look[k]!==undefined?SPIL.look[k]:LOOK0[k];L.col=Object.assign({},LOOK0.col,lf.col);L.skin=lf.skin||LOOK0.skin;L.skinSh=lf.skinSh||LOOK0.skinSh;L.iris=lf.iris||LOOK0.iris;
   HEKS.setCol('hår',(lf.hair||LOOK0.hair)[0]);HEKS.build();for(const k in paaHeks)delete paaHeks[k];Object.assign(paaHeks,SPIL.farver);SPIL.nyKat();visStj();visBil();LOG.row('plads',{n,navn:SPIL.navn||''})};
 function openRoom(id){const t0=performance.now(),ctx={id,alive:true,efter:[],look:{},room:null,env:scene.environment,mats:new Set(MATS.keys())};
   for(const k of SLOTS)ctx.look[k]=HEKS.L[k];Object.assign(ctx.look,SPIL.lookFuld());
   ctx.onLook=(k,v)=>{SPIL.look[k]=v;SPIL.save()};ctx.onCol=(k,v)=>{SPIL.farver[k]=v;SPIL.save()};ctx.dyr=Object.assign({},SPIL.dyr);ctx.onDyr=(k,v)=>{SPIL.dyr[k]=v;SPIL.save();dyrNyt=true};ctx.go=enter;ctx.say=toast;ctx.vent=vent;ctx.back=back;ctx.owns=SPIL.ejer;
   ctx.ready=()=>{SPIL.roomMs=Math.round(performance.now()-t0);LOG.skaerm(id);LOG.row('rum',Object.assign({id,ms:SPIL.roomMs},window.__rumtid||{}),id);LOG.flush();busy=false;doorEl.classList.add('gone');hjemEl.hidden=false};
-  ctx.fail=v=>{if(!v)return;LOG.row('fejl',{besked:String(v).slice(0,300),rum:id});LOG.flush();busy=false;doorT.textContent=v;hjemEl.hidden=false};
+  ctx.fail=(v,e)=>{if(!v)return;LOG.row('fejl',{besked:String(v).slice(0,300),rum:id,hvor:e&&e.stack?String(e.stack).split('\n').slice(0,4).join(' | ').slice(0,400):undefined});LOG.flush();busy=false;doorT.textContent=v;hjemEl.hidden=false};
   ctx.msg={classList:{add(){ctx.ready()}}};ctx.msgN={set textContent(v){ctx.fail(v)}};
   SPIL.room={id,ctx};document.body.dataset.rum=id;bilEl.hidden=!RUM[id].bil;clearTimeout(kortMusT);if(RUM[id].mus!==null)LYD.musik(rumSang(id)||OMRSANG.byen);LYD.inde(!!rumOmr(id));LYD.stemning(RUM[id].stem||null);LYD.forhent(RUM[id].lyde||[]);rumEl.innerHTML=RUM[id].html||'';/* første gang man har lavet sin heks, hedder knappen Færdig (Kasper 23. nov.) */const faerdig=id==='garderobe'&&!!SPIL.data.nyHeks;hjemEl.classList.toggle('faerdig',faerdig);hjemT.textContent=faerdig?'Færdig':stack.length>1?RUM[stack[stack.length-2]].navn:'Byen';
-  setTimeout(()=>{try{ROOMS[id](ctx)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message)}},40)}
+  setTimeout(()=>{try{ROOMS[id](ctx)}catch(e){console.error(e);ctx.fail('Fejl: '+e.message,e)}},40)}
 let sidsteRum=null;function closeRoom(){ventSlut(false);const r=SPIL.room;if(!r)return;sidsteRum=r.id;r.ctx.alive=false;try{for(const f of r.ctx.efter||[])f();if(r.ctx.cleanup)r.ctx.cleanup();if(r.ctx.room)disposeRoom(r.ctx.room,r.ctx.mats)}catch(e){console.error(e)}rumEl.innerHTML='';SPIL.room=null}
 function cover(txt,then){doorT.textContent=txt;doorEl.classList.remove('gone');hjemEl.hidden=true;toastEl.hidden=true;setTimeout(then,300)}
 function toMap(){LOG.maerk('ud af rum');LOG.skaerm('by');delete document.body.dataset.rum;bilEl.hidden=true;kortMusik(sidsteRum);LYD.stemning(null);renderer.setRenderTarget(null);renderer.setClearColor('#0d0a12');renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=true;
@@ -120,7 +120,7 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik(OMRSANG.byen)},{once:true});
 /* de lyde, der bruges overalt, hentes ved første tryk, så de er klar første gang (ellers kommer pladsholderen) */
-addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk','doer','valg','guld','op','ugle','bog.pling','trin.kort','trin.gang'])}catch(_){}},{once:true});
+addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk','doer','valg','guld','op','ugle','bog.pling','trin.kort','trin.gang','tast','tast.tung'])}catch(_){}},{once:true});
 /* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
 {let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;if(e.hvad==='sidste')s.adv2=0;continue}
       if(e.hvad==='mistet'){LYD.fil('unge.mistet',()=>LYD.oev());toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} kalder på dig i Ungestalden!`)}}

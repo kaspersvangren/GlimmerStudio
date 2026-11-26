@@ -4,7 +4,7 @@ ROOMS.bobler=function(ctx){
   /* som i det oprindelige spil: en boble koster 10 stjerner, man vælger selv krukken (tøj og hår, kæledyr eller værelset), og boblen skal have tre tryk, før den springer */
   const koeb=i=>()=>{if(st)return;const m=SPIL.mangler(i);if(!m.length){ctx.say(`Krukken med ${KR[i].navn.toLowerCase()} er tom: du har fået det hele. Prøv en af de andre!`);nhop=1;return}
     if(SPIL.stj<PRIS){ctx.say(`En boble koster ${PRIS} stjerner, og du har ${SPIL.stj}. Stjerner tjener du i Eliksirtimen og i Dyreparken.`);nhop=1;return}
-    LYD.pust();SPIL.giv(-PRIS);st={f:'op',t:0,x0:JARX[i],n:0,slag:0,vare:m[Math.floor(Math.random()*m.length)]};bob.visible=true;nhop=1;ctx.say('Nissen puster en boble op …')};
+    LYD.fil('bobler.pust',()=>LYD.pust());SPIL.giv(-PRIS);st={f:'op',t:0,x0:JARX[i],n:0,slag:0,vare:m[Math.floor(Math.random()*m.length)]};bob.visible=true;nhop=1;ctx.say('Nissen puster en boble op …')};
   const tryk=()=>{if(!st||st.f!=='vent')return;st.n++;st.slag=1;if(st.n>=3){pop();return}LYD.bobletryk(st.n);Rm.burst(BX,BY,13,5,'rgba(255,255,255,.9)',9);ctx.say(st.n===1?'To gange til …':'Én gang til!')};
   const Rm=makeRoom(ctx,{bg:'#0f1416',fit:fitBox(88,50,0,20.5),sky:'#c8e8e0',ground:'#3a3040',amb:.5,key:{col:'#fff0d8',i:1.9,tgt:[0,16,0]},
     miss:()=>tryk(),

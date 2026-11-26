@@ -58,7 +58,7 @@ ROOMS.boblepop=function(ctx){
       if(!langt&&hop>=1&&pts.length>1&&Math.hypot(x-pts[pts.length-1][0],y-pts[pts.length-1][1])>7)break}pts.push([x,y]);return pts};
   /* den nærmeste tomme plads, der hænger fast i noget */
   const plads=(x,y)=>{const r0=Math.round((TOPY-R0-y)/RH);let best=null,bd=1e9;for(let r=Math.max(0,r0-2);r<=r0+2;r++)for(let c=0;c<ncol(r);c++){if(celle(r,c))continue;if(r>0&&!naboer(r,c).some(([a,b])=>celle(a,b)))continue;const d=Math.hypot(cx(r,c)-x,cy(r)-y);if(d<bd){bd=d;best=[r,c]}}return best};
-  const skyd=a=>{if(!G||G.fase!=='sigt'||G.vent>0)return false;const pts=vej(a,true);G.fase='flyv';G.skud={pts,i:0,d:0,b:G.cur,tot:0};G.cur=null;if(G.sigte>0)G.sigte--;hopH=1;LYD.plop();kanon.rotation.z=a-Math.PI/2;return true};
+  const skyd=a=>{if(!G||G.fase!=='sigt'||G.vent>0)return false;const pts=vej(a,true);G.fase='flyv';G.skud={pts,i:0,d:0,b:G.cur,tot:0};G.cur=null;if(G.sigte>0)G.sigte--;hopH=1;LYD.fil('boblepop.skyd',()=>LYD.plop());kanon.rotation.z=a-Math.PI/2;return true};
   const klynge=(r,c,t)=>{const set=new Set([r+','+c]),koe=[[r,c]];while(koe.length){const[a,b]=koe.pop();for(const[x,y]of naboer(a,b)){const q=celle(x,y);if(q&&q.t===t&&!set.has(x+','+y)){set.add(x+','+y);koe.push([x,y])}}}return[...set].map(k=>k.split(',').map(Number))};
   const fjern=(b,hvordan,i=0)=>{if(G.grid[b.r]&&G.grid[b.r][b.c]===b)G.grid[b.r][b.c]=null;if(hvordan==='pop'){b.pop=.03+i*.045}else{b.fald={vx:rnd(-3,3),vy:rnd(2,7),t:-i*.02}}G.doede.push(b);if(b.pw){G.maerker.push({k:b.pw,x:b.tx,y:b.ty,t:-(hvordan==='pop'?b.pop:.25),x0:b.tx,y0:b.ty,m:null})}};
   /* dem, der ikke længere hænger fast i loftet, falder */
