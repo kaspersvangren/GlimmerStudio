@@ -63,7 +63,7 @@ const { chromium } = require('playwright');
   await p.click('#hjem'); await i('arkade');
   /* BoblePop: de bedste skud får bobler til at springe, og et fyldt bræt slutter spillet med billetter */
   await p.evaluate(() => __spil.enter('boblepop')); await i('boblepop');
-  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test, G = T.G(), b0 = __spil.bil; T.spol(1.5); const n0 = T.tilstand().bobler; for (let k = 0; k < 8; k++) { T.skyd(T.bedst()[0]); T.spol(3) } const s1 = T.tilstand(); for (let k = 0; k < 14 && G.fase !== 'tabt' && G.fase !== 'vent'; k++) { T.nyRaekke(); T.spol(.3) } T.spol(3); return [n0, s1.skud, s1.score, b0, __spil.bil, T.tilstand().fase] }); await p.waitForTimeout(700);
+  { const r = await p.evaluate(() => { const T = __spil.room.ctx.test, G = T.G(), b0 = __spil.bil; T.spol(1.5); const n0 = T.tilstand().bobler; /* ryddes banen undervejs (kan ske med et let bræt), venter vi på den næste bane i stedet for at fejle (rettet 26. nov.) */ let skudt = 0, ryddet = 0; for (let k = 0; k < 8; k++) { if (!G.cur && G.fase === 'klaret') { ryddet++; T.spol(3) } if (!G.cur) break; if (T.skyd(T.bedst()[0])) skudt++; T.spol(3) } const s1 = Object.assign(T.tilstand(), { skud: skudt, ryddet }); for (let k = 0; k < 14 && G.fase !== 'tabt' && G.fase !== 'vent'; k++) { T.nyRaekke(); T.spol(.3) } T.spol(3); return [n0, s1.skud, s1.score, b0, __spil.bil, T.tilstand().fase] }); await p.waitForTimeout(700);
     tjek('BoblePop: skud lander, klynger springer, og spillet slutter med billetter', r[0] > 40 && r[1] === 8 && r[2] > 0 && r[4] > r[3] && r[5] === 'vent', r); await p.click('#videre') }
   await p.click('#hjem'); await i('arkade');
   /* Gribemaskinen: et forsøg koster en stjerne, og med stram fjeder og godt sigte kan man vinde */
