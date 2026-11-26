@@ -1910,7 +1910,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.58';
+const PAPVER='pap-0.59';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -1996,6 +1996,8 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   for(const[m,e]of[[document,'visibilitychange'],[window,'blur'],[window,'focus'],[window,'pagehide'],[window,'pageshow']])m.addEventListener(e,()=>setTimeout(fokus,0));
   addEventListener('pointerdown',()=>{if(vaek&&!document.hidden){vaek=false;if(ac)ac.resume().catch(()=>{})}},true);
   /* al lyd går gennem en begrænser, før den når højttaleren: mange lyde oven i musikken må aldrig blive så høje, at de klipper og knaser (Kasper 22. nov.) */
+  /* lydeffekterne fra filer går gennem en fælles knap, der er skruet lidt ned, så begrænseren kun slår til ved de kraftigste øjeblikke og ikke presser andre lyde væk (Kasper 26. nov.) */
+  const EFF=a=>{if(!a._eff){const g=a.createGain();g.gain.value=.5;g.connect(UD(a));a._eff=g}return a._eff};
   const UD=a=>{if(!a._ud){const c=a.createDynamicsCompressor();c.threshold.value=-12;c.knee.value=10;c.ratio.value=14;c.attack.value=.002;c.release.value=.18;const g=a.createGain();g.gain.value=.92;c.connect(g);g.connect(a.destination);a._ud=c}return a._ud};
   let STOEJ=null;const stoejBuf=a=>{if(!STOEJ||STOEJ.sampleRate!==a.sampleRate){const n=a.sampleRate*2;STOEJ=a.createBuffer(1,n,a.sampleRate);const d=STOEJ.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1}return STOEJ};
   const tone=(f0,f1,dur,type='sine',vol=.22,delay=0)=>{const a=A();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(g);g.connect(UD(a));o.start(t);o.stop(t+dur+.03)};
@@ -2019,11 +2021,15 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
       if(stor){if(!BRUGT.includes(src))BRUGT.push(src);const nu_=[src,musikVil&&MUSIK[musikVil]&&MUSIK[musikVil].src,stemVil&&MUSIK[stemVil]&&MUSIK[stemVil].src];for(const k of BRUGT.slice())if(!nu_.includes(k)){delete BUF[k];BRUGT.splice(BRUGT.indexOf(k),1)}}return b}).catch(e=>{delete VENT[src];throw e})};
   /* en effekt fra en fil; er den ikke hentet endnu (eller kan den ikke hentes), spilles den indbyggede lyd i stedet, og filen hentes til næste gang */
   const fil=(key,ellers,vol=1,rate=1)=>{const l=FILER[key],a=A();if(!a)return;if(!l||!kanFil){if(ellers)ellers();return}let i=Math.floor(Math.random()*l.length);if(l.length>1&&i===sidst[key])i=(i+1)%l.length;sidst[key]=i;const b=BUF[l[i]];
-    if(!b){hent(l[i]).catch(()=>{});if(ellers)ellers();return}const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(UD(a));n.start()};
+    /* er filen ikke hentet endnu, venter vi op til et halvt sekund på den i stedet for at spille det gamle bip; bippet bruges kun, hvis filen slet ikke kan hentes (Kasper 26. nov.) */
+    const spil=b=>{const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(EFF(a));n.start()};
+    if(!b){const t0=a.currentTime;hent(l[i]).then(b2=>{if(a.currentTime-t0<=.5)spil(b2)},()=>{if(ellers)ellers()});return}spil(b)};
   /* en lyd, der kører i ring, så længe noget holdes nede (motoren i Gribemaskinen). Svarer false, hvis filen ikke kan spilles, så kalderen selv kan lave en lyd */
   const HOLDT={};const hold=(key,on)=>{const h=HOLDT[key];if(!on){if(h){try{h.g.gain.setTargetAtTime(0,h.a.currentTime,.03);h.n.stop(h.a.currentTime+.15)}catch(_){}delete HOLDT[key]}return true}if(h)return true;const l=FILER[key],a=A();if(!a||!l||!kanFil)return false;const b=BUF[l[0]];if(!b){hent(l[0]).catch(()=>{});return false}
     const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.loop=true;g.gain.value=.5;n.connect(g);g.connect(UD(a));n.start();HOLDT[key]={n,g,a};return true};
-  const forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
+  const /* alle lydeffekter hentes i baggrunden, én ad gangen, efter første tryk, så de er klar, når de skal bruges */
+  forhentAlt=()=>{if(!kanFil||!A())return;const alle=[...new Set(Object.values(FILER).flat())];let k=0;const naeste=()=>{if(k>=alle.length)return;const f=alle[k++];hent(f).catch(()=>{}).then(()=>setTimeout(naeste,40))};naeste()},
+  forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
   /* musikken: ét nummer ad gangen plus et lag stemning. Skifter blødt */
   const lag={musik:{id:null,n:null,g:null,gen:0},stemning:{id:null,n:null,g:null,gen:0}};let musikVil=null,stemVil=null,slutFn=null;
   /* musikken går gennem et filter: inde i et rum bliver den dæmpet og lidt lavere, så man kan høre, at man er gået ind, uden at sangen skifter (LYDPLAN.md) */
@@ -2052,7 +2058,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
     /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
     forsinkelse(){return ac?((ac.outputLatency||0)+(ac.baseLatency||0)):0},
     musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0+(L.off||0);if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
-    status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
+    status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,forhentAlt,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){fil('op',()=>tone(300,620,.09,'triangle',.07))}/* det korte bip beholdes, hvor det sker hele tiden (en gnom dukker op, bobler falder) */,opBip(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
     ding(){fil('ding',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
@@ -2652,7 +2658,7 @@ const UI={draw(){}};{const tabs=document.getElementById('tabs'),opts=document.ge
     if(n==='Dyr'&&typeof SPIL!=='undefined'){const lb=document.createElement('label');lb.className='dyrnavn';lb.textContent='Navn ';const inp=document.createElement('input');inp.maxLength=12;inp.placeholder='giv dit dyr et navn';inp.value=(SPIL.dyr&&SPIL.dyr.navn)||'';inp.setAttribute('inputmode','none');inp.setAttribute('autocomplete','off');
       inp.addEventListener('input',()=>{const v=inp.value.replace(/\s+/g,' ').replace(/^\s/,'');SPIL.dyr.navn=v.charAt(0).toLocaleUpperCase('da')+v.slice(1);SPIL.save()});lb.appendChild(inp);sec.insertBefore(lb,gr);if(typeof FORSIDE!=='undefined'&&FORSIDE.kb)FORSIDE.kb(inp)}
     for(const[v,navn]of list){const ob=document.createElement('button');ob.type='button';ob.className='flise';const cv=document.createElement('canvas');cv.width=cv.height=BILLED.N;const sp=document.createElement('span');sp.textContent=navn;ob.append(cv,sp);ob.setAttribute('aria-label',navn);
-      ob.addEventListener('click',()=>{if(laast(key,v)){ctx.say(v==='næbdyr'?'Næbdyret klækker af ægget i Dyreparken. Giv dyreungerne i Ungestalden hjerter, så ægget bliver varmt.':typeof STAVE!=='undefined'&&STAVE[v]?'Den kan du bytte dig til for billetter i Præmiebutikken i Arkaden':'Den kan du få i en boble i Boblebutikken');return}choose(key,v);UI.draw()});gr.appendChild(ob);fliser[n].push({b:ob,cv,v})}
+      ob.addEventListener('click',()=>{if(laast(key,v)){/* lille nej, når man prøver noget, man ikke har (Kasper 26. nov.) */if(typeof LYD!=='undefined')LYD.doer();ctx.say(v==='næbdyr'?'Næbdyret klækker af ægget i Dyreparken. Giv dyreungerne i Ungestalden hjerter, så ægget bliver varmt.':typeof STAVE!=='undefined'&&STAVE[v]?'Den kan du bytte dig til for billetter i Præmiebutikken i Arkaden':'Den kan du få i en boble i Boblebutikken');return}choose(key,v);UI.draw()});gr.appendChild(ob);fliser[n].push({b:ob,cv,v})}
     for(const[fk,farver,navn]of(FLERE[n]||(PALET[key]?[[key,PALET[key],'']]:[]))){const key=fk;const lb=document.createElement('h4');lb.textContent=navn||'Farve';sec.appendChild(lb);const row=document.createElement('div');row.className='sw';row.setAttribute('role','group');row.setAttribute('aria-label',navn||'Farve');sec.appendChild(row);rækker.push({k:key,row});
       for(const c of farver){const sb=document.createElement('button');sb.type='button';sb.style.background=c;sb.dataset.c=c.toLowerCase();sb.setAttribute('aria-label','Farve '+c);sb.setAttribute('aria-pressed','false');sb.addEventListener('click',()=>{if(!FIG)return;if(DYRK[key]){setPet(key,c);UI.draw();return}if(typeof LYD!=='undefined')LYD.valg();FIG.setCol(key,c);FIG.G.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});pop=1;if((typeof ctx!=='undefined')&&ctx.onCol)ctx.onCol(key,c);UI.draw();if(key==='øjne')row.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===sb)))});row.appendChild(sb)}}}
   show();UI.draw()}
@@ -6343,7 +6349,7 @@ if(LOG.on){const tal=v=>{const m=/^pap-(\d+)\.(\d+)$/.exec(String(v).trim());ret
 {const lb=document.getElementById('lydknap'),vis=()=>{lb.setAttribute('aria-pressed',String(LYD.til));lb.setAttribute('aria-label',LYD.til?'Slå lyden fra':'Slå lyden til')};vis();lb.addEventListener('click',()=>{LYD.skift();vis()})}
 addEventListener('pointerdown',()=>{if(!stack.length)LYD.musik(OMRSANG.byen)},{once:true});
 /* de lyde, der bruges overalt, hentes ved første tryk, så de er klar første gang (ellers kommer pladsholderen) */
-addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','unge.kald','unge.mistet','bog.aabn','bog.blad','bog.luk','doer','valg','guld','op','ugle','bog.pling','trin.kort','trin.gang','tast','tast.tung'])}catch(_){}},{once:true});
+addEventListener('pointerdown',()=>{try{LYD.forhent(['tryk','lyd.til','ding','valg','doer','bog.aabn','bog.blad','bog.luk','bog.pling','tast','tast.tung']);setTimeout(()=>LYD.forhentAlt(),1500)}catch(_){}},{once:true});
 /* ungerne i Dyreparken: deres ur går, mens man spiller andre steder. Ungen kalder, når den mangler noget, og mister et hjerte, hvis den bliver glemt for længe */
 {let sidst=performance.now(),n=0;SPIL.ungeUr=sek=>{if(!SPIL.data.unger||(SPIL.room&&SPIL.room.id==='ungestald'))return[];const sket=ungeTid(sek,false);for(const e of sket){const s=SPIL.data.unger[e.id],navn=UNGER[e.id].navn;if(ventFn){if(e.hvad==='kalder')s.adv=0;if(e.hvad==='sidste')s.adv2=0;continue}
       if(e.hvad==='mistet'){LYD.fil('unge.mistet',()=>LYD.oev());toast(`${navn} har mistet et hjerte, fordi ingen kom. Skynd dig hen i Ungestalden!`)}else if(e.hvad==='sidste'){LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} bliver ked af det! Skynd dig til Ungestalden, før den mister et hjerte.`)}else{LYD.fil('unge.kald',()=>LYD.pip());toast(`${navn} kalder på dig i Ungestalden!`)}}

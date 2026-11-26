@@ -10,6 +10,8 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
   for(const[m,e]of[[document,'visibilitychange'],[window,'blur'],[window,'focus'],[window,'pagehide'],[window,'pageshow']])m.addEventListener(e,()=>setTimeout(fokus,0));
   addEventListener('pointerdown',()=>{if(vaek&&!document.hidden){vaek=false;if(ac)ac.resume().catch(()=>{})}},true);
   /* al lyd går gennem en begrænser, før den når højttaleren: mange lyde oven i musikken må aldrig blive så høje, at de klipper og knaser (Kasper 22. nov.) */
+  /* lydeffekterne fra filer går gennem en fælles knap, der er skruet lidt ned, så begrænseren kun slår til ved de kraftigste øjeblikke og ikke presser andre lyde væk (Kasper 26. nov.) */
+  const EFF=a=>{if(!a._eff){const g=a.createGain();g.gain.value=.5;g.connect(UD(a));a._eff=g}return a._eff};
   const UD=a=>{if(!a._ud){const c=a.createDynamicsCompressor();c.threshold.value=-12;c.knee.value=10;c.ratio.value=14;c.attack.value=.002;c.release.value=.18;const g=a.createGain();g.gain.value=.92;c.connect(g);g.connect(a.destination);a._ud=c}return a._ud};
   let STOEJ=null;const stoejBuf=a=>{if(!STOEJ||STOEJ.sampleRate!==a.sampleRate){const n=a.sampleRate*2;STOEJ=a.createBuffer(1,n,a.sampleRate);const d=STOEJ.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1}return STOEJ};
   const tone=(f0,f1,dur,type='sine',vol=.22,delay=0)=>{const a=A();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(g);g.connect(UD(a));o.start(t);o.stop(t+dur+.03)};
@@ -33,11 +35,15 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
       if(stor){if(!BRUGT.includes(src))BRUGT.push(src);const nu_=[src,musikVil&&MUSIK[musikVil]&&MUSIK[musikVil].src,stemVil&&MUSIK[stemVil]&&MUSIK[stemVil].src];for(const k of BRUGT.slice())if(!nu_.includes(k)){delete BUF[k];BRUGT.splice(BRUGT.indexOf(k),1)}}return b}).catch(e=>{delete VENT[src];throw e})};
   /* en effekt fra en fil; er den ikke hentet endnu (eller kan den ikke hentes), spilles den indbyggede lyd i stedet, og filen hentes til næste gang */
   const fil=(key,ellers,vol=1,rate=1)=>{const l=FILER[key],a=A();if(!a)return;if(!l||!kanFil){if(ellers)ellers();return}let i=Math.floor(Math.random()*l.length);if(l.length>1&&i===sidst[key])i=(i+1)%l.length;sidst[key]=i;const b=BUF[l[i]];
-    if(!b){hent(l[i]).catch(()=>{});if(ellers)ellers();return}const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(UD(a));n.start()};
+    /* er filen ikke hentet endnu, venter vi op til et halvt sekund på den i stedet for at spille det gamle bip; bippet bruges kun, hvis filen slet ikke kan hentes (Kasper 26. nov.) */
+    const spil=b=>{const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.playbackRate.value=rate;g.gain.value=vol;n.connect(g);g.connect(EFF(a));n.start()};
+    if(!b){const t0=a.currentTime;hent(l[i]).then(b2=>{if(a.currentTime-t0<=.5)spil(b2)},()=>{if(ellers)ellers()});return}spil(b)};
   /* en lyd, der kører i ring, så længe noget holdes nede (motoren i Gribemaskinen). Svarer false, hvis filen ikke kan spilles, så kalderen selv kan lave en lyd */
   const HOLDT={};const hold=(key,on)=>{const h=HOLDT[key];if(!on){if(h){try{h.g.gain.setTargetAtTime(0,h.a.currentTime,.03);h.n.stop(h.a.currentTime+.15)}catch(_){}delete HOLDT[key]}return true}if(h)return true;const l=FILER[key],a=A();if(!a||!l||!kanFil)return false;const b=BUF[l[0]];if(!b){hent(l[0]).catch(()=>{});return false}
     const n=a.createBufferSource(),g=a.createGain();n.buffer=b;n.loop=true;g.gain.value=.5;n.connect(g);g.connect(UD(a));n.start();HOLDT[key]={n,g,a};return true};
-  const forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
+  const /* alle lydeffekter hentes i baggrunden, én ad gangen, efter første tryk, så de er klar, når de skal bruges */
+  forhentAlt=()=>{if(!kanFil||!A())return;const alle=[...new Set(Object.values(FILER).flat())];let k=0;const naeste=()=>{if(k>=alle.length)return;const f=alle[k++];hent(f).catch(()=>{}).then(()=>setTimeout(naeste,40))};naeste()},
+  forhent=keys=>{if(!kanFil||!A())return;for(const k of keys)for(const f of FILER[k]||[])hent(f).catch(()=>{})};
   /* musikken: ét nummer ad gangen plus et lag stemning. Skifter blødt */
   const lag={musik:{id:null,n:null,g:null,gen:0},stemning:{id:null,n:null,g:null,gen:0}};let musikVil=null,stemVil=null,slutFn=null;
   /* musikken går gennem et filter: inde i et rum bliver den dæmpet og lidt lavere, så man kan høre, at man er gået ind, uden at sangen skifter (LYDPLAN.md) */
@@ -66,7 +72,7 @@ const LYD=(()=>{let ac=null,til=true;try{til=localStorage.getItem('magiske-mig-p
     /* hvor langt nummeret er nået, i sekunder (null, når der ikke spiller noget) */
     forsinkelse(){return ac?((ac.outputLatency||0)+(ac.baseLatency||0)):0},
     musikTid(){const L=lag.musik;if(!L.n||!ac||L.t0==null)return null;let t=ac.currentTime-L.t0+(L.off||0);if(L.m&&L.m.loop&&!L.m.en){const[s0,e]=L.m.loop;if(t>e)t=s0+(t-s0)%(e-s0)}return{id:L.id,t}},
-    status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
+    status:()=>({inde:indeVil,pos:Object.fromEntries(Object.entries(POS).map(([k,v])=>[k,Math.round(v.p*10)/10])),off:lag.musik.off||0,musik:lag.musik.id,spiller:!!lag.musik.n,stemning:lag.stemning.id,stemSpiller:!!lag.stemning.n,hentet:Object.keys(BUF),tilstand:ac&&ac.state}),forhent,forhentAlt,fil,hold,brum(){tone(140,140,.05,'sawtooth',.03)},klo(){fil('gribe.luk',()=>tone(300,210,.12,'square',.06))},
     bonk(){fil('gnom.slag',()=>{tone(190,55,.2,'square',.2);stoej(.09,.35,260,.6);tone(900,500,.12,'triangle',.12,.04)});fil('gnom.av',null,.9)},dunk(){fil('gnom.forbi',()=>{stoej(.12,.28,150,.7);tone(110,50,.14,'sine',.2)})},op(){fil('op',()=>tone(300,620,.09,'triangle',.07))}/* det korte bip beholdes, hvor det sker hele tiden (en gnom dukker op, bobler falder) */,opBip(){tone(300,620,.09,'triangle',.07)},
     guld(){fil('guld',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},kanin(){fil('gnom.kanin',()=>{tone(400,160,.3,'sawtooth',.14);stoej(.2,.2,300,.6)})},
     ding(){fil('ding',()=>{tone(988,988,.16,'sine',.16);tone(1319,1319,.3,'sine',.14,.08)})},plop(){tone(520,150,.15,'sine',.24);stoej(.06,.1,1800,1,.02)},puf(){stoej(.25,.22,380,.5);tone(170,60,.22,'sawtooth',.07)},
