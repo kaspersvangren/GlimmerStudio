@@ -96,11 +96,11 @@ ROOMS.tryl=function(ctx){
   const bossKast=m=>{const B=S.boss,d=B.def,M=MOENSTER[d.k],boelge=m==='boelge',n=boelge?M.n+(B.nr>8?1:0):d.antal+(B.nr>8?1:0);
     for(let i=0;i<n;i++){const fra=boelge&&M.fra?M.fra[i%M.fra.length]:d.hand,x0=B.x+fra[0],y0=B.y+fra[1],tx=n>1?(i-(n-1)/2)*(boelge?M.spred:6):rnd(-3.5,3.5);
       nytSkud({k:d.skud,bane:d.bane,sym:nytTegn(),x0,y0,tx,ty:7.5,x:x0,y:y0,T:B.flyv*(d.bane==='ret'?.9:1)*rnd(.95,1.08)*(boelge?1.12:1),t:-(boelge?i*M.forsink:i*.5),plan:0,rot:rnd(0,6),ph:boelge&&M.modfase?i*Math.PI:rnd(0,6)})}
-    B.glimt=.3;LYD.fil('tryl.kast',()=>LYD.pust());if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
+    B.glimt=.3;LYD.fil('tryl.kast',()=>LYD.pust(),.75,1.35);if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
   /* superangrebet: først lader bossen op, så sendes kæmpekuglen af sted */
-  const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.fil('tryl.kaempe',()=>LYD.snor())};
+  const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.fil('tryl.lad',()=>LYD.snor())};
   const superKast=()=>{const B=S.boss,d=B.def,n=Math.min(5,3+Math.floor((B.nr-1)/2)),p=S.cfg.tegn.slice(),syms=[];for(let i=0;i<n;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===syms[i-1]);syms.push(t)}
-    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});{const k=S.skud[S.skud.length-1],G=new THREE.Group();k.rd=syms.map((sym,i)=>{const d=new THREE.Group();d.position.x=(i-(n-1)/2)*2.7;d.add(skive(sym,.85));G.add(d);return d});k.rad=tilLive(G,x0,y0+6,11)}B.glimt=.5;S.ryst=.35;LYD.fil('tryl.kugle',()=>LYD.ild());Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
+    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});{const k=S.skud[S.skud.length-1],G=new THREE.Group();k.rd=syms.map((sym,i)=>{const d=new THREE.Group();d.position.x=(i-(n-1)/2)*2.7;d.add(skive(sym,.85));G.add(d);return d});k.rad=tilLive(G,x0,y0+6,11)}B.glimt=.5;S.ryst=.35;LYD.fil('tryl.kaempe',()=>LYD.ild());Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
   /* et tegn rammer kæmpekuglen: den skubbes lidt tilbage og bliver mindre; sidste tegn sprænger den */
   const superRamt=k=>{{const d=k.rd[k.idx];d.clear();d.add(faerdig(.85))}k.idx++;k.krymp=.25;k.t=Math.max(0,k.t-k.T*.1);gnist(k.x,k.y,SKUDFARVE[k.k],14,380);
     if(k.idx>=k.syms.length){k.plan=S.t+.05;S.score+=60;tekst(k.x,k.y+2,'Super!','#ffe27a',60);tekst(k.x,k.y-.7,'+60','#fff6d0',40);S.hop=.5}
@@ -238,7 +238,7 @@ ROOMS.tryl=function(ctx){
       for(const k of S.skud){k.t+=dt;if(k.krymp>0)k.krymp-=dt;if(k.t<0)continue;const[x,y]=skudPos(k);k.x=x;k.y=y;k.G.visible=true;k.G.position.x=x;k.G.position.y=y;
         k.G.scale.setScalar((k.stor?2.1*(1-.1*k.idx)*(k.krymp>0?1-k.krymp*.5:1):1)*(k.plan?1.2:1));k.G.children[0].rotation.z=k.k==='bombe'?k.t*2.2+k.rot:k.k==='is'?k.t*3:k.k==='blaek'?Math.sin(k.t*9)*.1:Math.sin(k.t*8)*.12;
         if(k.plan&&S.t>=k.plan){k.dod=true;LYD.pop();Rm.burst(x,y,12,k.stor?16:10,'rgba(255,255,255,.95)',k.stor?9:5);if(k.stor)LYD.fanfare()}
-        else if(!k.plan&&k.t>=k.T){k.dod=true;S.ryst=k.stor?.6:.3;Rm.burst(x,y,12,10,'rgba(255,200,160,.95)',6);if(S.fase!=='tabt')bid({x,y:y+2},(k.stor?'KÆMPE-':'')+(k.k==='bombe'?'BOM!':k.k==='is'?'FRYS!':k.k==='ild'?'AV, VARMT!':'SPLAT!'))}
+        else if(!k.plan&&k.t>=k.T){k.dod=true;S.ryst=k.stor?.6:.3;if(k.stor)LYD.fil('tryl.kugle');Rm.burst(x,y,12,10,'rgba(255,200,160,.95)',6);if(S.fase!=='tabt')bid({x,y:y+2},(k.stor?'KÆMPE-':'')+(k.k==='bombe'?'BOM!':k.k==='is'?'FRYS!':k.k==='ild'?'AV, VARMT!':'SPLAT!'))}
         if(k.dod){Rm.live.remove(k.G);rydG(k.rad)}}
       S.skud=S.skud.filter(k=>!k.dod);
       for(const b of S.frie){b.t+=dt;b.vy+=8*dt;b.y+=b.vy*dt;b.x+=Math.sin(b.t*3+b.ph)*2*dt;b.G.position.set(b.x,b.y,5);if(b.y>TOP+8)Rm.live.remove(b.G)}S.frie=S.frie.filter(b=>b.y<=TOP+8);

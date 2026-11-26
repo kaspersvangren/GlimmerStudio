@@ -179,14 +179,14 @@ ROOMS.kost=function(ctx){
   function startEv(){const k=['fyr','fyr','bat','skud','lanterne'][Math.floor(R(5))],hh=Math.tan(baseFov*Math.PI/360)*(CD+160),hw=hh*Rm.cam.aspect;
     if(k==='bat'){const y=R(hh*.25,hh*.7);EV.filter(e=>e.k==='bat').forEach((e,i)=>{e.t=-i*.15;e.dur=7;e.x0=hw+10+i*4;e.x1=-hw-20;e.y=y+(i%3)*3;e.g.visible=true})}
     else{const q=EV.find(q=>q.k===k&&!q.g.visible);if(!q)return;q.t=0;q.g.visible=true;q.x=R(-hw*.7,hw*.7);
-      if(k==='skud'){q.dur=1.2;q.y=R(hh*.5,hh*.9)}if(k==='lanterne'){q.dur=9;q.y=-hh}if(k==='fyr'){q.dur=2.6;q.top=R(hh*.2,hh*.6);q.y=-hh;const c=['#ff5fa8','#ffe27a','#7fd8ff','#9be36a','#c79bff','#ff8a3d'][Math.floor(R(6))];q.gn.forEach((m,i)=>{m.material=paperMat(i%3?c:'#ffffff','tissue',{glow:i%3?c:'#ffffff',gi:1.6});m.visible=false});q.raket.visible=true;q.knald=false}}}
+      if(k==='skud'){q.dur=1.2;q.y=R(hh*.5,hh*.9)}if(k==='lanterne'){q.dur=9;q.y=-hh}if(k==='fyr'){q.dur=2.6;q.top=R(hh*.2,hh*.6);q.y=-hh;const c=['#ff5fa8','#ffe27a','#7fd8ff','#9be36a','#c79bff','#ff8a3d'][Math.floor(R(6))];q.gn.forEach((m,i)=>{m.material=paperMat(i%3?c:'#ffffff','tissue',{glow:i%3?c:'#ffffff',gi:1.6});m.visible=false});q.raket.visible=true;q.knald=false;/* hylet, mens raketten stiger (Kasper 26. nov.) */if(S.run==='fly')LYD.fil('kost.fyr.op',null,.5,R(.95,1.08))}}}
   function tickEv(dt){if(!evG)return;const camX=X(S.cam+800);evG.position.x=camX;const hh=Math.tan(baseFov*Math.PI/360)*(CD+160);
     if(S.run==='fly'&&S.t>S.evT){startEv();S.evT=S.t+4+Math.random()*5}
     for(const e of EV){if(!e.g.visible)continue;e.t+=dt;if(e.t<0)continue;const u=e.t/(e.dur||1);if(u>=1){e.g.visible=false;continue}
       if(e.k==='bat'){e.g.position.set(mix(e.x0,e.x1,u),e.y+Math.sin(e.t*6)*1.5,0);const f=Math.sin(e.t*22);e.vg.forEach((v,i)=>{v.scale.y=.3+.7*Math.abs(f);v.rotation.z=(i?-1:1)*.2*f})}
       if(e.k==='skud'){e.g.position.set(e.x-u*60,e.y-u*20,0);e.g.rotation.z=1.25;e.g.scale.setScalar(Math.sin(u*Math.PI))}
       if(e.k==='lanterne'){e.g.position.set(e.x+Math.sin(e.t*.8)*4,mix(-hh,hh*1.1,u),0);e.g.rotation.z=Math.sin(e.t*1.3)*.12}
-      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.fil('kost.fyr',()=>LYD.puf())}
+      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.fil('kost.fyr',()=>LYD.puf(),.6,R(.92,1.08))}
         const k=(u-.35)/.65;e.gn.forEach((m,i)=>{const a=i/16*TAU,d=4+14*Math.sqrt(k);m.position.set(Math.cos(a)*d,Math.sin(a)*d-8*k*k,.1);m.scale.setScalar(1.2*(1-k))})}}}}
   /* ---------- styring ---------- */
   const el=renderer.domElement;let holdT=0;
