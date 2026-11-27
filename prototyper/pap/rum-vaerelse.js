@@ -34,8 +34,8 @@ ROOMS.vaerelse=function(ctx){
   const Rm=makeRoom(ctx,{fit,key:{tgt:[-2,16,0]},
     build:Rm=>[()=>{T.Rm=Rm;G.fast=new THREE.Group();Rm.scene.add(G.fast)},...SL.map(s=>()=>{G[s]=new THREE.Group();Rm.scene.add(G[s]);rebuild(s);Rm.tap(G[s],()=>{LYD.tryk();aabn(s)})}),()=>fast(G.fast),
       ()=>{Rm.tap(G.skab,()=>ctx.go('garderobe'));
-        heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{LYD.tryk();pop=1;Rm.burst(HX,22,8,8)});
-        kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.op();hop=1});
+        heks=makeFigure(Object.assign({},ctx.look));heks.G.position.set(HX,.35,HZ);Rm.live.add(heks.G);Rm.blob(HX,HZ,15,6);Rm.tap(heks.G,()=>{LYD.fil('vaer.heks',()=>LYD.tryk());pop=1;Rm.burst(HX,22,8,8)});
+        kat=makeCat(ctx.dyr);kat.G.scale.setScalar(.6);kat.G.position.set(9.6,1.1,11.4);Rm.live.add(kat.G);Rm.tap(kat.G,()=>{LYD.fil('vaer.kat',()=>LYD.op());hop=1});
         /* malerierne fra Præmiebutikken hænger på væggen. Tryk på et for at skifte til et andet, man har, eller tage det ned */
         {const vaeg=SPIL.data.vaeg=(SPIL.data.vaeg||[]).concat(Array(VAEGPLADSER.length).fill(null)).slice(0,VAEGPLADSER.length),nogen=MALERIER.some(m=>maleriEjet(m[0]));
           VAEGPLADSER.forEach((p,i)=>{const G=new THREE.Group();G.position.set(p.x,p.y,-8.8);Rm.live.add(G);malerier.push(G);
