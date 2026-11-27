@@ -50,7 +50,7 @@ ROOMS.boblepop=function(ctx){
   const visKoe=()=>{if(G.cur){G.cur.m.position.set(KX,KY,KZ+1.1);G.cur.m.scale.setScalar(1)}if(G.next){G.next.m.position.set(NX,NY+1.7,6.4);G.next.m.scale.setScalar(.86)}hylde.forEach((h,i)=>{h.visible=i<G.pw.length;if(h.visible)h.material=matMaerke(G.pw[i])})};
   /* en kraft fra hylden lægges i kanonen, hvis der ligger en almindelig boble i den */
   const brugKraft=()=>{if(!G.pw.length||G.cur.sp)return;const k=G.pw.shift();if(k==='sigte'){G.sigte=6;tekst(KX,KY+5,'Sigte i 6 skud!',KFARVE.sigte,40);brugKraft();visKoe();return}G.cur.sp=k;skift(G.cur);visKoe()};
-  const byt=()=>{if(G.fase!=='sigt'||G.cur.sp){LYD.doer();return}byttet=true;const a=G.cur;G.cur=G.next;G.next=a;hopK=1;LYD.plop();visKoe()};
+  const byt=()=>{if(G.fase!=='sigt'||G.cur.sp){LYD.doer();return}byttet=true;const a=G.cur;G.cur=G.next;G.next=a;hopK=1;LYD.fil2('boblepop.byt','tryl.kast',1.2,1.5);visKoe()};
   /* ---------- skuddet: vejen regnes ud på forhånd (den samme vej bruges til den stiplede linje) ---------- */
   const vej=(a,langt)=>{let x=KX+Math.cos(a)*2.4,y=KY+Math.sin(a)*2.4,dx=Math.cos(a),dy=Math.sin(a),hop=0;const pts=[[x,y]],ds=.35;
     for(let i=0;i<900;i++){x+=dx*ds;y+=dy*ds;if(x<WL+R0){x=2*(WL+R0)-x;dx=-dx;hop++;pts.push([WL+R0,y])}else if(x>WR-R0){x=2*(WR-R0)-x;dx=-dx;hop++;pts.push([WR-R0,y])}
@@ -69,7 +69,7 @@ ROOMS.boblepop=function(ctx){
       Rm.burst(px,py,4,16,'rgba(255,236,170,.95)',b.sp==='bombe'?6:14);if(b.sp==='bombe')LYD.fil('boblepop.bombe',()=>LYD.ild());else LYD.fil('boblepop.special',()=>LYD.hak());G.ryst=.3;tekst(px,py+2,b.sp==='bombe'?'BUM!':'ZAP!',KFARVE[b.sp],54)}
     else{if(b.sp==='regnbue'){/* regnbuen tager den farve, der giver den største klynge */let bedst=null,bn=0;for(const t of new Set(naboer(r,c).map(([a,q])=>celle(a,q)).filter(Boolean).map(q=>q.t))){saet(b,r,c);b.t=t;const n=klynge(r,c,t).length;G.grid[r][c]=null;if(n>bn){bn=n;bedst=t}}b.t=bedst==null?vaelg(paaBraet().length?paaBraet():[0]):bedst;b.sp=null;skift(b)}
       saet(b,r,c,true);b.dunk=.18;const kl=klynge(r,c,b.t);if(kl.length>=3){kl.map(([a,q])=>celle(a,q)).sort((a,q)=>Math.hypot(a.tx-b.tx,a.ty-b.ty)-Math.hypot(q.tx-b.tx,q.ty-b.ty)).forEach((q,i)=>fjern(q,'pop',i));sprang=kl.length}}
-    if(sprang){const ls=loese();ls.forEach((q,i)=>fjern(q,'fald',i));faldt=ls.length;const p=10*sprang+(sprang>3?(sprang-3)*10:0)+20*faldt;G.score+=p;hopH=1;tekst(cx(r,c),cy(r)+1.5,'+'+p,'#fff6d0',faldt?46:36);if(faldt>=3)tekst(cx(r,c),cy(r)+4,faldt>=8?'Kæmpe fald!':faldt>=5?'Flot fald!':'Fald!','#ffe27a',50);if(faldt)LYD.fil('bobler.falder',()=>LYD.opBip())}
+    if(sprang){const ls=loese();ls.forEach((q,i)=>fjern(q,'fald',i));faldt=ls.length;const p=10*sprang+(sprang>3?(sprang-3)*10:0)+20*faldt;G.score+=p;hopH=1;tekst(cx(r,c),cy(r)+1.5,'+'+p,'#fff6d0',faldt?46:36);if(faldt>=3)tekst(cx(r,c),cy(r)+4,faldt>=8?'Kæmpe fald!':faldt>=5?'Flot fald!':'Fald!','#ffe27a',50);if(faldt)LYD.fil('bobler.falder',()=>LYD.opBip(),.6)}
     else{G.miss++;LYD.dunk();if(G.miss>=G.missMax){G.miss=0;G.nyRk=.35}}
     trim();visLamper();tegnHud();
     if(alle().some(q=>q.r>=MAXR)){tabt();return}
@@ -162,7 +162,7 @@ ROOMS.boblepop=function(ctx){
       G.doede=G.doede.filter(b=>!b.vaek);
       /* kræfterne falder ned til kanonen */
       for(const q of G.maerker){q.t+=dt;if(q.t<0)continue;if(!q.m){q.m=new THREE.Mesh(new THREE.PlaneGeometry(2.6,2.6),matMaerke(q.k));q.m.userData.noShadow=true;Rm.live.add(q.m)}const k=Math.min(1,q.t/.85),e=k*k;q.m.position.set(q.x0+(KX+4-q.x0)*k,q.y0+(KY-.5-q.y0)*e+Math.sin(k*Math.PI)*3,7);q.m.rotation.z=Math.sin(q.t*9)*.3;q.m.scale.setScalar(1+.25*Math.sin(k*Math.PI));
-        if(k>=1){q.vaek=true;Rm.live.remove(q.m);LYD.ding();Rm.burst(KX+4,KY,7,8,'rgba(255,236,170,.95)',2.4);if(G.pw.length>=3){G.score+=50;tekst(KX+6,KY+3,'+50','#fff6d0',36);tegnHud()}else{G.pw.push(q.k);tekst(KX+7,KY+4.4,KRAFT[q.k]+'!',KFARVE[q.k],44)}if(G.fase==='sigt'&&G.cur)brugKraft();visKoe()}}
+        if(k>=1){q.vaek=true;Rm.live.remove(q.m);LYD.fil('ding',null,.55);Rm.burst(KX+4,KY,7,8,'rgba(255,236,170,.95)',2.4);if(G.pw.length>=3){G.score+=50;tekst(KX+6,KY+3,'+50','#fff6d0',36);tegnHud()}else{G.pw.push(q.k);tekst(KX+7,KY+4.4,KRAFT[q.k]+'!',KFARVE[q.k],44)}if(G.fase==='sigt'&&G.cur)brugKraft();visKoe()}}
       G.maerker=G.maerker.filter(q=>!q.vaek);
       /* kanonen følger sigtet */
       if(G.fase==='sigt')kanon.rotation.z+=((sigt-Math.PI/2)-kanon.rotation.z)*Math.min(1,dt*18);if(G.cur){G.cur.m.rotation.z=Math.sin(t*3)*.05}if(G.next){G.next.m.position.y=NY+1.7+Math.sin(t*2.2)*.12+Math.sin(hopK*Math.PI)*.6*hopK}

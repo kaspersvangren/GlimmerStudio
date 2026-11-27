@@ -57,7 +57,7 @@ ROOMS.tryl=function(ctx){
     const ny=kan.find(k=>SLAGS[k].fra===w&&k!=='gnom');if(ny){S.koe[Math.min(2,S.koe.length-1)]=ny;S.koe[0]='gnom'}
     S.tving=cfg.nyt.slice();if(w===1)S.tving=['vand','lod','vand','lod'];S.spawnT=.6;S.gaveT=w>=3&&Math.random()<.65?rnd(4,cfg.antal*cfg.gab*.8):-1;
     if(cfg.nyt.length){S.fase='kort';S.faseT=w===1?14:9;S.kort={nyt:cfg.nyt,ok:{},t:0,ud:0}}else{S.fase='spil';S.kort=null;S.msg=`Runde ${w}`;S.msgT=1.6}
-    if(w>1)LYD.nyt();tegnHud()};
+    if(w>1)LYD.fil('dyr.runde',()=>LYD.nyt());tegnHud()};
   /* ---------- bosserne: hver femte runde kommer en af dem, i denne rækkefølge, og så forfra, hver gang lidt sværere ----------
      skud: hvad den kaster. bane: hvordan det flyver (bue, ret eller zigzag). hp: hvor mange gange den skal rammes.
      kombo: hvor mange tegn, man skal tegne i træk, når den er svimmel. hand: hvor kastet starter, set fra midten af bossen.
@@ -96,18 +96,19 @@ ROOMS.tryl=function(ctx){
   const bossKast=m=>{const B=S.boss,d=B.def,M=MOENSTER[d.k],boelge=m==='boelge',n=boelge?M.n+(B.nr>8?1:0):d.antal+(B.nr>8?1:0);
     for(let i=0;i<n;i++){const fra=boelge&&M.fra?M.fra[i%M.fra.length]:d.hand,x0=B.x+fra[0],y0=B.y+fra[1],tx=n>1?(i-(n-1)/2)*(boelge?M.spred:6):rnd(-3.5,3.5);
       nytSkud({k:d.skud,bane:d.bane,sym:nytTegn(),x0,y0,tx,ty:7.5,x:x0,y:y0,T:B.flyv*(d.bane==='ret'?.9:1)*rnd(.95,1.08)*(boelge?1.12:1),t:-(boelge?i*M.forsink:i*.5),plan:0,rot:rnd(0,6),ph:boelge&&M.modfase?i*Math.PI:rnd(0,6)})}
-    B.glimt=.3;LYD.fil('tryl.kast',()=>LYD.pust(),.75,1.35);if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
+    B.glimt=.3;LYD.fil('tryl.kast',()=>LYD.pust(),2,1.35);if(boelge){bossSig(M.navn);tekst(B.x,B.y-7.5,M.navn,SKUDFARVE[d.skud],40)}else if(Math.random()<.35)bossSig(vaelg(d.snak))};
   /* superangrebet: først lader bossen op, så sendes kæmpekuglen af sted */
-  const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.fil('tryl.lad',()=>LYD.snor())};
+  const superStart=()=>{const B=S.boss;B.lad=LAD;bossSig(SUPER[B.def.k]);if(!S.superSet){S.superSet=true;S.msg='Superangreb!';S.msg2='Tegn alle tegnene på kæmpekuglen, i rækkefølge';S.msgT=2.6}LYD.fil('tryl.lad',()=>LYD.snor(),1.5)};
   const superKast=()=>{const B=S.boss,d=B.def,n=Math.min(5,3+Math.floor((B.nr-1)/2)),p=S.cfg.tegn.slice(),syms=[];for(let i=0;i<n;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===syms[i-1]);syms.push(t)}
-    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});{const k=S.skud[S.skud.length-1],G=new THREE.Group();k.rd=syms.map((sym,i)=>{const d=new THREE.Group();d.position.x=(i-(n-1)/2)*2.7;d.add(skive(sym,.85));G.add(d);return d});k.rad=tilLive(G,x0,y0+6,11)}B.glimt=.5;S.ryst=.35;LYD.fil('tryl.kaempe',()=>LYD.ild());Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
+    const x0=B.x+d.hand[0],y0=B.y+d.hand[1];nytSkud({k:d.skud,bane:'stor',stor:true,syms,idx:0,sym:syms[0],x0,y0,tx:0,ty:8.5,x:x0,y:y0,T:B.flyv*1.9,t:0,plan:0,rot:rnd(0,6),ph:rnd(0,6),krymp:0});{const k=S.skud[S.skud.length-1],G=new THREE.Group();k.rd=syms.map((sym,i)=>{const d=new THREE.Group();d.position.x=(i-(n-1)/2)*2.7;d.add(skive(sym,.85));G.add(d);return d});k.rad=tilLive(G,x0,y0+6,11)}B.glimt=.5;S.ryst=.35;LYD.fil('tryl.kaempe',()=>LYD.ild(),2);Rm.burst(x0,y0,12,14,SKUDFARVE[d.skud],8)};
   /* et tegn rammer kæmpekuglen: den skubbes lidt tilbage og bliver mindre; sidste tegn sprænger den */
   const superRamt=k=>{{const d=k.rd[k.idx];d.clear();d.add(faerdig(.85))}k.idx++;k.krymp=.25;k.t=Math.max(0,k.t-k.T*.1);gnist(k.x,k.y,SKUDFARVE[k.k],14,380);
     if(k.idx>=k.syms.length){k.plan=S.t+.05;S.score+=60;tekst(k.x,k.y+2,'Super!','#ffe27a',60);tekst(k.x,k.y-.7,'+60','#fff6d0',40);S.hop=.5}
-    else{k.sym=k.syms[k.idx];k.G.remove(k.sk);k.sk=SKI[k.sym].clone(true);k.sk.position.z=1.2;k.G.add(k.sk);S.score+=10;tekst(k.x,k.y+6,'+10','#fff6d0',34);LYD.pop()}tegnHud()};
+    else{k.sym=k.syms[k.idx];k.G.remove(k.sk);k.sk=SKI[k.sym].clone(true);k.sk.position.z=1.2;k.G.add(k.sk);S.score+=10;tekst(k.x,k.y+6,'+10','#fff6d0',34);LYD.fil('tryl.pop',()=>LYD.pop(),1.6)}tegnHud()};
   const ansigt=(B,svim)=>{B.A.nor.visible=!svim;B.A.svim.visible=svim};
-  const bossSaarbar=()=>{const B=S.boss,p=S.cfg.tegn.slice();B.fase='saarbar';B.komboI=0;B.kombo=[];for(let i=0;i<B.komboN;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===B.kombo[i-1]);B.kombo.push(t)}B.saarT=B.saarMax=3+2.1*B.komboN;ansigt(B,true);svimPanel(B);LYD.fil('tryl.ramt',()=>LYD.kys())};
-  const bossRamt=()=>{const B=S.boss,at=PYNT_AT[B.def.k][B.pynt%5],pg=TRYLBOSS.pynt(new THREE.Group(),PYNT[B.pynt%PYNT.length]);pg.position.set(at[0],at[1],4);pg.rotation.z=-.2;B.G.add(pg);B.pynt++;B.hp--;B.ramtT=1.1;B.fase='ramt';
+  const bossSaarbar=()=>{const B=S.boss,p=S.cfg.tegn.slice();B.fase='saarbar';B.komboI=0;B.kombo=[];for(let i=0;i<B.komboN;i++){let t;do{t=vaelg(p)}while(p.length>1&&i>0&&t===B.kombo[i-1]);B.kombo.push(t)}B.saarT=B.saarMax=3+2.1*B.komboN;ansigt(B,true);svimPanel(B);/* svimmel-lyden kører i ring, så længe bossen er svimmel (Kasper 27. nov.) */if(LYD.hold('tryl.ramt',true))svimLyd=true;else LYD.fil('tryl.ramt',()=>LYD.kys())};
+  let svimLyd=false;const svimStop=()=>{if(svimLyd){svimLyd=false;LYD.hold('tryl.ramt',false)}};
+  const bossRamt=()=>{svimStop();const B=S.boss,at=PYNT_AT[B.def.k][B.pynt%5],pg=TRYLBOSS.pynt(new THREE.Group(),PYNT[B.pynt%PYNT.length]);pg.position.set(at[0],at[1],4);pg.rotation.z=-.2;B.G.add(pg);B.pynt++;B.hp--;B.ramtT=1.1;B.fase='ramt';
     S.score+=100;S.hop=.5;S.dyrHop=.5;S.ryst=.25;LYD.fanfare();Rm.burst(B.x,B.y+3,12,16,'rgba(255,226,122,.95)',10);Rm.burst(B.x,B.y+3,12,12,'rgba(255,79,123,.95)',9);tekst(B.x,B.y+1,'+100','#fff6d0',46);bossSig(vaelg(B.def.av));tegnHud()};
   const bossBesejret=()=>{const B=S.boss,p=200+50*B.nr;B.fase='besejret';B.besejrT=1.6;B.lad=0;S.score+=p;S.forvandlet++;LYD.fanfare();Rm.burst(B.x,B.y,12,16,'rgba(255,255,255,.95)',12);Rm.burst(B.x,B.y,12,16,'rgba(255,143,199,.95)',14);
     S.msg=`${B.def.navn} blev til ${B.def.sod}!`;S.msg2='';S.msgT=2.8;tekst(B.x,B.y-2,'+'+p,'#fff6d0',56);for(const k of S.skud)if(!k.plan)k.plan=S.t+rnd(.1,.4);tegnHud()};
@@ -118,7 +119,7 @@ ROOMS.tryl=function(ctx){
     else{/* den svæver frem og tilbage. Er den svimmel, eller lader den op, står den stille */const fart=B.fase==='saarbar'||B.lad>0?0:1;B.vt+=dt*fart;B.x=Math.sin(B.vt*.45)*BSPAN;B.y=BY+Math.sin(B.t*1.3)*.7;
       if(B.fase==='angreb'){if(B.lad>0){B.lad-=dt;if(B.lad<=0){B.lad=0;superKast();B.kastT=B.gab}}
         else{B.kastT-=dt;if(B.kastI<B.plan.length&&B.kastT<=0){const m=B.plan[B.kastI++];if(m==='super')superStart();else{bossKast(m);B.kastT=B.gab*(m==='boelge'?1.7:1)*rnd(.85,1.15)}}else if(B.kastI>=B.plan.length&&!S.skud.length)bossSaarbar()}}
-      else if(B.fase==='saarbar'){B.saarT-=dt;if(B.saarT<=0){B.fase='angreb';ansigt(B,false);B.plan=lavPlan(B);B.kastI=0;B.kastT=1;bossSig(B.def.grin);LYD.oev()}}
+      else if(B.fase==='saarbar'){B.saarT-=dt;if(B.saarT<=0){B.fase='angreb';ansigt(B,false);B.plan=lavPlan(B);B.kastI=0;B.kastT=1;bossSig(B.def.grin);svimStop();LYD.fil2('tryl.grin','oev')}}
       else if(B.fase==='ramt'){B.ramtT-=dt;if(B.ramtT<=0){if(B.hp<=0)bossBesejret();else{B.fase='angreb';ansigt(B,false);B.plan=lavPlan(B);B.kastI=0;B.kastT=1.2;B.gab=Math.max(.75,B.gab*.9)}}}}
     const svim=B.fase==='saarbar'||B.fase==='ramt',ryst=B.fase==='ramt'?Math.sin(B.ramtT*40)*.5*B.ramtT:0,lq=B.lad>0?1-B.lad/LAD:0,lr=lq?Math.sin(S.t*60)*.25*lq:0;
     if(B.fase==='besejret'){const q=Math.max(0,B.besejrT/1.6);B.G.scale.setScalar(.2+.8*q);B.G.rotation.z=(1-q)*9}else{B.G.rotation.z=svim?Math.sin(S.t*2.4)*.08:Math.sin(S.t*1.1)*.03;B.G.scale.set(1,B.glimt>0?1+B.glimt*.15:1,1)}
@@ -134,7 +135,7 @@ ROOMS.tryl=function(ctx){
   const stjerne=(st,x,y)=>{if(st.sx!=null&&Math.hypot(x-st.sx,y-st.sy)<.6)return;st.sx=x;st.sy=y;const m=STJ.guld.clone();m.position.set(x,y,11);m.rotation.z=Math.random()*6;m.scale.setScalar(.6);Rm.live.add(m);st.stj.push(m)};
   const slip=(stj,sym)=>{for(const m of stj||[]){m.material=(sym?STJ[sym]:STJ.graa).material;S.spor.push({m,t:0,vx:rnd(-2,2),vy:rnd(1,4),sym})}};
   const tegnet=(pts,stj)=>{if(pts.length<3){slip(stj,null);return}const sym=trylGenkend(pts,aktive());let mx=0,my=0;for(const p of pts){mx+=p[0];my+=p[1]}mx=mx/pts.length/U;my=-my/pts.length/U;
-    if(!sym){slip(stj,null);LYD.fuser();return}
+    if(!sym){slip(stj,null);LYD.fil('fuser',()=>LYD.fuser(),1.6);return}
     const c=TG[sym].c;slip(stj,sym);
     if(S.fase==='kort'&&S.kort.nyt.includes(sym)&&!S.kort.ok[sym]){S.kort.ok[sym]=true;S.hop=.4;LYD.ding();gnist(mx,my,c,14,260);if(S.kort.nyt.every(k=>S.kort.ok[k]))S.faseT=Math.min(S.faseT,.9);return}
     if(sym==='hjerte'&&S.gave){hjertebrag();return}
@@ -143,16 +144,16 @@ ROOMS.tryl=function(ctx){
     const store=S.skud.filter(k=>k.stor&&!k.plan&&k.t>=0&&k.sym===sym);store.forEach(superRamt);
     const sk=S.skud.filter(k=>!k.stor&&!k.plan&&k.t>=0&&k.sym===sym);sk.forEach((k,i)=>{k.plan=S.t+.04+i*.06});if(sk.length){const q=10*sk.length;S.score+=q;S.hop=.42;tekst(mx,my+.5,'+'+q,'#fff6d0',34);tegnHud()}
     const ramt=[];for(const f of S.foes){if(f.st!=='ned')continue;for(const b of f.bal)if(!b.pop&&!b.plan&&b.sym===sym&&f.y+b.dy<TOP+BR*.4)ramt.push([f,b])}
-    if(!ramt.length){if(!bossOk&&!sk.length&&!store.length){gnist(mx,my,c,6,160);LYD.tryk()}else gnist(mx,my,c,10,240);return}
+    if(!ramt.length){if(!bossOk&&!sk.length&&!store.length){gnist(mx,my,c,6,160);LYD.doer()}else gnist(mx,my,c,10,240);return}
     ramt.sort((a,b)=>Math.hypot(a[0].x+a[1].dx-mx,a[0].y+a[1].dy-my)-Math.hypot(b[0].x+b[1].dx-mx,b[0].y+b[1].dy-my));ramt.forEach(([f,b],i)=>{b.plan=S.t+.05+i*.075});
     const n=ramt.length,p=5*n*(n+1);S.score+=p;S.hop=.42;gnist(mx,my,c,10,240);tekst(mx,my+1.5,n>=4?'Kæmpe trylleri!':n===3?'Tredobbelt!':n===2?'Dobbelt!':'',c,46);tekst(mx,my-(n>1?.8:-.5),'+'+p,'#fff6d0',n>1?40:34);tegnHud()};
   const hjertebrag=()=>{const g=S.gave;S.gave=null;gaveG.visible=false;S.score+=100;S.hop=.5;S.dyrHop=.5;LYD.gave();Rm.burst(g.x,g.y,12,16,'rgba(255,120,170,.95)',12);Rm.burst(g.x,g.y,12,14,'rgba(255,216,107,.95)',10);
     let i=0;for(const f of S.foes){if(f.st!=='ned'||f.y>TOP+2)continue;for(const b of f.bal)if(!b.pop&&!b.plan){b.plan=S.t+.15+i*.05;i++}}tekst(g.x,g.y-3.5,'Hjertetrylleri!','#ff8fc7',56);tekst(g.x,g.y-6.1,'+100','#fff6d0',40);tegnHud()};
-  const pop=(f,b)=>{b.pop=true;b.G.visible=false;const x=f.x+b.dx,y=f.y+b.dy;LYD.pop();Rm.burst(x,y,12,9,TG[b.sym].c,8);Rm.burst(x,y,12,5,'rgba(255,246,208,.95)',6);f.ups=.5;f.y-=.25;if(f.bal.every(q=>q.pop))forvandl(f)};
+  const pop=(f,b)=>{b.pop=true;b.G.visible=false;const x=f.x+b.dx,y=f.y+b.dy;/* ballonen springer: en af boblespillenes pop-lyde, i lidt forskellig tone (Kasper 27. nov.) */LYD.fil('tryl.ballon',()=>LYD.pop(),1.2,rnd(.9,1.2));Rm.burst(x,y,12,9,TG[b.sym].c,8);Rm.burst(x,y,12,5,'rgba(255,246,208,.95)',6);f.ups=.5;f.y-=.25;if(f.bal.every(q=>q.pop))forvandl(f)};
   const forvandl=f=>{f.st='vaek';Rm.live.remove(f.G);const x=f.x,y=f.y-SLAGS[f.k].H*.5;LYD.ding();S.forvandlet++;S.dyrHop=.4;S.score+=5*SLAGS[f.k].bal;Rm.burst(x,y,12,12,'rgba(255,255,255,.95)',9);gnist(x,y,vaelg(['#ff8fc7','#ffe27a','#7fd8ff','#c79bff']),12,300);
     const G=TPL[vaelg(SOEDT)].clone(true);G.position.set(x,y,8);Rm.live.add(G);S.dyr.push({G,x,y,t:0,vx:rnd(-3.5,3.5),vy:rnd(5.5,7.5),ph:rnd(0,6)});tegnHud()};
   /* et væsen er landet: det slipper ballonerne og løber hen til kagen */
-  const lande=f=>{for(const b of f.bal)if(!b.pop){f.G.remove(b.G);b.G.position.set(f.x+b.dx,f.y+b.dy,5);Rm.live.add(b.G);S.frie.push({G:b.G,x:f.x+b.dx,y:f.y+b.dy,vy:11,t:0,ph:b.ph})}f.bal=[];f.st='loeb';f.t=0;f.side=f.x<0?-1:1;LYD.dunk();Rm.burst(f.x,.6,8,5,'rgba(205,232,208,.9)',4)};
+  const lande=f=>{for(const b of f.bal)if(!b.pop){f.G.remove(b.G);b.G.position.set(f.x+b.dx,f.y+b.dy,5);Rm.live.add(b.G);S.frie.push({G:b.G,x:f.x+b.dx,y:f.y+b.dy,vy:11,t:0,ph:b.ph})}f.bal=[];f.st='loeb';f.t=0;f.side=f.x<0?-1:1;LYD.fil2('tryl.lander','gnom.forbi');Rm.burst(f.x,.6,8,5,'rgba(205,232,208,.9)',4)};
   const bid=(f,txt)=>{if(S.liv<=0||S.fase==='tabt')return;S.liv--;S.ryst=.3;S.kageHop=.35;LYD.nam();Rm.burst(0,7+S.liv*2,10,14,'rgba(246,217,168,.95)',8);Rm.burst(0,7+S.liv*2,10,8,'rgba(255,143,199,.95)',7);tekst(f.x,f.y+1,txt||'NAM!','#ff8fc7',54);visKage();
     if(S.liv<=0){S.fase='tabt';S.faseT=2.1;if(S.streg)slip(S.streg.stj,null);S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msg2='';S.msgT=9}};
   const visKage=()=>kage.forEach((k,i)=>{k.visible=!S||i<S.liv});
@@ -213,7 +214,7 @@ ROOMS.tryl=function(ctx){
         {const G=new THREE.Group();for(const q of ring(circ(0,0,3.4,3.4,36),.3,false))put(G,piece(q,{color:'#ff5a5a',kind:'card',t:.06}),0,0,0);STJ.adv=G}
         tv=papirTavle(lv,[{navn:'Runde',cifre:2},{navn:'Point',cifre:4}],{x:30,y:40.6,z:-8,s:1.35});pt=papirTekster(lv);ban=papirBanner(lv,{y:31,z:10,w:44});tegnHud();
         }],
-    tick:(t,dt)=>{heks.tick(t,{ph:0,amp:0});kat.tick(t+1,{ph:0,amp:0});
+    tick:(t,dt)=>{{const sv=!!(S&&S.boss&&S.boss.fase==='saarbar');if(svimLyd&&!sv)svimStop();else if(!svimLyd&&sv&&S.boss.svimPr!==false){/* var lyden ikke hentet endnu, startes ringen, så snart den er klar */if(LYD.hold('tryl.ramt',true))svimLyd=true;else if(!LYD.harFil('tryl.ramt'))S.boss.svimPr=false}}heks.tick(t,{ph:0,amp:0});kat.tick(t+1,{ph:0,amp:0});
       tv.tick(dt);pt.tick(dt);ban.tick(dt);if(kortG&&!(S&&S.kort&&S.kort.G===kortG)){const K=kortG;K.userData.ud=true}if(kortG&&kortG.userData.ud){kortG.position.y+=60*dt;if(kortG.position.y>80){rydG(kortG);kortG=null}}
       if(!S||S.fase==='vent'){if(!ban.synlig)tegnHud();return}if(frys)dt=0;S.t+=dt;S.faseT-=dt;for(const k of['hop','dyrHop','kageHop','ryst','msgT'])if(S[k]>0)S[k]-=dt;
       heks.G.position.y=.35+Math.max(0,Math.sin(S.hop/.42*Math.PI))*1.2;kat.G.position.y=.6+Math.max(0,Math.sin(S.dyrHop/.5*Math.PI))*1.4;kage.forEach((k,i)=>{k.position.x=S.ryst>0?Math.sin(t*60)*.25:0;k.position.y=S.kageHop>0?Math.sin(S.kageHop/.35*Math.PI)*.5:0});
@@ -237,7 +238,7 @@ ROOMS.tryl=function(ctx){
       if(S.boss&&S.fase!=='tabt')bossFrem(dt);
       for(const k of S.skud){k.t+=dt;if(k.krymp>0)k.krymp-=dt;if(k.t<0)continue;const[x,y]=skudPos(k);k.x=x;k.y=y;k.G.visible=true;k.G.position.x=x;k.G.position.y=y;
         k.G.scale.setScalar((k.stor?2.1*(1-.1*k.idx)*(k.krymp>0?1-k.krymp*.5:1):1)*(k.plan?1.2:1));k.G.children[0].rotation.z=k.k==='bombe'?k.t*2.2+k.rot:k.k==='is'?k.t*3:k.k==='blaek'?Math.sin(k.t*9)*.1:Math.sin(k.t*8)*.12;
-        if(k.plan&&S.t>=k.plan){k.dod=true;LYD.pop();Rm.burst(x,y,12,k.stor?16:10,'rgba(255,255,255,.95)',k.stor?9:5);if(k.stor)LYD.fanfare()}
+        if(k.plan&&S.t>=k.plan){k.dod=true;LYD.fil('tryl.pop',()=>LYD.pop(),1.6);Rm.burst(x,y,12,k.stor?16:10,'rgba(255,255,255,.95)',k.stor?9:5);if(k.stor)LYD.fanfare()}
         else if(!k.plan&&k.t>=k.T){k.dod=true;S.ryst=k.stor?.6:.3;if(k.stor)LYD.fil('tryl.kugle');Rm.burst(x,y,12,10,'rgba(255,200,160,.95)',6);if(S.fase!=='tabt')bid({x,y:y+2},(k.stor?'KÆMPE-':'')+(k.k==='bombe'?'BOM!':k.k==='is'?'FRYS!':k.k==='ild'?'AV, VARMT!':'SPLAT!'))}
         if(k.dod){Rm.live.remove(k.G);rydG(k.rad)}}
       S.skud=S.skud.filter(k=>!k.dod);
@@ -263,6 +264,6 @@ ROOMS.tryl=function(ctx){
         if(u.snak){u.snak.visible=B.snakT>0&&B.fase!=='besejret';u.snak.position.set(clamp(B.x+9,-30,30),B.y+7.6,7.5);u.snak.scale.setScalar(Math.min(1,(2.2-B.snakT)*8))}
         if(u.svim){if(B.fase!=='saarbar'){rydG(u.svim);u.svim=null}else{u.svim.position.set(clamp(B.x,-28,28),B.y-13.4,9);B.bar.scale.x=Math.max(.001,B.saarT/B.saarMax);if(B.saarT/B.saarMax<.3)B.bar.children[0].material=STJ.roed.material;B.kd.forEach((d,i)=>d.scale.setScalar(i===B.komboI?1.15+.06*Math.sin(S.t*8):1))}}}
       }},Rm=makeRoom(ctx,OPT);
-  ctx.efter.push(()=>{pt&&pt.ryd();ban&&ban.fjern();rydG(kortG)});
+  ctx.efter.push(()=>{svimStop();pt&&pt.ryd();ban&&ban.fjern();rydG(kortG)});
   ctx.test={begynd,frys:v=>{frys=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},S:()=>S,tegn:sym=>{/* tegner tegnet som en streg midt på skærmen, som en finger ville */const p=TG[sym].p.map(([x,y])=>[x*140,y*140-400]);const ud=[];for(let i=1;i<p.length;i++)for(let k=0;k<8;k++)ud.push([p[i-1][0]+(p[i][0]-p[i-1][0])*k/8,p[i-1][1]+(p[i][1]-p[i-1][1])*k/8]);ud.push(p[p.length-1]);tegnet(ud,[]);return trylGenkend(ud,Object.keys(TG))},
     runde:w=>{S.runde=w-1;S.bossNr=Math.floor((w-1)/5);rydBoss();for(const f of S.foes)Rm.live.remove(f.G);S.foes=[];S.koe=[];naesteRunde()},frem:()=>{if(S.kort){S.faseT=0}},bid:()=>bid({x:0,y:10}),gave:()=>{S.gaveT=.01},tilstand:()=>S&&{fase:S.fase,runde:S.runde,score:S.score,liv:S.liv,foes:S.foes.map(f=>({k:f.k,st:f.st,y:+f.y.toFixed(1),bal:f.bal.filter(b=>!b.pop).map(b=>b.sym)})),tegn:S.cfg&&S.cfg.tegn,gave:!!S.gave,forvandlet:S.forvandlet,skud:S.skud.map(k=>({sym:k.sym,stor:!!k.stor,t:+k.t.toFixed(1)})),boss:S.boss&&{k:S.boss.def.k,fase:S.boss.fase,hp:S.boss.hp,lad:+S.boss.lad.toFixed(1),naeste:S.boss.fase==='saarbar'?S.boss.kombo[S.boss.komboI]:null}}}};

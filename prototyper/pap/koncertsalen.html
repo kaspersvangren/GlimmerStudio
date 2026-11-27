@@ -697,7 +697,7 @@ function backdrop(kind){const g=new THREE.Group();put(live,g,0,0,-14);g.visible=
         G2.lineWidth=sz*.3*P.s;G2.strokeStyle='#120820';G2.strokeText(txt,0,0);const gr=G2.createLinearGradient(0,-sz*.45*P.s,0,sz*.45*P.s);gr.addColorStop(0,c1);gr.addColorStop(1,c2);G2.fillStyle=gr;G2.fillText(txt,0,0);G2.lineWidth=sz*.05*P.s;G2.strokeStyle='rgba(255,255,255,.75)';G2.strokeText(txt,-sz*.03*P.s,-sz*.04*P.s);G2.restore()};
       tag('BENHÅRD',-14.5,25.4,4.4,'#ff7ad8','#9a3aff',-.05);tag('STENHÅRD',14.5,25.4,4.4,'#ffe23a','#ff7a2a',.05);
       for(const[x,c]of[[-21,'#9a3aff'],[-9.5,'#b84aff'],[9,'#ff8a2a'],[19.5,'#ff8a2a']])P.pen([[x,23.4],[x,23.4-R(.8,2.2)]],c,.14,.85);
-      P.pen(curve([[-2.2,25.2],[-1.4,27],[-.4,25.6],[.4,27.2],[1.3,25.6],[2.1,27],[2.2,25.2]],10),'#5ae0ff',.16,.9);P.pen([[-2.2,25.2],[2.2,25.2]],'#5ae0ff',.16,.9);
+      /* en tydelig guldkrone mellem ordene: tre takker med en kugle på hver (Kasper 27. nov.) */{const kr=[[-2.5,24.4],[2.5,24.4],[2.8,27.5],[1.35,25.9],[0,28.3],[-1.35,25.9],[-2.8,27.5]],rund=(x,y,r)=>Array.from({length:14},(_,i)=>[x+r*Math.cos(i/14*6.283),y+r*Math.sin(i/14*6.283)]);P.fill(kr,'#ffd23e',.95);P.pen([...kr,kr[0]],'#120820',.2,.9);P.pen([[-2.3,25.1],[2.3,25.1]],'#c78a12',.16,.9);for(const[x,y]of[[-2.8,27.5],[0,28.3],[2.8,27.5]]){P.fill(rund(x,y+.35,.42),'#fff0a0',.95)}P.fill(rund(0,24.75,.3),'#ff4fa0',.95)}
       P.fill(starPts(-27,26.5,1,.42,.2),'#ffe23a',.85);P.fill(starPts(27.5,26,.8,.34,.5),'#ff7ad8',.85)}},.4);
     /* to store højttalere, der pumper med bassen */
     g.userData.woof=[];

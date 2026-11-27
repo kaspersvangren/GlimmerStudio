@@ -47,7 +47,7 @@ ROOMS.gribe=function(ctx){
     S.plushes=S.plushes.filter(p=>!(p.position.x<CHUTE_X&&p.position.y>CHUTE_TOP));
     S.plushes.forEach((p,i)=>{p.G=new THREE.Group();const q=bamseStykke(ctx,p.k,SC);q.position.set(p.off.x/20,-p.off.y/20,0);p.G.add(q);p.G.userData.ryd=q.userData.ryd;p.G.position.z=-1.6+i*3.2/S.plushes.length;Rm.live.add(p.G)});
     S.arms.forEach(a=>{const G=new THREE.Group(),pts=a.pts.map(p=>[p.x/20,-p.y/20]);for(const q of thick([pts],.62))put(G,piece(q,{color:KRAFT,kind:'kraft',t:.45,edge:'#8a5a28'}),0,0,0);brad(G,pts[0][0],pts[0][1],.3,.3);brad(G,pts[1][0],pts[1][1],.3,.22);G.position.z=2.5;Rm.live.add(G);armG.push(G)});tegnUr()}
-  const betal=()=>{if(SPIL.stj<1){ctx.say('Et forsøg koster 1 stjerne. Tjen stjerner i Skolen, og kom tilbage.');LYD.oev();return false}SPIL.giv(-1);S.phase='flyt';S.tid=0;S.sec=LIMIT;S.pt=0;if(vundet){Rm.live.remove(vundet);vundet.userData.ryd();vundet=null}tegnUr();return true};
+  const betal=()=>{if(SPIL.stj<1){ctx.say('Et forsøg koster 1 stjerne. Tjen stjerner i Skolen, og kom tilbage.');LYD.doer();return false}SPIL.giv(-1);S.phase='flyt';S.tid=0;S.sec=LIMIT;S.pt=0;if(vundet){Rm.live.remove(vundet);vundet.userData.ryd();vundet=null}tegnUr();return true};
   const grib=()=>{if(!S||S.phase!=='flyt')return;S.phase='ned';S.dir=0;S.slack=0;LYD.hold('gribe.motor',false);if(!LYD.hold('gribe.ned',true))LYD.pust();tegnUr()};
   const hold=(b,on)=>{if(!S)return;if(on&&S.phase==='klar'){if(!betal()||b==='grib')return}if(S.phase!=='flyt')return;if(b==='grib'){if(on)grib();return}S.dir=on?(b==='v'?-1:1):0};
   /* ét fast fysik-skridt (1/120 s) */

@@ -164,7 +164,7 @@ function maleriPlan(w,h){const g=new THREE.PlaneGeometry(w,h),uv=g.attributes.uv
 function bygMaleri(ctx,G,id,w,h,ramme='trae'){const fw=ramme==='guld'?.75:.6,yd=[];
   const lm=new THREE.Mesh(maleriPlan(w,h),new THREE.MeshStandardMaterial({map:maleriTex(id),roughness:1,metalness:0}));lm.position.z=.05;lm.userData.noShadow=true;G.add(lm);yd.push(lm);
   if(id==='kaeledyr'||id==='selv'){const kd=id==='kaeledyr',d=kd?Object.assign({},ctx.dyr||SPIL.dyr):Object.assign({},ctx.look||SPIL.look),key=id+JSON.stringify(d),
-      rt=papFigurBillede(ctx,key,q=>{if(kd){const K=makePet(d);q.add(K.G);K.tick(0,{ph:0,amp:0})}else{const F=makeFigure(d);q.add(F.G);F.tick(0,{ph:0,amp:0})}},kd?1:.52),s=Math.min(w,h)*(kd?.82:.98);
+      rt=papFigurBillede(ctx,key,q=>{if(kd){const K=makePet(d);q.add(K.G);K.tick(1,{ph:0,amp:0});if(K.lids)K.lids.visible=false}else{const F=makeFigure(d);q.add(F.G);F.tick(1,{ph:0,amp:0});if(F.lids)F.lids.visible=false}/* tid 1, ikke 0: ved 0 blinker figuren, så portrættet fik lukkede øjne (Kasper 27. nov.) */},kd?1:.52),s=Math.min(w,h)*(kd?.82:.98);
     const fm=new THREE.Mesh(new THREE.PlaneGeometry(s,s),new THREE.MeshBasicMaterial({map:rt.texture,transparent:true,alphaTest:.35,premultipliedAlpha:true,toneMapped:false}));fm.position.set(0,kd?-h*.02:-h*.5+s/2,.12);fm.userData.noShadow=true;G.add(fm);yd.push(fm)}
   if(ramme==='guld'){for(const q of ring(box(-w/2,-h/2,w/2,h/2),fw,false))put(G,piece(q,{mat:gold(),t:.5}),0,0,.15);for(const q of ring(box(-w/2-fw*.35,-h/2-fw*.35,w/2+fw*.35,h/2+fw*.35),.18,false))put(G,piece(q,{color:'#8a5a1c',kind:'water',t:.1}),0,0,.42)}
   else for(const q of ring(box(-w/2,-h/2,w/2,h/2),fw,false))put(G,piece(q,{color:'#b8864a',kind:'balsa',t:.45,edge:'#6a4220'}),0,0,.15);

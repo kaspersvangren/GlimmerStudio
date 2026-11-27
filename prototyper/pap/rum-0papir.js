@@ -18,9 +18,9 @@ function papirTekstMesh(txt,col,h,font,kant){const{tex,asp}=papirTekstTex(txt,co
   G.userData.ryd=()=>{geo.dispose();bag.material.dispose();for_.material.dispose()};G.userData.b=h*asp;return G}
 /* de små tekster, der popper op og falder ned */
 function papirTekster(par){const L=[];
-  return{pop(x,y,z,txt,{col='#ffd86b',h=2.2,font,tilt}={}){const G=papirTekstMesh(txt,col,h,font);G.position.set(x,y,z);G.rotation.z=tilt??(Math.random()-.5)*.25;G.scale.setScalar(.01);par.add(G);L.push({G,t:0,vy:0,spin:(Math.random()-.5)*3,y,x});return G},
+  return{pop(x,y,z,txt,{col='#ffd86b',h=2.2,font,tilt,hold=.9}={}){const G=papirTekstMesh(txt,col,h,font);G.position.set(x,y,z);G.rotation.z=tilt??(Math.random()-.5)*.25;G.scale.setScalar(.01);par.add(G);L.push({G,t:0,vy:0,spin:(Math.random()-.5)*3,y,x,hold});return G},
     tick(dt){for(const q of L){q.t+=dt;const t=q.t;if(t<.14)q.G.scale.setScalar(.01+1.14*t/.14);else if(t<.24)q.G.scale.setScalar(1.15-.15*(t-.14)/.1);
-        if(t<.9)q.G.position.y=q.y+t*1.2;else{q.vy-=34*dt;q.G.position.y+=q.vy*dt;q.G.position.x+=q.spin*.6*dt;q.G.rotation.z+=q.spin*dt}if(t>1.7){par.remove(q.G);q.G.userData.ryd();q.dod=true}}
+        if(t<q.hold)q.G.position.y=q.y+Math.min(t,.9)*1.2;else{q.vy-=34*dt;q.G.position.y+=q.vy*dt;q.G.position.x+=q.spin*.6*dt;q.G.rotation.z+=q.spin*dt}if(t>q.hold+.8){par.remove(q.G);q.G.userData.ryd();q.dod=true}}
       for(let i=L.length-1;i>=0;i--)if(L[i].dod)L.splice(i,1)},
     ryd(){for(const q of L){par.remove(q.G);q.G.userData.ryd()}L.length=0}}}
 /* tallene på brikkerne: ét billede pr. ciffer, delt af alle tavler */

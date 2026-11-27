@@ -62,7 +62,7 @@ ROOMS.eliksir=function(ctx){
   /* uret (og kridtet) går i gang ved det første tryk, eller efter seks sekunder */
   const igang=()=>{if(pot&&pot.t===null&&!busy)pot.t=0};
   const fejl=txt=>{igang();pot.fejl++;LYD.fil('eliksir.fejl',()=>LYD.puf());Rm.burst(CX,19,8,8,'rgba(90,90,100,.9)',4);drawBoard();if(pot.fejl>=2)kogOver('To fejl');else ctx.say(txt+(pot.fejl===1?' Pas på: én fejl mere, så koger den over!':''))};
-  const kogOver=hvorfor=>{busy=true;kog=1;LYD.fuser();tgt.set('#5a5f4a');Rm.burst(CX,20,8,16,'rgba(120,130,110,.95)',10);const naaet=run.n-1,rek=Math.max(SPIL.data.elRek||0,naaet);SPIL.data.elRek=rek;SPIL.save();LOG.row('eliksir',{slut:hvorfor,naaet,stj:run.stj});
+  const kogOver=hvorfor=>{busy=true;kog=1;LYD.fil2('eliksir.koger','fuser');tgt.set('#5a5f4a');Rm.burst(CX,20,8,16,'rgba(120,130,110,.95)',10);const naaet=run.n-1,rek=Math.max(SPIL.data.elRek||0,naaet);SPIL.data.elRek=rek;SPIL.save();LOG.row('eliksir',{slut:hvorfor,naaet,stj:run.stj});
     ctx.vent(`${hvorfor==='To fejl'?'To fejl: gryden kogte over!':'Sandet løb ud, og gryden kogte over!'} Du klarede ${naaet} ${naaet===1?'eliksir':'eliksirer'} og fik ${run.stj} ${run.stj===1?'stjerne':'stjerner'}. Din rekord er ${rek}.`,()=>{run={n:1,stj:0};start()})};
   const kigPaa=()=>{if(!pot||busy||!pot.N.falm)return;igang();if(pot.vis>0)return;if(pot.kig<=0){ctx.say('Du har ikke flere kig i denne eliksir.');return}pot.kig--;pot.vis=3.2;LYD.valg();drawBoard()};
   const tip=()=>{const s=step();if(!s)return;if(s.kind==='ror')ctx.say('Nu skal der røres! Tegn cirkler rundt om gryden med fingeren.');else if(s.kind==='varme')ctx.say('Gryden skal varmes: tryk på ilden.')};

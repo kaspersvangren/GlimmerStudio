@@ -26,7 +26,7 @@ ROOMS.praemie=function(ctx){
     kunst:'Jeg forstår det ikke helt, men det er meget kunstnerisk. Der gemmer sig noget i den røde cirkel.',kaeledyr:'Dit eget kæledyr, med noget lækkert i poterne.',selv:'Et portræt af dig, præcis som du ser ud i dag.',
     gnoma:'Et meget berømt maleri. Hun smiler, men ingen ved hvorfor.'};
   const ord=w=>w[0]==='maleri'&&MAL_ORD[w[1]]?MAL_ORD[w[1]]+' ':'';
-  const sig=txt=>{hopU=1;LYD.fil('ugle',()=>{LYD.pip();setTimeout(()=>LYD.pip(),160)},.8);ctx.say('Hu-hu! '+txt)};
+  const sig=txt=>{hopU=1;LYD.fil('ugle',()=>{LYD.pip();setTimeout(()=>LYD.pip(),160)},1.3);ctx.say('Hu-hu! '+txt)};
   const tryk=i=>()=>{if(vis)return;if((i<NS)!==(side==='stave'))return;const w=ITEMS[i],navn=w[2],pris=w[3],erMal=w[0]==='maleri';
     if(ejer(w)){valgt=-1;alle();sig(erMal?`${navn} er allerede dit. Det hænger i dit værelse; tryk på et billede derhjemme for at skifte.`:`${navn} er allerede din. Den ligger i Garderoben under Ekstra.`);return}
     if(SPIL.bil<pris){valgt=-1;alle();sig(`${navn}. ${ord(w)}${erMal?"Det":"Den"} koster ${pris} billetter. Du mangler ${pris-SPIL.bil}. Billetter får du i spillene herinde.`);return}

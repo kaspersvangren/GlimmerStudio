@@ -133,7 +133,7 @@ ROOMS.kost=function(ctx){
     else{const lead=Math.max(...S.rivals.map(rv=>rv.x))-S.x,tail=lead>250?Math.min(.12,(lead-250)/2500):0;S.x+=S.v*(1+tail)*dt;
       /* en rolig start: tyngdekraften tager først fat efter lidt over et sekund (note 8026: kaos i starten) */S.vy=Math.min(VMAXF,S.vy+GRAV*Math.min(1,S.t/1.3)*dt);S.y+=S.vy*dt;if(S.y>BOT){S.y=BOT;S.vy=-480;S.v=Math.max(V0*.8,S.v-40);if(S.t>(S.dunkT||0)){S.dunkT=S.t+1;LYD.dunk()}}if(S.y<TOP){S.y=TOP;S.vy=Math.max(0,S.vy)}
       S.v+=(V0-S.v)*Math.min(1,dt*.35);crossRings(S,x0);if(S.auto)autopilot();S.ang=clamp(S.vy/30,-16,22)}
-    for(const b of S.course.bubbles){if(b.got)continue;const dx=b.x-S.x,dy=b.y-S.y;if(dx*dx+dy*dy<(S.boost>0?130*130:85*85)){b.got=true;S.bubbles++;b.g.visible=false;LYD.fil('boble.saml',()=>LYD.plop());Rm.burst(X(b.x),Y(b.y),1,8,'rgba(255,236,170,.95)',2.5);ptW.pop(X(b.x),Y(b.y)+3,3,'+1',{col:'#ffd86b',h:2.6});tv.saet(1,S.bubbles)}}
+    for(const b of S.course.bubbles){if(b.got)continue;const dx=b.x-S.x,dy=b.y-S.y;if(dx*dx+dy*dy<(S.boost>0?130*130:85*85)){b.got=true;S.bubbles++;b.g.visible=false;LYD.fil('boble.saml',()=>LYD.plop(),.6);Rm.burst(X(b.x),Y(b.y),1,8,'rgba(255,236,170,.95)',2.5);ptW.pop(X(b.x),Y(b.y)+3,3,'+1',{col:'#ffd86b',h:2.6});tv.saet(1,S.bubbles)}}
     S.cam=S.x-PX;
     if(S.run==='fly'&&S.x>=S.course.end){S.run='done';S.finT=S.t;finish()}}
   function rivalStep(rv,dt){if(rv.loop){moveLoop(rv,dt);return}if(rv.boost>0){moveBoost(rv,dt);if(!rv.finT&&rv.x>=S.course.end)rv.finT=S.t;return}
@@ -186,7 +186,7 @@ ROOMS.kost=function(ctx){
       if(e.k==='bat'){e.g.position.set(mix(e.x0,e.x1,u),e.y+Math.sin(e.t*6)*1.5,0);const f=Math.sin(e.t*22);e.vg.forEach((v,i)=>{v.scale.y=.3+.7*Math.abs(f);v.rotation.z=(i?-1:1)*.2*f})}
       if(e.k==='skud'){e.g.position.set(e.x-u*60,e.y-u*20,0);e.g.rotation.z=1.25;e.g.scale.setScalar(Math.sin(u*Math.PI))}
       if(e.k==='lanterne'){e.g.position.set(e.x+Math.sin(e.t*.8)*4,mix(-hh,hh*1.1,u),0);e.g.rotation.z=Math.sin(e.t*1.3)*.12}
-      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.fil('kost.fyr',()=>LYD.puf(),.6,R(.92,1.08))}
+      if(e.k==='fyr'){if(u<.35){e.raket.position.set(0,0,0);e.g.position.set(e.x,mix(-hh,e.top,u/.35),0)}else{if(!e.knald){e.knald=true;e.raket.visible=false;e.gn.forEach(m=>m.visible=true);if(S.run==='fly')LYD.fil('kost.fyr',()=>LYD.puf(),1,R(.92,1.08))}
         const k=(u-.35)/.65;e.gn.forEach((m,i)=>{const a=i/16*TAU,d=4+14*Math.sqrt(k);m.position.set(Math.cos(a)*d,Math.sin(a)*d-8*k*k,.1);m.scale.setScalar(1.2*(1-k))})}}}}
   /* ---------- styring ---------- */
   const el=renderer.domElement;let holdT=0;

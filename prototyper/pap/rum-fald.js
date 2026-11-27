@@ -212,7 +212,7 @@ ROOMS.fald=function(ctx){
     S.objs=S.objs.filter(o=>!o.dead);
     for(const m of S.motes){m.z-=dt/.55;if(m.z<-.12){m.z=1;m.x=R(-60,60);m.y=R(-34,34)}}
     if(S.t>=FREE_T){S.run='open';S.t=0;openStart()}}
-  function zap(o){S.ryst=.45;LYD.dunk();S.tilt+=S.hx>o.x?30:-30;if(S.bubbles>0){S.bubbles--;tv.saet(1,S.bubbles);pt.pop(WX(S.hx),WY(S.hy)+4,6,'Av! −1',{col:'#e2384e',h:3.4})}else pt.pop(WX(S.hx),WY(S.hy)+4,6,'Puha!',{col:'#7a3fa2',h:3.4})}
+  function zap(o){S.ryst=.45;LYD.fil2('fald.lyn','gnom.forbi');S.tilt+=S.hx>o.x?30:-30;if(S.bubbles>0){S.bubbles--;tv.saet(1,S.bubbles);pt.pop(WX(S.hx),WY(S.hy)+4,6,'Av! −1',{col:'#e2384e',h:3.4})}else pt.pop(WX(S.hx),WY(S.hy)+4,6,'Puha!',{col:'#7a3fa2',h:3.4})}
   function drawFree(){const f=clamp(S.t/FREE_T,0,1);groundAt(.45+f*1.1,S.x,S.y);S.haze=.75-f*.4;
     heltG.position.set(WX(S.hx),WY(S.hy),0);heltG.rotation.z=-S.tilt*Math.PI/180;
     for(const o of S.objs){const zw=-ZS*o.z,k=1-Math.max(0,o.z),dz=Math.pow(Math.max(0,o.z),1.5);
@@ -224,7 +224,7 @@ ROOMS.fald=function(ctx){
     for(const m of S.motes){const vis=m.z<=1&&m.z>-.1;m.m.visible=vis;if(vis)m.m.position.set(m.x,m.y,-ZS*m.z)}
     tv.saet(0,Math.round((ALT0-(ALT0-ALT1)*f)/50)*50)}
   /* ---------- skærmen folder sig ud ---------- */
-  function openStart(){for(const o of S.objs){rod.remove(o.el);if(o.ring)rod.remove(o.ring)}S.objs=[];for(const m of S.motes)m.m.visible=false;pil.visible=false;LYD.fil('fald.skaerm',()=>LYD.puf());setTimeout(()=>{if(S&&ctx.alive)LYD.op()},400);S.ox=S.hx;S.oy=S.hy;S.op0=S.ppm;skaerm.visible=true}
+  function openStart(){for(const o of S.objs){rod.remove(o.el);if(o.ring)rod.remove(o.ring)}S.objs=[];for(const m of S.motes)m.m.visible=false;pil.visible=false;/* kun faldskærmslyden, når den folder sig ud (Kasper 27. nov.) */LYD.fil('fald.skaerm',()=>LYD.puf());S.ox=S.hx;S.oy=S.hy;S.op0=S.ppm;skaerm.visible=true}
   function stepOpen(dt){S.t+=dt;if(S.t>=OPEN_T){S.run='canopy';S.t=0;haandVis(true);if(S.wind.s)vindPil.visible=true;skygge.visible=true;
     ban.vis('Styr mod målet!',{portraet:'sky',txt2:'Træk et håndtag ned for at dreje. Begge ned bremser',sek:4,col:'#7a3fa2',y:16})}}
   function drawOpen(){const u=clamp(S.t/OPEN_T,0,1),e=ease(u),back=1+Math.sin(u*Math.PI)*.12;groundAt(S.op0+(ppmAt(H0)-S.op0)*e,S.x,S.y);S.haze=.35*(1-e);

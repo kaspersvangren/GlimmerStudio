@@ -48,7 +48,7 @@ ROOMS.gnom=function(ctx){
   let sc=0,left=TID,on=false,next=0,tv,pt,ban,over=false,ham,slag=null,ryst=0,raekke=0;
   /* tavlen af karton med papbrikker, og et kort i snore, når spillet ikke kører */
   const tavle=()=>{tv.saet(0,sc);tv.saet(1,Math.ceil(Math.max(0,left)));if(on){if(ban.synlig)ban.skjul()}else if(!ban.synlig)ban.vis(over?`Du ramte ${sc}!`:'Tryk for at begynde',{sek:0,txt2:over?'Tryk for at spille igen':'',col:'#2f7a3a'})};
-  const begynd=()=>{sc=0;left=TID;on=true;over=false;next=.5;raekke=0;tavle();LYD.valg()};
+  const begynd=()=>{sc=0;left=TID;on=true;over=false;next=.5;raekke=0;tavle();LYD.fil('dyr.runde',()=>LYD.valg())};
   /* hammeren svinges hen til det sted, man trykker */
   const slaa=(x,y,z,ramt)=>{slag={t:0,x,y,z:z+2.2,ramt};if(!ramt)raekke=0};
   const ramGnom=o=>{o.hit=1;o.want=0;o.svim=1.1;raekke++;sc++;tavle();ryst=.16;LYD.bonk();Rm.burst(o.x,o.ry+4,o.rz+3,10,'rgba(255,236,170,.95)',5);
