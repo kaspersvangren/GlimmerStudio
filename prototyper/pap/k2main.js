@@ -201,9 +201,9 @@ function teleTil(x,z,house){if(TELE)return;let tx,tz;
     for(let i=r.length-2;i>=0;i--){const d=Math.hypot(r[i][0]-px,r[i][1]-pz);if(acc+d>=6){const k=(6-acc)/d;tx=px+(r[i][0]-px)*k;tz=pz+(r[i][1]-pz)*k;break}acc+=d;px=r[i][0];pz=r[i][1];tx=px;tz=pz}}
   else[tx,tz]=clampWalk(x,z);
   if(Math.hypot(tx-W0.x,tz-W0.z)<7){if(house){goTo(...SPOTS[house]);doorWant=house}else goTo(tx,tz);return}
-  W0.q=[];W0.tx=W0.x;W0.tz=W0.z;doorWant=null;TELE={t:0,fx:W0.x,fz:W0.z,tx,tz,house,ang:0};lyd('pust')}
+  W0.q=[];W0.tx=W0.x;W0.tz=W0.z;doorWant=null;TELE={t:0,fx:W0.x,fz:W0.z,tx,tz,house,ang:0};/* én lyd for hele teleporten, toppen rammer flytningen (Kasper 27. nov.) */if(typeof LYD!=='undefined'&&LYD.harFil&&LYD.harFil('kort.tele')){TELE.fil=true;LYD.fil('kort.tele')}else lyd('pust')}
 function teleTick(dt){const T=TELE,V=virvel();T.t+=dt;const t=T.t,ude=t<.8,at=ude?[T.fx,T.fz]:[T.tx,T.tz];
-  if(!ude&&!T.flyttet){T.flyttet=true;W0.x=W0.tx=T.tx;W0.z=W0.tz=T.tz;W0.q=[];C0.x=C0.tx=T.tx-2.4;C0.z=C0.tz=T.tz+1.2;trail.length=0;trail.push([C0.x,C0.z],[W0.x,W0.z]);lyd('guld')}
+  if(!ude&&!T.flyttet){T.flyttet=true;W0.x=W0.tx=T.tx;W0.z=W0.tz=T.tz;W0.q=[];C0.x=C0.tx=T.tx-2.4;C0.z=C0.tz=T.tz+1.2;trail.length=0;trail.push([C0.x,C0.z],[W0.x,W0.z]);if(!T.fil)lyd('guld')}
   const k=ude?Math.min(1,t/.3):Math.max(0,1-(t-1.15)/.45),s=ude?(t<.45?1:Math.max(0,1-(t-.45)/.35)):Math.min(1,Math.max(0,(t-.9)/.4));
   V.G.visible=k>.01;V.G.userData.ring.scale.setScalar(.4+k*.8);V.G.userData.ring.rotation.z=T.t*3;V.G.position.set(at[0],TOP+bridgeY(at[0],at[1]),at[1]+.8);
   for(const b of V.bits){b.a+=dt*b.sp*(1+k*1.8);const y=(.2+b.h*12)*(.35+k*.65),r=b.r*(1.2+b.h*3)*(.25+k*.85);b.p.position.set(Math.cos(b.a)*r,y,Math.sin(b.a)*r*.45);b.p.rotation.set(0,b.a,b.rot+b.a*1.5);b.p.scale.setScalar(.3+k*.9)}

@@ -49,17 +49,36 @@ const MALERIER_SVG = {
     return o + [[30,170,'#FFF'],[170,176,'#FFE27A'],[44,186,'#FF8FC7'],[156,190,'#FFF']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="4" fill="${c}" ${mst(1.5)}/>`).join('');
   } },
   enhjoerning: { label:'Enhjørning', draw: () => {
-    let o = `<defs>${mGrad('mlEn', '#FFC8E4', '#D8C8FF')}</defs><rect width="200" height="200" fill="url(#mlEn)"/>` + [[30,40],[170,50],[40,160],[172,150],[150,24]].map(([x, y]) => mStar(x, y, 5, '#FFFFFF')).join('');
-    o += `<path d="M 20 190 Q 30 170 50 176 Q 60 160 80 172 Q 96 162 108 178 Q 130 170 140 190 Z" fill="#FFFFFF" opacity=".9"/>`;
-    /* halsen og hovedet, set fra siden og vendt mod venstre */
-    o += `<path d="M 150 200 C 146 160 132 130 120 112 L 92 120 C 100 150 104 180 100 200 Z" fill="#FFFFFF" ${mst()}/>`;
-    o += `<path d="M 66 108 C 60 94 70 78 92 74 C 118 70 136 84 132 108 C 128 126 108 128 96 124 C 84 132 68 128 66 108 Z" fill="#FFFFFF" ${mst()}/>`;
-    o += `<ellipse cx="74" cy="112" rx="12" ry="10" fill="#FFE8F2" ${mst(2.5)}/><circle cx="70" cy="110" r="1.8" fill="${ME}"/><circle cx="78" cy="112" r="1.8" fill="${ME}"/>`;
-    o += `<path d="M 94 96 q 6 5 12 0" stroke="${ME}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 94 96 l -3 -4 M 100 98 l 0 -5 M 106 96 l 3 -4" stroke="${ME}" stroke-width="2" stroke-linecap="round"/><ellipse cx="104" cy="108" rx="7" ry="4.5" fill="#FF9FC8" opacity=".8"/>`;
-    o += `<path d="M 112 76 L 120 66 L 126 80 Z" fill="#FFFFFF" ${mst(2.5)}/><path d="M 94 76 L 104 34 L 108 76 Z" fill="#FFD23E" ${mst(2.5)}/><path d="M 97 66 L 106 62 M 98 56 L 105 52 M 100 46 L 105 43" stroke="#C7920A" stroke-width="2"/>`;
-    const C = ['#FF6F9A', '#FFB347', '#FFE04A', '#7AD06A', '#6AB8FF', '#B79BFF'];
-    C.forEach((c, i) => { o += `<path d="M ${120 + i*4} ${74 + i*7} C ${150 + i*6} ${82 + i*8} ${150 + i*4} ${130 + i*8} ${172 + i*3} ${160 + i*5}" stroke="${c}" stroke-width="9" fill="none" stroke-linecap="round"/>`; });
-    return o + `<path d="M 114 70 C 104 64 106 54 118 58" stroke="#FF6F9A" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+  const HEAD='M 118 58 C 104 57 88 64 74 72 C 60 80 44 86 34 95 C 25 104 28 120 42 122 C 52 124 62 120 74 123 C 88 141 116 143 124 126 C 132 108 130 74 118 58 Z';
+  let o=`<defs>${mGrad('mlEn','#FFC8E4','#D8C8FF')}<clipPath id="mlEnK"><path d="${HEAD}"/></clipPath></defs><rect width="200" height="200" fill="url(#mlEn)"/>`+[[30,40],[170,50],[40,160],[172,150],[150,24]].map(([x,y])=>mStar(x,y,5,'#FFFFFF')).join('');
+  o+=`<path d="M 20 190 Q 30 170 50 176 Q 60 160 80 172 Q 96 162 108 178 Q 130 170 140 190 Z" fill="#FFFFFF" opacity=".9"/>`;
+  /* et rigtigt hesthoved i profil mod venstre, lidt selvfedt: næsen i vejret, halvlukket øje, løftet bryn og skævt smil (Kasper 27. nov.) */
+  o+=`<g transform="translate(10 2) rotate(-20 110 110)">`;
+  // hals
+  o+=`<path d="M 108 118 C 106 150 100 186 96 230 L 178 230 C 170 180 156 120 126 64 Z" fill="#FFFFFF" ${mst()}/>`;
+  // manke: tykke lokker ned ad halsen
+  const C=['#FF6F9A','#FFB347','#FFE04A','#7AD06A','#6AB8FF','#B79BFF'];
+  const L=[[122,58],[134,78],[142,100],[150,122],[156,146],[162,170]];
+  for(let i=L.length-1;i>=0;i--){const [x,y]=L[i];
+    o+=`<path d="M ${x-6} ${y} C ${x+22} ${y-8} ${x+40} ${y+12} ${x+34} ${y+34} C ${x+32} ${y+44} ${x+20} ${y+46} ${x+18} ${y+38} C ${x+28} ${y+36} ${x+28} ${y+24} ${x+18} ${y+20} C ${x+12} ${y+30} ${x+4} ${y+30} ${x-4} ${y+26} Z" fill="${C[i]}" ${mst(2.5)}/>`;}
+  // øre
+  o+=`<path d="M 106 64 L 112 36 L 124 60 Z" fill="#FFFFFF" ${mst(2.5)}/><path d="M 110 58 L 113 45 L 119 58 Z" fill="#FFB8D8"/>`;
+  // hoved
+  o+=`<path d="${HEAD}" fill="#FFFFFF" ${mst()}/>`;
+  o+=`<g clip-path="url(#mlEnK)"><path d="M 56 78 C 46 94 48 112 60 128 L 10 140 L 10 70 Z" fill="#FFC2DA"/></g><path d="M 56 80 C 48 95 49 111 59 124" stroke="${ME}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  o+=`<path d="${HEAD}" fill="none" ${mst()}/>`;
+  o+=`<path d="M 35 101 q 2 -4 7 -2" stroke="${ME}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  // skævt smil
+  o+=`<path d="M 38 118 Q 47 121 55 116 q 3 -2 2 -6" stroke="${ME}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  // halvlukket øje + løftet bryn
+  o+=`<path d="M 86 86 A 8 7 0 0 0 102 86 Z" fill="#8A6AD8" ${mst(2)}/><circle cx="97" cy="88" r="1.6" fill="#FFFFFF"/>`;
+  o+=`<path d="M 84 86 Q 94 81 104 86" stroke="${ME}" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M 85 85 l -6 -3 M 87 83 l -4 -5 M 90 82 l -2 -5" stroke="${ME}" stroke-width="2" stroke-linecap="round"/>`;
+  o+=`<path d="M 85 74 Q 95 66 105 71" stroke="${ME}" stroke-width="2.6" fill="none" stroke-linecap="round"/><ellipse cx="106" cy="104" rx="8" ry="5" fill="#FF9FC8" opacity=".75"/>`;
+  // horn
+  o+=`<path d="M 92 66 L 80 20 L 106 62 Z" fill="#FFD23E" ${mst(2.5)}/><path d="M 89 54 L 101 50 M 86 42 L 95 39 M 83 31 L 89 29" stroke="#C7920A" stroke-width="2.2" stroke-linecap="round"/>`+mStar(80,17,8,'#FFFFFF')+mStar(80,17,4,'#FFE04A');
+  // pandelok
+  o+=`<path d="M 106 64 C 100 52 112 46 122 54 C 116 56 114 62 118 68 C 112 64 108 66 106 64 Z" fill="#FF6F9A" ${mst(2.5)}/>`;
+  return o+`</g>`;
   } },
   drage: { label:'Lille drage', draw: () => {
     let o = `<defs>${mGrad('mlDr', '#FFE9B0', '#FFC08A')}</defs><rect width="200" height="200" fill="url(#mlDr)"/><path d="M 0 166 H 200 V 200 H 0 Z" fill="#B8803A"/><path d="M 0 166 H 200" stroke="${ME}" stroke-width="3"/>`;

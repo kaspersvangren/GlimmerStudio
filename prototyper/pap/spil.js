@@ -17,7 +17,7 @@ const OMRSANG=new Proxy({},{get:(_,o)=>nySang(o==='start'?'byen':o,OMRSANG0[o])}
 const rumOmr=id=>id==='garderobe'&&SPIL.data&&SPIL.data.nyHeks?'start':OMR[id];
 const rumSang=id=>{const o=rumOmr(id);if(o)return OMRSANG[o];return SPILGRP[id]?nySang(SPILGRP[id],RUM[id].mus):RUM[id].mus};
 /* ude på kortet venter musikken 12 sekunder, før den skifter til byens sang, så en kort tur ud og ind et nyt sted ikke giver to skift. Efter et minispil skifter den med det samme */
-let kortMusT=0;const kortMusik=(fra)=>{clearTimeout(kortMusT);LYD.inde(false);const nu=LYD.musikNu;if(!fra||!OMR[fra]||!nu||nu===OMRSANG.byen){LYD.musik(OMRSANG.byen);return}kortMusT=setTimeout(()=>{if(!SPIL.room)LYD.musik(OMRSANG.byen)},12000)};
+let kortMusT=0;const kortMusik=(fra)=>{clearTimeout(kortMusT);LYD.inde(false);const nu=LYD.musikNu;if(!fra||!OMR[fra]||!nu||nu===OMRSANG.byen){LYD.musik(OMRSANG.byen);return}/* byens sang glider ind næsten med det samme (Kasper 27. nov.; før ventede den 12 sekunder) */kortMusT=setTimeout(()=>{if(!SPIL.room)LYD.musik(OMRSANG.byen)},300)};
 const DOORS={kollegie:'vaerelse',koncert:'koncert',skole:'gang',bobler:'bobler',arkade:'arkade',dyr:'dyrepark'};
 const HUSNAVN={broend:'Øksebrønden',skole:'Magiskolen',bobler:'Boblebutikken',dyr:'Dyreparken',drage:'Dragehulen',arkade:'Arkaden',stoevle:'Den Flyvende Støvle',klokke:'Klokketårnet'};
 const SLOTS=['hat','hår','pande','mærke','pupil','mund','tøj','kappe','støvler','tilbehør'];

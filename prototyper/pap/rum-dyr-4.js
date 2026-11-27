@@ -53,7 +53,9 @@ ROOMS.ungestald=function(ctx){
   const BEHOV={mad:'m',vask:'r',kael:'g',leg:'g'};
   const nytOenske=(b,k)=>{const s=b.s;if(!k){const mulige=[];if(s.m<.9)mulige.push('mad');if(s.r<.9)mulige.push('vask');if(s.g<.9)mulige.push('kael','leg');if(!mulige.length)return false;const lav=['m','r','g'].sort((p,q)=>s[p]-s[q])[0],helst=mulige.filter(q=>BEHOV[q]===lav),fra=helst.length&&Math.random()<.65?helst:mulige;k=fra[Math.floor(Math.random()*fra.length)]}
     b.oen={k,t:0,T:Math.max(6,11-s.h*.5),n:0,ok:false};LYD.op();b.hop=0;b.hopN=Math.max(b.hopN,1);tegnTanke(b);return true};
-  const opfyldt=b=>{if(!b.oen)return;b.oen=null;tegnTanke(b);b.glad=1.4;point(b)};
+  /* et opfyldt ønske giver ros, og i 3 sekunder bagefter siger ungen ikke "vil ikke", så man kan nå at slippe (Kasper 27. nov.) */
+  const ROS=['Flot arbejde!','Godt klaret!','Sådan!','Flot!'];
+  const opfyldt=b=>{if(!b.oen)return;b.oen=null;b.rosT=performance.now();tegnTanke(b);b.glad=1.4;point(b);ctx.say(`${ROS[Math.floor(Math.random()*ROS.length)]} ${b.D.navn} er glad.`)};
   const ramt=(b,k)=>!!(b.oen&&b.oen.k===k);
   /* ---- det man kan gøre ---- */
   const sover=b=>{if(b.sov){ctx.say(`Ssh! ${b.D.navn} sover.`);return true}return false};
@@ -63,7 +65,7 @@ ROOMS.ungestald=function(ctx){
   const klap=b=>{if(sover(b))return;LYD.fil('unge.kael.'+b.id,()=>LYD.kys());b.glad=Math.max(b.glad,.9);hjerte(b.x+R(-3,3),BY+14);fyld(b,'g',.06);b.ro=0};
   /* man kan kun give ungerne det, de selv beder om i tankeboblen; ellers er det for let at fylde dem helt op (Kasper 23. nov.). Godbidder må man altid give */
   let nejT=0;const NEJ={mad:'er ikke sulten lige nu',vask:'vil ikke vaskes lige nu',leg:'vil ikke lege lige nu',kael:'vil ikke kæles lige nu'};
-  const maa=(b,k)=>{if(ramt(b,k))return true;const nu_=performance.now();if(nu_-nejT>3500){nejT=nu_;ctx.say(b.oen?`${b.D.navn} ${NEJ[k]}. Se i tankeboblen, hvad den ønsker sig.`:`${b.D.navn} ${NEJ[k]}. Vent, til den beder om noget.`)}b.glad=0;return false};
+  const maa=(b,k)=>{if(ramt(b,k))return true;const nu_=performance.now();if(b.rosT&&nu_-b.rosT<3000)return false;if(nu_-nejT>3500){nejT=nu_;ctx.say(b.oen?`${b.D.navn} ${NEJ[k]}. Se i tankeboblen, hvad den ønsker sig.`:`${b.D.navn} ${NEJ[k]}. Vent, til den beder om noget.`)}b.glad=0;return false};
   const trykUnge=b=>()=>{lukMad();if(tool==='mad'){if(busyB||sover(b))return;if(!maa(b,'mad'))return;LYD.tryk();aabnMad(b)}else if(tool==='godbid'){if(!sover(b))mad(b,'godbid')}else if(tool==='leg'){if(!sover(b)&&!maa(b,'leg'))return;leg(b)}else if(tool==='vask'){if(sover(b)||!maa(b,'vask'))return;LYD.vask();for(let i=0;i<4;i++)boble(b.x,BY+8);fyld(b,'r',.08*(b.D.vask||1));b.ro=0}else{if(!maa(b,'kael'))return;klap(b)}};
   const ungeVed=p=>p&&p.y>BY-1&&p.y<BY+19?B.find(b=>Math.abs(p.x-b.x)<8.5):null;
   /* et strøg (kæl) eller et gnid (vask) har flyttet fingeren d hen over ungen med farten v (enheder i sekundet) */
@@ -106,7 +108,7 @@ ROOMS.ungestald=function(ctx){
     tick:(t,dt)=>{gemT-=dt;
       {const sv={};for(const b of B)sv[b.id]=b.sov;for(const e of ungeTid(dt,true,sv))if(e.hvad==='sidste'){const b=B.find(q=>q.id===e.id);LYD.fil('unge.kald',()=>LYD.pip());humoer(b,'ked',3);if(!b.oen)nytOenske(b);ctx.say(`${b.D.navn} er ved at blive ked af det! Giv den det, den beder om.`)}else if(e.hvad==='mistet'){const b=B.find(q=>q.id===e.id);LYD.fil('unge.mistet',()=>LYD.oev());humoer(b,'ked',3);Rm.burst(b.x,36,-4,10,'rgba(150,150,170,.9)',6);tegnSkilt(b);ctx.say(`${b.D.navn} har mistet et hjerte: den har manglet noget for længe.`);gem(true)}}
       /* et nyt ønske: højst ét ad gangen i begyndelsen, senere to og tre, og med kortere pauser, jo flere hjerter man har i alt */
-      {const H=iAlt(),maks=H<8?1:H<20?2:3,aktive=B.filter(b=>b.oen).length;if(aktive<maks){oenT-=dt;if(oenT<=0){const fri=B.filter(b=>!b.oen&&!b.sov&&!(busyB&&busyB.b===b));if(fri.length)nytOenske(fri[Math.floor(Math.random()*fri.length)]);oenT=20+Math.random()*20}}}
+      {const H=iAlt(),maks=H<8?1:H<20?2:3,aktive=B.filter(b=>b.oen).length;if(aktive<maks){oenT-=dt;if(oenT<=0){const fri=B.filter(b=>!b.oen&&!b.sov&&!(busyB&&busyB.b===b));if(fri.length)nytOenske(fri[Math.floor(Math.random()*fri.length)]);oenT=8+Math.random()*8}}}
       for(const b of B){const s=b.s,U=b.U;b.glad=Math.max(0,b.glad-dt*1.3);b.hum=Math.max(0,b.hum-dt);b.ro+=dt;
         if(b.oen){const o=b.oen;if(!o.ok){o.t+=dt;if(o.t>=o.T){b.oen=null;tegnTanke(b);humoer(b,'ked',1.8);fyld(b,'g',-.08);LYD.dunk()}}if(b.oen&&Math.floor(t*6)!==Math.floor((t-dt)*6))tegnTanke(b)}
         /* falder i søvn, når alt er godt, og man har ladet den være lidt; vågner igen, når den mangler noget */
