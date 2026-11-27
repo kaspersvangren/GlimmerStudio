@@ -49,7 +49,8 @@ ROOMS.tryl=function(ctx){
   const aktive=()=>S.cfg?S.cfg.tegn.concat(S.gave?['hjerte']:[]):[];
   /* ---------- runderne ---------- */
   const rydUI=B=>{if(B&&B.ui){for(const k in B.ui)rydG(B.ui[k]);B.ui={}}};
-  const rydBoss=()=>{if(!S)return;if(S.boss){rydUI(S.boss);Rm.live.remove(S.boss.G);S.boss=null}for(const k of S.skud){Rm.live.remove(k.G);rydG(k.rad)}S.skud=[]};
+  /* bossmusik, når der ligger en sang til den (Kasper 27. nov.) */let bossFoer=null;const bossMusik=on=>{if(on){if(LYD.har&&LYD.har('ny.boss')&&!bossFoer){bossFoer=LYD.musikNu||null;LYD.musik('ny.boss')}}else if(bossFoer){LYD.musik(bossFoer);bossFoer=null}};
+  const rydBoss=()=>{bossMusik(false);if(!S)return;if(S.boss){rydUI(S.boss);Rm.live.remove(S.boss.G);S.boss=null}for(const k of S.skud){Rm.live.remove(k.G);rydG(k.rad)}S.skud=[]};
   const begynd=()=>{rydBoss();ban.skjul();for(const st of S?S.spor:[])Rm.live.remove(st.m);for(const f of S?S.foes:[])Rm.live.remove(f.G);for(const d of S?S.dyr:[])Rm.live.remove(d.G);for(const b of S?S.frie:[])Rm.live.remove(b.G);
     S={t:0,score:0,runde:0,liv:3,forvandlet:0,cfg:null,foes:[],frie:[],dyr:[],tekster:[],spor:[],streg:null,koe:[],tving:[],spawnT:0,fase:'spil',faseT:0,kort:null,gave:null,gaveT:-1,hop:0,dyrHop:0,kageHop:0,ryst:0,msg:'',msg2:'',msgT:0,boss:null,skud:[],bossNr:0,superSet:false};gaveG.visible=false;visKage();naesteRunde();tegnHud()};
   const naesteRunde=()=>{S.runde++;const w=S.runde,cfg=S.cfg=rundeplan(w),kan=Object.keys(SLAGS).filter(k=>SLAGS[k].fra<=w),sum=kan.reduce((a,k)=>a+SLAGS[k].tit,0);S.msg2='';if(w%5===0)return bossStart(w);
@@ -89,7 +90,7 @@ ROOMS.tryl=function(ctx){
   const bossStart=w=>{const nr=++S.bossNr,def=BOSSER[(nr-1)%BOSSER.length],cyk=Math.floor((nr-1)/BOSSER.length),G=new THREE.Group(),A=TRYLBOSS.byg(G,def.k);G.position.set(0,TOP+14,3);Rm.live.add(G);
     S.koe=[];S.tving=[];S.kort=null;S.spawnT=99;S.gaveT=Math.random()<.6?rnd(10,22):-1;
     S.boss={ui:{},def,nr,G,A,x:0,y:TOP+14,t:0,vt:0,fase:'ind',faseT:2.4,hp:def.hp+cyk,hpMax:def.hp+cyk,komboN:Math.min(5,def.kombo+cyk),flyv:Math.max(2.2,4.6-.3*(nr-1)),gab:Math.max(.8,2.1-.2*(nr-1)),plan:[],kastI:0,kastT:1.2,lad:0,kombo:[],komboI:0,saarT:0,saarMax:1,ramtT:0,pynt:0,snak:null,snakT:0,besejrT:0,glimt:0};
-    bossUI(S.boss);S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.fil('tryl.boss',()=>LYD.boelge());tegnHud()};
+    bossUI(S.boss);S.boss.plan=lavPlan(S.boss);S.fase='spil';S.msg=`Boss: ${def.navn}!`;S.msg2='Tegn tegnene på det, den kaster, før det rammer kagen';S.msgT=3.2;LYD.fil('tryl.boss',()=>LYD.boelge());bossMusik(true);tegnHud()};
   /* tegnene: forskellige på skud, der flyver samtidig, når det kan lade sig gøre */
   const nytTegn=()=>{const brugt=new Set(S.skud.map(k=>k.sym)),pulje=S.cfg.tegn.filter(t=>!brugt.has(t));return vaelg(pulje.length?pulje:S.cfg.tegn)};
   const nytSkud=o=>{const G=new THREE.Group();G.add(SKT[o.k].clone(true));o.G=G;o.adv=STJ.adv.clone(true);o.adv.visible=false;o.adv.position.z=-.3;G.add(o.adv);o.sk=SKI[o.sym].clone(true);o.sk.position.z=1.2;G.add(o.sk);G.visible=false;G.position.set(o.x0,o.y0,7+S.skud.length%4*.3);Rm.live.add(G);S.skud.push(o);return o};
@@ -115,7 +116,7 @@ ROOMS.tryl=function(ctx){
   const skudPos=k=>{const p=Math.min(1,k.t/k.T),lx=k.x0+(k.tx-k.x0)*p,ly=k.y0+(k.ty-k.y0)*p;if(k.bane==='bue')return[lx,ly+11*4*p*(1-p)];if(k.bane==='stor')return[lx+Math.sin(k.t*1.6+k.ph)*3*(1-p),ly+4.5*4*p*(1-p)];if(k.bane==='zigzag')return[lx+Math.sin(p*Math.PI*4+k.ph)*7.5*(1-p),ly];return[lx+Math.sin(p*Math.PI*3+k.ph)*2,ly]};
   const bossFrem=dt=>{const B=S.boss;B.t+=dt;if(B.snakT>0)B.snakT-=dt;if(B.glimt>0)B.glimt-=dt;
     if(B.fase==='ind'){B.faseT-=dt;const k=Math.min(1,1-B.faseT/2.4),e=1-Math.pow(1-k,3);B.y=TOP+14+(BY-TOP-14)*e;B.x=0;if(B.faseT<=0){B.fase='angreb';bossSig(B.def.snak[1])}}
-    else if(B.fase==='besejret'){B.besejrT-=dt;if(B.besejrT<=0){/* den bliver til en lille bamse, der svæver væk */const G=new THREE.Group(),q=new THREE.Group();bygBamse(q,B.def.bamse);q.scale.setScalar(1.5);G.add(q);G.position.set(B.x,B.y,8);Rm.live.add(G);S.dyr.push({G,x:B.x,y:B.y,t:0,vx:rnd(-2,2),vy:6,ph:0});Rm.live.remove(B.G);rydUI(B);S.boss=null;tegnHud();return}}
+    else if(B.fase==='besejret'){B.besejrT-=dt;if(B.besejrT<=0){/* den bliver til en lille bamse, der svæver væk */const G=new THREE.Group(),q=new THREE.Group();bygBamse(q,B.def.bamse);q.scale.setScalar(1.5);G.add(q);G.position.set(B.x,B.y,8);Rm.live.add(G);S.dyr.push({G,x:B.x,y:B.y,t:0,vx:rnd(-2,2),vy:6,ph:0});Rm.live.remove(B.G);rydUI(B);S.boss=null;bossMusik(false);tegnHud();return}}
     else{/* den svæver frem og tilbage. Er den svimmel, eller lader den op, står den stille */const fart=B.fase==='saarbar'||B.lad>0?0:1;B.vt+=dt*fart;B.x=Math.sin(B.vt*.45)*BSPAN;B.y=BY+Math.sin(B.t*1.3)*.7;
       if(B.fase==='angreb'){if(B.lad>0){B.lad-=dt;if(B.lad<=0){B.lad=0;superKast();B.kastT=B.gab}}
         else{B.kastT-=dt;if(B.kastI<B.plan.length&&B.kastT<=0){const m=B.plan[B.kastI++];if(m==='super')superStart();else{bossKast(m);B.kastT=B.gab*(m==='boelge'?1.7:1)*rnd(.85,1.15)}}else if(B.kastI>=B.plan.length&&!S.skud.length)bossSaarbar()}}
@@ -155,7 +156,7 @@ ROOMS.tryl=function(ctx){
   /* et væsen er landet: det slipper ballonerne og løber hen til kagen */
   const lande=f=>{for(const b of f.bal)if(!b.pop){f.G.remove(b.G);b.G.position.set(f.x+b.dx,f.y+b.dy,5);Rm.live.add(b.G);S.frie.push({G:b.G,x:f.x+b.dx,y:f.y+b.dy,vy:11,t:0,ph:b.ph})}f.bal=[];f.st='loeb';f.t=0;f.side=f.x<0?-1:1;LYD.fil2('tryl.lander','gnom.forbi');Rm.burst(f.x,.6,8,5,'rgba(205,232,208,.9)',4)};
   const bid=(f,txt)=>{if(S.liv<=0||S.fase==='tabt')return;S.liv--;S.ryst=.3;S.kageHop=.35;LYD.nam();Rm.burst(0,7+S.liv*2,10,14,'rgba(246,217,168,.95)',8);Rm.burst(0,7+S.liv*2,10,8,'rgba(255,143,199,.95)',7);tekst(f.x,f.y+1,txt||'NAM!','#ff8fc7',54);visKage();
-    if(S.liv<=0){S.fase='tabt';S.faseT=2.1;if(S.streg)slip(S.streg.stj,null);S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msg2='';S.msgT=9}};
+    if(S.liv<=0){S.fase='tabt';S.faseT=2.1;/* lille øv-jingle, når der ligger en (Kasper 27. nov.) */if(LYD.harFil('tryl.tabt'))LYD.fil('tryl.tabt');if(S.streg)slip(S.streg.stj,null);S.streg=null;S.gave=null;gaveG.visible=false;S.msg='Kagen er spist!';S.msg2='';S.msgT=9}};
   const visKage=()=>kage.forEach((k,i)=>{k.visible=!S||i<S.liv});
   const slut=()=>{const n=S.score,w=S.runde,m=S.forvandlet,bil=Math.min(40,1+Math.floor(n/110)),rek=Math.max(SPIL.data.trylRek||0,n);SPIL.data.trylRek=rek;SPIL.givBil(bil);if(n>=300)LYD.fanfare();else LYD.slut();LOG.row('tryl',{point:n,runde:w,forvandlet:m,billetter:bil});S.fase='vent';rydBoss();for(const q of[...S.foes,...S.dyr,...S.frie])Rm.live.remove(q.G);S.foes=[];S.dyr=[];S.frie=[];tegnHud();
     ctx.vent(`Du nåede runde ${w}, forvandlede ${m} ${m===1?'væsen':'væsner'} og fik ${n} point. Det giver ${bil} ${bil===1?'billet':'billetter'}! Din rekord er ${rek} point.`)};
@@ -264,6 +265,6 @@ ROOMS.tryl=function(ctx){
         if(u.snak){u.snak.visible=B.snakT>0&&B.fase!=='besejret';u.snak.position.set(clamp(B.x+9,-30,30),B.y+7.6,7.5);u.snak.scale.setScalar(Math.min(1,(2.2-B.snakT)*8))}
         if(u.svim){if(B.fase!=='saarbar'){rydG(u.svim);u.svim=null}else{u.svim.position.set(clamp(B.x,-28,28),B.y-13.4,9);B.bar.scale.x=Math.max(.001,B.saarT/B.saarMax);if(B.saarT/B.saarMax<.3)B.bar.children[0].material=STJ.roed.material;B.kd.forEach((d,i)=>d.scale.setScalar(i===B.komboI?1.15+.06*Math.sin(S.t*8):1))}}}
       }},Rm=makeRoom(ctx,OPT);
-  ctx.efter.push(()=>{svimStop();pt&&pt.ryd();ban&&ban.fjern();rydG(kortG)});
+  ctx.efter.push(()=>{svimStop();bossFoer=null;pt&&pt.ryd();ban&&ban.fjern();rydG(kortG)});
   ctx.test={begynd,frys:v=>{frys=v},spol:s=>{for(let i=0;i<s*25;i++)OPT.tick(Rm.t+i*.04,.04)},S:()=>S,tegn:sym=>{/* tegner tegnet som en streg midt på skærmen, som en finger ville */const p=TG[sym].p.map(([x,y])=>[x*140,y*140-400]);const ud=[];for(let i=1;i<p.length;i++)for(let k=0;k<8;k++)ud.push([p[i-1][0]+(p[i][0]-p[i-1][0])*k/8,p[i-1][1]+(p[i][1]-p[i-1][1])*k/8]);ud.push(p[p.length-1]);tegnet(ud,[]);return trylGenkend(ud,Object.keys(TG))},
     runde:w=>{S.runde=w-1;S.bossNr=Math.floor((w-1)/5);rydBoss();for(const f of S.foes)Rm.live.remove(f.G);S.foes=[];S.koe=[];naesteRunde()},frem:()=>{if(S.kort){S.faseT=0}},bid:()=>bid({x:0,y:10}),gave:()=>{S.gaveT=.01},tilstand:()=>S&&{fase:S.fase,runde:S.runde,score:S.score,liv:S.liv,foes:S.foes.map(f=>({k:f.k,st:f.st,y:+f.y.toFixed(1),bal:f.bal.filter(b=>!b.pop).map(b=>b.sym)})),tegn:S.cfg&&S.cfg.tegn,gave:!!S.gave,forvandlet:S.forvandlet,skud:S.skud.map(k=>({sym:k.sym,stor:!!k.stor,t:+k.t.toFixed(1)})),boss:S.boss&&{k:S.boss.def.k,fase:S.boss.fase,hp:S.boss.hp,lad:+S.boss.lad.toFixed(1),naeste:S.boss.fase==='saarbar'?S.boss.kombo[S.boss.komboI]:null}}}};
