@@ -1911,7 +1911,7 @@ function buildLive(){
   /* byens beboere */
   for(let i=0;i<FOLK.length;i++){const o=makeFolk(i);live.add(o.root);walkers.push({o,sp:o.sp,kind:'npc'})}}
 
-const PAPVER='pap-0.63';
+const PAPVER='pap-0.64';
 /* ---------- kvaliteten (Kasper 23. nov.: tabletten kører for langsomt) ----------
    En enhed med lidt hukommelse (tabletten har 4 GB) tegner kortet og rummene i almindelig skarphed (1 punkt pr. punkt) i stedet for 1,5.
    Hvert rum måler sig selv og går et niveau ned, hvis det kører langsommere end ca. 36 billeder i sekundet. Niveauet huskes pr. rum på enheden,
@@ -2837,7 +2837,7 @@ function gnome(i,inst){const G=new THREE.Group(),SKIN='#f4c8a0';const o={G,i,ins
     const mk=new THREE.Group();put(o.armR,mk,0,-3.3,.3);mk.scale.y=1/.45;pc(mk,box(-.2,-1.1,.2,-.3),{color:'#2a2a32',t:.3},0);const kugle=new THREE.Mesh(new THREE.SphereGeometry(.46,14,10),paperMat('#c0c4d0','card'));put(mk,kugle,0,-1.45,.1);
     foran();o.armR.position.z=1.25;stil(-2.5,-2.15,1,.45)}
   if(inst==='trommer'){/* stikkerne peger skråt op og ind mod midten, klar til at slå, ikke ned langs armen (Kasper 23. nov.) */
-    foran();stil(-.62,.62,.8,.8);for(const a of[o.armL,o.armR]){const v=a===o.armL,h=new THREE.Group();h.position.set(0,-3.3,.35);h.scale.y=1/.8;a.add(h);o.ud.push(h);
+    foran();stil(-.62,.62,.8,.8);for(const a of[o.armL,o.armR]){const v=a===o.armL,h=new THREE.Group();h.position.set(0,-3.3,.35);h.scale.y=1/.8;a.add(h);o.ud.push(h);(o.stik=o.stik||[]).push(h);
       const ret=v?.62:Math.PI-.62,rot=ret-Math.PI/2-a.rotation.z,d=[Math.cos(ret-a.rotation.z),Math.sin(ret-a.rotation.z)];
       const st=new THREE.Mesh(new THREE.BoxGeometry(.18,2.8,.18),paperMat('#e8d0a0','balsa'));st.rotation.z=rot;st.position.set(d[0]*1.1,d[1]*1.1,0);h.add(st);
       const sp=new THREE.Mesh(new THREE.SphereGeometry(.17,8,6),paperMat('#f4e2c0','balsa'));sp.position.set(d[0]*2.5,d[1]*2.5,0);h.add(sp)}}
@@ -2976,13 +2976,73 @@ const ST=makeStage({scene,live,cam,CD,fit:(c,w,h)=>{const asp=w/h,needW=128,need
   /* lydens ur på Android tæller i store hop (Kasper 23. nov.: "de bevæger sig med noget a la 2 fps"), så bandet følger et jævnt ur, der går med billederne og hele tiden trækkes blidt mod lydens tid. Ved et stort spring (ny sang, eller sløjfen starter forfra) hopper det med */
   /* bukket efter en ønsket sang: bandet står stille et øjeblik, bukker mod publikum, og så går de ud (Kasper 23. nov.) */
   let bukT=9;buk=()=>{bukT=0};
+  /* ---------- små events i sangene (Kasper 28. nov.): pap-teater i snore og kulisser, styret af sangens ur ---------- */
+  const EVT=(()=>{const ild=(c='#ffd04a',g='#ff7a2a')=>paperMat(c,'tissue',{glow:g,gi:1.8});
+    const flamme=(h,w)=>sm([[-w*.5,0],[w*.5,0],[w*.55,h*.3],[w*.25,h*.55],[w*.35,h*.75],[w*.05,h*.62],[0,h],[-w*.12,h*.7],[-w*.4,h*.8],[-w*.3,h*.5],[-w*.55,h*.3]],6);
+    const aktiv=(id,stil,t0,t1)=>cur===stil&&ur.id===id&&ur.t>=t0&&ur.t<=t1;
+    /* --- Hawaii: en række papfrøer i flæseskørter danser can-can hen over scenekanten på de sidste omkvæd --- */
+    const FR={g:new THREE.Group(),fr:[]};put(live,FR.g,0,OPEN.y0,4.6);FR.g.visible=false;
+    for(let i=0;i<6;i++){const f=new THREE.Group();put(FR.g,f,i*5.6,0,0);const ben=[];
+      for(const sx of[-1,1]){const b=new THREE.Group();put(f,b,sx*.8,2.3,-.1);pc(b,sm([[-.32,0],[.32,0],[.28,-1.9],[sx*.9,-2.3],[sx*.95,-2.6],[-.35,-2.5]],4),{color:'#3f9a3a',kind:'water',t:.15},0);ben.push(b)}
+      pc(f,box(-2.9,4.25,2.9,4.65),{color:'#4aa844',kind:'water',t:.12},-.2);
+      pc(f,sm([[-2,1.7],[-1.7,2.3],[-1.2,1.75],[-.7,2.35],[-.2,1.75],[.3,2.35],[.8,1.75],[1.3,2.35],[1.75,1.75],[2,2.6],[1.3,3.1],[-1.3,3.1]],5),{color:'#fff2f8',t:.08},.05);
+      pc(f,sm([[-1.75,2.05],[-1.4,2.55],[-.95,2.05],[-.5,2.6],[0,2.05],[.5,2.6],[.95,2.05],[1.4,2.55],[1.75,2.05],[1.6,3.2],[-1.6,3.2]],5),{color:'#ff8fc7',kind:'water',t:.1},.1);
+      pc(f,circ(0,3.9,1.5,1.4,24),{color:'#5fbf4a',kind:'water',t:.15},.15);pc(f,circ(0,3.7,.9,.85,20),{color:'#d8f0a8',t:.06},.22);
+      pc(f,circ(0,5.55,1.75,1.05,28),{color:'#5fbf4a',kind:'water',t:.15},.25);
+      for(const sx of[-1,1]){pc(f,circ(sx*.95,6.4,.6,.6,18),{color:'#5fbf4a',kind:'water',t:.12},.3);pc(f,circ(sx*.95,6.45,.42,.42,16),{color:'#ffffff',t:.05},.36);pc(f,circ(sx*.95+.05,6.4,.2,.24,10),{color:'#1a1238',t:.04},.4);pc(f,circ(sx*1.15,5.2,.28,.18,10),{color:'#ff9fc0',t:.03},.32)}
+      pc(f,sm([[-.9,5.2],[0,4.75],[.9,5.2],[.8,5.32],[0,4.95],[-.8,5.32]],5),{color:'#2a3a1a',t:.04},.34);
+      pc(f,sm([[-.2,6.4],[.3,6.6],[.2,7.1],[-.3,7]],4),{color:'#ff4fa0',kind:'water',t:.06},.42);
+      FR.fr.push({f,ben,i})}
+    /* --- Klassisk: en papdrage bliver firet ned i snore og har en blafrende papflamme ud af munden --- */
+    const DR={g:new THREE.Group()};put(live,DR.g,6,60,-3);DR.g.visible=false;{const g=DR.g;
+      for(const x of[-3.5,4.5])stick(g,x,2,40,-.3,.08,'#e8e0c8');
+      DR.vinge=new THREE.Group();put(g,DR.vinge,1.5,2.5,-.2);pc(DR.vinge,sm([[0,0],[1.5,5.5],[3.6,7.4],[3.3,5.2],[5.2,5.6],[4.4,3.4],[6.2,2.8],[3.6,.6]],5),{color:'#2f7a4a',kind:'water',t:.15},0);pc(DR.vinge,sm([[.8,.8],[1.9,4.4],[3,4.4],[4.1,2.6],[3.2,1.1]],4),{color:'#7fd08a',t:.05},.08);
+      pc(g,sm([[3.5,0],[6.5,.4],[8.6,1.8],[9.4,3.6],[8.4,3],[7.6,1.6],[5.2,1.2],[3.4,1.6]],6),{color:'#3f9a5a',kind:'water',t:.15},.05);pc(g,sm([[9,3.2],[10.3,4.6],[9.6,2.5]],3),{color:'#2f7a4a',t:.1},.06);
+      pc(g,circ(1.2,1.6,3.6,2.4,28),{color:'#3f9a5a',kind:'water',t:.2},.1);pc(g,sm([[-1.6,.2],[1.2,-.6],[3.6,0],[2.6,.8],[-.6,1.2]],5),{color:'#f2d27a',t:.06},.18);
+      for(const x of[-.6,.8,2.2])pc(g,sm([[x,2.9],[x+.5,4.2],[x+1,2.9]],2),{color:'#e0457a',t:.06},-.05);
+      pc(g,sm([[-1.8,2.3],[-3.4,4.2],[-4,6],[-3,6.4],[-2.4,4.8],[-.8,3.2]],6),{color:'#3f9a5a',kind:'water',t:.18},.12);
+      DR.hoved=new THREE.Group();put(g,DR.hoved,-3.6,6.2,.2);const H=DR.hoved;
+      pc(H,sm([[1.4,-.4],[1.2,1.2],[-.4,1.4],[-2.6,.9],[-3.4,.4],[-3.4,0],[-1,-.1]],6),{color:'#3f9a5a',kind:'water',t:.18},0);
+      DR.kaebe=new THREE.Group();put(H,DR.kaebe,.4,-.3,.02);pc(DR.kaebe,sm([[.6,0],[-3,-.1],[-3.1,-.5],[-1.4,-1],[.6,-.7]],5),{color:'#3f9a5a',kind:'water',t:.16},0);pc(DR.kaebe,sm([[-2.9,-.15],[-.4,-.1],[-.6,-.4],[-2.6,-.4]],3),{color:'#c0304a',t:.04},.05);
+      for(const x of[-2.6,-1.9,-1.2])pc(H,sm([[x,-.1],[x+.25,-.5],[x+.5,-.1]],2),{color:'#ffffff',t:.04},.06);
+      pc(H,circ(-.4,.75,.42,.42,14),{color:'#fff6d0',t:.05},.1);pc(H,circ(-.5,.75,.18,.26,10),{color:'#1a1238',t:.04},.14);pc(H,sm([[-1,1.25],[.1,1.45],[.1,1.3],[-1,1.12]],3),{color:'#1f5a3a',t:.03},.14);
+      pc(H,circ(-3.1,.55,.14,.1,8),{color:'#1f5a3a',t:.03},.1);
+      for(const x of[.4,1])pc(H,sm([[x,1.2],[x+.9,2.6],[x+.4,1.1]],2),{color:'#f6e8c8',t:.06},-.04);
+      DR.ild=new THREE.Group();put(H,DR.ild,-3.3,-.35,.1);DR.ild.rotation.z=Math.PI/2+.35;
+      pc(DR.ild,flamme(7,3.2),{mat:ild('#ff9a3a','#ff5a1a'),t:.05},0);pc(DR.ild,flamme(5,2),{mat:ild('#ffe07a','#ffb03a'),t:.04},.06);pc(DR.ild,flamme(3,1.1),{mat:ild('#fff6c8','#ffe0a0'),t:.03},.1);
+      put(DR.ild,glowSprite('rgba(255,150,60,.55)',8),0,3,.2);DR.ild.scale.setScalar(.01);DR.ild.visible=false}
+    /* --- Rock: flammesøjler af pap ved scenekanten på de store slag, og trommestikkerne flyver op på slutakkorden --- */
+    const SOEJ=[];for(const x of[-25,-12,12,25]){const g=new THREE.Group();put(live,g,x,OPEN.y0,5);pc(g,box(-1.3,0,1.3,.9),{color:'#2a2a32',t:.4},0);const fl=new THREE.Group();put(g,fl,0,.8,.1);
+      pc(fl,flamme(11,3.4),{mat:ild('#ff7a2a','#ff4a10'),t:.05},0);pc(fl,flamme(8,2.2),{mat:ild('#ffc04a','#ff8a2a'),t:.04},.06);pc(fl,flamme(5,1.2),{mat:ild('#fff2b0','#ffd07a'),t:.03},.1);put(fl,glowSprite('rgba(255,140,40,.6)',12),0,5,.3);fl.scale.set(1,.01,1);fl.visible=false;SOEJ.push({g,fl,ph:Math.random()*9})}
+    const ROCKSLAG=[74.7,115.3,188.2,203.7];
+    const STIK={fly:[],laand:false};for(let k=0;k<2;k++){const g=new THREE.Group();const st=new THREE.Mesh(new THREE.BoxGeometry(.18,2.8,.18),paperMat('#e8d0a0','balsa'));g.add(st);const sp=new THREE.Mesh(new THREE.SphereGeometry(.17,8,6),paperMat('#f4e2c0','balsa'));sp.position.y=1.4;g.add(sp);live.add(g);g.visible=false;STIK.fly.push({g,x:0,y:0,z:0,vx:0,vy:0,vz:0,vr:0,r:0,ned:false})}
+    const tromme=()=>BAND.find(o=>o.inst==='trommer');
+    const stikIHaand=vis=>{const o=tromme();if(o&&o.stik)for(const h of o.stik)h.visible=vis};
+    return {tick(dt,beat){
+      /* frøerne */
+      {const on=aktiv('koncert.hawaii','hawaii',101.5,142.5);FR.g.visible=on;if(on){const u=(ur.t-102)/(141-102);FR.g.position.x=-62+u*(62+34);const alle=ur.t>121.8&&ur.t<125.5;
+        for(const q of FR.fr){const ph=beat+(q.i%2?Math.PI:0),sp=Math.max(0,Math.sin(ph)),sp2=Math.max(0,-Math.sin(ph));
+          if(alle){const a=Math.max(0,Math.sin(beat));q.ben[0].rotation.z=-1.9*a;q.ben[1].rotation.z=.15*a}else{q.ben[0].rotation.z=-1.7*sp;q.ben[1].rotation.z=1.7*sp2}
+          q.f.position.y=.35*Math.abs(Math.sin(beat));q.f.rotation.z=.08*Math.sin(ph)}}}
+      /* dragen */
+      {const t=ur.t,on=aktiv('koncert.klassisk','klassisk',75.5,84.5);DR.g.visible=on;if(on){const ned=Math.min(1,Math.max(0,(t-76)/1.4)),op=Math.min(1,Math.max(0,(t-82.6)/1.2)),e=x=>x*x*(3-2*x);
+        DR.g.position.y=60-(60-21)*e(ned)+(60-21)*e(op);DR.g.rotation.z=.06*Math.sin(t*2.3);DR.vinge.rotation.z=.25*Math.sin(t*5);
+        const spy=t>77.5&&t<82.8;DR.ild.visible=spy||DR.ild.scale.x>.02;const mal=spy?1:0,s=DR.ild.scale.x+(mal-DR.ild.scale.x)*Math.min(1,dt*(spy?6:9));DR.ild.scale.set(s*(1+.08*Math.sin(t*23)),s*(1+.12*Math.sin(t*17+1)),1);DR.kaebe.rotation.z=spy?.35+.06*Math.sin(t*9):.05;DR.hoved.rotation.z=spy?-.1:0}}
+      /* flammesøjlerne */
+      {const on=cur==='rock'&&ur.id==='koncert.rock';for(const s of SOEJ){let a=0;if(on)for(const t0 of ROCKSLAG){const u=ur.t-t0;if(u>0&&u<1.3)a=Math.max(a,u<.15?u/.15:u>1?(1.3-u)/.3:1)}
+        s.fl.visible=a>.01;s.fl.scale.set(1+.1*Math.sin(t*19+s.ph),Math.max(.01,a*(1+.08*Math.sin(t*13+s.ph))),1)}}
+      /* trommestikkerne */
+      {const o=tromme(),on=cur==='rock'&&ur.id==='koncert.rock'&&ur.t>203.7;if(on&&!STIK.laand&&o){STIK.laand=true;stikIHaand(false);STIK.fly.forEach((f,k)=>{f.x=o.x+(k?1.6:-1.6);f.z=o.z+.6;f.y=OPEN.y0+floorY(o.x,o.z)+7.2;f.vx=(k?1:-1)*R(1.5,3);f.vz=R(5,7);f.vy=R(15,18);f.vr=(k?-1:1)*R(9,13);f.r=0;f.ned=false;f.g.visible=true})}
+        if(!on&&STIK.laand){STIK.laand=false;stikIHaand(true);for(const f of STIK.fly)f.g.visible=false}
+        if(STIK.laand)for(const f of STIK.fly){if(!f.ned){f.vy-=30*dt;f.x+=f.vx*dt;f.z+=f.vz*dt;f.y+=f.vy*dt;f.r+=f.vr*dt;const gulv=OPEN.y0+floorY(f.x,f.z)+.2;if(f.y<gulv&&f.vy<0){f.y=gulv;if(f.vy<-6){f.vy*=-.3;f.vr*=.4;f.vx*=.5;f.vz*=.3}else{f.ned=true;f.r=Math.PI/2}}}f.g.position.set(f.x,f.y,f.z);f.g.rotation.z=f.r}}
+    }}})();
   /* Ulven hyler (AHUUU): sekunder i sangen, hvor han smider hovedet tilbage og strækker armen op */
   const HYL={'koncert.hiphop':[[.2,3.4],[191.1,192.5],[194.5,196.6]]};let hylH=0;
   const ur={id:null,t:0,dt:0};
   const slagFase=()=>{const L_=typeof LYD!=='undefined'?LYD:null,m0=L_&&L_.musikTid&&L_.musikTid();if(!m0||!m0.id){ur.id=null;return null}
     const lat=L_.forsinkelse?L_.forsinkelse():0,mt=m0.t-lat;if(ur.id!==m0.id||Math.abs(mt-ur.t)>.35){ur.id=m0.id;ur.t=mt}else{ur.t+=ur.dt;ur.t+=(mt-ur.t)*Math.min(1,ur.dt*1.5)}const m={id:m0.id,t:ur.t};const key=m.id.replace('koncert.','').replace(/^lounge(\d)$/,'lounge-$1'),a=SLAG[key];
     if(!a)return m.t*2.2;if(m.t<a[0])return null;let lo=0,hi=a.length-1;if(m.t>=a[hi])return hi+Math.min(1,(m.t-a[hi])/((a[hi]-a[hi-1])||.45));while(hi-lo>1){const md=(lo+hi)>>1;if(a[md]<=m.t)lo=md;else hi=md}return lo+(m.t-a[lo])/(a[hi]-a[lo])};
-  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;t+=dt;ur.dt=dt;bukT+=dt;const fase=slagFase();{const hl=ur.id&&HYL[ur.id];let mal=0;if(hl&&cur==='hiphop')for(const[s0,e0]of hl)if(ur.t>s0&&ur.t<e0)mal=1;hylH+=(mal-hylH)*Math.min(1,dt*7)}spil+=((fase==null?0:1)-spil)*Math.min(1,dt*(fase==null?6:3));const beat=(fase==null?0:fase)*Math.PI;
+  const loop=now=>{if((typeof ctx!=='undefined')&&!ctx.alive)return;requestAnimationFrame(loop);const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;t+=dt;ur.dt=dt;bukT+=dt;const fase=slagFase();{const hl=ur.id&&HYL[ur.id];let mal=0;if(hl&&cur==='hiphop')for(const[s0,e0]of hl)if(ur.t>s0&&ur.t<e0)mal=1;hylH+=(mal-hylH)*Math.min(1,dt*7)}spil+=((fase==null?0:1)-spil)*Math.min(1,dt*(fase==null?6:3));const beat=(fase==null?0:fase)*Math.PI;EVT.tick(dt,beat);
     for(const o of BAND){const walking=o.q.length>0;
       if(walking){const[tx_,tz_]=o.q[0],dx=tx_-o.x,dz=tz_-o.z,d=Math.hypot(dx,dz),st=Math.min(d,13*dt);if(d<.05)o.q.shift();else{o.x+=dx/d*st;o.z+=dz/d*st;if(Math.abs(dx)>.2)o.dir=dx>0?1:-1;o.wp=(o.wp||0)+st}}
       else o.dir+=(1-o.dir)*Math.min(1,dt*8);
